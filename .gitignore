@@ -33,5 +33,5 @@ git_readme.md
 scripts/*.md
 scripts/*.sh
 scripts/*.bat
-!scripts/README.md
-!scripts/test.md
+scripts/README.md
+scripts/test.md
