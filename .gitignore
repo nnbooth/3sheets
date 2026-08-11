@@ -34,6 +34,5 @@ scripts/*.md
 scripts/*.sh
 scripts/*.bat
 
-# Power BI — exclude IDE cache and settings; only track .pbip and definition/
-Power BI/**/.pbi/
-Power BI/**/.platform
+# Exclude all Power BI assets
+Power BI/
