@@ -1,0 +1,30 @@
+# Node dependencies
+**/node_modules/
+
+# Environment files
+**/.env
+**/.env.*.local
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+
+# Logs
+**/*.log
+
+# VS Code workspace cache
+.vscode/
+.vscode/*
+
+#Exclude Excel and CSV files
+*.csv
+*.xlsx
+*.xls
+
+# Private / personal files
+businessplan.md
+git_readme.md

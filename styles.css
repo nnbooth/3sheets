@@ -1,0 +1,318 @@
+/*
+  styles.css — 3Sheets Consulting
+
+  KEY LOCATIONS:
+  - Colour palette / CSS variables ........... :root block (line ~1)
+  - Section vertical spacing (desktop) ....... .section { padding } — search "SECTION SPACING"
+  - Section vertical spacing (mobile) ........ @media (max-width: 900px) — search "MOBILE SECTION SPACING"
+  - Hero banner spacing ...................... search "HERO SPACING"
+  - Section heading gap ...................... .section-heading { margin-bottom }
+  - Button styles ............................ .sheet-btn
+  - Macro toast notification ................. .macro-toast (fixed bottom-centre popup)
+  - Mobile breakpoints ....................... @media (max-width: 720px)
+*/
+
+:root {
+  color-scheme: light;
+  --bg: #f4f7f2;
+  --surface: #fbfdf9;
+  --border: #dce8dc;
+  --text: #25342a;
+  --muted: #5f6f63;
+  --accent: #2f7a5d;
+  --accent-soft: #eaf6ee;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+img { max-width: 100%; }
+.container { width: min(1120px, calc(100% - 2rem)); margin: 0 auto; }
+.site-header { position: sticky; top: 0; z-index: 20; background: rgba(252, 251, 247, 0.96); border-bottom: 1px solid var(--border); }
+.nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
+.brand { font-weight: 700; letter-spacing: -0.02em; text-decoration: none; color: var(--text); font-size: 1rem; }
+.nav-links { display: flex; gap: 1rem; }
+.nav-links a { color: var(--muted); text-decoration: none; transition: color 180ms ease; font-size: 0.95rem; }
+.nav-links a:hover { color: var(--text); }
+.nav-toggle { display: none; background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0.45rem 0.7rem; border-radius: 0.5rem; }
+/* HERO SPACING — top/bottom padding on the hero banner */
+.hero { padding: 3.5rem 0 2.25rem; }
+.hero-grid { display: grid; gap: 2rem; grid-template-columns: 1.4fr 0.9fr; align-items: center; }
+.eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.5rem; }
+h1, h2, h3 { line-height: 1.15; margin: 0 0 0.8rem; }
+h1 { font-size: clamp(2rem, 3.2vw, 3rem); margin: 0 0 1rem; letter-spacing: -0.03em; }
+h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing: -0.02em; }
+.section-heading a { color: var(--accent); text-underline-offset: 3px; }
+.hero-copy, .section-heading p, .info-card p, .dashboard-card p, .contact-box p { color: var(--muted); font-size: 1rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+.button { display: inline-block; padding: 0.8rem 1.1rem; border-radius: 999px; text-decoration: none; font-weight: 600; }
+.button.primary { background: var(--accent); color: #f8f7f2; }
+.button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.hero-card, .info-card, .dashboard-card, .step-card, .contact-box { background: var(--surface); border: 1px solid var(--border); border-radius: 0.9rem; }
+.hero-card { padding: 1.3rem; }
+.mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.mini-metric { border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.85rem; background: #ffffff; }
+.mini-label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.3rem; }
+.metric-value { display: block; font-size: 1rem; color: var(--text); font-weight: 600; }
+.metric-value.positive { color: #1f7a4a; }
+.metric-value.neutral { color: var(--text); }
+/* SECTION SPACING — reduce these values to tighten vertical gaps between sections */
+.section { padding: 3rem 0; }
+.section-alt { background: #f8faf8; }
+/* SECTION HEADING — controls gap between heading and section content */
+.section-heading { margin-bottom: 1.5rem; }
+.card-grid, .dashboard-grid, .steps-grid { display: grid; gap: 1.25rem; }
+.card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.dashboard-grid, .steps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.info-card, .dashboard-card, .step-card { padding: 1.4rem; }
+.contact-box { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.7rem; }
+.embed-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+  --sheet-height-desktop: 300px;
+  --sheet-height-mobile: 280px;
+  --sheet-width-desktop: 860px;
+}
+
+.sheet-embed {
+  width: 100%;
+  height: var(--sheet-height-desktop);
+  min-height: 220px;
+  max-height: 520px;
+  border: none;
+  background: transparent;
+  display: block;
+}
+
+.desktop-sheet {
+  width: min(100%, var(--sheet-width-desktop));
+  margin: 0 auto;
+}
+
+.mobile-sheet {
+  display: none;
+}
+
+.sheet-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.sheet-btn {
+  display: inline-block;
+  padding: 0.8rem 1.1rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #f8f7f2;
+  border: 1px solid var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: filter 180ms ease;
+}
+
+.sheet-btn:hover {
+  filter: brightness(0.95);
+}
+
+.sheet-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.macro-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  min-height: 1.2em;
+}
+.macro-status--success { color: #2a7a4b; font-weight: 600; }
+.macro-status--error   { color: #b93a3a; font-weight: 600; }
+.macro-status--pending { color: var(--muted); }
+
+.macro-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+  padding: 0.75rem 1.25rem 0.85rem;
+  width: min(420px, calc(100vw - 2rem));
+  z-index: 9999;
+  overflow: hidden;
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+.macro-toast--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(12px);
+}
+.macro-toast-bar {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  margin-bottom: 0.5rem;
+  width: 0%;
+  transition: width 300ms ease, background 300ms ease;
+}
+.macro-toast--pending .macro-toast-bar { animation: macro-indeterminate 1.6s ease-in-out infinite; }
+.macro-toast--success .macro-toast-bar { width: 100%; animation: none; }
+.macro-toast--error   .macro-toast-bar { width: 100%; background: #b93a3a; animation: none; }
+.macro-toast-msg { font-size: 0.9rem; display: block; }
+.macro-toast--pending .macro-toast-msg { color: var(--muted); }
+.macro-toast--success .macro-toast-msg { color: #2a7a4b; font-weight: 600; }
+.macro-toast--error   .macro-toast-msg { color: #b93a3a; font-weight: 600; }
+.macro-progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.45rem;
+}
+.macro-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  width: 0%;
+  transition: width 300ms ease, background 300ms ease;
+}
+.macro-feedback--pending .macro-progress-bar {
+  animation: macro-indeterminate 1.6s ease-in-out infinite;
+}
+.macro-feedback--success .macro-progress-bar {
+  width: 100%;
+  animation: none;
+}
+.macro-feedback--error .macro-progress-bar {
+  width: 100%;
+  background: #b93a3a;
+  animation: none;
+}
+@keyframes macro-indeterminate {
+  0%   { width: 0%;   margin-left: 0%; }
+  50%  { width: 55%;  margin-left: 22%; }
+  100% { width: 0%;   margin-left: 100%; }
+}
+.macro-label {
+  font-size: 0.88rem;
+  margin: 0;
+}
+.macro-feedback--pending .macro-label { color: var(--muted); }
+.macro-feedback--success .macro-label { color: #2a7a4b; font-weight: 600; }
+.macro-feedback--error   .macro-label { color: #b93a3a; font-weight: 600; }
+
+.site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
+.footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
+@media (max-width: 900px) {
+  .card-grid, .dashboard-grid, .steps-grid, .hero-grid { grid-template-columns: 1fr; }
+  .contact-box { flex-direction: column; align-items: flex-start; }
+  /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
+  .section { padding: 2rem 0; }
+  .section-heading { margin-bottom: 1.1rem; }
+}
+@media (max-width: 720px) {
+  .desktop-sheet {
+    display: none;
+  }
+
+  .embed-panel {
+    padding: 0.7rem;
+  }
+
+  .mobile-sheet {
+    display: block;
+    width: 100%;
+    height: var(--sheet-height-mobile);
+    min-height: 220px;
+    max-height: 420px;
+    border: none;
+  }
+
+  .sheet-actions {
+    flex-wrap: wrap;
+  }
+
+  .sheet-actions .sheet-btn {
+    flex: 1 1 100%;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .nav-toggle { display: inline-block; }
+  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; padding: 1rem; background: rgba(252, 251, 247, 0.98); border-bottom: 1px solid var(--border); }
+  .nav-links.open { display: flex; }
+  .hero { padding-top: 2rem; padding-bottom: 1.5rem; }
+}
+
+.export-btn {
+  background: #2f7a5d;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.export-btn:hover {
+  background: #2f7a5d;
+}
+.powerbi-frame {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  margin-top: 1.5rem;
+}
+
+.powerbi-frame iframe {
+  width: 100%;
+  height: 804px;
+  border: none;
+  display: block;
+}
+
+.powerbi-link {
+  margin-top: 1.25rem;
+  text-align: right;
+}
+
+
+.powerbi-link a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 180ms ease;
+}
+
+.powerbi-link a:hover {
+  color: var(--text);
+}
+
+.powerbi-actions {
+  margin-top: 1.75rem;   /* gives breathing room below the viewer */
+  text-align: left;     /* aligns the button cleanly */
+}
+
+.powerbi-actions .sheet-btn {
+  display: inline-block;
+}
