@@ -29,9 +29,7 @@ Thumbs.db
 businessplan.md
 git_readme.md
 
-# scripts/ folder — only README.md, test.md, .js and .py files are tracked
+# scripts/ folder — only .js and .py files are tracked; all docs are internal
 scripts/*.md
 scripts/*.sh
 scripts/*.bat
-scripts/README.md
-scripts/test.md
