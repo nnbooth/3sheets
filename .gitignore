@@ -34,5 +34,5 @@ scripts/*.md
 scripts/*.sh
 scripts/*.bat
 
-# Exclude all Power BI assets
+# Power BI — exclude entire folder (IDE projects not suitable for version control)
 Power BI/
