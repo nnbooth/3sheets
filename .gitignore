@@ -28,3 +28,10 @@ Thumbs.db
 # Private / personal files
 businessplan.md
 git_readme.md
+
+# scripts/ folder — only README.md, test.md, .js and .py files are tracked
+scripts/*.md
+scripts/*.sh
+scripts/*.bat
+!scripts/README.md
+!scripts/test.md
