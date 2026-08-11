@@ -28,11 +28,16 @@ dim_date -----------------\                /  -> fact_disbursements (line items 
 ```
 
 **dim_client** — client_id, client_name, client_segment
+
 **dim_matter** — matter_id, client_id, matter_reference, matter_name, practice_area_id, practice_area_name,
 fee_earner_id, referral_source_id, open_date, close_date, status, fee_type
+
 **dim_practice_area** — practice_area_id, practice_area_name, avg_duration_months, nwnf_share
+
 **dim_fee_earner** — fee_earner_id, name, role, primary_practice_area_id, hourly_rate, target_utilization_pct, start_date
+
 **dim_referral_source** — referral_source_id, source_name, quality_factor
+
 **dim_date** — date, year, month, quarter, day_of_week, is_weekend, financial_year (AU, Jul–Jun), is_court_vacation
 
 **fact_matter** — matter_id, practice_area_id, fee_earner_id, referral_source_id, open_date,
@@ -60,8 +65,7 @@ work performed less billed amounts less write-offs.
 
 ## Insights baked into the data (verified)
 
-1. **Realization rate gap**: No Win No Fee matters collect less of their work value than hourly
-   matters, so write-off exposure is concentrated in NWNF.
+1. **Realization rate gap**: No Win No Fee matters collect less of their work value than hourly matters, so write-off exposure is concentrated in NWNF.
 2. **Matter WIP aging**: Medical Negligence matters tend to carry the longest outstanding ledger
    balances because the work is performed well before the billing or write-off ledger date.
 3. **Referral source quality**: Referral Partner Network and insurer-style referrals convert to
