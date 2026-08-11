@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Power BI Template"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d94767bd-f1e5-484d-a121-c05533983f0c"
+  }
+}
