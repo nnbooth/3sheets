@@ -13,6 +13,10 @@ Thumbs.db
 **/__pycache__/
 **/*.pyc
 
+# Python virtual environments
+.venv/
+venv/
+
 # Logs
 **/*.log
 
