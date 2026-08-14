@@ -33,6 +33,9 @@ venv/
 businessplan.md
 git_readme.md
 
+# Owner documents — personal/private docs, not part of the portfolio repo
+Owner documents/
+
 # scripts/ folder — only .js and .py files are tracked; all docs are internal
 scripts/*.md
 scripts/*.sh
