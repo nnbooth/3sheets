@@ -12,7 +12,9 @@ purchase_order_lines_au_chaos
 
 goods_receipts
 
-supplier_invoices
+supplier_invoices_head
+
+supplier_invoices_detail
 
 forex_rates
 
@@ -72,7 +74,8 @@ sku_master.csv	SKU-level product metadata with intentional inconsistencies
 vendor_master.csv	Supplier records including fraudulent bank account variations
 purchase_order_lines_au_chaos.csv	PO lines with lifecycle statuses and anomalies
 goods_receipts.csv	Receiving records including partial and overdue deliveries
-supplier_invoices.csv	Invoices with GST errors and overpayment injections
+supplier_invoices_head.csv	One row per invoice: vendor, goods total ex GST, freight, GST charged (0 for non-GST-registered/non-AUD vendors)
+supplier_invoices_detail.csv	Invoice lines matched back to PO/PO line, including multi-PO invoices, back-order splits and over-PO-limit billing
 forex_rates.csv	AUD/USD FX rates with intentional miscalculations
 
 
