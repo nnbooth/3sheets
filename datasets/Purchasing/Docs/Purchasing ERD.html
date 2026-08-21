@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purchasing Schema — ER Diagram</title>
+<link rel="stylesheet" href="../../../styles.css">
+<style>
+  /* Page-specific additions only — everything else (palette, type, .section,
+     .container, .info-card, .card-grid, .eyebrow) comes from styles.css so
+     this stays in sync with the rest of the site. */
+  .erd-scroll { overflow-x: auto; padding-bottom: 0.25rem; }
+  pre.mermaid { min-width: 760px; margin: 0; }
+  /* Mermaid hard-codes these two as real CSS classes (relationship-line
+     label text/background) - unlike the entity box fills below, these ARE
+     overridable with plain CSS since they're actual classes, not bare
+     attributes. !important beats Mermaid's injected <style> regardless of
+     DOM order, since neither of its rules uses !important itself. */
+  .erd-scroll svg .label { fill: var(--muted) !important; }
+  .erd-scroll svg .relationshipLabelBox,
+  .erd-scroll svg .labelBkg { fill: var(--accent-soft) !important; background-color: var(--accent-soft) !important; }
+  .diagram-card { padding: 1.4rem; margin-bottom: 2rem; }
+  .diagram-note {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.9rem;
+    max-width: 80ch;
+  }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 0.85em;
+    background: var(--accent-soft);
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+  }
+  .meta-row b { color: var(--text); font-weight: 600; }
+  .doc-project-tag {
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav-bar">
+    <a class="brand" href="../../../index.html">3Sheets Consulting</a>
+    <span class="doc-project-tag">dataPortfolio &middot; Purchasing</span>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+
+    <div class="section-heading">
+      <p class="eyebrow">Azure SQL &middot; purchasing schema</p>
+      <h2>Purchasing table relationships</h2>
+      <p>Ten tables destined for the <code>purchasing</code> schema in the shared
+        <code>3sheets.db.sql</code> Azure SQL database — a full procure-to-pay model (raise PO,
+        receive goods, receive invoice, apply goods receipts to the invoice, pay the invoice).
+        Drawn from <code>purchasing_tables.py</code> for a final visual check before
+        <code>create_purchasing_schema.py</code> runs against Azure.</p>
+      <div class="meta-row">
+        <span>Server: <b>3sheets.database.windows.net</b></span>
+        <span>Database: <b>3sheets.db.sql</b></span>
+        <span>Schema: <b>purchasing</b></span>
+      </div>
+    </div>
+
+    <article class="info-card diagram-card">
+      <div class="erd-scroll"><pre class="mermaid">
+erDiagram
+  VENDOR_MASTER ||--o{ VENDOR_BANK_ACCOUNTS : "account history"
+  VENDOR_MASTER ||--o{ PURCHASE_ORDERS : supplies
+  SKU_MASTER ||--o{ PURCHASE_ORDERS : "ordered as"
+  PURCHASE_ORDERS ||--o{ GOODS_RECEIPTS : receives
+  PURCHASE_ORDERS ||--o{ SUPPLIER_INVOICES_DETAIL : "invoiced via Line_ID"
+  VENDOR_MASTER ||--o{ SUPPLIER_INVOICES_HEAD : bills
+  SUPPLIER_INVOICES_HEAD ||--o{ SUPPLIER_INVOICES_DETAIL : "bundles via Voucher_Number"
+  SUPPLIER_INVOICES_DETAIL ||--o{ GOODS_RECEIPT_APPLICATIONS : "matched to"
+  GOODS_RECEIPTS ||--o{ GOODS_RECEIPT_APPLICATIONS : "applied by"
+  SUPPLIER_INVOICES_HEAD ||--o{ PAYMENTS : "paid by"
+  PAYMENT_BATCHES ||--o{ PAYMENTS : contains
+  VENDOR_MASTER ||--o{ PAYMENTS : "paid to"
+
+  VENDOR_MASTER {
+    string Vendor_ID PK
+    string Vendor_Name
+    string ABN
+    string System_Currency
+    string Country
+    bool GST_Registered
+  }
+  VENDOR_BANK_ACCOUNTS {
+    string Vendor_ID PK,FK
+    string Bank_Account
+    date Effective_Start_Date PK
+    date Effective_End_Date "nullable - NULL = current"
+  }
+  SKU_MASTER {
+    string SKU_ID PK
+    string SKU_Description
+    string Category
+    decimal Typical_Unit_Price
+    int Days_To_Deliver
+  }
+  PURCHASE_ORDERS {
+    string Line_ID PK
+    string PO_ID
+    date Date
+    string Vendor_ID FK
+    string SKU_ID FK
+    string Line_Description
+    bool memo
+    decimal Qty
+    decimal Unit_Price
+    string Currency
+    string GST_Treatment
+    decimal Applied_FX_Rate
+    date Expected_Delivery_Date
+  }
+  GOODS_RECEIPTS {
+    string Receipt_ID PK
+    string Line_ID FK
+    date Receipt_Date
+    decimal Qty_Received
+  }
+  SUPPLIER_INVOICES_HEAD {
+    string Voucher_Number PK "system-generated AP voucher"
+    string Invoice_Number "vendor's own - NOT unique"
+    string Vendor_ID FK
+    date Invoice_Date
+    string Currency
+    decimal Goods_Total_Ex_GST
+    decimal Freight_Charged
+    decimal GST_Charged
+  }
+  SUPPLIER_INVOICES_DETAIL {
+    string Invoice_Line_ID PK
+    string Voucher_Number FK
+    string Invoice_Number "descriptive only"
+    string Vendor_ID
+    string PO_ID
+    string Line_ID FK
+    date Inv_Date
+    decimal Qty_Inv
+    decimal Inv_Price
+    string Inv_Currency
+    string Invoice_Error_Type "ground-truth label"
+  }
+  GOODS_RECEIPT_APPLICATIONS {
+    string Invoice_Line_ID PK,FK
+    string Receipt_ID PK,FK
+    decimal Qty_Applied
+  }
+  PAYMENT_BATCHES {
+    string Batch_ID PK
+    date Batch_Date
+  }
+  PAYMENTS {
+    string Payment_ID PK
+    string Batch_ID FK
+    string Voucher_Number FK
+    string Vendor_ID FK
+    date Payment_Date
+    string Payment_Bank_Account "compare vs VENDOR_BANK_ACCOUNTS"
+    decimal Payment_Amount
+    string Payment_Currency
+  }
+      </pre></div>
+      <p class="diagram-note">
+        Every line is a real <code>FOREIGN KEY</code> constraint, enforced by Azure SQL — 11 in
+        total. The old <code>supplier_invoices_head</code> ↔ <code>supplier_invoices_detail</code>
+        link used to be business-key-only, since <code>Invoice_Number</code> is intentionally
+        non-unique (duplicate invoices on the head side, bundled lines on the detail side) and a
+        <code>FOREIGN KEY</code> must reference a <code>PRIMARY KEY</code>/<code>UNIQUE</code>
+        column. The 2026-08-20 rebuild replaced that link with a system-generated
+        <code>Voucher_Number</code> — the same thing a real AP system uses as its true primary
+        key, with <code>Invoice_Number</code> demoted to a descriptive field that's still
+        deliberately non-unique (that's what makes the <code>DUPLICATE_INVOICE</code> fraud case
+        realistic: the same vendor invoice number entered twice, as two different vouchers).
+      </p>
+    </article>
+
+    <div class="section-heading">
+      <p class="eyebrow">Review</p>
+      <h2>Judgment calls baked into this diagram</h2>
+    </div>
+    <div class="decision-list">
+      <div class="decision-item">
+        <span class="tag">Type</span>
+        <p><code>GST_Registered</code> (<code>vendor_master</code>) and <code>memo</code>
+          (<code>purchase_orders</code>) are the only two True/False-shaped columns in
+          this schema — both stored as genuine <code>BIT</code>, matching what the source
+          generator actually produces. <code>GST_Registered</code> was originally documented as
+          <code>NVARCHAR(10)</code> text; <code>memo</code> was missing from the schema doc
+          entirely. Both corrected 2026-08-20.</p>
+      </div>
+      <div class="decision-item">
+        <span class="tag">Foreign keys</span>
+        <p>All 11 relationships above are real, enforced <code>FOREIGN KEY</code> constraints —
+          this is a reporting/warehouse extract rather than a live OLTP system, but every one of
+          these holds reliably in every row, so they're worth enforcing rather than leaving as
+          documentation only. The <code>SKU_ID</code> FK only works because
+          <code>Purchasing.py</code> writes a placeholder <code>SKU_ID = "GENERAL"</code> row
+          into <code>sku_master</code> for memo lines — the standard "unknown/not-applicable
+          member" pattern for a dimension table, kept out of the random sampling pool used for
+          genuine catalog lines.</p>
+      </div>
+      <div class="decision-item">
+        <span class="tag">Key design</span>
+        <p>No table in this schema has a SQL-generated <code>IDENTITY</code> key. Every primary
+          key is a natural business key — including <code>supplier_invoices_head</code>
+          (<code>Voucher_Number</code>) and <code>supplier_invoices_detail</code>
+          (<code>Invoice_Line_ID</code>), both generated in <code>Purchasing.py</code> rather than
+          by SQL Server at load time, so the same ID is stable across CSV, SQL, and Power BI.
+          Two tables use a natural composite key: <code>vendor_bank_accounts</code>
+          (<code>Vendor_ID</code> + <code>Effective_Start_Date</code>) and
+          <code>goods_receipt_applications</code> (<code>Invoice_Line_ID</code> +
+          <code>Receipt_ID</code>).</p>
+      </div>
+      <div class="decision-item">
+        <span class="tag">Full P2P rebuild</span>
+        <p>2026-08-20: went from 6 tables to 10, adding <code>vendor_bank_accounts</code>,
+          <code>goods_receipt_applications</code>, <code>payment_batches</code>, and
+          <code>payments</code>. The prior model stopped at "invoice references a PO line" —
+          this rebuild added the actual receipt-to-invoice matching record, so three-way-match
+          exceptions (unreceived invoices, over-invoiced quantities, duplicate-invoice claims
+          against the same receipt) are derivable facts rather than a synthetic label; and a
+          full payment layer with an effective-dated vendor bank-account history, so a payment
+          sent to an account never valid for that vendor, or valid once but since superseded, is
+          a detectable fraud signature rather than untestable. Azure SQL was fully dropped and
+          recreated against the new schema; the Power BI semantic model was rebuilt table by
+          table and verified refresh-clean with row counts matching Azure SQL exactly throughout.</p>
+      </div>
+      <div class="decision-item">
+        <span class="tag">Renamed &amp; extended</span>
+        <p><code>purchase_orders_au_chaos</code> renamed to <code>purchase_orders</code>
+          throughout (table, CSV, scripts, Power BI). <code>sku_master</code> gained
+          <code>Days_To_Deliver</code> (agreed lead time in days) and <code>purchase_orders</code>
+          gained <code>Expected_Delivery_Date</code> (<code>Date</code> +
+          <code>Days_To_Deliver</code>) — together these support a real DIFOT "on time" measure,
+          not just "in full."</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-content">
+    <p>&copy; <span id="year"></span> 3Sheets Consulting</p>
+    <p>dataPortfolio &middot; Purchasing ER diagram &middot; last updated 2026-08-20</p>
+  </div>
+</footer>
+
+<script>
+  const yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+</script>
+
+<script type="module">
+  import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+  await document.fonts.ready;
+
+  // Pull colors straight from styles.css custom properties so the diagram
+  // always matches the site palette, even if it changes later.
+  const site = getComputedStyle(document.documentElement);
+  const cssVar = (name) => site.getPropertyValue(name).trim();
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    fontFamily: 'Inter, "Segoe UI", Roboto, Arial, sans-serif',
+    themeVariables: {
+      fontSize: '13px',
+      fontFamily: 'Inter, "Segoe UI", Roboto, Arial, sans-serif',
+      // Mermaid's 'base' theme derives quite a few of these from just
+      // primaryColor if left unset - setting every one explicitly stops any
+      // of them silently falling back to Mermaid's default blue.
+      background: cssVar('--bg'),
+      primaryColor: cssVar('--accent-soft'),
+      primaryTextColor: cssVar('--text'),
+      primaryBorderColor: cssVar('--border'),
+      secondaryColor: cssVar('--surface'),
+      secondaryTextColor: cssVar('--text'),
+      secondaryBorderColor: cssVar('--border'),
+      tertiaryColor: cssVar('--accent-soft'),
+      tertiaryTextColor: cssVar('--text'),
+      tertiaryBorderColor: cssVar('--border'),
+      lineColor: cssVar('--muted'),
+      textColor: cssVar('--text'),
+      mainBkg: cssVar('--accent-soft'),
+      secondBkg: cssVar('--surface'),
+      nodeBorder: cssVar('--border'),
+      clusterBkg: cssVar('--surface'),
+      clusterBorder: cssVar('--border'),
+      titleColor: cssVar('--text'),
+      edgeLabelBackground: cssVar('--bg'),
+      attributeBackgroundColorOdd: cssVar('--surface'),
+      attributeBackgroundColorEven: cssVar('--accent-soft'),
+    },
+  });
+
+  const accentSoft = cssVar('--accent-soft');
+  const surface = cssVar('--surface');
+  const border = cssVar('--border');
+
+  await mermaid.run({ querySelector: '.mermaid' });
+
+  // mermaid.run()'s own promise resolves *before* the rendered SVG is
+  // actually attached to the DOM in this Mermaid build (confirmed:
+  // querySelectorAll right after the await finds nothing, postRenderCallback
+  // never fires either - not supported by run() in this version). Poll for
+  // the real DOM insertion instead of guessing a fixed delay.
+  const selector = '.erd-scroll svg path, .erd-scroll svg rect';
+  for (let i = 0; i < 40 && document.querySelectorAll(selector).length === 0; i++) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+
+  // Mermaid's ER renderer hard-codes the entity box (#ECECFF fill /
+  // #9370DB stroke) and the alternating attribute-row fills (hsl(240, ...))
+  // as literal SVG attributes - themeVariables above never reaches them,
+  // confirmed by inspecting the rendered output. Recolor by hand instead.
+  document.querySelectorAll(selector).forEach((el) => {
+    const fill = el.getAttribute('fill');
+    if (fill === '#ECECFF') el.setAttribute('fill', accentSoft);
+    else if (fill && fill.startsWith('hsl(240')) {
+      el.setAttribute('fill', fill.includes('100%, 100%') ? surface : accentSoft);
+    }
+    if (el.getAttribute('stroke') === '#9370DB') el.setAttribute('stroke', border);
+  });
+</script>
+
+</body>
+</html>

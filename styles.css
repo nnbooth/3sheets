@@ -9,6 +9,7 @@
   - Section heading gap ...................... .section-heading { margin-bottom }
   - Button styles ............................ .sheet-btn
   - Macro toast notification ................. .macro-toast (fixed bottom-centre popup)
+  - Vertical annotation list (diagram notes) . .decision-list / .decision-item
   - Mobile breakpoints ....................... @media (max-width: 720px)
 */
 
@@ -71,6 +72,30 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .dashboard-grid, .steps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .info-card, .dashboard-card, .step-card { padding: 1.4rem; }
+/* DECISION LIST — vertical stacked annotations, e.g. "judgment calls" callouts
+   under a diagram. One item per row rather than a card grid, for short notes
+   that read better top-to-bottom than side-by-side. */
+.decision-list { display: flex; flex-direction: column; gap: 0.9rem; }
+.decision-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0.75rem;
+  padding: 0.9rem 1.2rem;
+}
+.decision-item .tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.decision-item p { margin: 0; color: var(--text); font-size: 0.95rem; }
 .contact-box { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.7rem; }
 .embed-panel {
   background: var(--surface);
