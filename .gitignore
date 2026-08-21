@@ -24,6 +24,9 @@ venv/
 .vscode/
 .vscode/*
 
+# Claude Code MCP server config — local agent tooling, not portfolio content
+.mcp.json
+
 #Exclude Excel and CSV files
 *.csv
 *.xlsx
