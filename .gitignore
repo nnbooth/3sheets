@@ -27,10 +27,11 @@ venv/
 # Claude Code MCP server config — local agent tooling, not portfolio content
 .mcp.json
 
-#Exclude Excel and CSV files
+#Exclude Excel, CSV, and Word files
 *.csv
 *.xlsx
 *.xls
+*.docx
 
 # Private / personal files
 businessplan.md
