@@ -1,7 +1,7 @@
 # Purchasing Power BI Model & Report Documentation
 
 **Scope:** every table, column, calculated column, measure, relationship, and report page in
-`datasets/Purchasing/Power BI/Purchasing.pbip`, as of 2026-08-21.
+`datasets/Purchasing/Power BI/Purchasing.pbip`, as of 2026-08-22.
 
 **Note on scope:** the `.pbip` project itself is intentionally excluded from git (see
 `.gitignore`) — this document is the durable record of what it contains.
@@ -25,14 +25,45 @@ rather than a synthetic pass/fail label.
 
 ## 2. Data Model Architecture
 
-15 tables in total:
+17 tables in total:
 
 | Category | Tables |
 |---|---|
 | SQL source tables (10) | `vendor_master`, `vendor_bank_accounts`, `sku_master`, `purchase_orders`, `goods_receipts`, `supplier_invoices_head`, `supplier_invoices_detail`, `goods_receipt_applications`, `payment_batches`, `payments` |
-| Calculated tables (2) | `PO_Summary`, `Invoice_Line_Reconciliation` |
+| Calculated tables (4) | `PO_Summary`, `Invoice_Line_Reconciliation`, `Vendor_Scorecard`, `Category_Scorecard` |
 | Supporting tables (2) | `Dim_Date` (calendar), `FX_Rates` (AUD/USD historical rates) |
 | Hidden measures table (1) | `_Measures` |
+
+**2026-08-22, pass 1 — Vendor Management & Cost Trend layer:** the model previously had no
+vendor-grain reporting surface (vendor only existed as a slicer) and no way to see a cost change
+that wasn't a deviation from the raised PO — `Price Variance` and `PPV` only fire when something
+*doesn't match*. This pass added three cost-trend calculated columns on `purchase_orders`
+(§3.4), the `Vendor_Scorecard` calculated table (§3.16), and a first cut of a **Vendor
+Management** report page.
+
+**2026-08-22, pass 2 — rebuild after feedback that pass 1 "doesn't really highlight anything":**
+the first Vendor Management page leaned entirely on `Vendor_Scorecard` cards/table and had no
+sense of *what* was being bought, *when*, or how it compared across vendors. This pass added:
+`Unit Price (AUD)` on `purchase_orders` (§3.4, the fair per-unit basis for cross-currency
+comparison), a `Year Month` text column on `payments` (§3.10, since `payments` has no active
+`Dim_Date` relationship), four cross-vendor pricing columns on `sku_master` (§3.3), three more
+measures (`Avg Unit Price (AUD)`, `Lines Received In Full %`, `Lines On Time %` — §5.6), the
+`Category_Scorecard` calculated table (§3.17, the category mirror of `Vendor_Scorecard`), a
+rebuilt **Vendor Management** page (§6.5: spend-over-time, payments-over-time, category
+breakdown, unit-cost trend, cross-vendor price comparison, plus the vendor ranking table from
+pass 1), and a new **Category Management** page (§6.6) applying the same who/what/where/when
+lens to categories instead of vendors.
+
+**2026-08-22, pass 3 — descriptions and a drillthrough target, for trust rather than just more
+charts:** every measure/column added in passes 1–2 that was missing a `///` description now has
+one — in TMDL, `///` isn't just a source comment, it's the field's **Description** metadata,
+which Power BI Desktop surfaces as a hover tooltip on the field in the Fields pane, on chart
+axes, and in some visual headers. That's the "hover over things for context" mechanism, and it
+was already half-used in the original model without being called out as such. This pass also
+added a **SKU Detail** page (§6.7) as a drillthrough target — full transaction detail plus a
+per-vendor price-trend chart for one SKU — but the actual drillthrough wiring (a field dragged
+into the Filters pane's drillthrough well) was left as a manual Desktop step rather than
+hand-written blind; see §6.7 for why.
 
 **P2P flow through the tables:**
 
@@ -90,6 +121,10 @@ carry a valid foreign key.
 | Category | string | No | |
 | Typical_Unit_Price | double | No | |
 | Days_To_Deliver | int64 | No | Agreed lead time — the DIFOT "on time" benchmark |
+| Vendor Count | int64 | **Yes** | `CALCULATE(DISTINCTCOUNT(purchase_orders[Vendor_ID]), memo = FALSE)` — distinct vendors this SKU has actually been ordered from. **2026-08-22 addition.** |
+| Min Unit Price (AUD) | decimal | **Yes** | `CALCULATE(MIN(purchase_orders[Unit Price (AUD)]), memo = FALSE)`. **2026-08-22 addition.** |
+| Max Unit Price (AUD) | decimal | **Yes** | `CALCULATE(MAX(purchase_orders[Unit Price (AUD)]), memo = FALSE)`. **2026-08-22 addition.** |
+| Price Spread % | decimal | **Yes** | `DIVIDE(Max - Min, Min)` — the cross-vendor pricing comparison for a multi-sourced SKU; 0/blank when only one vendor supplies it. **2026-08-22 addition.** |
 
 ### 3.4 `purchase_orders`
 Core PO line table. Renamed from `purchase_orders_au_chaos` earlier in the build.
@@ -125,6 +160,10 @@ Core PO line table. Renamed from `purchase_orders_au_chaos` earlier in the build
 | PPV (Local) | decimal | **Yes** | `(Unit_Price - Standard Price (SKU)) * Qty`, blank for memo lines |
 | PPV (AUD) | decimal | **Yes** | Currency-switched version |
 | Delivered On Time | boolean | **Yes** | `First Receipt Date <= Expected_Delivery_Date` (never-received = not on time) |
+| Prior Unit Price (Same Vendor+SKU) | decimal | **Yes** | Historical-lookup pattern (same style as `Effective_AUD_USD_Rate`): `Unit_Price` on the most recent earlier PO line for the same Vendor+SKU, non-memo. Blank on the first-ever PO for that pair. **2026-08-22 addition.** |
+| Unit Price Change % (vs Prior PO) | decimal | **Yes** | `DIVIDE(Unit_Price - [Prior Unit Price], [Prior Unit Price])`. **2026-08-22 addition.** |
+| Cost Change Alert | boolean | **Yes** | `ABS([Unit Price Change %]) >= 10%`, non-memo, non-blank only. Fires on a genuine price move even when the PO and invoice match perfectly — this is what `Price Variance`/`PPV` (both deviation-based) cannot surface. **2026-08-22 addition** — see §2. |
+| Unit Price (AUD) | decimal | **Yes** | Currency-switched version of `Unit_Price` (same pattern as `Line Value (AUD)`) — the fair per-unit basis for comparing cost across vendors/currencies; `Line Value (AUD)` is a total and isn't comparable across differing quantities. **2026-08-22 addition (pass 2).** |
 
 ### 3.5 `goods_receipts`
 Physical receipt of goods against PO lines. A PO line can be received across multiple events.
@@ -233,6 +272,7 @@ Voucher-level payment detail — the fraud-detection payoff of the model.
 | Effective_AUD_USD_Rate | decimal | **Yes** | Keyed on `Payment_Date` |
 | Payment_Amount_AUD | decimal | **Yes** | Currency-switched version |
 | Bank_Account_Status | string | **Yes** | See below — the fraud classification |
+| Year Month | string | **Yes** | `FORMAT(Payment_Date, "YYYY-MM")` — sorts chronologically as text. `payments` has no active `Dim_Date` relationship (only `purchase_orders.Date` is active — see §8, Known Limitation 2), so this gives the "Payments Over Time" chart a clean monthly axis without touching that relationship graph. **2026-08-22 addition (pass 2).** |
 
 **`Bank_Account_Status` DAX** (full logic):
 ```dax
@@ -321,11 +361,70 @@ Columns: `Vendor Number`, `Vendor Name`, `Voucher Number`, `PO Number`, `PO Line
 Hidden table holding every general-purpose (non-table-specific) measure — see §5. Contains a
 single hidden helper column (`Measures`) with no reporting purpose.
 
+### 3.16 `Vendor_Scorecard` (calculated table) — **added 2026-08-22**
+One row per vendor in `vendor_master` — including vendors with zero PO activity, so dormant
+vendors are visible too, not silently dropped. Built the same way as `PO_Summary`
+(`ADDCOLUMNS(SUMMARIZE(...))`), but grouped on `vendor_master` instead of `purchase_orders`, and
+every added column reuses an existing `_Measures`/table measure under `CALCULATE` rather than
+re-deriving its logic. This is the dedicated vendor-management surface the model was missing —
+previously vendor only existed as a slicer on other pages, with no page where a vendor was the
+subject.
+
+| Column | Calculated? | DAX / Notes |
+|---|---|---|
+| Vendor_ID, Vendor_Name, Country | Grouping | From `SUMMARIZE(vendor_master, ...)` |
+| PO Count | Added | `CALCULATE([Total PO Count])` |
+| Total Spend (AUD) | Added | `CALCULATE([Total PO Line Value (AUD)])` |
+| Total Invoiced (AUD) | Added | `CALCULATE([Total Invoiced (AUD, Inc GST)])` |
+| DIFOT % | Added | `CALCULATE([DIFOT %])` |
+| Avg Price Variance % | Added | `CALCULATE(AVERAGE(supplier_invoices_detail[Price Variance %]))` — deviation-based (invoice vs. PO price) |
+| Avg Cost Change % (vs Prior PO) | Added | `CALCULATE(AVERAGE(purchase_orders[Unit Price Change % (vs Prior PO)]))` — trend-based, independent of match status; see §2 |
+| Cost Change Alert Count | Added | `CALCULATE(COUNTROWS(purchase_orders), [Cost Change Alert] = TRUE)` |
+| Exception Rate % | Added | `CALCULATE([Exception Rate %])` |
+| Fraud Risk Payments Count | Added | `CALCULATE([Bank Account Fraud Count (Never Valid)])` |
+| $ At Risk (Bank Account, AUD) | Added | `CALCULATE([$ At Risk (Bank Account Mismatch, AUD)])` |
+| Vendor Risk Tier | **Yes** | `SWITCH(TRUE(), ISBLANK([PO Count]), "No Activity", [Fraud Risk Payments Count] > 0, "High Risk", [Cost Change Alert Count] > 0 OR [DIFOT %] < 50%, "Watch", "Standard")` |
+
+All vendor-scoped `CALCULATE`s rely on the same active-relationship chain already proven by
+`PO_Summary`/the AP-Aging page (`vendor_master → purchase_orders → supplier_invoices_detail`,
+`vendor_master → purchase_orders ↔ PO_Summary`, `vendor_master → payments`); the AP-total column
+uses the same `USERELATIONSHIP` pattern already baked into `[Total Invoiced (AUD, Inc GST)]`
+(§5.2). A new 1:1, both-directions relationship (`Vendor_Scorecard.Vendor_ID` ↔
+`vendor_master.Vendor_ID`, §4) lets the existing `vendor_master` slicers filter this table.
+
+### 3.17 `Category_Scorecard` (calculated table) — **added 2026-08-22 (pass 2)**
+The category mirror of `Vendor_Scorecard` — one row per `Category` (grouped from `sku_master`),
+same `ADDCOLUMNS(SUMMARIZE(...))` technique reusing existing measures, grouped on `sku_master`
+instead of `vendor_master`. Uses **line-grain** delivery measures (`Lines Received In Full %`,
+`Lines On Time %` — §5.6), not `PO_Summary`'s PO-grain ones, because a single PO can span
+multiple categories and a PO-grain "delivered in full" doesn't decompose cleanly by category.
+
+| Column | Calculated? | DAX / Notes |
+|---|---|---|
+| Category | Grouping | From `SUMMARIZE(sku_master, sku_master[Category])` |
+| SKU Count | Added | `CALCULATE(DISTINCTCOUNT(purchase_orders[SKU_ID]), memo = FALSE)` |
+| Vendor Count | Added | `CALCULATE(DISTINCTCOUNT(purchase_orders[Vendor_ID]))` |
+| Total Spend (AUD) | Added | `CALCULATE([Total PO Line Value (AUD)])` |
+| Lines Received In Full % | Added | `CALCULATE([Lines Received In Full %])` — line-grain |
+| Lines On Time % | Added | `CALCULATE([Lines On Time %])` — line-grain |
+| Avg Cost Change % (vs Prior PO) | Added | `CALCULATE(AVERAGE(purchase_orders[Unit Price Change % (vs Prior PO)]))` |
+| Cost Change Alert Count | Added | `CALCULATE(COUNTROWS(purchase_orders), [Cost Change Alert] = TRUE)` |
+| Exception Rate % | Added | `CALCULATE([Exception Rate %])` |
+
+The filter chain is `sku_master → purchase_orders → supplier_invoices_detail`, both hops active
+— the same active relationship the model already relies on for `Standard Price (SKU)` and `PPV`.
+Unlike `Vendor_Scorecard`'s relationship to `vendor_master` (genuinely 1:1), `sku_master.Category`
+is **not** unique (many SKUs share a category), so `Category_Scorecard`'s relationship to
+`sku_master` (§4) is a standard many(`sku_master`)-to-one(`Category_Scorecard`), both-directions
+— the same shape as the existing `purchase_orders ↔ PO_Summary` relationship, not the
+`Vendor_Scorecard` 1:1 shape. (An earlier draft of this relationship incorrectly copied the 1:1
+pattern — caught and fixed before publishing.)
+
 ---
 
 ## 4. Relationships
 
-18 relationships in total. All Many-to-One unless noted; direction is the standard "one side
+20 relationships in total. All Many-to-One unless noted; direction is the standard "one side
 filters many side" unless marked bothDirections.
 
 | From (many) | To (one) | Active? | Cross-filter | Notes |
@@ -349,12 +448,14 @@ filters many side" unless marked bothDirections.
 | vendor_bank_accounts.Vendor_ID | vendor_master.Vendor_ID | Yes | One direction | |
 | payments.Vendor_ID | vendor_master.Vendor_ID | Yes | One direction | |
 | Invoice_Line_Reconciliation.'Vendor Number' | vendor_master.Vendor_ID | Yes | One direction | Added so the vendor slicer reaches the exception worklist table |
+| Vendor_Scorecard.Vendor_ID | vendor_master.Vendor_ID | Yes | **Both directions** | 1:1. **2026-08-22 addition** — lets the vendor slicers reach `Vendor_Scorecard`; no ambiguity risk since `Vendor_Scorecard` has no other relationships |
+| sku_master.Category | Category_Scorecard.Category | Yes | **Both directions** | Many(`sku_master`)-to-one, same shape as `purchase_orders ↔ PO_Summary`. **2026-08-22 addition (pass 2)** — lets the category slicer reach `Category_Scorecard` |
 
 ---
 
 ## 5. Measures
 
-77 measures total, across 5 tables. Folder names below match the model's `displayFolder`
+87 measures total, across 5 tables. Folder names below match the model's `displayFolder`
 organization.
 
 ### 5.1 `_Measures` — "1. BAU Purchasing"
@@ -442,19 +543,33 @@ organization.
 | On Time Delivery % | `% of POs where PO Delivered On Time = TRUE` |
 | DIFOT % | `% of POs where PO DIFOT = TRUE` — true Delivered-In-Full-On-Time |
 
-### 5.6 `goods_receipts` — "Three-Way Match"
+### 5.6 `_Measures` — "6. Cost Trends & Vendor Management" — **added 2026-08-22**
+| Measure | DAX / Notes |
+|---|---|
+| Cost Change Alert Count | `CALCULATE(COUNTROWS(purchase_orders), [Cost Change Alert] = TRUE)` |
+| Cost Change Alert Rate % | Alert count ÷ non-memo lines that have a prior-PO price to compare against |
+| Avg Unit Price Change % (Non-Memo Lines) | `AVERAGEX` of `[Unit Price Change % (vs Prior PO)]` across all non-memo, non-blank lines |
+| Avg Unit Price % Change (Rolling 90 vs Prior 90 Days) | Trailing-90-day avg `Unit_Price` vs. the 90 days before that, via `DATESINPERIOD` on the active `purchase_orders.Date → Dim_Date.Date` relationship — a period-over-period cost trend, not a PO/invoice/SKU-standard comparison |
+| Vendors - High Risk Tier Count | `CALCULATE(COUNTROWS(Vendor_Scorecard), [Vendor Risk Tier] = "High Risk")` |
+| Vendors With Cost Increase Alert (Count) | `CALCULATE(COUNTROWS(Vendor_Scorecard), [Cost Change Alert Count] > 0)` |
+| Avg Vendor DIFOT % | `AVERAGE(Vendor_Scorecard[DIFOT %])` |
+| Avg Unit Price (AUD) | `AVERAGE(purchase_orders[Unit Price (AUD)])` — the trend line behind "how have item costs changed," plotted by vendor, category, or SKU. **Pass 2 addition.** |
+| Lines Received In Full % | `DIVIDE(CALCULATE(COUNTROWS(purchase_orders), [Received In Full] = TRUE), [Total PO Lines])` — line-grain, unlike `PO_Summary`'s PO-grain `Delivered In Full %`; correct when sliced by category/SKU. **Pass 2 addition.** |
+| Lines On Time % | Line-grain equivalent of `On Time Delivery %`. **Pass 2 addition.** |
+
+### 5.7 `goods_receipts` — "Three-Way Match"
 `Over-Applied Receipt Count`, `Total Unapplied Receipt Qty` (net, signed), `Unvouchered Receipt
 Count`, `Fully Unvouchered Receipt Count`, `Total Unvouchered Qty`, `Total Unvouchered Value
 (AUD)`, `Unconverted Unvouchered Value (EUR)` — full DAX in §3.5.
 
-### 5.7 `supplier_invoices_detail` — "Three-Way Match"
+### 5.8 `supplier_invoices_detail` — "Three-Way Match"
 `Unmatched Invoice Lines (Structural)`, `Structural Over-Invoiced Line Count` — full DAX in §3.7.
 
-### 5.8 `supplier_invoices_head` — "AP Aging"
+### 5.9 `supplier_invoices_head` — "AP Aging"
 `Unpaid Voucher Count`, `Outstanding Payable (AUD)`, `Avg Days To Pay` — full DAX in §3.6. **Note:**
 these do not use `USERELATIONSHIP` — see §9.
 
-### 5.9 `payments` — "Bank Account Fraud"
+### 5.10 `payments` — "Bank Account Fraud"
 `Total Payments (AUD)`, `Bank Account Mismatch Count`, `Bank Account Fraud Count (Never Valid)`,
 `Bank Account Superseded Count`, `$ At Risk (Bank Account Mismatch, AUD)` — full DAX in §3.10.
 
@@ -462,7 +577,7 @@ these do not use `USERELATIONSHIP` — see §9.
 
 ## 6. Report Pages
 
-4 pages, each 1920×1080 ("Fit to Page"), sharing a common layout: a left filter rail (two stacked
+7 pages, each 1920×1080 ("Fit to Page"), sharing a common layout: a left filter rail (two stacked
 slicers, 220px wide), a KPI card row, and a chart + table row.
 
 ### 6.1 Executive Overview
@@ -499,6 +614,91 @@ slicers, 220px wide), a KPI card row, and a chart + table row.
 - **Chart:** bar chart, Category = Vendor_Name, Y = DIFOT % (green), sorted descending
 - **Table:** `PO_Summary` — PO_ID, Vendor_ID, PO Status, PO Value (AUD), Open Value (AUD), PO
   DIFOT, sorted by PO Value descending
+
+### 6.5 Vendor Management — **added 2026-08-22, rebuilt in pass 2**
+The dedicated vendor-management page the model previously had no room for — vendor was only ever
+a slicer on the other four pages, never the subject of one. Pass 1 (§2) leaned entirely on
+`Vendor_Scorecard` cards/table and drew feedback that it "doesn't really highlight anything" —
+no sense of *what* was bought, *when*, or how vendors compared. Pass 2 layers a genuine
+who/what/where/when structure over the top, using the vendor slicer as the drill-into-one-vendor
+mechanism and the category bar chart as a clickable cross-filter (`drillFilterOtherVisuals` is
+already `true` throughout this report):
+- **Slicers (who/where):** `vendor_master[Vendor_Name]`, `vendor_master[Country]`
+- **Cards (4):** Total PO Line Value (AUD) — default; Total Payments (AUD) — default; DIFOT % —
+  green `#1f7a4a`; Cost Change Alert Rate % — red `#b93a3a`
+- **Chart — Spend Over Time (when):** line chart, Category = `Dim_Date[Year Month]`, Y = Total PO
+  Line Value (AUD) (accent `#2f7a5d`) — "PO's raised with the vendor value, grouped by PO date"
+- **Chart — Payments Over Time (when):** line chart, Category = `payments[Year Month]`, Y = Total
+  Payments (AUD) (accent) — needs its own axis column since `payments` has no active `Dim_Date`
+  relationship (§8, Known Limitation 2)
+- **Chart — What We Buy: Spend by Category (what):** bar chart, Category = `sku_master[Category]`,
+  Y = Total PO Line Value (AUD) (accent), sorted descending — clicking a bar cross-filters the
+  rest of the page
+- **Chart — How Item Costs Have Changed (performance):** line chart, Category =
+  `Dim_Date[Year Month]`, Y = Avg Unit Price (AUD) (accent) — "how have the item costs we've
+  bought from them changed," independent of match status
+- **Table — Cross-Vendor Price Comparison:** `sku_master` — SKU_Description, Category, Vendor
+  Count, Min Unit Price (AUD), Max Unit Price (AUD), Price Spread %, sorted by Price Spread %
+  descending. **Not pre-filtered to multi-sourced SKUs** — single-vendor SKUs have a 0%/blank
+  spread and sort to the bottom naturally, but a hand-built visual-level filter clause was judged
+  too high-risk to write blind (unlike everything else on this page, there was no existing filter
+  example in the report to copy the exact JSON shape from) and was deliberately left out; add a
+  "Vendor Count > 1" filter in Desktop's filter pane if a tighter view is wanted
+- **Table — All Vendors Ranked by Spend:** `Vendor_Scorecard` — Vendor Name, Country, PO Count,
+  Total Spend (AUD), DIFOT %, Avg Cost Change % (vs Prior PO), Vendor Risk Tier, sorted by Total
+  Spend (AUD) descending — the pass-1 table, kept as the portfolio-level overview underneath the
+  per-vendor drill-down above
+
+### 6.6 Category Management — **added 2026-08-22 (pass 2)**
+The same who/what/where/when lens applied to categories instead of vendors, per feedback that
+"a similar approach to categories" was wanted. Uses the **line-grain** delivery measures (§5.6)
+rather than `PO_Summary`'s PO-grain ones, since a single PO can span multiple categories.
+- **Slicers (what/who):** `sku_master[Category]`, `vendor_master[Vendor_Name]`
+- **Cards (4):** Total PO Line Value (AUD) — default; Lines Received In Full % — green; Lines On
+  Time % — green; Cost Change Alert Rate % — red
+- **Chart — Spend Over Time (when):** line chart, Category = `Dim_Date[Year Month]`, Y = Total PO
+  Line Value (AUD) (accent)
+- **Chart — Who Supplies This: Spend by Vendor (where/who):** bar chart, Category =
+  `vendor_master[Vendor_Name]`, Y = Total PO Line Value (AUD) (accent), sorted descending
+- **Chart — How Item Costs Have Changed (performance):** line chart, Category =
+  `Dim_Date[Year Month]`, Y = Avg Unit Price (AUD) (accent)
+- **Table — Cross-Vendor Price Comparison:** the same `sku_master` table as §6.5, full width —
+  naturally scoped to whichever category is sliced
+- **Table — All Categories Ranked by Spend:** `Category_Scorecard` — Category, SKU Count, Vendor
+  Count, Total Spend (AUD), Lines Received In Full %, Lines On Time %, Avg Cost Change % (vs
+  Prior PO), sorted by Total Spend (AUD) descending
+
+### 6.7 SKU Detail — **added 2026-08-22 (pass 3), drillthrough target**
+Built as the answer to "if we're buying similar SKUs from other vendors, a pricing comparison
+would be useful" taken to its logical conclusion: don't just show the spread number, let someone
+land on one SKU and see every vendor's price for it side by side. No slicers — the page is
+designed to arrive pre-filtered to a single SKU (via drillthrough from the price-comparison
+table on §6.5/§6.6, or by manually applying a filter).
+- **Cards (4):** SKU_Description, Category (both text, showing which SKU is in context), Vendor
+  Count, Price Spread % (red `#b93a3a`)
+- **Chart — Price Paid Over Time, By Vendor (AUD):** multi-series line chart, Category =
+  `Dim_Date[Year Month]`, **Series (legend) = `vendor_master[Vendor_Name]`**, Y = Avg Unit Price
+  (AUD) — every vendor's price trajectory for this exact SKU, plotted together. This is the one
+  visual on this page using a legend/series role rather than a second measure on Y, which none of
+  the other six pages needed — moderate, not proven, confidence on the exact JSON role name
+  (`"Series"`); if the chart doesn't render as multi-line in Desktop, that's the part to check
+  first.
+- **Table — Every PO Line For This SKU:** `purchase_orders` (with `vendor_master[Vendor_Name]`
+  pulled in via the active relationship) — PO_ID, Date, Vendor Name, Qty, Unit Price (AUD), Unit
+  Price Change % (vs Prior PO), Three-Way Match Status, Delivered On Time, sorted by Date
+  descending — full transaction-level backup for every number on the cards/chart above.
+
+**This page is not yet wired as a true drillthrough target.** Adding it to `pageOrder` makes it
+a normal, directly-clickable tab for now. To make it a real right-click-drillthrough target from
+the SKU rows in §6.5/§6.6's price-comparison table: open the page in Desktop, open the Filters
+pane, and drag `sku_master[SKU_ID]` (or `SKU_Description`) into the **"Add drillthrough fields
+here"** well — Desktop will auto-add a Back button and the right-click menu will light up on any
+visual carrying that field. This was deliberately left as a manual step rather than hand-written
+in `filters.json`: unlike every other JSON file in this report, there was no existing drillthrough
+configuration anywhere in the project to copy the exact schema from, and a malformed
+`filters.json` is a worse failure mode (silently broken or unloadable page) than a page that's
+simply not wired yet. Once wired, right-click "Hide page" on SKU Detail so it drops out of the
+normal tab strip and only surfaces via drillthrough.
 
 ---
 
@@ -561,3 +761,25 @@ These are genuine, documented gaps in the current model, not oversights to be si
    which synthetic chaos case each invoice line represents. It's kept for build-time verification
    only — reports are designed to surface the same findings structurally (from
    `goods_receipt_applications`), not by reading this label, matching the original design intent.
+
+5. **The Cost Change Alert threshold (10%) is a fixed constant in the DAX**, not a
+   user-adjustable parameter — a real deployment would likely want this as a what-if parameter so
+   a client can tune sensitivity per commodity. **`Avg Unit Price % Change (Rolling 90 vs Prior
+   90 Days)` uses `TODAY()`**, like `Avg Open Order Age (Days)` (§5.4) — both are genuinely
+   relative-to-now, not point-in-time, so they'll keep moving after the report is published; the
+   generated data runs Feb–Aug 2026, so `TODAY()` needs to stay inside or just after that range
+   for the rolling comparison to have both a current and a prior window to compare.
+
+6. **Every chart/table title on the Vendor Management and Category Management pages (§6.5, §6.6)
+   was hand-written as a report-JSON `objects.title` block** without a working example in this
+   report to copy from (every other page relies on the visual's default auto-title). The shape
+   used is the standard PBIR pattern, but it's unverified against this specific file — if a title
+   doesn't render as text in Desktop, that's a cosmetic issue only (the query/field bindings are
+   the part that would actually break page load, and those *do* follow proven patterns from the
+   existing four pages).
+
+7. **The Cross-Vendor Price Comparison table (§6.5, §6.6) isn't pre-filtered to multi-sourced
+   SKUs.** Every SKU appears, including single-vendor ones (0%/blank spread) — they sort to the
+   bottom since both tables sort by Price Spread % descending, but a "Vendor Count > 1" visual
+   filter would tighten the view. Left out deliberately (see §6.5) rather than hand-writing a
+   filter clause with no in-report example to verify the JSON shape against.
