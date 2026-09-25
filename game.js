@@ -1035,6 +1035,12 @@
     }, 0);
   });
 
+  // When embedded in the site's pop-up, the page asks the game to pause
+  // as the pop-up closes.
+  window.addEventListener('message', e => {
+    if (e.origin === location.origin && e.data === 's3:pause' && state === 'play') { releaseKeys(); state = 'paused'; }
+  });
+
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && state === 'play') { releaseKeys(); state = 'paused'; }
   });

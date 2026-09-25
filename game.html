@@ -54,6 +54,7 @@
 
     .game-help { margin: 16px 0 0; font-size: 8px; text-align: center; color: #bcbcbc; line-height: 2; }
     .game-help a { color: var(--gold); }
+    .embedded .game-help a, .embedded .game-help br { display: none; }
 
     .game-touch { display: none; }
 
@@ -101,6 +102,7 @@
       <a href="index.html">Back to the site</a>
     </p>
   </main>
+  <script>if (window.self !== window.top) document.documentElement.classList.add('embedded');</script>
   <script src="game.js"></script>
   <script>
     // Standalone page: focus the game straight away so keys work.

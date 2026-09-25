@@ -654,67 +654,97 @@ strong, b { color: var(--gold); font-weight: 400; }
   .hero::after { display: none; }
 }
 
-/* ---------- Bonus stage: Super 3Sheets game ---------- */
+/* ---------- Super 3Sheets launcher (game lives in game.html) ---------- */
 
-.game-wrap {
-  max-width: 768px;
-  margin: 0 auto;
-}
-
-/* game.js sets an exact whole-number pixel size; these are fallbacks */
-#game-canvas {
-  display: block;
-  margin: 0 auto;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 256 / 240;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  background: var(--sky);
+/* Pop-up */
+.game-dialog {
+  width: min(96vw, 860px);
+  max-width: none;
+  max-height: none;
+  padding: 0;
   border: var(--px) solid var(--white);
-  box-shadow: 0 0 0 var(--px) var(--black), var(--px) var(--px) 0 var(--px) rgba(0, 0, 0, 0.35);
-  cursor: pointer;
-  touch-action: manipulation;
+  background: var(--black);
+  color: var(--white);
+  box-shadow: 0 0 0 var(--px) var(--black), 8px 8px 0 var(--px) rgba(0, 0, 0, 0.5);
 }
 
-#game-canvas:focus-visible { outline: var(--px) dashed var(--gold); outline-offset: 6px; }
+.game-dialog::backdrop { background: rgba(0, 0, 0, 0.8); }
 
-.game-help {
-  margin: 16px 0 0;
+.game-dialog__bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 8px 8px 14px;
+  font-size: 10px;
+  border-bottom: var(--px) solid var(--white);
+}
+
+.game-dialog__close {
+  width: 36px;
+  height: 32px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--white);
+  background: var(--red);
+  border: var(--px) solid var(--black);
+  cursor: pointer;
+}
+
+.game-dialog iframe {
+  display: block;
+  width: 100%;
+  height: min(84vh, 820px);
+  border: 0;
+  background: var(--black);
+}
+
+.game-open body { overflow: hidden; }
+
+/* Warp pipe on the brick footer */
+.site-footer:has(.game-pipe) { margin-top: 120px; }
+
+.game-pipe {
+  position: absolute;
+  right: 12%;
+  bottom: 100%;
+  margin-bottom: 8px;           /* sits on the grass */
+  width: 72px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.game-pipe__label {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
   font-size: 8px;
-  text-align: center;
   color: var(--white);
   text-shadow: 2px 2px 0 var(--black);
 }
 
-.game-touch { display: none; }
-
-@media (pointer: coarse) {
-  .game-touch {
-    display: grid;
-    grid-template-columns: 64px 64px 1fr 64px 64px;
-    grid-template-areas: "left right . run jump";
-    gap: 10px;
-    margin-top: 16px;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  .game-touch button {
-    height: 64px;
-    font-family: var(--font);
-    font-size: 16px;
-    color: var(--white);
-    background: var(--black);
-    border: var(--px) solid var(--white);
-    touch-action: none;
-  }
-
-  .game-touch [data-key="left"] { grid-area: left; }
-  .game-touch [data-key="right"] { grid-area: right; }
-  .game-touch [data-key="run"] { grid-area: run; border-radius: 50%; background: var(--red-dark); }
-  .game-touch [data-key="jump"] { grid-area: jump; border-radius: 50%; background: var(--red); }
-  .game-touch .is-down { transform: translateY(var(--px)); filter: brightness(0.8); }
-
-  .game-help { display: none; }
+.game-pipe__lip {
+  display: block;
+  height: 28px;
+  line-height: 20px;
+  font-size: 8px;
+  color: var(--black);
+  background: linear-gradient(90deg, #005800 0 8%, var(--green-light) 8% 30%, var(--green) 30% 75%, #005800 75%);
+  border: var(--px) solid var(--black);
 }
+
+.game-pipe__body {
+  display: block;
+  height: 40px;
+  margin: 0 6px;
+  background: linear-gradient(90deg, #005800 0 8%, var(--green-light) 8% 30%, var(--green) 30% 75%, #005800 75%);
+  border: var(--px) solid var(--black);
+  border-top: 0;
+}
+
+.game-pipe:hover .game-pipe__lip { color: var(--white); }
+.game-pipe:active { transform: translateY(var(--px)); }
