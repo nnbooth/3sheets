@@ -698,7 +698,7 @@ main > section + section { border-top: 12px solid var(--white); }
     justify-content: flex-start;
     gap: 0;
     padding: 20px 44px;
-    background: rgba(250, 250, 252, 0.96);
+    background: #fafafc;
     backdrop-filter: saturate(1.8) blur(20px);
     -webkit-backdrop-filter: saturate(1.8) blur(20px);
     opacity: 0;
