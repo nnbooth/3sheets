@@ -97,22 +97,112 @@
     '..hh.sssrrss....',
   ];
 
-  const CHARACTERS = {
-    him: { head: HEAD, hair: C.hair, shirt: C.white, shade: C.grey },
-    her: { head: HEAD_HER, hair: '#3c1c00', shirt: '#fc7460', shade: '#d82800' },
+  // Afro puff, gold earring, no glasses
+  const HEAD_PUFF = [
+    '....hhhhhhh.....',
+    '...hhhhhhhhh....',
+    '..hhhhhhhhhhh...',
+    '..hhhhhhhhhhh...',
+    '..hhhsssssssh...',
+    '..hhssksssksS...',
+    '..hySsssssssS...',
+    '...ssssssSss....',
+    '....sssrrss.....',
+  ];
+
+  // Hijab, no glasses
+  const HEAD_HIJAB = [
+    '.....hhhhhh.....',
+    '...hhhhhhhhhh...',
+    '..hhhhhhhhhhhh..',
+    '..hhhhsssssshh..',
+    '..hhhssksssksh..',
+    '..hhhsssssssSh..',
+    '..hhhsSssssSsh..',
+    '..hhhhsssrrshh..',
+    '..hhhhhhhhhhhh..',
+  ];
+
+  // Beard, square glasses
+  const HEAD_BEARD = [
+    '.....hhhhhh.....',
+    '...hhhhhhhhhh...',
+    '..hhhhhhhhhhhh..',
+    '..hhhsssssssh...',
+    '..hhkkkkskkkk...',
+    '..hsklllkklllk..',
+    '..hSkkkkskkkks..',
+    '...hhsssssshh...',
+    '....hhhhhhhh....',
+  ];
+
+  // Non-binary: lilac swoop over a shaved side (H), earring, no glasses
+  const HEAD_SWOOP = [
+    '......hhhhhh....',
+    '....hhhhhhhhhh..',
+    '...hhhhhhhhhhhh.',
+    '..HHHhsssssss...',
+    '..HHssksssksS...',
+    '..HHsssssssss...',
+    '..HSysssssSss...',
+    '...ssssssSss....',
+    '....sssskss.....',
+  ];
+
+  // Wheelchair user: short black hair, round glasses
+  const HEAD_CHAIR = [
+    '.....hhhhhh.....',
+    '....hhhhhhhh....',
+    '...hhhhhhhhhh...',
+    '...hhsssssssh...',
+    '...hkkkkskkkk...',
+    '...sklllkklllk..',
+    '...sSkkkskkkks..',
+    '....sssssSss....',
+    '.....sssskss....',
+  ];
+
+  // Seated in a wheelchair: big wheel (g rim, G spokes), chair back,
+  // footrest. Spokes turn between the two run frames.
+  const CHAIR_BODY = {
+    stand: ['.kk..wwbbww.....', '..k.ggggwwwws...', '..kgwwGwgwwss...', '..kgttGGgtttt...', '..kgtGttg...tt..', '..kgGtttg..ktt..', '...kggggk.kkooo.'],
+    run1:  ['.kk..wwbbww.....', '..k.ggggwwwws...', '..kgwGwwgwwss...', '..kgttGGgtttt...', '..kgtttGg...tt..', '..kgtttGg..ktt..', '...kggggk.kkooo.'],
+    run2:  ['.kk..wwbbww.....', '..k.ggggwwwws...', '..kgGwwwgwwss...', '..kgGGGGgtttt...', '..kgttttg...tt..', '..kgtttGg..ktt..', '...kggggk.kkooo.'],
+    jump:  ['.kk..wwbbww.ss..', '..k.ggggwwwws...', '..kgwwGwgwww....', '..kgttGGgtttt...', '..kgtGttg...tt..', '..kgGtttg..ktt..', '...kggggk.kkooo.'],
   };
 
+  // The cast. Skin tones range light to deep; mix of genders, hair,
+  // glasses/no glasses, a hijab and a wheelchair user.
+  const CHARACTERS = {
+    him:   { head: HEAD,        hair: C.hair,    skin: '#fcbcb0', shadeSkin: '#e09470', shirt: C.white,   shade: C.grey },
+    her:   { head: HEAD_HER,    hair: '#3c1c00', skin: '#e8a47c', shadeSkin: '#c47c54', shirt: '#fc7460', shade: '#d82800' },
+    puff:  { head: HEAD_PUFF,   hair: '#201008', skin: '#7c4a2c', shadeSkin: '#5c3018', shirt: '#00a8a8', shade: '#005858' },
+    hijab: { head: HEAD_HIJAB,  hair: '#583880', skin: '#b87050', shadeSkin: '#8c4c30', shirt: '#fce0a8', shade: '#c8a060' },
+    beard: { head: HEAD_BEARD,  hair: '#181010', skin: '#9c5c38', shadeSkin: '#744024', shirt: '#a4c8fc', shade: '#5c7cf8' },
+    swoop: { head: HEAD_SWOOP,  hair: '#b8a0f8', hairShaved: '#5c4c7c', skin: '#fcc8a0', shadeSkin: '#e0a07c', shirt: '#3c3c3c', shade: '#181818' },
+    chair: { head: HEAD_CHAIR,  hair: '#101010', skin: '#f0c090', shadeSkin: '#d09c6c', shirt: '#58d854', shade: '#00a800', body: CHAIR_BODY },
+  };
+  const ROSTER = Object.keys(CHARACTERS);
+
   function playerPalette(ch, shirt, shade, trousers) {
-    return { h: ch.hair, s: C.skin, S: '#e09470', k: C.black, l: C.lens, r: C.red, w: shirt, b: shade, t: trousers, o: C.black };
+    return {
+      h: ch.hair, H: ch.hairShaved || ch.hair, s: ch.skin, S: ch.shadeSkin, y: C.gold,
+      k: C.black, l: C.lens, r: C.red, w: shirt, b: shade, t: trousers, o: C.black,
+      g: C.grey, G: '#7c7c7c',
+    };
   }
 
   // Big (Clarity) version: same head, taller body — torso and legs rows
-  // doubled, like Mario after a mushroom. 21 rows tall.
+  // doubled, like Mario after a mushroom. 21 rows tall. The wheelchair
+  // user grows taller in the torso so the wheel stays round.
   const bigBody = r => [r[0], r[1], r[1], r[2], r[2], r[3], r[3], r[4], r[5], r[5], r[5], r[6]];
+  const bigChair = r => [r[0], r[0], r[0], r[0], r[0], r[0], r[1], r[2], r[3], r[4], r[5], r[6]];
   const SMALL_H = 15, BIG_H = 20;
 
   const PLAYER = {}, PLAYER_BIG = {};
   for (const [id, ch] of Object.entries(CHARACTERS)) {
+    const body = ch.body || BODY;
+    const grow = ch.body ? bigChair : bigBody;
     const palettes = {
       normal: playerPalette(ch, ch.shirt, ch.shade, '#3c3c7c'),
       star1:  playerPalette(ch, C.gold, C.red, C.black),
@@ -123,9 +213,9 @@
     for (const [pal, map] of Object.entries(palettes)) {
       PLAYER[id][pal] = {}; PLAYER_BIG[id][pal] = {};
       for (const f of Object.keys(BODY)) {
-        const r = sprite([...ch.head, ...BODY[f]], map);
+        const r = sprite([...ch.head, ...body[f]], map);
         PLAYER[id][pal][f] = { r, l: flipped(r) };
-        const b = sprite([...ch.head, ...bigBody(BODY[f])], map);
+        const b = sprite([...ch.head, ...grow(body[f])], map);
         PLAYER_BIG[id][pal][f] = { r: b, l: flipped(b) };
       }
     }
@@ -138,7 +228,12 @@
   try { playerName = cleanName(localStorage.getItem('s3-name')) || 'PLAYER'; } catch (e) { /* storage blocked */ }
 
   let character = 'him';
-  try { if (localStorage.getItem('s3-character') === 'her') character = 'her'; } catch (e) { /* storage blocked */ }
+  try { const saved = localStorage.getItem('s3-character'); if (CHARACTERS[saved]) character = saved; } catch (e) { /* storage blocked */ }
+
+  function cycleCharacter(dir) {
+    const i = ROSTER.indexOf(character);
+    setCharacter(ROSTER[(i + dir + ROSTER.length) % ROSTER.length]);
+  }
 
   function setCharacter(id) {
     character = id;
@@ -899,7 +994,10 @@
     text(state === 'title' ? '' : String(Math.max(0, time)).padStart(3, ' '), 208, 20);
   }
 
-  const SELECT_X = { him: 100, her: 140 };
+  // Character select: the whole cast in a row
+  const SELECT_GAP = 26;
+  const SELECT_X = {};
+  ROSTER.forEach((id, i) => { SELECT_X[id] = Math.round(W / 2 - (ROSTER.length * SELECT_GAP) / 2 + i * SELECT_GAP + (SELECT_GAP - 16) / 2); });
 
   function panel(y, h) {
     ctx.fillStyle = C.black;
@@ -923,7 +1021,8 @@
       ctx.drawImage(INVOICE[0], 27, 134);      text('ROGUE INVOICE', 50, 138);
       // Character select
       text('CHOOSE', W / 2, 158, C.white, 'center');
-      for (const [id, x] of [['him', SELECT_X.him], ['her', SELECT_X.her]]) {
+      for (const id of ROSTER) {
+        const x = SELECT_X[id];
         const chosen = id === character;
         if (chosen) {
           ctx.fillStyle = C.gold;
@@ -931,11 +1030,10 @@
           ctx.fillStyle = C.black;
           ctx.fillRect(x - 2, 172, 20, 20);
         }
-        const frame = chosen && Math.floor(tick / 12) % 2 ? 'run1' : 'stand';
-        ctx.drawImage(PLAYER[id].normal[frame].r, x, 174);
+        ctx.drawImage(PLAYER[id].normal.stand.r, x, 174);
       }
-      text('<', SELECT_X.him - 16, 178, C.white);
-      text('>', SELECT_X.her + 24, 178, C.white);
+      text('<', SELECT_X[ROSTER[0]] - 14, 178, C.white);
+      text('>', SELECT_X[ROSTER[ROSTER.length - 1]] + 20, 178, C.white);
       if (Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 206, C.gold, 'center');
     } else if (state === 'paused') {
       panel(92, 48);
@@ -1017,7 +1115,7 @@
     const k = KEYMAP[e.code];
     if (k || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') e.preventDefault();
     if (e.repeat && !k) return;
-    if (state === 'title' && (k === 'left' || k === 'right')) { setCharacter(k === 'left' ? 'him' : 'her'); return; }
+    if (state === 'title' && (k === 'left' || k === 'right')) { if (!e.repeat) cycleCharacter(k === 'left' ? -1 : 1); return; }
     if (e.code === 'Enter' || (e.code === 'Space' && state !== 'play' && state !== 'paused')) { pressStart(); return; }
     if (e.code === 'KeyP' || e.code === 'Escape') {
       if (state === 'play') { releaseKeys(); state = 'paused'; } else if (state === 'paused') state = 'play';
@@ -1042,7 +1140,7 @@
       const y = (e.clientY - rect.top) * (H / rect.height);
       if (y > 164 && y < 198) {
         for (const [id, sx] of Object.entries(SELECT_X)) {
-          if (x > sx - 8 && x < sx + 24) { setCharacter(id); return; }
+          if (x > sx - 4 && x < sx + 20) { setCharacter(id); return; }
         }
       }
     }
@@ -1104,7 +1202,7 @@
     const k = btn.dataset.key;
     const on = e => {
       e.preventDefault();
-      if (state === 'title' && (k === 'left' || k === 'right')) { setCharacter(k === 'left' ? 'him' : 'her'); return; }
+      if (state === 'title' && (k === 'left' || k === 'right')) { cycleCharacter(k === 'left' ? -1 : 1); return; }
       if (state !== 'play') pressStart();
       keys[k] = true;
       btn.classList.add('is-down');
