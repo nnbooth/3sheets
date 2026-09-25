@@ -435,7 +435,8 @@
   const keys = { left: false, right: false, jump: false, run: false };
   let prevJump = false;
 
-  let state = 'title';      // title | play | paused | dying | win | gameover
+  let state = 'title';      // title | attract | play | paused | dying | win | gameover
+  let titleIdle = 0, attractPage = 0, attractT = 0;
   let tick = 0;
   let score = 0, coins = 0, lives = 3, time = 200, timeTick = 0;
   let camX = 0;
@@ -590,6 +591,8 @@
     const jumpPressed = keys.jump && !prevJump;
     prevJump = keys.jump;
 
+    if (state === 'title' && ++titleIdle > ATTRACT_AFTER) { state = 'attract'; attractPage = 0; attractT = 0; }
+    else if (state === 'attract') updateAttract();
     if (state === 'play') updatePlay(jumpPressed);
     else if (state === 'dying') updateDying();
     else if (state === 'win') updateWin();
@@ -1029,8 +1032,151 @@
     }
   }
 
+  /* ================================================================ ATTRACT */
+
+  // Old-school "attract mode": after ~10s on the title with no input, the
+  // game plays story screens. Any key, click or tap returns to the title.
+  const ATTRACT_AFTER = 600;   // frames of idle before it starts
+  const TYPE_SPEED = 2;        // frames per character for story text
+  const HOLD = 150;            // frames to hold a page once fully shown
+
+  const ATTRACT = [
+    { lines: ['EVERY MONTH, SMALL AND', 'MEDIUM BUSINESSES RUN ON', 'SPREADSHEETS, INBOXES AND', 'SYSTEMS THAT DON\'T TALK', 'TO EACH OTHER.'], art: 'sheets' },
+    { lines: ['THE NUMBERS ARE ALL THERE.', '', 'THE VISIBILITY ISN\'T.'], art: 'fog' },
+    { lines: ['OVERCHARGES SLIP THROUGH.', 'SUPPLIERS RUN LATE.', 'OVERTIME KEEPS CREEPING UP.', '', 'NOBODY CAN SAY WHY.'], art: 'trouble' },
+    { lines: ['ENTER A CPA WITH 20 YEARS', 'IN MINING, PROPERTY,', 'MANUFACTURING, DISTRIBUTION', 'AND SERVICES.'], art: 'cast' },
+    { lines: ['THE MISSION: TURN THE DATA', 'YOU ALREADY HAVE INTO', 'CLEAR, PRACTICAL REPORTING.', '', 'SEE WHAT\'S HAPPENING, WHAT\'S', 'CHANGING, AND WHERE', 'ATTENTION IS NEEDED.'], art: 'dashboard' },
+    { title: 'THE TROUBLE', entries: [
+      ['clock',   'OVERTIME',       'LABOUR COSTS THAT', 'KEEP CREEPING UP'],
+      ['invoice', 'ROGUE INVOICE',  'OVERCHARGES NOBODY', 'CHECKED'],
+      ['gap',     'VISIBILITY GAP', 'FALL IN AND YOU\'RE', 'FLYING BLIND'],
+    ] },
+    { title: 'THE HELP', entries: [
+      ['coin', 'DATA POINTS', 'COLLECT THEM ALL.', 'EVERY NUMBER COUNTS'],
+      ['dash', 'CLARITY',     'GROW BIG, SMASH', 'BRICKS, SURVIVE A HIT'],
+      ['bolt', 'AUTOMATION',  'UPDATES THAT SEND', 'THEMSELVES'],
+    ] },
+    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'P .............. PAUSE', '', 'REACH THE FLAG AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
+    { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
+  ];
+
+  const pageChars = pg => (pg.lines || []).join('').length;
+  const pageLength = pg => (pg.entries || pg.instant ? 0 : pageChars(pg) * TYPE_SPEED) + HOLD + (pg.entries ? 120 : 0);
+
+  function updateAttract() {
+    if (++attractT > pageLength(ATTRACT[attractPage])) {
+      attractT = 0;
+      attractPage++;
+      if (attractPage >= ATTRACT.length) { state = 'title'; titleIdle = 0; }
+    }
+  }
+
+  function exitAttract() { state = 'title'; titleIdle = 0; }
+
+  // Draw an image at a whole-number scale, bottom-centred on (cx, bottom)
+  function drawScaled(img, cx, bottom, scale) {
+    ctx.drawImage(img, Math.round(cx - (img.width * scale) / 2), bottom - img.height * scale, img.width * scale, img.height * scale);
+  }
+
+  function miniSheet(x, y) {
+    ctx.fillStyle = C.black; ctx.fillRect(x - 1, y - 1, 26, 20);
+    ctx.fillStyle = C.white; ctx.fillRect(x, y, 24, 18);
+    ctx.fillStyle = C.green; ctx.fillRect(x, y, 24, 4); ctx.fillRect(x, y, 4, 18);
+    ctx.fillStyle = C.grey;
+    for (let gx = x + 10; gx < x + 24; gx += 6) ctx.fillRect(gx, y + 4, 1, 14);
+    for (let gy = y + 9; gy < y + 18; gy += 5) ctx.fillRect(x + 4, gy, 20, 1);
+  }
+
+  function miniEnvelope(x, y) {
+    ctx.fillStyle = C.black; ctx.fillRect(x - 1, y - 1, 22, 16);
+    ctx.fillStyle = C.white; ctx.fillRect(x, y, 20, 14);
+    ctx.fillStyle = C.grey;
+    for (let i = 0; i < 10; i++) { ctx.fillRect(x + i, y + Math.floor(i * 0.7), 1, 1); ctx.fillRect(x + 19 - i, y + Math.floor(i * 0.7), 1, 1); }
+  }
+
+  function drawAttractArt(art, top) {
+    const step = Math.floor(tick / 20) % 2; // slow two-frame walk
+    if (art === 'sheets') {
+      miniSheet(40, top); miniSheet(76, top + 10); miniEnvelope(116, top + 2); miniSheet(150, top + 12); miniEnvelope(190, top + 4);
+    } else if (art === 'fog') {
+      miniSheet(116, top + 8);
+      ctx.fillStyle = 'rgba(188, 188, 188, 0.85)';
+      for (const [fx, fy, fw] of [[84, top + 4, 88], [100, top + 16, 72], [92, top + 26, 80]]) ctx.fillRect(fx, fy, fw, 8);
+      text('?', W / 2, top + 12, C.gold, 'center');
+    } else if (art === 'trouble') {
+      drawScaled(INVOICE[step], 80, top + 34, 2);
+      drawScaled(CLOCK[step], 176, top + 34, 2);
+    } else if (art === 'cast') {
+      ROSTER.forEach((id, i) => ctx.drawImage(PLAYER[id].normal.stand.r, W / 2 - (ROSTER.length * 24) / 2 + i * 24 + 4, top + 10));
+    } else if (art === 'dashboard') {
+      drawScaled(DASHBOARD, W / 2, top + 36, 2);
+    } else if (art === 'flag') {
+      const fx = W / 2;
+      ctx.fillStyle = C.greenLight; ctx.fillRect(fx, top, 2, 34);
+      ctx.fillStyle = C.white;
+      ctx.beginPath(); ctx.moveTo(fx, top + 2); ctx.lineTo(fx - 16, top + 9); ctx.lineTo(fx, top + 16); ctx.fill();
+      ctx.fillStyle = C.green; ctx.fillRect(fx - 9, top + 8, 2, 3); ctx.fillRect(fx - 7, top + 10, 2, 2); ctx.fillRect(fx - 5, top + 6, 2, 4);
+    } else if (art === 'logo') {
+      ctx.fillStyle = '#2f7a5d'; ctx.beginPath(); ctx.arc(W / 2, top + 18, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.font = '16px "Press Start 2P", monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.white;
+      ctx.fillText('3S', W / 2 + 1, top + 19);
+    }
+  }
+
+  function entryIcon(kind) {
+    return { clock: CLOCK[0], invoice: INVOICE[0], coin: COIN, dash: DASHBOARD, bolt: BOLT }[kind];
+  }
+
+  function drawAttract() {
+    ctx.fillStyle = C.black;
+    ctx.fillRect(0, 0, W, H);
+    const pg = ATTRACT[attractPage];
+
+    if (pg.entries) {
+      text(pg.title, W / 2, 24, C.gold, 'center');
+      pg.entries.forEach(([kind, name, l1, l2], i) => {
+        const y = 52 + i * 52;
+        if (attractT < i * 40) return; // entries appear one by one
+        if (kind === 'gap') {
+          // a slice of level: sky, ground either side, a gap in the middle
+          ctx.fillStyle = C.sky; ctx.fillRect(22, y, 36, 26);
+          ctx.fillStyle = C.brick; ctx.fillRect(22, y + 14, 10, 12); ctx.fillRect(48, y + 14, 10, 12);
+          ctx.fillStyle = C.black; ctx.fillRect(32, y + 14, 16, 12);
+        } else {
+          const img = entryIcon(kind);
+          ctx.drawImage(img, 40 - Math.floor(img.width / 2), y + 4);
+        }
+        text(name, 68, y, C.gold);
+        text(l1, 68, y + 14, C.white);
+        text(l2, 68, y + 24, C.white);
+      });
+    } else {
+      const artTop = 30;
+      if (pg.art) drawAttractArt(pg.art, artTop);
+      let y = pg.art ? 96 : 60;
+      if (pg.title) { text(pg.title, W / 2, 84, C.gold, 'center'); y = 104; }
+      // Typewriter reveal
+      let budget = pg.instant ? Infinity : Math.floor(attractT / TYPE_SPEED);
+      for (const line of pg.lines) {
+        const shown = line.slice(0, Math.max(0, budget));
+        budget -= line.length;
+        if (shown) text(shown, W / 2 - (line.length * 8) / 2, y, pg.art === 'logo' && line.startsWith('HELLO') ? C.gold : C.white);
+        y += 13;
+      }
+    }
+
+    if (Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 218, C.gold, 'center');
+  }
+
   function render() {
     cam = Math.round(camX);
+    if (state === 'attract') {
+      drawAttract();
+      view.imageSmoothingEnabled = false;
+      view.drawImage(buffer, 0, 0, canvas.width, canvas.height);
+      return;
+    }
     drawBackground();
     drawItems(true);
     drawTiles();
@@ -1083,6 +1229,8 @@
 
   window.addEventListener('keydown', e => {
     if (!ownsKeys()) return;
+    if (state === 'attract') { e.preventDefault(); exitAttract(); return; }
+    if (state === 'title') titleIdle = 0;
     const k = KEYMAP[e.code];
     if (k || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') e.preventDefault();
     if (e.repeat && !k) return;
@@ -1105,6 +1253,8 @@
 
   canvas.addEventListener('pointerdown', e => {
     canvas.focus({ preventScroll: true });
+    if (state === 'attract') { exitAttract(); return; }
+    titleIdle = 0;
     if (state === 'title') {
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (W / rect.width);
@@ -1123,6 +1273,8 @@
   if (nameInput) {
     nameInput.value = playerName === 'PLAYER' ? '' : playerName;
     nameInput.addEventListener('input', () => {
+      if (state === 'attract') exitAttract();
+      titleIdle = 0;
       const clean = cleanName(nameInput.value);
       if (nameInput.value.toUpperCase() !== clean) nameInput.value = clean;
       playerName = clean || 'PLAYER';
@@ -1173,6 +1325,8 @@
     const k = btn.dataset.key;
     const on = e => {
       e.preventDefault();
+      if (state === 'attract') { exitAttract(); return; }
+      titleIdle = 0;
       if (state === 'title' && (k === 'left' || k === 'right')) { cycleCharacter(k === 'left' ? -1 : 1); return; }
       if (state !== 'play') pressStart();
       keys[k] = true;
