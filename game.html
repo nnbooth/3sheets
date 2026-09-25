@@ -56,6 +56,31 @@
     .game-help a { color: var(--gold); }
     .embedded .game-help a, .embedded .game-help br { display: none; }
 
+    .game-name {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0 0;
+      font-size: 10px;
+    }
+
+    .game-name input {
+      width: 13ch;
+      padding: 8px 10px;
+      font-family: var(--font);
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--black);
+      border: var(--px) solid var(--white);
+      border-radius: 0;
+      outline: none;
+    }
+
+    .game-name input::placeholder { color: #7c7c7c; }
+    .game-name input:focus { border-color: var(--gold); }
+
     .game-touch { display: none; }
 
     @media (pointer: coarse) {
@@ -89,8 +114,13 @@
 </head>
 <body>
   <main class="game-wrap">
-    <canvas id="game-canvas" width="256" height="240" tabindex="0" data-fit="screen" data-reserve="110"
+    <canvas id="game-canvas" width="256" height="240" tabindex="0" data-fit="screen" data-reserve="160"
       aria-label="Super 3Sheets: a small side-scrolling game. Click or press Enter to start."></canvas>
+    <label class="game-name">
+      <span>NAME</span>
+      <input id="player-name" type="text" maxlength="8" autocomplete="nickname" autocapitalize="characters"
+        spellcheck="false" placeholder="PLAYER" enterkeyhint="go" />
+    </label>
     <div class="game-touch" aria-hidden="true">
       <button type="button" tabindex="-1" data-key="left">&#9664;</button>
       <button type="button" tabindex="-1" data-key="right">&#9654;</button>
