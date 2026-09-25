@@ -661,8 +661,10 @@ strong, b { color: var(--gold); font-weight: 400; }
   margin: 0 auto;
 }
 
+/* game.js sets an exact whole-number pixel size; these are fallbacks */
 #game-canvas {
   display: block;
+  margin: 0 auto;
   width: 100%;
   height: auto;
   aspect-ratio: 256 / 240;
