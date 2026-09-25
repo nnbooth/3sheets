@@ -773,14 +773,7 @@
         if (t === '.') continue;
         const bump = bumps.find(b => b.col === c && b.row === r);
         const oy = bump ? -Math.round(Math.sin((bump.t / 10) * Math.PI) * 5) : 0;
-        let img = TILE[t];
-        if (t === '?' || t === 'D' || t === 'A') {
-          // shimmer like the original
-          const phase = Math.floor(tick / 10) % 6;
-          ctx.globalAlpha = phase === 3 ? 0.8 : 1;
-        }
-        ctx.drawImage(img, Math.round(c * T - cam), r * T + oy);
-        ctx.globalAlpha = 1;
+        ctx.drawImage(TILE[t], Math.round(c * T - cam), r * T + oy);
       }
     }
 
@@ -809,13 +802,11 @@
       const x = ix(it), y = iy(it);
       if (x < -20 || x > W + 20) continue;
       if (it.type === 'coin' || it.type === 'popcoin') {
-        const s = Math.abs(Math.cos(tick / 8 + it.x));
-        const w = Math.max(2, Math.round(COIN.width * s));
-        ctx.drawImage(COIN, x + (COIN.width - w) / 2, y, w, COIN.height);
+        ctx.drawImage(COIN, x, y); // static — no spin
       } else if (it.type === 'dash') {
         ctx.drawImage(DASHBOARD, x, y);
       } else if (it.type === 'bolt') {
-        ctx.drawImage(BOLT, x, y + (tick % 16 < 8 ? 0 : 1));
+        ctx.drawImage(BOLT, x, y);
       }
     }
   }
