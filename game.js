@@ -390,11 +390,18 @@
 
   /* ================================================================ PHYSICS */
 
+  // Positions can be fractional (gravity), so the far edge of a box is
+  // x + w (exclusive). Subtracting a tiny EPS finds the last tile it truly
+  // overlaps. Using "- 1" instead let a body standing on the ground sink
+  // 0.6px without being detected every other frame, which flipped it
+  // between standing and falling 30 times a second (visible jitter).
+  const EPS = 0.001;
+
   function moveX(e) {
     e.x += e.vx;
-    const top = Math.floor(e.y / T), bot = Math.floor((e.y + e.h - 1) / T);
+    const top = Math.floor(e.y / T), bot = Math.floor((e.y + e.h - EPS) / T);
     if (e.vx > 0) {
-      const col = Math.floor((e.x + e.w - 1) / T);
+      const col = Math.floor((e.x + e.w - EPS) / T);
       for (let r = top; r <= bot; r++) if (solidAt(col, r)) { e.x = col * T - e.w; return true; }
     } else if (e.vx < 0) {
       const col = Math.floor(e.x / T);
@@ -403,13 +410,13 @@
     return false;
   }
 
-  // Returns the tile column hit by the head (or null)
+  // Returns the tile hit by the head (or null)
   function moveY(e) {
     e.y += e.vy;
     e.onGround = false;
-    const left = Math.floor(e.x / T), right = Math.floor((e.x + e.w - 1) / T);
+    const left = Math.floor(e.x / T), right = Math.floor((e.x + e.w - EPS) / T);
     if (e.vy > 0) {
-      const row = Math.floor((e.y + e.h - 1) / T);
+      const row = Math.floor((e.y + e.h - EPS) / T);
       for (let c = left; c <= right; c++) {
         if (solidAt(c, row)) { e.y = row * T - e.h; e.vy = 0; e.onGround = true; return null; }
       }
@@ -574,14 +581,13 @@
       }
       if (it.emerge > 0) {
         it.y -= 1; it.emerge--;
-        if (it.emerge === 0) { it.vx = 0; it.static = true; } // sits still until collected
+        if (it.emerge === 0) it.vx = 1; // slide right once fully out
         continue;
       }
       if (!it.static) {
         it.vy += 0.3; if (it.vy > 4) it.vy = 4;
         if (moveX(it)) it.vx *= -1;
         moveY(it);
-        if (it.type === 'bolt' && it.onGround) it.vy = -4.5;
         if (it.y > H) it.dead = true;
       }
       if (overlap(p, it)) {
@@ -1039,8 +1045,15 @@
   function fit() {
     const dpr = window.devicePixelRatio || 1;
     const border = 8; // 4px CSS border each side
-    const avail = Math.max(W, wrap.clientWidth - border);
-    const scale = Math.max(1, Math.floor((avail * dpr) / W));
+    const availW = Math.max(W, wrap.clientWidth - border);
+    let scale = Math.floor((availW * dpr) / W);
+    // Standalone page: also fit the viewport height, leaving room for
+    // the touch buttons / help line underneath.
+    if (canvas.dataset.fit === 'screen') {
+      const reserved = parseInt(canvas.dataset.reserve || '0', 10) + border;
+      scale = Math.min(scale, Math.floor(((window.innerHeight - reserved) * dpr) / H));
+    }
+    scale = Math.max(1, scale);
     if (canvas.width !== W * scale) {
       canvas.width = W * scale;
       canvas.height = H * scale;
