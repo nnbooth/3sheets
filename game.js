@@ -966,21 +966,45 @@
     }
   }
 
-  canvas.addEventListener('keydown', e => {
+  // Keys are read at the window level so the arrow keys work even when
+  // the canvas itself doesn't have focus. On the standalone page the game
+  // always owns the keyboard; on the site it does while it has focus, or
+  // while a game is in progress and on screen (so the page can still be
+  // scrolled with the keyboard before you start).
+  const standalone = canvas.dataset.fit === 'screen';
+  let inView = true;
+
+  function typingElsewhere() {
+    const el = document.activeElement;
+    return !!el && el !== canvas && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+  }
+
+  function ownsKeys() {
+    if (typingElsewhere()) return false;
+    return standalone || document.activeElement === canvas ||
+      ((state === 'play' || state === 'paused') && inView);
+  }
+
+  window.addEventListener('keydown', e => {
+    if (!ownsKeys()) return;
     const k = KEYMAP[e.code];
-    if (k || e.code === 'Enter') e.preventDefault();
+    if (k || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') e.preventDefault();
+    if (e.repeat && !k) return;
     if (state === 'title' && (k === 'left' || k === 'right')) { setCharacter(k === 'left' ? 'him' : 'her'); return; }
-    if (e.code === 'Enter' || (e.code === 'Space' && state !== 'play')) { pressStart(); return; }
+    if (e.code === 'Enter' || (e.code === 'Space' && state !== 'play' && state !== 'paused')) { pressStart(); return; }
     if (e.code === 'KeyP' || e.code === 'Escape') {
-      if (state === 'play') state = 'paused'; else if (state === 'paused') state = 'play';
+      if (state === 'play') { releaseKeys(); state = 'paused'; } else if (state === 'paused') state = 'play';
       return;
     }
-    if (k) keys[k] = true;
+    if (k) {
+      if (state === 'paused') state = 'play'; // any game key resumes
+      keys[k] = true;
+    }
   });
 
-  canvas.addEventListener('keyup', e => {
+  window.addEventListener('keyup', e => {
     const k = KEYMAP[e.code];
-    if (k) { e.preventDefault(); keys[k] = false; }
+    if (k) { if (ownsKeys()) e.preventDefault(); keys[k] = false; }
   });
 
   canvas.addEventListener('pointerdown', e => {
@@ -1003,6 +1027,7 @@
   function releaseKeys() { for (const k in keys) keys[k] = false; }
 
   canvas.addEventListener('blur', () => {
+    if (standalone) return;
     setTimeout(() => {
       if (wrap.contains(document.activeElement)) return;
       releaseKeys();
@@ -1016,7 +1041,10 @@
 
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(entries => {
-      for (const en of entries) if (!en.isIntersecting && state === 'play') { releaseKeys(); state = 'paused'; }
+      for (const en of entries) {
+        inView = en.isIntersecting;
+        if (!inView && state === 'play') { releaseKeys(); state = 'paused'; }
+      }
     }, { threshold: 0.25 }).observe(canvas);
   }
 
