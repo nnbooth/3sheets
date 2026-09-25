@@ -36,7 +36,7 @@
     gold: '#f8b800', goldDark: '#ac7c00', orange: '#fc9838',
     green: '#00a800', greenLight: '#b8f818', greenDark: '#005800',
     red: '#d82800', skin: '#fcbcb0', hair: '#7c3c00', lens: '#a4e4fc',
-    trousers: '#50507c', blue: '#0058f8', shirtPower: '#b8f8b8'
+    trousers: '#50507c', blue: '#0058f8'
   };
 
   /* ================================================================ SPRITES */
@@ -106,24 +106,36 @@
     return { h: ch.hair, s: C.skin, S: '#e09470', k: C.black, l: C.lens, r: C.red, w: shirt, b: shade, t: trousers, o: C.black };
   }
 
-  const PLAYER = {};
+  // Big (Clarity) version: same head, taller body — torso and legs rows
+  // doubled, like Mario after a mushroom. 21 rows tall.
+  const bigBody = r => [r[0], r[1], r[1], r[2], r[2], r[3], r[3], r[4], r[5], r[5], r[5], r[6]];
+  const SMALL_H = 15, BIG_H = 20;
+
+  const PLAYER = {}, PLAYER_BIG = {};
   for (const [id, ch] of Object.entries(CHARACTERS)) {
     const palettes = {
       normal: playerPalette(ch, ch.shirt, ch.shade, '#3c3c7c'),
-      power:  playerPalette(ch, C.shirtPower, C.green, '#3c3c7c'),
       star1:  playerPalette(ch, C.gold, C.red, C.black),
       star2:  playerPalette(ch, C.greenLight, C.green, C.red),
       star3:  playerPalette(ch, C.orange, C.brickDark, C.blue),
     };
-    PLAYER[id] = {};
+    PLAYER[id] = {}; PLAYER_BIG[id] = {};
     for (const [pal, map] of Object.entries(palettes)) {
-      PLAYER[id][pal] = {};
+      PLAYER[id][pal] = {}; PLAYER_BIG[id][pal] = {};
       for (const f of Object.keys(BODY)) {
         const r = sprite([...ch.head, ...BODY[f]], map);
         PLAYER[id][pal][f] = { r, l: flipped(r) };
+        const b = sprite([...ch.head, ...bigBody(BODY[f])], map);
+        PLAYER_BIG[id][pal][f] = { r: b, l: flipped(b) };
       }
     }
   }
+
+  // Player name (shown top-left). Typed into the NAME box under the game.
+  const nameInput = document.getElementById('player-name');
+  let playerName = 'PLAYER';
+  const cleanName = v => (v || '').toUpperCase().replace(/[^A-Z0-9 .!-]/g, '').trim().slice(0, 8);
+  try { playerName = cleanName(localStorage.getItem('s3-name')) || 'PLAYER'; } catch (e) { /* storage blocked */ }
 
   let character = 'him';
   try { if (localStorage.getItem('s3-character') === 'her') character = 'her'; } catch (e) { /* storage blocked */ }
@@ -369,7 +381,7 @@
     player = {
       x: 3 * T, y: (GROUND - 1) * T + 1, w: 10, h: 15,
       vx: 0, vy: 0, onGround: false, facing: 1,
-      powered: false, star: 0, hurt: 0, anim: 0,
+      powered: false, growT: 0, star: 0, hurt: 0, anim: 0,
     };
     enemies = spawns.enemies.map(([type, col]) => ({
       type, x: col * T, y: (GROUND - 1) * T + 2, w: 14, h: 14,
@@ -477,10 +489,19 @@
     else e.squash = 30;
   }
 
+  // Clarity = big. Growing keeps the feet where they are.
+  function setBig(p, big) {
+    if (big === p.powered) return;
+    p.y += big ? SMALL_H - BIG_H : BIG_H - SMALL_H;
+    p.h = big ? BIG_H : SMALL_H;
+    p.powered = big;
+    p.growT = 36; // brief freeze while flicking between sizes
+  }
+
   function hurtPlayer(cause) {
     if (player.star > 0 || player.hurt > 0 || state !== 'play') return;
     if (player.powered) {
-      player.powered = false;
+      setBig(player, false);
       player.hurt = 120;
       popup('OUCH', player.x - 4, player.y - 10);
     } else {
@@ -518,6 +539,9 @@
 
   function updatePlay(jumpPressed) {
     const p = player;
+    // Growing/shrinking: the world pauses for a moment, like the original
+    if (p.growT > 0) { p.growT--; return; }
+
     // Direct control: move only while a direction is held, stop the
     // moment it's released (on the ground and in the air). Whole-pixel
     // speeds keep movement perfectly even on screen.
@@ -593,7 +617,7 @@
       if (overlap(p, it)) {
         it.dead = true;
         if (it.type === 'coin') { coins++; score += 200; }
-        else if (it.type === 'dash') { p.powered = true; score += 1000; popup('CLARITY!', it.x - 12, it.y - 8); }
+        else if (it.type === 'dash') { setBig(p, true); score += 1000; popup('CLARITY!', it.x - 12, it.y - 8); }
         else if (it.type === 'bolt') { p.star = 480; score += 1000; popup('AUTOMATED!', it.x - 20, it.y - 8); }
       }
     }
@@ -839,15 +863,18 @@
   function drawPlayer() {
     const p = player;
     if (p.hurt > 0 && Math.floor(tick / 3) % 2) return;
-    let pal = p.powered ? 'power' : 'normal';
+    let pal = 'normal';
     if (p.star > 0) pal = ['star1', 'star2', 'star3'][Math.floor(tick / 4) % 3];
     let frame = 'stand';
     if (state === 'dying' || !p.onGround) frame = 'jump';
     else if (Math.abs(p.vx) > 0.1) frame = Math.floor(p.anim) % 2 ? 'run1' : 'run2';
     if (state === 'win' && winPhase === 0) frame = 'jump';
     if (state === 'win' && winPhase >= 2) return; // inside HQ
-    const f = PLAYER[character][pal][frame];
-    ctx.drawImage(p.facing > 0 ? f.r : f.l, ix(p) - 3, iy(p) - 1);
+    // While growing/shrinking, flick between the two sizes
+    const big = p.growT > 0 ? (Math.floor(p.growT / 6) % 2 === 0) === p.powered : p.powered;
+    const f = (big ? PLAYER_BIG : PLAYER)[character][pal][frame];
+    const yOff = big === p.powered ? 0 : (big ? SMALL_H - BIG_H : BIG_H - SMALL_H);
+    ctx.drawImage(p.facing > 0 ? f.r : f.l, ix(p) - 3, iy(p) - 1 + yOff);
   }
 
   function drawParticles() {
@@ -862,7 +889,7 @@
   }
 
   function drawHUD() {
-    text('CLARITY', 16, 10);
+    text(playerName, 16, 10);
     text(String(score).padStart(6, '0'), 16, 20);
     ctx.drawImage(COIN, 84, 19);
     text('x' + String(coins).padStart(2, '0'), 96, 20);
@@ -890,7 +917,7 @@
       text('SUPER 3SHEETS', W / 2, 40, C.gold, 'center');
       text('WORLD 1-1: MONTH END', W / 2, 54, C.white, 'center');
       ctx.drawImage(COIN, 30, 72);             text('DATA POINTS', 50, 74);
-      ctx.drawImage(DASHBOARD, 27, 87);        text('CLARITY: +1 HIT', 50, 90);
+      ctx.drawImage(DASHBOARD, 27, 87);        text('CLARITY: GROW BIG', 50, 90);
       ctx.drawImage(BOLT, 27, 104);            text('AUTOMATION', 50, 106);
       ctx.drawImage(CLOCK[0], 27, 118);        text('OVERTIME', 50, 122);
       ctx.drawImage(INVOICE[0], 27, 134);      text('ROGUE INVOICE', 50, 138);
@@ -928,7 +955,7 @@
       panel(64, 92);
       text('REPORT PUBLISHED!', W / 2, 78, C.gold, 'center');
       text('TIME BONUS ' + bonusShown, W / 2, 96, C.white, 'center');
-      text('CLARITY ' + String(score).padStart(6, '0'), W / 2, 110, C.white, 'center');
+      text('SCORE ' + String(score).padStart(6, '0'), W / 2, 110, C.white, 'center');
       if (winPhase === 3 && Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 132, C.greenLight, 'center');
     }
   }
@@ -1023,6 +1050,24 @@
   });
 
   const wrap = canvas.closest('.game-wrap') || canvas.parentElement;
+
+  if (nameInput) {
+    nameInput.value = playerName === 'PLAYER' ? '' : playerName;
+    nameInput.addEventListener('input', () => {
+      const clean = cleanName(nameInput.value);
+      if (nameInput.value.toUpperCase() !== clean) nameInput.value = clean;
+      playerName = clean || 'PLAYER';
+      try { localStorage.setItem('s3-name', clean); } catch (e) { /* ignore */ }
+    });
+    // Enter in the name box starts the game
+    nameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        canvas.focus({ preventScroll: true });
+        pressStart();
+      }
+    });
+  }
 
   function releaseKeys() { for (const k in keys) keys[k] = false; }
 
