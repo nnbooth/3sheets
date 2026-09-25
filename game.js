@@ -19,10 +19,15 @@
 
   const canvas = document.getElementById('game-canvas');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-
   const W = 256, H = 240, T = 16;
+
+  // Everything is drawn at native NES resolution into this buffer, then
+  // copied to the visible canvas at a whole-number scale (see fit()).
+  const view = canvas.getContext('2d');
+  const buffer = document.createElement('canvas');
+  buffer.width = W; buffer.height = H;
+  const ctx = buffer.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
   const FONT = '8px "Press Start 2P", monospace';
 
   const C = {
@@ -355,7 +360,7 @@
   let state = 'title';      // title | play | paused | dying | win | gameover
   let tick = 0;
   let score = 0, coins = 0, lives = 3, time = 200, timeTick = 0;
-  let camX = 0;
+  let camX = 0, prevCam = 0;
   let player, enemies, items, particles, popups, bumps;
   let deathCause = '', stateTimer = 0, winPhase = 0, flagY = 0, bonusShown = 0;
 
@@ -373,7 +378,7 @@
     }));
     items = spawns.coins.map(([c, r]) => ({ type: 'coin', x: c * T + 3, y: r * T + 2, w: 10, h: 11, static: true }));
     particles = []; popups = []; bumps = [];
-    camX = 0; time = 200; timeTick = 0;
+    camX = 0; prevCam = 0; time = 200; timeTick = 0;
     flagY = 3 * T + 4; winPhase = 0; bonusShown = 0;
   }
 
@@ -486,7 +491,15 @@
 
   /* ================================================================ UPDATE */
 
+  function snapshot() {
+    prevCam = camX;
+    player.px = player.x; player.py = player.y;
+    for (const e of enemies) { e.px = e.x; e.py = e.y; }
+    for (const it of items) { it.px = it.x; it.py = it.y; }
+  }
+
   function update() {
+    snapshot();
     tick++;
     const jumpPressed = keys.jump && !prevJump;
     prevJump = keys.jump;
@@ -659,6 +672,14 @@
 
   /* ================================================================ RENDER */
 
+  // Render-time state: alpha is how far we are between the last two
+  // physics steps; cam is the camera snapped to a whole pixel so tiles
+  // and sprites always move together.
+  let alpha = 1, cam = 0;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ix = e => Math.round(e.px === undefined ? e.x : lerp(e.px, e.x, alpha)) - cam;
+  const iy = e => Math.round(e.py === undefined ? e.y : lerp(e.py, e.y, alpha));
+
   function text(str, x, y, col = C.white, align = 'left') {
     ctx.font = FONT;
     ctx.textAlign = align;
@@ -678,7 +699,7 @@
     // Hills
     for (const hx of [0, 48 * 16, 96 * 16]) {
       for (const [ox, r] of [[16, 40], [200, 24], [420, 40], [640, 24]]) {
-        const x = hx + ox - camX;
+        const x = hx + ox - cam;
         if (x < -r * 2 || x > W + r * 2) continue;
         ctx.fillStyle = C.green;
         ctx.beginPath();
@@ -693,13 +714,13 @@
 
     // Clouds (parallax)
     for (let i = 0; i < 8; i++) {
-      const x = ((i * 190 + 40) - camX * 0.5) % (W + 400) - 60;
+      const x = ((i * 190 + 40) - Math.round(cam * 0.5)) % (W + 400) - 60;
       const y = 24 + (i % 3) * 18;
       cloud(x, y);
     }
 
     // Bushes
-    for (const bx of [6, 22, 42, 71]) bush(bx * T - camX, groundY);
+    for (const bx of [6, 22, 42, 71]) bush(bx * T - cam, groundY);
 
     // Billboards with the three areas the site covers
     board(7, 'SALES');
@@ -707,7 +728,7 @@
     board(61, 'PAYROLL');
 
     // HQ building
-    const hx = HQ_COL * T - camX;
+    const hx = HQ_COL * T - cam;
     if (hx < W + 80) {
       const top = groundY - 80;
       ctx.fillStyle = C.brickDark; ctx.fillRect(hx - 1, top - 1, 66, 81);
@@ -743,7 +764,7 @@
   }
 
   function board(col, label) {
-    const x = col * T - camX;
+    const x = col * T - cam;
     if (x < -120 || x > W + 20) return;
     ctx.font = FONT;
     const w = ctx.measureText(label).width + 10;
@@ -761,7 +782,7 @@
   }
 
   function drawTiles() {
-    const c0 = Math.floor(camX / T), c1 = Math.min(COLS - 1, c0 + Math.ceil(W / T) + 1);
+    const c0 = Math.floor(cam / T), c1 = Math.min(COLS - 1, c0 + Math.ceil(W / T) + 1);
     for (let r = 0; r < ROWS; r++) {
       for (let c = c0; c <= c1; c++) {
         const t = map[r][c];
@@ -774,13 +795,13 @@
           const phase = Math.floor(tick / 10) % 6;
           ctx.globalAlpha = phase === 3 ? 0.8 : 1;
         }
-        ctx.drawImage(img, Math.round(c * T - camX), r * T + oy);
+        ctx.drawImage(img, Math.round(c * T - cam), r * T + oy);
         ctx.globalAlpha = 1;
       }
     }
 
     // Flagpole
-    const fx = FLAG_COL * T - camX + 7;
+    const fx = FLAG_COL * T - cam + 7;
     if (fx > -20 && fx < W + 20) {
       ctx.fillStyle = C.greenLight;
       ctx.fillRect(fx, 3 * T, 2, (GROUND - 4) * T);
@@ -801,7 +822,7 @@
     for (const it of items) {
       const emerging = it.emerge > 0;
       if (emerging !== behind) continue;
-      const x = Math.round(it.x - camX), y = Math.round(it.y);
+      const x = ix(it), y = iy(it);
       if (x < -20 || x > W + 20) continue;
       if (it.type === 'coin' || it.type === 'popcoin') {
         const s = Math.abs(Math.cos(tick / 8 + it.x));
@@ -820,7 +841,7 @@
       if (!e.active) continue;
       const set = e.type === 'clock' ? CLOCK : INVOICE;
       const img = set[Math.floor(e.anim) % 2];
-      const x = Math.round(e.x - camX - 1), y = Math.round(e.y - 2);
+      const x = ix(e) - 1, y = iy(e) - 2;
       if (e.squash > 0) {
         ctx.drawImage(img, x, y + 10, 16, 6);
       } else if (e.flip) {
@@ -845,18 +866,18 @@
     if (state === 'win' && winPhase === 0) frame = 'jump';
     if (state === 'win' && winPhase >= 2) return; // inside HQ
     const f = PLAYER[character][pal][frame];
-    ctx.drawImage(p.facing > 0 ? f.r : f.l, Math.round(p.x - camX - 3), Math.round(p.y - 1));
+    ctx.drawImage(p.facing > 0 ? f.r : f.l, ix(p) - 3, iy(p) - 1);
   }
 
   function drawParticles() {
     ctx.fillStyle = C.brick;
     for (const pt of particles) {
-      ctx.fillRect(Math.round(pt.x - camX), Math.round(pt.y), 6, 6);
+      ctx.fillRect(Math.round(pt.x - cam), Math.round(pt.y), 6, 6);
       ctx.fillStyle = C.black;
-      ctx.fillRect(Math.round(pt.x - camX) + 5, Math.round(pt.y), 1, 6);
+      ctx.fillRect(Math.round(pt.x - cam) + 5, Math.round(pt.y), 1, 6);
       ctx.fillStyle = C.brick;
     }
-    for (const pu of popups) text(pu.text, Math.round(pu.x - camX), Math.round(pu.y), C.white);
+    for (const pu of popups) text(pu.text, Math.round(pu.x - cam), Math.round(pu.y), C.white);
   }
 
   function drawHUD() {
@@ -931,7 +952,9 @@
     }
   }
 
-  function render() {
+  function render(a) {
+    alpha = a;
+    cam = Math.round(lerp(prevCam, camX, alpha));
     drawBackground();
     drawItems(true);
     drawTiles();
@@ -941,6 +964,8 @@
     drawParticles();
     drawHUD();
     drawOverlay();
+    view.imageSmoothingEnabled = false;
+    view.drawImage(buffer, 0, 0, canvas.width, canvas.height);
   }
 
   /* ================================================================ INPUT */
@@ -1033,6 +1058,27 @@
     btn.addEventListener('contextmenu', e => e.preventDefault());
   });
 
+  /* ================================================================ SIZE */
+
+  // Scale the canvas by a whole number of *device* pixels so every game
+  // pixel is the same size on screen (no shimmer on moving sprites).
+  function fit() {
+    const dpr = window.devicePixelRatio || 1;
+    const border = 8; // 4px CSS border each side
+    const avail = Math.max(W, wrap.clientWidth - border);
+    const scale = Math.max(1, Math.floor((avail * dpr) / W));
+    if (canvas.width !== W * scale) {
+      canvas.width = W * scale;
+      canvas.height = H * scale;
+    }
+    canvas.style.width = (W * scale) / dpr + 'px';
+    canvas.style.height = (H * scale) / dpr + 'px';
+  }
+
+  fit();
+  if ('ResizeObserver' in window) new ResizeObserver(fit).observe(wrap);
+  window.addEventListener('resize', fit);
+
   /* ================================================================ LOOP */
 
   resetLevel();
@@ -1047,7 +1093,7 @@
       if (state !== 'paused') update(); else tick++;
       acc -= STEP;
     }
-    render();
+    render(state === 'paused' ? 1 : acc / STEP);
     requestAnimationFrame(frame);
   }
 
