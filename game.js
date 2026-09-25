@@ -83,20 +83,6 @@
     jump:  ['.....wwbbww.sss.', '....wwwwwwwws...', '...swwwwwwww....', '....wwwwwwww....', '...ttttttttt....', '..ttt....ttt....', '..oo......ooo...'],
   };
 
-  // Businesswoman: same chibi build, dark bob, round glasses,
-  // coral blouse, navy trousers.
-  const HEAD_HER = [
-    '....hhhhhhh.....',
-    '...hhhhhhhhhh...',
-    '..hhhhhhhhhhhh..',
-    '.hhhhhsssssshh..',
-    '.hhhkkkkskkkkh..',
-    '.hhsklllkklllk..',
-    '.hhSkkkkskkkks..',
-    '.hhhssssssSss...',
-    '..hh.sssrrss....',
-  ];
-
   // Afro puff, gold earring, no glasses
   const HEAD_PUFF = [
     '....hhhhhhh.....',
@@ -121,19 +107,6 @@
     '..hhhsSssssSsh..',
     '..hhhhsssrrshh..',
     '..hhhhhhhhhhhh..',
-  ];
-
-  // Beard, square glasses
-  const HEAD_BEARD = [
-    '.....hhhhhh.....',
-    '...hhhhhhhhhh...',
-    '..hhhhhhhhhhhh..',
-    '..hhhsssssssh...',
-    '..hhkkkkskkkk...',
-    '..hsklllkklllk..',
-    '..hSkkkkskkkks..',
-    '...hhsssssshh...',
-    '....hhhhhhhh....',
   ];
 
   // Non-binary: lilac swoop over a shaved side (H), earring, no glasses
@@ -171,16 +144,14 @@
     jump:  ['.kk..wwbbww.ss..', '..k.ggggwwwws...', '..kgwwGwgwww....', '..kgttGGgtttt...', '..kgtGttg...tt..', '..kgGtttg..ktt..', '...kggggk.kkooo.'],
   };
 
-  // The cast. Skin tones range light to deep; mix of genders, hair,
-  // glasses/no glasses, a hijab and a wheelchair user.
+  // The cast (5). Skin tones range light to deep; men, women and a
+  // non-binary character, glasses/no glasses, a hijab, a wheelchair user.
   const CHARACTERS = {
-    him:   { head: HEAD,        hair: C.hair,    skin: '#fcbcb0', shadeSkin: '#e09470', shirt: C.white,   shade: C.grey },
-    her:   { head: HEAD_HER,    hair: '#3c1c00', skin: '#e8a47c', shadeSkin: '#c47c54', shirt: '#fc7460', shade: '#d82800' },
-    puff:  { head: HEAD_PUFF,   hair: '#201008', skin: '#7c4a2c', shadeSkin: '#5c3018', shirt: '#00a8a8', shade: '#005858' },
-    hijab: { head: HEAD_HIJAB,  hair: '#583880', skin: '#b87050', shadeSkin: '#8c4c30', shirt: '#fce0a8', shade: '#c8a060' },
-    beard: { head: HEAD_BEARD,  hair: '#181010', skin: '#9c5c38', shadeSkin: '#744024', shirt: '#a4c8fc', shade: '#5c7cf8' },
-    swoop: { head: HEAD_SWOOP,  hair: '#b8a0f8', hairShaved: '#5c4c7c', skin: '#fcc8a0', shadeSkin: '#e0a07c', shirt: '#3c3c3c', shade: '#181818' },
-    chair: { head: HEAD_CHAIR,  hair: '#101010', skin: '#f0c090', shadeSkin: '#d09c6c', shirt: '#58d854', shade: '#00a800', body: CHAIR_BODY },
+    him:   { head: HEAD,       hair: C.hair,    skin: '#fcbcb0', shadeSkin: '#e09470', shirt: C.white,   shade: C.grey },
+    puff:  { head: HEAD_PUFF,  hair: '#201008', skin: '#7c4a2c', shadeSkin: '#5c3018', shirt: '#00a8a8', shade: '#005858' },
+    hijab: { head: HEAD_HIJAB, hair: '#583880', skin: '#b87050', shadeSkin: '#8c4c30', shirt: '#fce0a8', shade: '#c8a060' },
+    swoop: { head: HEAD_SWOOP, hair: '#b8a0f8', hairShaved: '#5c4c7c', skin: '#fcc8a0', shadeSkin: '#e0a07c', shirt: '#3c3c3c', shade: '#181818' },
+    chair: { head: HEAD_CHAIR, hair: '#101010', skin: '#9c5c38', shadeSkin: '#744024', shirt: '#58d854', shade: '#00a800', body: CHAIR_BODY },
   };
   const ROSTER = Object.keys(CHARACTERS);
 
