@@ -654,7 +654,7 @@ strong, b { color: var(--gold); font-weight: 400; }
   .hero::after { display: none; }
 }
 
-/* ---------- Super 3Sheets launcher (game lives in game.html) ---------- */
+/* ---------- 3Sheets: The Month-End Run launcher (game lives in game.html) ---------- */
 
 /* Pop-up */
 .game-dialog {
@@ -729,21 +729,32 @@ strong, b { color: var(--gold); font-weight: 400; }
 
 .game-pipe__lip {
   display: block;
-  height: 28px;
-  line-height: 20px;
+  height: 24px;
+  line-height: 16px;
   font-size: 8px;
   color: var(--black);
-  background: linear-gradient(90deg, #005800 0 8%, var(--green-light) 8% 30%, var(--green) 30% 75%, #005800 75%);
+  background: #9ca0a8;
   border: var(--px) solid var(--black);
+  box-shadow: inset 0 2px 0 #d0d4dc;
 }
 
+/* cabinet drawers with handles */
 .game-pipe__body {
-  display: block;
-  height: 40px;
-  margin: 0 6px;
-  background: linear-gradient(90deg, #005800 0 8%, var(--green-light) 8% 30%, var(--green) 30% 75%, #005800 75%);
+  display: grid;
+  gap: var(--px);
+  padding: var(--px);
+  background: var(--black);
   border: var(--px) solid var(--black);
   border-top: 0;
+}
+
+.game-pipe__body i {
+  display: block;
+  height: 16px;
+  background:
+    linear-gradient(var(--black), var(--black)) center 6px / 16px 3px no-repeat,
+    #9ca0a8;
+  box-shadow: inset 0 2px 0 #d0d4dc;
 }
 
 .game-pipe:hover .game-pipe__lip { color: var(--white); }

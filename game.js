@@ -1,5 +1,5 @@
 /*
-  game.js — "Super 3Sheets" (NES theme bonus stage)
+  game.js — "3Sheets: The Month-End Run" (NES theme bonus stage)
 
   A tiny single-level side-scroller drawn on a 256x240 canvas.
   No images or libraries: every sprite is a pixel map below.
@@ -31,7 +31,13 @@
   const FONT = '8px "Press Start 2P", monospace';
 
   const C = {
-    sky: '#5c94fc', black: '#000000', white: '#fcfcfc', grey: '#bcbcbc', greyDark: '#7c7c7c',
+    // Office-district palette (still NES colours, not the Mario sky)
+    sky: '#a4e4fc', cityFar: '#78c0ec', cityNear: '#4c94c8', window: '#d8f4fc',
+    slate: '#3c3c4c', slateLine: '#58586c', header: '#00a800', headerLight: '#58d854',
+    card: '#c8903c', cardDark: '#8c5c1c', tape: '#e8c078',
+    steel: '#9ca0a8', steelDark: '#6c7078', steelLight: '#d0d4dc', server: '#50505c',
+    glass: '#3c6c9c',
+    black: '#000000', white: '#fcfcfc', grey: '#bcbcbc', greyDark: '#7c7c7c',
     brick: '#c84c0c', brickDark: '#881400', brickLight: '#fc9838', tan: '#fcbcb0',
     gold: '#f8b800', goldDark: '#ac7c00', orange: '#fc9838',
     green: '#00a800', greenLight: '#b8f818', greenDark: '#005800',
@@ -313,66 +319,81 @@
   const px = (g, col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
 
   const TILE = {
+    // Ledger floor: dark tiles ruled like a spreadsheet
     G: tile(g => {
-      px(g, C.brick, 0, 0, 16, 16);
-      px(g, C.tan, 0, 0, 16, 1); px(g, C.tan, 0, 0, 1, 16);
-      px(g, C.black, 15, 0, 1, 16); px(g, C.black, 0, 15, 16, 1);
-      px(g, C.black, 8, 1, 1, 7); px(g, C.black, 1, 8, 7, 1);
-      px(g, C.tan, 9, 1, 1, 6); px(g, C.black, 4, 9, 1, 6);
+      px(g, C.slate, 0, 0, 16, 16);
+      px(g, C.slateLine, 0, 7, 16, 1); px(g, C.slateLine, 7, 0, 1, 16);
+      px(g, C.black, 0, 15, 16, 1); px(g, C.black, 15, 0, 1, 16);
     }),
+    // Top row of the floor: a grey desk-edge strip
+    H: tile(g => {
+      px(g, C.slate, 0, 0, 16, 16);
+      px(g, C.steel, 0, 0, 16, 4); px(g, C.steelLight, 0, 0, 16, 1); px(g, C.steelDark, 0, 3, 16, 1);
+      px(g, C.slateLine, 0, 10, 16, 1); px(g, C.slateLine, 7, 4, 1, 12);
+      px(g, C.black, 0, 15, 16, 1); px(g, C.black, 15, 4, 1, 12);
+    }),
+    // Archive box (breakable): cardboard, tape, label
     B: tile(g => {
-      px(g, C.brick, 0, 0, 16, 16);
-      px(g, C.tan, 0, 0, 16, 1);
-      [3, 7, 11, 15].forEach(y => px(g, C.black, 0, y, 16, 1));
-      [[7, 0], [15, 0], [3, 4], [11, 4], [7, 8], [15, 8], [3, 12], [11, 12]]
-        .forEach(([x, y]) => px(g, C.black, x, y, 1, 3));
+      px(g, C.black, 0, 0, 16, 16);
+      px(g, C.card, 0, 0, 15, 15);
+      px(g, C.tape, 0, 0, 15, 1);
+      px(g, C.tape, 6, 0, 3, 15);
+      px(g, C.cardDark, 0, 5, 15, 1);
+      px(g, C.white, 10, 8, 4, 4); px(g, C.slateLine, 11, 9, 2, 1); px(g, C.slateLine, 11, 11, 2, 1);
     }),
+    // Data block: green cell with a white sigma (sum) sign
     Q: tile(g => {
       px(g, C.black, 0, 0, 16, 16);
-      px(g, C.orange, 0, 0, 15, 15);
-      px(g, C.gold, 1, 1, 13, 13);
-      [[1, 1], [13, 1], [1, 13], [13, 13]].forEach(([x, y]) => px(g, C.black, x, y));
-      // "?"
-      const q = ['.kkkk.', 'kk..kk', '....kk', '...kk.', '..kk..', '......', '..kk..'];
-      q.forEach((row, y) => [...row].forEach((ch, x) => ch === 'k' && px(g, C.brickDark, 5 + x, 3 + y)));
+      px(g, C.header, 0, 0, 15, 15);
+      px(g, C.headerLight, 0, 0, 15, 1); px(g, C.headerLight, 0, 0, 1, 15);
+      px(g, C.greenDark, 1, 14, 14, 1); px(g, C.greenDark, 14, 1, 1, 14);
+      const sig = ['kkkkkkk', 'kk.....', '.kk....', '..kk...', '.kk....', 'kk.....', 'kkkkkkk'];
+      sig.forEach((row, y) => [...row].forEach((ch, x) => ch === 'k' && px(g, C.white, 4 + x, 4 + y)));
     }),
     U: tile(g => {
       px(g, C.black, 0, 0, 16, 16);
-      px(g, C.brick, 0, 0, 15, 15);
-      [[1, 1], [13, 1], [1, 13], [13, 13]].forEach(([x, y]) => px(g, C.black, x, y));
+      px(g, C.steelDark, 0, 0, 15, 15);
+      px(g, C.steel, 1, 1, 13, 13);
+      px(g, C.steelDark, 4, 7, 7, 1);
     }),
+    // Server rack block (stairs)
     S: tile(g => {
-      px(g, C.brickDark, 0, 0, 16, 16);
-      px(g, C.brick, 1, 1, 14, 14);
-      px(g, C.tan, 0, 0, 15, 1); px(g, C.tan, 0, 0, 1, 15);
-      px(g, C.black, 15, 0, 1, 16); px(g, C.black, 0, 15, 16, 1);
-      px(g, C.brickLight, 3, 3, 10, 10);
-      px(g, C.brick, 4, 4, 8, 8);
+      px(g, C.black, 0, 0, 16, 16);
+      px(g, C.server, 0, 0, 15, 15);
+      px(g, C.slateLine, 0, 0, 15, 1);
+      [3, 7, 11].forEach(y => { px(g, C.black, 2, y, 11, 2); px(g, C.headerLight, 3, y, 1, 1); });
     }),
+    // Filing cabinet (was pipes): 2 tiles wide, top and drawers
     '[': tile(g => {
       px(g, C.black, 0, 0, 16, 16);
-      px(g, C.green, 1, 1, 15, 14);
-      px(g, C.greenLight, 3, 1, 3, 14);
+      px(g, C.steel, 1, 1, 15, 14);
+      px(g, C.steelLight, 1, 1, 15, 1);
+      px(g, C.steelDark, 1, 14, 15, 1);
+      px(g, C.black, 10, 7, 6, 2);
     }),
     ']': tile(g => {
       px(g, C.black, 0, 0, 16, 16);
-      px(g, C.green, 0, 1, 15, 14);
-      px(g, C.greenDark, 10, 1, 4, 14);
+      px(g, C.steel, 0, 1, 15, 14);
+      px(g, C.steelLight, 0, 1, 15, 1);
+      px(g, C.steelDark, 0, 14, 15, 1);
+      px(g, C.black, 0, 7, 6, 2);
     }),
     '{': tile(g => {
-      px(g, C.black, 2, 0, 14, 16);
-      px(g, C.green, 3, 0, 13, 16);
-      px(g, C.greenLight, 5, 0, 3, 16);
+      px(g, C.black, 0, 0, 16, 16);
+      px(g, C.steel, 1, 0, 15, 15);
+      px(g, C.steelDark, 1, 15, 15, 1);
+      px(g, C.black, 10, 6, 6, 2);
     }),
     '}': tile(g => {
-      px(g, C.black, 0, 0, 14, 16);
-      px(g, C.green, 0, 0, 13, 16);
-      px(g, C.greenDark, 8, 0, 4, 16);
+      px(g, C.black, 0, 0, 16, 16);
+      px(g, C.steel, 0, 0, 15, 15);
+      px(g, C.steelDark, 0, 15, 15, 1);
+      px(g, C.black, 0, 6, 6, 2);
     }),
   };
   TILE['?'] = TILE.Q; TILE.D = TILE.Q; TILE.A = TILE.Q;
 
-  const SOLID = new Set(['G', 'B', '?', 'D', 'A', 'U', 'S', '[', ']', '{', '}']);
+  const SOLID = new Set(['G', 'H', 'B', '?', 'D', 'A', 'U', 'S', '[', ']', '{', '}']);
 
   /* ================================================================ LEVEL */
 
@@ -389,7 +410,7 @@
     const gaps = [[39, 40], [57, 59]];
     for (let x = 0; x < COLS; x++) {
       if (gaps.some(([a, b]) => x >= a && x <= b)) continue;
-      set(x, GROUND, 'G'); set(x, GROUND + 1, 'G');
+      set(x, GROUND, 'H'); set(x, GROUND + 1, 'G');
     }
     const pipe = (x, h) => {
       set(x, GROUND - h, '['); set(x + 1, GROUND - h, ']');
@@ -441,7 +462,7 @@
   let score = 0, coins = 0, lives = 3, time = 200, timeTick = 0;
   let camX = 0;
   let player, enemies, items, particles, popups, bumps;
-  let deathCause = '', stateTimer = 0, winPhase = 0, flagY = 0, bonusShown = 0;
+  let deathCause = '', stateTimer = 0, winPhase = 0, bonusShown = 0;
 
   function resetLevel() {
     buildLevel();
@@ -458,7 +479,7 @@
     items = spawns.coins.map(([c, r]) => ({ type: 'coin', x: c * T + 3, y: r * T + 2, w: 10, h: 11, static: true }));
     particles = []; popups = []; bumps = [];
     camX = 0; time = 200; timeTick = 0;
-    flagY = 3 * T + 4; winPhase = 0; bonusShown = 0;
+    winPhase = 0; bonusShown = 0;
   }
 
   function newGame() {
@@ -650,14 +671,13 @@
     updateItems();
     updateEnemies();
 
-    // Flagpole
-    // Touching the pole or its base block counts
+    // Sign-off board: touching its post or plinth gets the report approved
     if (p.x + p.w >= FLAG_COL * T - 1) {
       state = 'win';
       winPhase = 0;
-      const heightBonus = Math.max(100, Math.round((GROUND * T - (p.y + p.h)) / 16) * 400);
-      score += heightBonus;
-      popup(String(heightBonus), FLAG_COL * T + 10, p.y);
+      stateTimer = 50;
+      score += 1000;
+      popup('APPROVED!', FLAG_COL * T - 28, 4 * T - 14);
       p.x = FLAG_COL * T + 2;
       p.vx = 0; p.vy = 0;
     }
@@ -738,10 +758,9 @@
     const p = player;
     const groundY = (GROUND - 1) * T + 1;
     if (winPhase === 0) {
-      // Slide down the pole with the flag
-      p.y = Math.min(p.y + 2, groundY);
-      flagY = Math.min(flagY + 2, (GROUND - 2) * T);
-      if (p.y >= groundY && flagY >= (GROUND - 2) * T) { winPhase = 1; p.x += 8; }
+      // Brief pause while the board stamps APPROVED, dropping to the floor
+      p.vy += 0.6; moveY(p);
+      if (--stateTimer <= 0 && p.onGround) { winPhase = 1; p.x += 8; }
     } else if (winPhase === 1) {
       // Walk into HQ
       p.vx = 1; p.facing = 1; p.anim += 0.12;
@@ -779,72 +798,62 @@
 
     const groundY = GROUND * T;
 
-    // Hills
-    for (const hx of [0, 48 * 16, 96 * 16]) {
-      for (const [ox, r] of [[16, 40], [200, 24], [420, 40], [640, 24]]) {
-        const x = hx + ox - cam;
-        if (x < -r * 2 || x > W + r * 2) continue;
-        ctx.fillStyle = C.green;
-        ctx.beginPath();
-        ctx.moveTo(x - r * 1.6, groundY);
-        ctx.quadraticCurveTo(x, groundY - r * 2.2, x + r * 1.6, groundY);
-        ctx.fill();
-        ctx.fillStyle = C.greenDark;
-        ctx.fillRect(x - 6, groundY - r * 0.9, 2, 6);
-        ctx.fillRect(x + 4, groundY - r * 0.7, 2, 6);
+    // City skyline, two layers of parallax (static otherwise)
+    for (const layer of SKYLINE) {
+      const off = Math.round(cam * layer.speed);
+      for (const b of layer.blocks) {
+        const x = b.x - off;
+        if (x > W || x + b.w < 0) continue;
+        ctx.fillStyle = layer.colour;
+        ctx.fillRect(x, groundY - b.h, b.w, b.h);
+        if (layer.windows) {
+          ctx.fillStyle = C.window;
+          for (let wy = groundY - b.h + 6; wy < groundY - 10; wy += 10) {
+            for (let wx = x + 4; wx < x + b.w - 5; wx += 8) ctx.fillRect(wx, wy, 3, 4);
+          }
+        }
       }
     }
-
-    // Clouds (parallax)
-    for (let i = 0; i < 8; i++) {
-      const x = ((i * 190 + 40) - Math.round(cam * 0.5)) % (W + 400) - 60;
-      const y = 24 + (i % 3) * 18;
-      cloud(x, y);
-    }
-
-    // Bushes
-    for (const bx of [6, 22, 42, 71]) bush(bx * T - cam, groundY);
 
     // Billboards with the three areas the site covers
     board(7, 'SALES');
     board(35, 'PURCHASING');
     board(61, 'PAYROLL');
 
-    // HQ building
+    // HQ: glass office tower
     const hx = HQ_COL * T - cam;
     if (hx < W + 80) {
-      const top = groundY - 80;
-      ctx.fillStyle = C.brickDark; ctx.fillRect(hx - 1, top - 1, 66, 81);
-      ctx.fillStyle = C.brick; ctx.fillRect(hx, top, 64, 80);
-      ctx.fillStyle = C.lens;
-      for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
-        if (r === 2 && (c === 1 || c === 2)) continue;
-        ctx.fillRect(hx + 6 + c * 15, top + 8 + r * 20, 8, 10);
+      const top = groundY - 112;
+      ctx.fillStyle = C.black; ctx.fillRect(hx - 1, top - 1, 66, 113);
+      ctx.fillStyle = C.glass; ctx.fillRect(hx, top, 64, 112);
+      ctx.fillStyle = C.sky;
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 4; c++) {
+        if (r === 4 && (c === 1 || c === 2)) continue;
+        ctx.fillRect(hx + 6 + c * 15, top + 22 + r * 17, 8, 11);
       }
       ctx.fillStyle = C.black; ctx.fillRect(hx + 24, groundY - 22, 16, 22);
-      ctx.fillStyle = C.gold; ctx.fillRect(hx + 18, top - 12, 28, 11);
-      text('HQ', hx + 32, top - 10, C.brickDark, 'center');
+      ctx.fillStyle = C.gold; ctx.fillRect(hx + 18, top + 4, 28, 12);
+      text('HQ', hx + 32, top + 6, C.black, 'center');
     }
   }
 
-  function cloud(x, y) {
-    ctx.fillStyle = C.white;
-    ctx.fillRect(x + 8, y, 24, 8);
-    ctx.fillRect(x, y + 6, 48, 10);
-    ctx.fillRect(x + 20, y - 6, 14, 8);
-  }
-
-  function bush(x, groundY) {
-    if (x < -64 || x > W + 16) return;
-    ctx.fillStyle = C.greenLight;
-    for (let i = 0; i < 3; i++) {
-      ctx.beginPath();
-      ctx.arc(x + 8 + i * 12, groundY - 4, 9, Math.PI, 0);
-      ctx.fill();
-    }
-    ctx.fillStyle = C.green;
-    ctx.fillRect(x, groundY - 4, 48, 4);
-  }
+  // Deterministic skyline so it's the same every run
+  const SKYLINE = (() => {
+    let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const make = (speed, colour, minH, maxH, windows) => {
+      const blocks = [];
+      const span = Math.ceil(COLS * T * speed) + W + 64;
+      for (let x = -16; x < span;) {
+        const w = 24 + Math.floor(rnd() * 5) * 8;
+        const h = minH + Math.floor(rnd() * (maxH - minH) / 8) * 8;
+        blocks.push({ x, w, h });
+        x += w + Math.floor(rnd() * 3) * 8;
+      }
+      return { speed, colour, blocks, windows };
+    };
+    return [make(0.25, C.cityFar, 72, 144, false), make(0.5, C.cityNear, 40, 104, true)];
+  })();
 
   function board(col, label) {
     const x = col * T - cam;
@@ -852,7 +861,7 @@
     ctx.font = FONT;
     const w = ctx.measureText(label).width + 10;
     const groundY = GROUND * T;
-    ctx.fillStyle = C.brickDark;
+    ctx.fillStyle = C.slate;
     ctx.fillRect(x + w / 2 - 1, groundY - 26, 3, 26);
     ctx.fillStyle = C.black;
     ctx.fillRect(x - 1, groundY - 45, w + 2, 20);
@@ -876,22 +885,20 @@
       }
     }
 
-    // Flagpole
+    // Sign-off board on a post (the goal)
     const fx = FLAG_COL * T - cam + 7;
-    if (fx > -20 && fx < W + 20) {
-      ctx.fillStyle = C.greenLight;
-      ctx.fillRect(fx, 3 * T, 2, (GROUND - 4) * T);
-      ctx.fillStyle = C.green;
-      ctx.beginPath(); ctx.arc(fx + 1, 3 * T - 3, 4, 0, Math.PI * 2); ctx.fill();
-      // Flag: white with a green tick
-      ctx.fillStyle = C.white;
-      ctx.beginPath();
-      ctx.moveTo(fx, flagY); ctx.lineTo(fx - 16, flagY + 7); ctx.lineTo(fx, flagY + 14); ctx.fill();
-      ctx.fillStyle = C.green;
-      ctx.fillRect(fx - 9, flagY + 6, 2, 3);
-      ctx.fillRect(fx - 7, flagY + 8, 2, 2);
-      ctx.fillRect(fx - 5, flagY + 4, 2, 4);
-    }
+    if (fx > -40 && fx < W + 40) drawSignOff(fx, 4 * T, (GROUND - 1) * T, state === 'win');
+  }
+
+  // Board with a big tick; turns gold once approved
+  function drawSignOff(fx, top, bottom, approved) {
+    ctx.fillStyle = C.slate;
+    ctx.fillRect(fx, top + 20, 2, bottom - top - 20);
+    ctx.fillStyle = C.black; ctx.fillRect(fx - 15, top - 1, 32, 23);
+    ctx.fillStyle = approved ? C.gold : C.white; ctx.fillRect(fx - 14, top, 30, 21);
+    ctx.fillStyle = C.header;
+    const tick = [[0, 8], [1, 9], [2, 10], [3, 11], [4, 10], [5, 9], [6, 8], [7, 7], [8, 6], [9, 5], [10, 4], [11, 3]];
+    for (const [dx, dy] of tick) ctx.fillRect(fx - 7 + dx, top + dy + 1, 2, 3);
   }
 
   function drawItems(behind) {
@@ -937,7 +944,6 @@
     let frame = 'stand';
     if (state === 'dying' || !p.onGround) frame = 'jump';
     else if (Math.abs(p.vx) > 0.1) frame = Math.floor(p.anim) % 2 ? 'run1' : 'run2';
-    if (state === 'win' && winPhase === 0) frame = 'jump';
     if (state === 'win' && winPhase >= 2) return; // inside HQ
     // While growing/shrinking, flick between the two sizes
     const big = p.growT > 0 ? (Math.floor(p.growT / 6) % 2 === 0) === p.powered : p.powered;
@@ -947,23 +953,28 @@
   }
 
   function drawParticles() {
-    ctx.fillStyle = C.brick;
     for (const pt of particles) {
+      ctx.fillStyle = C.card;
       ctx.fillRect(Math.round(pt.x - cam), Math.round(pt.y), 6, 6);
-      ctx.fillStyle = C.black;
+      ctx.fillStyle = C.cardDark;
       ctx.fillRect(Math.round(pt.x - cam) + 5, Math.round(pt.y), 1, 6);
-      ctx.fillStyle = C.brick;
     }
     for (const pu of popups) text(pu.text, Math.round(pu.x - cam), Math.round(pu.y), C.white);
   }
+
+  // The current month, e.g. "SEP 26"
+  const PERIOD = (() => {
+    const d = new Date();
+    return ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][d.getMonth()] + ' ' + String(d.getFullYear()).slice(-2);
+  })();
 
   function drawHUD() {
     text(playerName, 16, 10);
     text(String(score).padStart(6, '0'), 16, 20);
     ctx.drawImage(COIN, 84, 19);
     text('x' + String(coins).padStart(2, '0'), 96, 20);
-    text('WORLD', 144, 10);
-    text(' 1-1', 144, 20);
+    text('PERIOD', 144, 10);
+    text(PERIOD, 144, 20);
     text('TIME', 208, 10);
     text(state === 'title' ? '' : String(Math.max(0, time)).padStart(3, ' '), 208, 20);
   }
@@ -986,8 +997,8 @@
   function drawOverlay() {
     if (state === 'title') {
       panel(30, 196);
-      text('SUPER 3SHEETS', W / 2, 40, C.gold, 'center');
-      text('WORLD 1-1: MONTH END', W / 2, 54, C.white, 'center');
+      text('3SHEETS', W / 2, 40, C.gold, 'center');
+      text('THE MONTH-END RUN', W / 2, 54, C.white, 'center');
       ctx.drawImage(COIN, 30, 72);             text('DATA POINTS', 50, 74);
       ctx.drawImage(DASHBOARD, 27, 87);        text('CLARITY: GROW BIG', 50, 90);
       ctx.drawImage(BOLT, 27, 104);            text('AUTOMATION', 50, 106);
@@ -1056,7 +1067,7 @@
       ['dash', 'CLARITY',     'GROW BIG, SMASH', 'BRICKS, SURVIVE A HIT'],
       ['bolt', 'AUTOMATION',  'UPDATES THAT SEND', 'THEMSELVES'],
     ] },
-    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'P .............. PAUSE', '', 'REACH THE FLAG AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
+    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'P .............. PAUSE', '', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
     { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
   ];
 
@@ -1111,11 +1122,7 @@
     } else if (art === 'dashboard') {
       drawScaled(DASHBOARD, W / 2, top + 36, 2);
     } else if (art === 'flag') {
-      const fx = W / 2;
-      ctx.fillStyle = C.greenLight; ctx.fillRect(fx, top, 2, 34);
-      ctx.fillStyle = C.white;
-      ctx.beginPath(); ctx.moveTo(fx, top + 2); ctx.lineTo(fx - 16, top + 9); ctx.lineTo(fx, top + 16); ctx.fill();
-      ctx.fillStyle = C.green; ctx.fillRect(fx - 9, top + 8, 2, 3); ctx.fillRect(fx - 7, top + 10, 2, 2); ctx.fillRect(fx - 5, top + 6, 2, 4);
+      drawSignOff(W / 2, top, top + 40, false);
     } else if (art === 'logo') {
       ctx.fillStyle = '#2f7a5d'; ctx.beginPath(); ctx.arc(W / 2, top + 18, 18, 0, Math.PI * 2); ctx.fill();
       ctx.font = '16px "Press Start 2P", monospace';
@@ -1141,7 +1148,7 @@
         if (kind === 'gap') {
           // a slice of level: sky, ground either side, a gap in the middle
           ctx.fillStyle = C.sky; ctx.fillRect(22, y, 36, 26);
-          ctx.fillStyle = C.brick; ctx.fillRect(22, y + 14, 10, 12); ctx.fillRect(48, y + 14, 10, 12);
+          ctx.fillStyle = C.slate; ctx.fillRect(22, y + 14, 10, 12); ctx.fillRect(48, y + 14, 10, 12); ctx.fillStyle = C.steel; ctx.fillRect(22, y + 14, 10, 3); ctx.fillRect(48, y + 14, 10, 3);
           ctx.fillStyle = C.black; ctx.fillRect(32, y + 14, 16, 12);
         } else {
           const img = entryIcon(kind);

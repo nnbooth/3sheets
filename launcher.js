@@ -1,5 +1,6 @@
 /*
-  launcher.js — a warp pipe on the brick footer that opens Super 3Sheets
+  launcher.js — a little filing cabinet on the footer that opens 3Sheets:
+  The Month-End Run
   (game.html) in a pop-up over the site. Closing the pop-up pauses the game.
 */
 
@@ -13,13 +14,13 @@
 
   const dlg = document.createElement('dialog');
   dlg.className = 'game-dialog';
-  dlg.setAttribute('aria-label', 'Super 3Sheets');
+  dlg.setAttribute('aria-label', '3Sheets: The Month-End Run');
   dlg.innerHTML = `
     <div class="game-dialog__bar">
-      <span>SUPER 3SHEETS</span>
+      <span>3SHEETS: THE MONTH-END RUN</span>
       <button type="button" class="game-dialog__close" aria-label="Close game">X</button>
     </div>
-    <iframe title="Super 3Sheets game"></iframe>`;
+    <iframe title="3Sheets: The Month-End Run"></iframe>`;
   document.body.appendChild(dlg);
 
   const frame = dlg.querySelector('iframe');
@@ -51,13 +52,13 @@
   dlg.querySelector('.game-dialog__close').addEventListener('click', closeGame);
   dlg.addEventListener('click', e => { if (e.target === dlg) closeGame(); }); // backdrop
 
-  /* ------------------------------------------------------------ warp pipe */
+  /* ------------------------------------------------------------ filing cabinet */
 
   const pipe = document.createElement('button');
   pipe.type = 'button';
   pipe.className = 'game-pipe';
-  pipe.setAttribute('aria-label', 'Enter the warp pipe: play Super 3Sheets');
-  pipe.innerHTML = '<span class="game-pipe__label">BONUS STAGE</span><span class="game-pipe__lip">PLAY</span><span class="game-pipe__body"></span>';
+  pipe.setAttribute('aria-label', 'Open the filing cabinet: play 3Sheets: The Month-End Run');
+  pipe.innerHTML = '<span class="game-pipe__label">BONUS STAGE</span><span class="game-pipe__lip">PLAY</span><span class="game-pipe__body"><i></i><i></i></span>';
   pipe.addEventListener('click', openGame);
   footer.appendChild(pipe);
 })();
