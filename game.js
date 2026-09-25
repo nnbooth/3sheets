@@ -58,49 +58,36 @@
     return c;
   }
 
-  // Little businessman: glasses, rolled-sleeve shirt, no tie, no jacket.
+  // Little businessman ("Chibi Analyst"): big head, round glasses,
+  // rolled-sleeve white shirt, navy trousers. No tie, no jacket. 16x16.
   const HEAD = [
-    '....hhhhh...',
-    '...hhhhhhh..',
-    '...hhsssss..',
-    '...hsklkklk.',
-    '...sssssss..',
-    '....sssss...',
+    '.....hhhhhh.....',
+    '...hhhhhhhhhh...',
+    '..hhhhhhhhhhhh..',
+    '..hhhsssssssh...',
+    '..hhkkkkskkkk...',
+    '..hsklllkklllk..',
+    '..hSkkkkskkkks..',
+    '...ssssssSsss...',
+    '....sssskkss....',
   ];
-  const TORSO = [
-    '....wwbww...',
-    '...wwwwwww..',
-    '..swwwwwwws.',
-    '..swwwwwwws.',
-    '...wwwwwww..',
-  ];
-  const TORSO_JUMP = [
-    '....wwbww.ss',
-    '...wwwwwwws.',
-    '..swwwwwww..',
-    '..swwwwwww..',
-    '...wwwwwww..',
-  ];
-  const LEGS = {
-    stand: ['...ttttttt..', '...ttt.ttt..', '...ttt.ttt..', '...ooo.ooo..', '..oooo.oooo.'],
-    run1:  ['...ttttttt..', '..ttt..ttt..', '.ttt....ttt.', '.oo.....ooo.', 'oo.......oo.'],
-    run2:  ['...ttttttt..', '....ttttt...', '....tttt....', '....oooo....', '...ooooo....'],
+  const BODY = {
+    stand: ['.....wwbbww.....', '....wwwwwwww....', '...swwwwwwwws...', '....wwwwwwww....', '....tttttttt....', '....ttt..ttt....', '...oooo..oooo...'],
+    run1:  ['.....wwbbww.....', '...swwwwwwww....', '....wwwwwwwwws..', '....wwwwwwww....', '...tttttttttt...', '..ttt......ttt..', '.ooo........ooo.'],
+    run2:  ['.....wwbbww.....', '....wwwwwwww....', '....swwwwwws....', '....wwwwwwww....', '.....tttttt.....', '......tttt......', '.....ooooo......'],
+    jump:  ['.....wwbbww.sss.', '....wwwwwwwws...', '...swwwwwwww....', '....wwwwwwww....', '...ttttttttt....', '..ttt....ttt....', '..oo......ooo...'],
   };
 
-  const PLAYER_ROWS = {
-    stand: [...HEAD, ...TORSO, ...LEGS.stand],
-    run1:  [...HEAD, ...TORSO, ...LEGS.run1],
-    run2:  [...HEAD, ...TORSO, ...LEGS.run2],
-    jump:  [...HEAD, ...TORSO_JUMP, ...LEGS.run1],
-  };
+  const PLAYER_ROWS = {};
+  for (const f of Object.keys(BODY)) PLAYER_ROWS[f] = [...HEAD, ...BODY[f]];
 
   function playerPalette(shirt, shade, trousers) {
-    return { h: C.hair, s: C.skin, k: C.black, l: C.lens, w: shirt, b: shade, t: trousers, o: C.black };
+    return { h: C.hair, s: C.skin, S: '#e09470', k: C.black, l: C.lens, w: shirt, b: shade, t: trousers, o: C.black };
   }
 
   const PLAYER_PALETTES = {
-    normal: playerPalette(C.white, C.grey, C.trousers),
-    power:  playerPalette(C.shirtPower, C.green, C.trousers),
+    normal: playerPalette(C.white, C.grey, '#3c3c7c'),
+    power:  playerPalette(C.shirtPower, C.green, '#3c3c7c'),
     star1:  playerPalette(C.gold, C.red, C.black),
     star2:  playerPalette(C.greenLight, C.green, C.red),
     star3:  playerPalette(C.orange, C.brickDark, C.blue),
@@ -832,7 +819,7 @@
     if (state === 'win' && winPhase === 0) frame = 'jump';
     if (state === 'win' && winPhase >= 2) return; // inside HQ
     const f = PLAYER[pal][frame];
-    ctx.drawImage(p.facing > 0 ? f.r : f.l, Math.round(p.x - camX - 1), Math.round(p.y - 1));
+    ctx.drawImage(p.facing > 0 ? f.r : f.l, Math.round(p.x - camX - 3), Math.round(p.y - 1));
   }
 
   function drawParticles() {
