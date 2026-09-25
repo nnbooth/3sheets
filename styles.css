@@ -653,3 +653,66 @@ strong, b { color: var(--gold); font-weight: 400; }
   .hero { padding-top: 40px; padding-bottom: 28px; }
   .hero::after { display: none; }
 }
+
+/* ---------- Bonus stage: Super 3Sheets game ---------- */
+
+.game-wrap {
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 256 / 240;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: var(--sky);
+  border: var(--px) solid var(--white);
+  box-shadow: 0 0 0 var(--px) var(--black), var(--px) var(--px) 0 var(--px) rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#game-canvas:focus-visible { outline: var(--px) dashed var(--gold); outline-offset: 6px; }
+
+.game-help {
+  margin: 16px 0 0;
+  font-size: 8px;
+  text-align: center;
+  color: var(--white);
+  text-shadow: 2px 2px 0 var(--black);
+}
+
+.game-touch { display: none; }
+
+@media (pointer: coarse) {
+  .game-touch {
+    display: grid;
+    grid-template-columns: 64px 64px 1fr 64px 64px;
+    grid-template-areas: "left right . run jump";
+    gap: 10px;
+    margin-top: 16px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .game-touch button {
+    height: 64px;
+    font-family: var(--font);
+    font-size: 16px;
+    color: var(--white);
+    background: var(--black);
+    border: var(--px) solid var(--white);
+    touch-action: none;
+  }
+
+  .game-touch [data-key="left"] { grid-area: left; }
+  .game-touch [data-key="right"] { grid-area: right; }
+  .game-touch [data-key="run"] { grid-area: run; border-radius: 50%; background: var(--red-dark); }
+  .game-touch [data-key="jump"] { grid-area: jump; border-radius: 50%; background: var(--red); }
+  .game-touch .is-down { transform: translateY(var(--px)); filter: brightness(0.8); }
+
+  .game-help { display: none; }
+}

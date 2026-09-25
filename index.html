@@ -22,6 +22,7 @@
           <a href="#risks">Why clarity matters</a>
           <a href="#case-study">Case study</a>
           <a href="#contact">Contact</a>
+          <a href="#game">Play</a>
         </nav>
       </div>
     </header>
@@ -62,6 +63,28 @@
                 <strong class="metric-value neutral">Updates that send themselves</strong>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GAME (NES theme only) -->
+      <section id="game" class="section">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Bonus stage</p>
+            <h2>Super 3Sheets</h2>
+          </div>
+
+          <div class="game-wrap">
+            <canvas id="game-canvas" width="256" height="240" tabindex="0"
+              aria-label="Super 3Sheets: a small side-scrolling game. Click or press Enter to start."></canvas>
+            <div class="game-touch" aria-hidden="true">
+              <button type="button" tabindex="-1" data-key="left">&#9664;</button>
+              <button type="button" tabindex="-1" data-key="right">&#9654;</button>
+              <button type="button" tabindex="-1" data-key="run">B</button>
+              <button type="button" tabindex="-1" data-key="jump">A</button>
+            </div>
+            <p class="game-help">Left/Right run &middot; Z or Space jump &middot; hold X to sprint &middot; P pause</p>
           </div>
         </div>
       </section>
@@ -412,6 +435,7 @@
       </div>
     </footer>
 
+    <script src="game.js" defer></script>
     <script src="script.js"></script>
   </body>
 </html>
