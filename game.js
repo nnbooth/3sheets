@@ -78,28 +78,54 @@
     jump:  ['.....wwbbww.sss.', '....wwwwwwwws...', '...swwwwwwww....', '....wwwwwwww....', '...ttttttttt....', '..ttt....ttt....', '..oo......ooo...'],
   };
 
-  const PLAYER_ROWS = {};
-  for (const f of Object.keys(BODY)) PLAYER_ROWS[f] = [...HEAD, ...BODY[f]];
+  // Businesswoman: same chibi build, dark bob, round glasses,
+  // coral blouse, navy trousers.
+  const HEAD_HER = [
+    '....hhhhhhh.....',
+    '...hhhhhhhhhh...',
+    '..hhhhhhhhhhhh..',
+    '.hhhhhsssssshh..',
+    '.hhhkkkkskkkkh..',
+    '.hhsklllkklllk..',
+    '.hhSkkkkskkkks..',
+    '.hhhssssssSss...',
+    '..hh.sssrrss....',
+  ];
 
-  function playerPalette(shirt, shade, trousers) {
-    return { h: C.hair, s: C.skin, S: '#e09470', k: C.black, l: C.lens, w: shirt, b: shade, t: trousers, o: C.black };
-  }
-
-  const PLAYER_PALETTES = {
-    normal: playerPalette(C.white, C.grey, '#3c3c7c'),
-    power:  playerPalette(C.shirtPower, C.green, '#3c3c7c'),
-    star1:  playerPalette(C.gold, C.red, C.black),
-    star2:  playerPalette(C.greenLight, C.green, C.red),
-    star3:  playerPalette(C.orange, C.brickDark, C.blue),
+  const CHARACTERS = {
+    him: { head: HEAD, hair: C.hair, shirt: C.white, shade: C.grey },
+    her: { head: HEAD_HER, hair: '#3c1c00', shirt: '#fc7460', shade: '#d82800' },
   };
 
+  function playerPalette(ch, shirt, shade, trousers) {
+    return { h: ch.hair, s: C.skin, S: '#e09470', k: C.black, l: C.lens, r: C.red, w: shirt, b: shade, t: trousers, o: C.black };
+  }
+
   const PLAYER = {};
-  for (const [pal, map] of Object.entries(PLAYER_PALETTES)) {
-    PLAYER[pal] = {};
-    for (const [frame, rows] of Object.entries(PLAYER_ROWS)) {
-      const r = sprite(rows, map);
-      PLAYER[pal][frame] = { r, l: flipped(r) };
+  for (const [id, ch] of Object.entries(CHARACTERS)) {
+    const palettes = {
+      normal: playerPalette(ch, ch.shirt, ch.shade, '#3c3c7c'),
+      power:  playerPalette(ch, C.shirtPower, C.green, '#3c3c7c'),
+      star1:  playerPalette(ch, C.gold, C.red, C.black),
+      star2:  playerPalette(ch, C.greenLight, C.green, C.red),
+      star3:  playerPalette(ch, C.orange, C.brickDark, C.blue),
+    };
+    PLAYER[id] = {};
+    for (const [pal, map] of Object.entries(palettes)) {
+      PLAYER[id][pal] = {};
+      for (const f of Object.keys(BODY)) {
+        const r = sprite([...ch.head, ...BODY[f]], map);
+        PLAYER[id][pal][f] = { r, l: flipped(r) };
+      }
     }
+  }
+
+  let character = 'him';
+  try { if (localStorage.getItem('s3-character') === 'her') character = 'her'; } catch (e) { /* storage blocked */ }
+
+  function setCharacter(id) {
+    character = id;
+    try { localStorage.setItem('s3-character', id); } catch (e) { /* ignore */ }
   }
 
   const CLOCK_TOP = [
@@ -818,7 +844,7 @@
     else if (Math.abs(p.vx) > 0.1) frame = Math.floor(p.anim) % 2 ? 'run1' : 'run2';
     if (state === 'win' && winPhase === 0) frame = 'jump';
     if (state === 'win' && winPhase >= 2) return; // inside HQ
-    const f = PLAYER[pal][frame];
+    const f = PLAYER[character][pal][frame];
     ctx.drawImage(p.facing > 0 ? f.r : f.l, Math.round(p.x - camX - 3), Math.round(p.y - 1));
   }
 
@@ -844,6 +870,8 @@
     text(state === 'title' ? '' : String(Math.max(0, time)).padStart(3, ' '), 208, 20);
   }
 
+  const SELECT_X = { him: 100, her: 140 };
+
   function panel(y, h) {
     ctx.fillStyle = C.black;
     ctx.fillRect(16, y, W - 32, h);
@@ -856,15 +884,30 @@
 
   function drawOverlay() {
     if (state === 'title') {
-      panel(40, 164);
-      text('SUPER 3SHEETS', W / 2, 52, C.gold, 'center');
-      text('WORLD 1-1: MONTH END', W / 2, 66, C.white, 'center');
-      ctx.drawImage(COIN, 30, 84);             text('DATA POINTS', 50, 86);
-      ctx.drawImage(DASHBOARD, 27, 101);       text('CLARITY: +1 HIT', 50, 104);
-      ctx.drawImage(BOLT, 27, 120);            text('AUTOMATION', 50, 122);
-      ctx.drawImage(CLOCK[0], 27, 136);        text('OVERTIME', 50, 140);
-      ctx.drawImage(INVOICE[0], 27, 154);      text('ROGUE INVOICE', 50, 158);
-      if (Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 184, C.gold, 'center');
+      panel(30, 196);
+      text('SUPER 3SHEETS', W / 2, 40, C.gold, 'center');
+      text('WORLD 1-1: MONTH END', W / 2, 54, C.white, 'center');
+      ctx.drawImage(COIN, 30, 72);             text('DATA POINTS', 50, 74);
+      ctx.drawImage(DASHBOARD, 27, 87);        text('CLARITY: +1 HIT', 50, 90);
+      ctx.drawImage(BOLT, 27, 104);            text('AUTOMATION', 50, 106);
+      ctx.drawImage(CLOCK[0], 27, 118);        text('OVERTIME', 50, 122);
+      ctx.drawImage(INVOICE[0], 27, 134);      text('ROGUE INVOICE', 50, 138);
+      // Character select
+      text('CHOOSE', W / 2, 158, C.white, 'center');
+      for (const [id, x] of [['him', SELECT_X.him], ['her', SELECT_X.her]]) {
+        const chosen = id === character;
+        if (chosen) {
+          ctx.fillStyle = C.gold;
+          ctx.fillRect(x - 4, 170, 24, 24);
+          ctx.fillStyle = C.black;
+          ctx.fillRect(x - 2, 172, 20, 20);
+        }
+        const frame = chosen && Math.floor(tick / 12) % 2 ? 'run1' : 'stand';
+        ctx.drawImage(PLAYER[id].normal[frame].r, x, 174);
+      }
+      text('<', SELECT_X.him - 16, 178, C.white);
+      text('>', SELECT_X.her + 24, 178, C.white);
+      if (Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 206, C.gold, 'center');
     } else if (state === 'paused') {
       panel(92, 48);
       text('PAUSED', W / 2, 104, C.gold, 'center');
@@ -921,6 +964,7 @@
   canvas.addEventListener('keydown', e => {
     const k = KEYMAP[e.code];
     if (k || e.code === 'Enter') e.preventDefault();
+    if (state === 'title' && (k === 'left' || k === 'right')) { setCharacter(k === 'left' ? 'him' : 'her'); return; }
     if (e.code === 'Enter' || (e.code === 'Space' && state !== 'play')) { pressStart(); return; }
     if (e.code === 'KeyP' || e.code === 'Escape') {
       if (state === 'play') state = 'paused'; else if (state === 'paused') state = 'play';
@@ -934,8 +978,18 @@
     if (k) { e.preventDefault(); keys[k] = false; }
   });
 
-  canvas.addEventListener('pointerdown', () => {
+  canvas.addEventListener('pointerdown', e => {
     canvas.focus({ preventScroll: true });
+    if (state === 'title') {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (W / rect.width);
+      const y = (e.clientY - rect.top) * (H / rect.height);
+      if (y > 164 && y < 198) {
+        for (const [id, sx] of Object.entries(SELECT_X)) {
+          if (x > sx - 8 && x < sx + 24) { setCharacter(id); return; }
+        }
+      }
+    }
     pressStart();
   });
 
@@ -966,6 +1020,7 @@
     const k = btn.dataset.key;
     const on = e => {
       e.preventDefault();
+      if (state === 'title' && (k === 'left' || k === 'right')) { setCharacter(k === 'left' ? 'him' : 'her'); return; }
       if (state !== 'play') pressStart();
       keys[k] = true;
       btn.classList.add('is-down');
