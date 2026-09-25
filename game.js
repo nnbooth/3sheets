@@ -360,7 +360,7 @@
   let state = 'title';      // title | play | paused | dying | win | gameover
   let tick = 0;
   let score = 0, coins = 0, lives = 3, time = 200, timeTick = 0;
-  let camX = 0, prevCam = 0;
+  let camX = 0;
   let player, enemies, items, particles, popups, bumps;
   let deathCause = '', stateTimer = 0, winPhase = 0, flagY = 0, bonusShown = 0;
 
@@ -373,12 +373,12 @@
     };
     enemies = spawns.enemies.map(([type, col]) => ({
       type, x: col * T, y: (GROUND - 1) * T + 2, w: 14, h: 14,
-      vx: type === 'invoice' ? -0.75 : -0.45, vy: 0,
+      vx: type === 'invoice' ? -1 : -0.5, vy: 0,
       alive: true, active: false, squash: 0, flip: false, anim: 0,
     }));
     items = spawns.coins.map(([c, r]) => ({ type: 'coin', x: c * T + 3, y: r * T + 2, w: 10, h: 11, static: true }));
     particles = []; popups = []; bumps = [];
-    camX = 0; prevCam = 0; time = 200; timeTick = 0;
+    camX = 0; time = 200; timeTick = 0;
     flagY = 3 * T + 4; winPhase = 0; bonusShown = 0;
   }
 
@@ -491,15 +491,7 @@
 
   /* ================================================================ UPDATE */
 
-  function snapshot() {
-    prevCam = camX;
-    player.px = player.x; player.py = player.y;
-    for (const e of enemies) { e.px = e.x; e.py = e.y; }
-    for (const it of items) { it.px = it.x; it.py = it.y; }
-  }
-
   function update() {
-    snapshot();
     tick++;
     const jumpPressed = keys.jump && !prevJump;
     prevJump = keys.jump;
@@ -519,22 +511,16 @@
 
   function updatePlay(jumpPressed) {
     const p = player;
-    const run = keys.run;
-    const accel = run ? 0.13 : 0.09;
-    const max = run ? 2.5 : 1.5;
-
-    if (keys.left && !keys.right) {
-      p.vx -= p.vx > 0 ? 0.25 : accel; p.facing = -1;
-    } else if (keys.right && !keys.left) {
-      p.vx += p.vx < 0 ? 0.25 : accel; p.facing = 1;
-    } else {
-      p.vx *= p.onGround ? 0.82 : 0.97;
-      if (Math.abs(p.vx) < 0.05) p.vx = 0;
-    }
-    p.vx = Math.max(-max, Math.min(max, p.vx));
+    // Direct control: move only while a direction is held, stop the
+    // moment it's released (on the ground and in the air). Whole-pixel
+    // speeds keep movement perfectly even on screen.
+    const speed = keys.run ? 2 : 1;
+    if (keys.left && !keys.right) { p.vx = -speed; p.facing = -1; }
+    else if (keys.right && !keys.left) { p.vx = speed; p.facing = 1; }
+    else p.vx = 0;
 
     if (jumpPressed && p.onGround) {
-      p.vy = -5.6 - Math.abs(p.vx) * 0.25;
+      p.vy = keys.run ? -6 : -5.6;
       p.onGround = false;
     }
     p.vy += keys.jump && p.vy < 0 ? 0.26 : 0.6;
@@ -588,7 +574,7 @@
       }
       if (it.emerge > 0) {
         it.y -= 1; it.emerge--;
-        if (it.emerge === 0) it.vx = it.type === 'dash' ? 0.9 : 1.3;
+        if (it.emerge === 0) { it.vx = 0; it.static = true; } // sits still until collected
         continue;
       }
       if (!it.static) {
@@ -672,13 +658,11 @@
 
   /* ================================================================ RENDER */
 
-  // Render-time state: alpha is how far we are between the last two
-  // physics steps; cam is the camera snapped to a whole pixel so tiles
-  // and sprites always move together.
-  let alpha = 1, cam = 0;
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const ix = e => Math.round(e.px === undefined ? e.x : lerp(e.px, e.x, alpha)) - cam;
-  const iy = e => Math.round(e.py === undefined ? e.y : lerp(e.py, e.y, alpha));
+  // The camera is snapped to a whole pixel and every position is rounded
+  // the same way, so tiles and sprites always move together.
+  let cam = 0;
+  const ix = e => Math.round(e.x) - cam;
+  const iy = e => Math.round(e.y);
 
   function text(str, x, y, col = C.white, align = 'left') {
     ctx.font = FONT;
@@ -952,9 +936,8 @@
     }
   }
 
-  function render(a) {
-    alpha = a;
-    cam = Math.round(lerp(prevCam, camX, alpha));
+  function render() {
+    cam = Math.round(camX);
     drawBackground();
     drawItems(true);
     drawTiles();
@@ -1087,13 +1070,18 @@
   let last = performance.now(), acc = 0;
 
   function frame(now) {
-    acc += Math.min(100, now - last);
+    let dt = Math.min(100, now - last);
     last = now;
+    // rAF timestamps wobble by a fraction of a millisecond; without this a
+    // 60Hz screen occasionally runs 0 or 2 steps in a frame, which reads as
+    // stutter. Snap near-60Hz frames to exactly one step.
+    if (Math.abs(dt - STEP) < 2) dt = STEP;
+    acc += dt;
     while (acc >= STEP) {
       if (state !== 'paused') update(); else tick++;
       acc -= STEP;
     }
-    render(state === 'paused' ? 1 : acc / STEP);
+    render();
     requestAnimationFrame(frame);
   }
 
