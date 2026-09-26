@@ -18,6 +18,7 @@
   dlg.innerHTML = `
     <div class="game-dialog__bar">
       <span>3SHEETS: THE MONTH-END RUN</span>
+      <button type="button" class="game-dialog__fs" hidden>FULL SCREEN</button>
       <button type="button" class="game-dialog__close" aria-label="Close game">X</button>
     </div>
     <iframe title="3Sheets: The Month-End Run"></iframe>`;
@@ -42,7 +43,24 @@
     setTimeout(focusGame, 30);
   }
 
-  function closeGame() { if (dlg.open) dlg.close(); }
+  function closeGame() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    if (dlg.open) dlg.close();
+  }
+
+  // True full screen (hides the browser too) where the browser allows it
+  const fsBtn = dlg.querySelector('.game-dialog__fs');
+  if (dlg.requestFullscreen && document.fullscreenEnabled) {
+    fsBtn.hidden = false;
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      else dlg.requestFullscreen().catch(() => {});
+      setTimeout(focusGame, 100);
+    });
+    document.addEventListener('fullscreenchange', () => {
+      fsBtn.textContent = document.fullscreenElement ? 'EXIT FULL SCREEN' : 'FULL SCREEN';
+    });
+  }
 
   dlg.addEventListener('close', () => {
     document.documentElement.classList.remove('game-open');
