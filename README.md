@@ -35,5 +35,8 @@ Run from the repository root (`dataPortfolio`).
 ## Data and Reporting Notes
 
 - Legal reporting models target PostgreSQL `portfolio_data` and schema `legal`.
+- Purchasing (and, going forward, Health/Legal/Retail) targets Azure SQL database `3sheets.db.sql`
+  on server `3sheets`, one schema per domain — see
+  `datasets/Purchasing/Docs/Purchasing Azure SQL Upload Steps.md`.
 - Keep table and view names stable when modifying loaders or model scripts.
 - Health and legal datasets are synthetic and intended for portfolio analytics/reporting demos.
