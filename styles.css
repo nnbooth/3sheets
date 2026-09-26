@@ -3,7 +3,9 @@
   8-BIT / NES THEME — just for fun. Same class names as main, so
   index.html and script.js are unchanged.
 
-  Sky-blue overworld, black RPG dialog boxes, ? blocks, brick ground.
+  Toned-down 8-bit office theme to match the game (The Month-End Run):
+  dusk-blue sky with a city skyline, black text boxes, green data blocks,
+  ledger-tile footer. Pixel font and chunky boxes, no Mario references.
 */
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -11,7 +13,15 @@
 :root {
   color-scheme: dark;
   /* NES palette */
-  --sky: #5c94fc;
+  --sky: #1e3d5f;          /* dusk blue */
+  --city-far: #1a3552;
+  --city-near: #132840;
+  --steel: #9ca0a8;
+  --steel-light: #d0d4dc;
+  --slate: #3c3c4c;
+  --slate-line: #58586c;
+  --green-dark: #005800;
+  --green-mid: #007800;
   --black: #000000;
   --white: #fcfcfc;
   --red: #d82800;
@@ -112,8 +122,14 @@ strong, b { color: var(--gold); font-weight: 400; }
 }
 
 .brand::before {
-  content: "\2665 x3 "; /* ♥ x3 lives */
-  color: var(--red);
+  content: "3S";
+  display: inline-block;
+  margin-right: 10px;
+  padding: 3px 5px 2px;
+  font-size: 9px;
+  color: var(--white);
+  background: var(--green-mid);
+  border: 2px solid var(--white);
 }
 
 .nav-links {
@@ -140,7 +156,7 @@ strong, b { color: var(--gold); font-weight: 400; }
 }
 
 .nav-links a:hover { color: var(--gold); }
-.nav-links a:hover::before { visibility: visible; animation: blink 0.6s steps(1) infinite; }
+.nav-links a:hover::before { visibility: visible; }
 
 .nav-toggle {
   display: none;
@@ -153,7 +169,7 @@ strong, b { color: var(--gold); font-weight: 400; }
   cursor: pointer;
 }
 
-/* ---------- Eyebrow = WORLD 1-1, 1-2 ... ---------- */
+/* ---------- Eyebrow = SHEET 01, 02 ... ---------- */
 
 .section,
 .hero { counter-increment: world; }
@@ -166,7 +182,7 @@ strong, b { color: var(--gold); font-weight: 400; }
 }
 
 .eyebrow::before {
-  content: "WORLD 1-" counter(world) "  \00B7  ";
+  content: "SHEET " counter(world, decimal-leading-zero) "  \00B7  ";
   color: var(--white);
 }
 
@@ -181,28 +197,23 @@ strong, b { color: var(--gold); font-weight: 400; }
   overflow: hidden;
 }
 
-/* Pixel clouds */
+/* City skyline along the bottom of the hero (two layers) */
 .hero::before,
 .hero::after {
   content: "";
   position: absolute;
-  width: var(--px);
-  height: var(--px);
-  background: transparent;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 160px;
   pointer-events: none;
-  box-shadow:
-    /* cloud made of 4px pixels */
-    8px 0 var(--white), 12px 0 var(--white), 16px 0 var(--white),
-    4px 4px var(--white), 8px 4px var(--white), 12px 4px var(--white), 16px 4px var(--white), 20px 4px var(--white), 28px 4px var(--white), 32px 4px var(--white),
-    0 8px var(--white), 4px 8px var(--white), 8px 8px var(--white), 12px 8px var(--white), 16px 8px var(--white), 20px 8px var(--white), 24px 8px var(--white), 28px 8px var(--white), 32px 8px var(--white), 36px 8px var(--white),
-    0 12px var(--white), 4px 12px var(--white), 8px 12px var(--white), 12px 12px var(--white), 16px 12px var(--white), 20px 12px var(--white), 24px 12px var(--white), 28px 12px var(--white), 32px 12px var(--white), 36px 12px var(--white), 40px 12px var(--white),
-    4px 16px var(--black), 8px 16px var(--black), 12px 16px var(--black), 16px 16px var(--black), 20px 16px var(--black), 24px 16px var(--black), 28px 16px var(--black), 32px 16px var(--black), 36px 16px var(--black);
-  transform: scale(2);
-  transform-origin: top left;
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  image-rendering: pixelated;
 }
 
-.hero::before { top: 14px; left: 8%; }
-.hero::after  { top: 34px; right: 14%; transform: scale(1.5); }
+.hero::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='160' shape-rendering='crispEdges'%3E%3Crect x='0' y='24' width='32' height='136' fill='%231a3552'/%3E%3Crect x='32' y='24' width='40' height='136' fill='%231a3552'/%3E%3Crect x='80' y='24' width='24' height='136' fill='%231a3552'/%3E%3Crect x='104' y='64' width='48' height='96' fill='%231a3552'/%3E%3Crect x='152' y='40' width='32' height='120' fill='%231a3552'/%3E%3Crect x='192' y='16' width='48' height='144' fill='%231a3552'/%3E%3Crect x='240' y='16' width='32' height='144' fill='%231a3552'/%3E%3Crect x='272' y='96' width='48' height='64' fill='%231a3552'/%3E%3C/svg%3E"); background-size: 320px 160px; }
+.hero::after  { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='160' shape-rendering='crispEdges'%3E%3Crect x='0' y='56' width='48' height='104' fill='%23132840'/%3E%3Crect x='6' y='64' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='16' y='64' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='36' y='64' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='6' y='76' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='26' y='76' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='16' y='88' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='26' y='88' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='6' y='100' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='26' y='100' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='36' y='100' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='6' y='112' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='16' y='112' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='16' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='36' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='6' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='36' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='6' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='16' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='26' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='36' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='48' y='128' width='32' height='32' fill='%23132840'/%3E%3Crect x='64' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='54' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='64' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='80' y='80' width='32' height='80' fill='%23132840'/%3E%3Crect x='96' y='100' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='96' y='112' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='96' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='96' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='96' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='120' y='80' width='32' height='80' fill='%23132840'/%3E%3Crect x='126' y='88' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='136' y='88' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='126' y='112' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='136' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='126' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='152' y='80' width='24' height='80' fill='%23132840'/%3E%3Crect x='168' y='88' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='168' y='100' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='158' y='112' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='158' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='168' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='184' y='80' width='32' height='80' fill='%23132840'/%3E%3Crect x='190' y='88' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='200' y='100' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='200' y='112' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='190' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='200' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='190' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='190' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='200' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='216' y='80' width='24' height='80' fill='%23132840'/%3E%3Crect x='222' y='100' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='222' y='112' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='222' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='232' y='124' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='232' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='222' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='248' y='96' width='32' height='64' fill='%23132840'/%3E%3Crect x='254' y='104' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='254' y='116' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='264' y='116' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='264' y='128' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='280' y='128' width='24' height='32' fill='%23132840'/%3E%3Crect x='286' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='296' y='136' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='286' y='148' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='312' y='112' width='40' height='48' fill='%23132840'/%3E%3Crect x='318' y='120' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='328' y='120' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='328' y='132' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='338' y='132' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='318' y='144' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3Crect x='328' y='144' width='4' height='5' fill='%23fce0a8' opacity='.55'/%3E%3C/svg%3E"); background-size: 320px 160px; background-position: 120px bottom; }
 
 .hero-grid {
   display: grid;
@@ -240,11 +251,11 @@ strong, b { color: var(--gold); font-weight: 400; }
 .button.primary,
 .sheet-btn,
 .export-btn {
-  background: var(--red);
+  background: var(--green-mid);
   color: var(--white);
   box-shadow:
-    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--red-dark),
-    inset var(--px) var(--px) 0 var(--red-light),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--green-dark),
+    inset var(--px) var(--px) 0 var(--green),
     0 var(--px) 0 var(--black);
 }
 
@@ -258,11 +269,15 @@ strong, b { color: var(--gold); font-weight: 400; }
 
 .button:hover,
 .sheet-btn:hover,
-.export-btn:hover { filter: brightness(1.12); color: inherit; }
+.export-btn:hover { filter: brightness(1.12); }
 
+/* Keep each button's own text colour on hover (the generic a:hover
+   rule would otherwise turn the white button's text white). */
 .button.primary:hover,
 .sheet-btn:hover,
 .export-btn:hover { color: var(--white); }
+
+.button.secondary:hover { color: var(--black); }
 
 .button:active,
 .sheet-btn:active,
@@ -305,7 +320,7 @@ strong, b { color: var(--gold); font-weight: 400; }
 .step-card p,
 .contact-box p { color: var(--white); font-size: 10px; }
 
-/* ---------- Hero card = row of ? blocks ---------- */
+/* ---------- Hero card = green data blocks ---------- */
 
 .hero-card {
   background: transparent;
@@ -317,36 +332,20 @@ strong, b { color: var(--gold); font-weight: 400; }
 
 .mini-metric {
   position: relative;
-  background: var(--orange);
-  color: var(--black);
+  background: var(--green-mid);
+  color: var(--white);
   padding: 30px 14px 14px;
   border: var(--px) solid var(--black);
   box-shadow:
-    inset var(--px) var(--px) 0 var(--yellow),
-    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--orange-dark);
-  animation: bump 2.4s steps(1) infinite;
-}
-
-.mini-metric:nth-child(2) { animation-delay: 0.6s; }
-.mini-metric:nth-child(3) { animation-delay: 1.2s; }
-.mini-metric:nth-child(4) { animation-delay: 1.8s; }
-
-/* rivets in the corners, like a ? block */
-.mini-metric::before {
-  content: "?";
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  font-size: 14px;
-  color: var(--orange-dark);
-  text-shadow: 2px 2px 0 var(--black);
+    inset var(--px) var(--px) 0 var(--green),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--green-dark);
 }
 
 .mini-label {
   display: block;
   font-size: 8px;
   text-transform: uppercase;
-  color: var(--red-dark);
+  color: #b8f8b8;
   margin-bottom: 8px;
   position: absolute;
   top: 10px;
@@ -358,53 +357,36 @@ strong, b { color: var(--gold); font-weight: 400; }
   font-size: 9px;
   line-height: 1.8;
   font-weight: 400;
-  color: var(--black);
+  color: var(--white);
 }
 
 .metric-value.positive,
-.metric-value.neutral { color: var(--black); }
-
-@keyframes bump {
-  0%   { transform: translateY(0); }
-  4%   { transform: translateY(-6px); }
-  8%   { transform: translateY(0); }
-}
+.metric-value.neutral { color: var(--white); }
 
 /* ---------- Sections ---------- */
 
 .section { padding: 48px 0; }
 
-/* Alternating "underground" levels */
+/* Alternating sections: dark, ruled like a ledger */
 .section-alt {
-  background-color: var(--black);
-  background-image:
-    linear-gradient(90deg, rgba(0, 88, 248, 0.25) 2px, transparent 2px),
-    linear-gradient(rgba(0, 88, 248, 0.25) 2px, transparent 2px);
-  background-size: 32px 32px;
+  background-color: #101018;
+  background-image: linear-gradient(rgba(88, 88, 108, 0.35) 2px, transparent 2px);
+  background-size: 100% 32px;
 }
 
 .section-alt .info-card,
 .section-alt .dashboard-card,
 .section-alt .step-card,
 .section-alt .embed-panel {
-  border-color: #3cbcfc;
+  border-color: var(--steel-light);
 }
 
 .card-grid, .dashboard-grid, .steps-grid { display: grid; gap: 24px; }
 .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .dashboard-grid, .steps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
-/* Starter bundle cards = item shop: green pipe caps */
-.dashboard-card {
-  border-color: var(--green-light);
-  border-top: 16px solid var(--green);
-}
-
-/* How it works = stage select */
-.step-card h3::after {
-  content: " \2605"; /* ★ */
-  color: var(--gold);
-}
+/* Starter bundle cards: a steel label strip on top */
+.dashboard-card { border-top: 12px solid var(--steel); }
 
 /* DECISION LIST */
 .decision-list { display: flex; flex-direction: column; gap: 16px; }
@@ -547,7 +529,7 @@ strong, b { color: var(--gold); font-weight: 400; }
 .powerbi-actions { margin-top: 24px; text-align: left; }
 .powerbi-actions .sheet-btn { display: inline-block; }
 
-/* ---------- Footer = brick ground ---------- */
+/* ---------- Footer = ledger-tile floor ---------- */
 
 .site-footer {
   margin-top: 32px;
@@ -555,27 +537,14 @@ strong, b { color: var(--gold); font-weight: 400; }
   color: var(--white);
   font-size: 9px;
   text-shadow: 2px 2px 0 var(--black);
-  background-color: var(--orange-dark);
+  background-color: var(--slate);
   background-image:
-    linear-gradient(var(--black) 2px, transparent 2px),
-    linear-gradient(90deg, var(--black) 2px, transparent 2px),
-    linear-gradient(90deg, var(--black) 2px, transparent 2px);
-  background-size: 100% 16px, 32px 32px, 32px 32px;
-  background-position: 0 0, 0 0, 16px 16px;
-  border-top: 8px solid var(--green);
+    linear-gradient(var(--slate-line) 2px, transparent 2px),
+    linear-gradient(90deg, var(--slate-line) 2px, transparent 2px);
+  background-size: 32px 32px;
+  border-top: 8px solid var(--steel);
+  box-shadow: inset 0 2px 0 var(--steel-light);
   position: relative;
-}
-
-/* grass tufts along the top */
-.site-footer::before {
-  content: "";
-  position: absolute;
-  top: -16px;
-  left: 0;
-  right: 0;
-  height: 8px;
-  background-image: linear-gradient(90deg, var(--green) 8px, transparent 8px);
-  background-size: 24px 8px;
 }
 
 .footer-content {
@@ -591,10 +560,7 @@ strong, b { color: var(--gold); font-weight: 400; }
 .footer-content p { margin: 0; }
 
 .footer-content p:last-child::after {
-  content: "   PRESS START";
-  white-space: pre;
-  color: var(--gold);
-  animation: blink 1s steps(1) infinite;
+  content: none;
 }
 
 @keyframes blink { 50% { opacity: 0; } }
@@ -700,14 +666,14 @@ strong, b { color: var(--gold); font-weight: 400; }
 
 .game-open body { overflow: hidden; }
 
-/* Warp pipe on the brick footer */
+/* Filing cabinet on the footer (opens the game) */
 .site-footer:has(.game-pipe) { margin-top: 120px; }
 
 .game-pipe {
   position: absolute;
   right: 12%;
   bottom: 100%;
-  margin-bottom: 8px;           /* sits on the grass */
+  margin-bottom: 8px;           /* sits on the desk edge */
   width: 72px;
   padding: 0;
   border: 0;

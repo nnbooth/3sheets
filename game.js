@@ -150,6 +150,15 @@
     jump:  ['.kk..wwbbww.ss..', '..k.ggggwwwws...', '..kgwwGwgwww....', '..kgttGGgtttt...', '..kgtGttg...tt..', '..kgGtttg..ktt..', '...kggggk.kkooo.'],
   };
 
+  // Big (Clarity) wheelchair: drawn separately so he scales up (bigger
+  // wheel, bigger seated body) instead of stretching. 12 rows.
+  const CHAIR_BIG_BODY = {
+    stand: ['.kk..wwbbww.....', '.k...wwwwww.....', '.k...wwwwwws....', '.k..gggggwws....', '.k.g.wGwwgs.....', '.kgtttGtttgttt..', '.kgtttGtttgttt..', '.kgGGGkGGGg.tt..', '..g...G...g.tt..', '..g...G...g.tt..', '...g..G..g..ooo.', '....ggggg..kkkk.'],
+    run1:  ['.kk..wwbbww.....', '.k...wwwwww.....', '.k...wwwwwws....', '.k..gggggwws....', '.k.g.wGwwgs.....', '.kgtttGtttgttt..', '.kgtttGtttgttt..', '.kgGGGkGGGg.tt..', '..g...G...g.tt..', '..g...G...g.tt..', '...g..G..g..ooo.', '....ggggg..kkkk.'],
+    run2:  ['.kk..wwbbww.....', '.k...wwwwww.....', '.k...wwwwwws....', '.k..gggggwws....', '.k.g.wwwwgs.....', '.kgtGtttGtgttt..', '.kgttGtGttgttt..', '.kg...k...g.tt..', '..g..G.G..g.tt..', '..g.G...G.g.tt..', '...g.....g..ooo.', '....ggggg..kkkk.'],
+    jump:  ['.kk..wwbbwwss...', '.k...wwwwwws....', '.k...wwwwww.....', '.k..gggggww.....', '.k.g.wGwwgw.....', '.kgtttGtttgttt..', '.kgtttGtttgttt..', '.kgGGGkGGGg.tt..', '..g...G...g.tt..', '..g...G...g.tt..', '...g..G..g..ooo.', '....ggggg..kkkk.'],
+  };
+
   // The cast (5). Skin tones range light to deep; men, women and a
   // non-binary character, glasses/no glasses, a hijab, a wheelchair user.
   const CHARACTERS = {
@@ -157,7 +166,7 @@
     puff:  { head: HEAD_PUFF,  hair: '#201008', skin: '#7c4a2c', shadeSkin: '#5c3018', shirt: '#00a8a8', shade: '#005858' },
     hijab: { head: HEAD_HIJAB, hair: '#583880', skin: '#b87050', shadeSkin: '#8c4c30', shirt: '#fce0a8', shade: '#c8a060' },
     swoop: { head: HEAD_SWOOP, hair: '#b8a0f8', hairShaved: '#5c4c7c', skin: '#fcc8a0', shadeSkin: '#e0a07c', shirt: '#3c3c3c', shade: '#181818' },
-    chair: { head: HEAD_CHAIR, hair: '#101010', skin: '#9c5c38', shadeSkin: '#744024', shirt: '#58d854', shade: '#00a800', body: CHAIR_BODY },
+    chair: { head: HEAD_CHAIR, hair: '#101010', skin: '#9c5c38', shadeSkin: '#744024', shirt: '#58d854', shade: '#00a800', body: CHAIR_BODY, bigBody: CHAIR_BIG_BODY },
   };
   const ROSTER = Object.keys(CHARACTERS);
 
@@ -170,16 +179,15 @@
   }
 
   // Big (Clarity) version: same head, taller body — torso and legs rows
-  // doubled, like Mario after a mushroom. 21 rows tall. The wheelchair
-  // user grows taller in the torso so the wheel stays round.
+  // doubled. 21 rows tall. Characters with their own big body (the
+  // wheelchair user) use that instead.
   const bigBody = r => [r[0], r[1], r[1], r[2], r[2], r[3], r[3], r[4], r[5], r[5], r[5], r[6]];
-  const bigChair = r => [r[0], r[0], r[0], r[0], r[0], r[0], r[1], r[2], r[3], r[4], r[5], r[6]];
   const SMALL_H = 15, BIG_H = 20;
 
   const PLAYER = {}, PLAYER_BIG = {};
   for (const [id, ch] of Object.entries(CHARACTERS)) {
     const body = ch.body || BODY;
-    const grow = ch.body ? bigChair : bigBody;
+
     const palettes = {
       normal: playerPalette(ch, ch.shirt, ch.shade, '#3c3c7c'),
       star1:  playerPalette(ch, C.gold, C.red, C.black),
@@ -192,7 +200,7 @@
       for (const f of Object.keys(BODY)) {
         const r = sprite([...ch.head, ...body[f]], map);
         PLAYER[id][pal][f] = { r, l: flipped(r) };
-        const b = sprite([...ch.head, ...grow(body[f])], map);
+        const b = sprite([...ch.head, ...(ch.bigBody ? ch.bigBody[f] : bigBody(body[f]))], map);
         PLAYER_BIG[id][pal][f] = { r: b, l: flipped(b) };
       }
     }
