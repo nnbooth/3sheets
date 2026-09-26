@@ -1,0 +1,167 @@
+<style>
+#erd svg.erDiagram .divider path { stroke-opacity: 0.5; }
+#erd svg.erDiagram .row-rect-odd path,
+#erd svg.erDiagram .row-rect-odd rect,
+#erd svg.erDiagram .row-rect-even path,
+#erd svg.erDiagram .row-rect-even rect { stroke: none !important; }
+/* Mermaid hard-codes these as real CSS classes (relationship-line label
+   text/background) - overridable with plain CSS since they're actual
+   classes, not bare attributes like the entity box fills fixed via JS
+   below. !important beats Mermaid's injected <style> regardless of DOM
+   order, since neither of its rules uses !important itself. */
+#erd svg .label { fill: #5f6f63 !important; }
+#erd svg .relationshipLabelBox,
+#erd svg .labelBkg { fill: #eaf6ee !important; background-color: #eaf6ee !important; }
+</style>
+<div id="erd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+await document.fonts.ready;
+// Site palette (styles.css) and font, hardcoded here since this fragment is
+// meant to be embeddable without guaranteeing styles.css is loaded on the
+// host page. Keep these in sync with styles.css's :root block by hand.
+const FONT = 'Inter, "Segoe UI", Roboto, Arial, sans-serif';
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: FONT,
+  themeVariables: {
+    fontSize: '13px',
+    fontFamily: FONT,
+    background: '#f4f7f2',
+    primaryColor: '#eaf6ee',
+    primaryTextColor: '#25342a',
+    primaryBorderColor: '#dce8dc',
+    secondaryColor: '#fbfdf9',
+    secondaryTextColor: '#25342a',
+    secondaryBorderColor: '#dce8dc',
+    tertiaryColor: '#eaf6ee',
+    tertiaryTextColor: '#25342a',
+    tertiaryBorderColor: '#dce8dc',
+    lineColor: '#5f6f63',
+    textColor: '#25342a',
+    mainBkg: '#eaf6ee',
+    secondBkg: '#fbfdf9',
+    nodeBorder: '#dce8dc',
+    clusterBkg: '#fbfdf9',
+    clusterBorder: '#dce8dc',
+    titleColor: '#25342a',
+    edgeLabelBackground: '#f4f7f2',
+    attributeBackgroundColorOdd: '#fbfdf9',
+    attributeBackgroundColorEven: '#eaf6ee',
+  },
+});
+const src = `erDiagram
+  VENDOR_MASTER ||--o{ VENDOR_BANK_ACCOUNTS : "account history"
+  VENDOR_MASTER ||--o{ PURCHASE_ORDERS : supplies
+  SKU_MASTER ||--o{ PURCHASE_ORDERS : "ordered as"
+  PURCHASE_ORDERS ||--o{ GOODS_RECEIPTS : receives
+  PURCHASE_ORDERS ||--o{ SUPPLIER_INVOICES_DETAIL : "invoiced via Line_ID"
+  VENDOR_MASTER ||--o{ SUPPLIER_INVOICES_HEAD : bills
+  SUPPLIER_INVOICES_HEAD ||--o{ SUPPLIER_INVOICES_DETAIL : "bundles via Voucher_Number"
+  SUPPLIER_INVOICES_DETAIL ||--o{ GOODS_RECEIPT_APPLICATIONS : "matched to"
+  GOODS_RECEIPTS ||--o{ GOODS_RECEIPT_APPLICATIONS : "applied by"
+  SUPPLIER_INVOICES_HEAD ||--o{ PAYMENTS : "paid by"
+  PAYMENT_BATCHES ||--o{ PAYMENTS : contains
+  VENDOR_MASTER ||--o{ PAYMENTS : "paid to"
+
+  VENDOR_MASTER {
+    string Vendor_ID PK
+    string Vendor_Name
+    string ABN
+    string System_Currency
+    string Country
+    bool GST_Registered
+  }
+  VENDOR_BANK_ACCOUNTS {
+    string Vendor_ID PK,FK
+    string Bank_Account
+    date Effective_Start_Date PK
+    date Effective_End_Date "nullable - NULL = current"
+  }
+  SKU_MASTER {
+    string SKU_ID PK
+    string SKU_Description
+    string Category
+    decimal Typical_Unit_Price
+    int Days_To_Deliver
+  }
+  PURCHASE_ORDERS {
+    string Line_ID PK
+    string PO_ID
+    date Date
+    string Vendor_ID FK
+    string SKU_ID FK
+    string Line_Description
+    bool memo
+    decimal Qty
+    decimal Unit_Price
+    string Currency
+    string GST_Treatment
+    decimal Applied_FX_Rate
+    date Expected_Delivery_Date
+  }
+  GOODS_RECEIPTS {
+    string Receipt_ID PK
+    string Line_ID FK
+    date Receipt_Date
+    decimal Qty_Received
+  }
+  SUPPLIER_INVOICES_HEAD {
+    string Voucher_Number PK "system-generated AP voucher"
+    string Invoice_Number "vendor's own - NOT unique"
+    string Vendor_ID FK
+    date Invoice_Date
+    string Currency
+    decimal Goods_Total_Ex_GST
+    decimal Freight_Charged
+    decimal GST_Charged
+  }
+  SUPPLIER_INVOICES_DETAIL {
+    string Invoice_Line_ID PK
+    string Voucher_Number FK
+    string Invoice_Number "descriptive only"
+    string Vendor_ID
+    string PO_ID
+    string Line_ID FK
+    date Inv_Date
+    decimal Qty_Inv
+    decimal Inv_Price
+    string Inv_Currency
+    string Invoice_Error_Type "ground-truth label"
+  }
+  GOODS_RECEIPT_APPLICATIONS {
+    string Invoice_Line_ID PK,FK
+    string Receipt_ID PK,FK
+    decimal Qty_Applied
+  }
+  PAYMENT_BATCHES {
+    string Batch_ID PK
+    date Batch_Date
+  }
+  PAYMENTS {
+    string Payment_ID PK
+    string Batch_ID FK
+    string Voucher_Number FK
+    string Vendor_ID FK
+    date Payment_Date
+    string Payment_Bank_Account "compare vs VENDOR_BANK_ACCOUNTS"
+    decimal Payment_Amount
+    string Payment_Currency
+  }`;
+const { svg } = await mermaid.render('erd-svg', src);
+document.getElementById('erd').innerHTML = svg;
+
+// Mermaid's ER renderer hard-codes the entity box (#ECECFF fill / #9370DB
+// stroke) and the alternating attribute-row fills (hsl(240, ...)) as literal
+// SVG attributes - themeVariables above never reaches them, confirmed by
+// inspecting the rendered output. Recolor by hand instead.
+document.querySelectorAll('#erd path, #erd rect').forEach((el) => {
+  const fill = el.getAttribute('fill');
+  if (fill === '#ECECFF') el.setAttribute('fill', '#eaf6ee');
+  else if (fill && fill.startsWith('hsl(240')) {
+    el.setAttribute('fill', fill.includes('100%, 100%') ? '#fbfdf9' : '#eaf6ee');
+  }
+  if (el.getAttribute('stroke') === '#9370DB') el.setAttribute('stroke', '#dce8dc');
+});
+</script>
