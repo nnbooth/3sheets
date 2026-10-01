@@ -78,6 +78,17 @@
       outline: none;
     }
 
+    .sound-toggle {
+      padding: 8px 10px;
+      font-family: var(--font);
+      font-size: 10px;
+      color: var(--white);
+      background: var(--black);
+      border: var(--px) solid var(--white);
+      cursor: pointer;
+    }
+    .sound-toggle[aria-pressed="false"] { color: #7c7c7c; border-color: #7c7c7c; }
+
     .game-name input::placeholder { color: #7c7c7c; }
     .game-name input:focus { border-color: var(--gold); }
 
@@ -117,11 +128,12 @@
   <main class="game-wrap">
     <canvas id="game-canvas" width="256" height="240" tabindex="0" data-fit="screen" data-reserve="160"
       aria-label="3Sheets, The Month-End Run: a small side-scrolling game. Click or press Enter to start."></canvas>
-    <label class="game-name">
-      <span>NAME</span>
+    <div class="game-name">
+      <label for="player-name">NAME</label>
       <input id="player-name" type="text" maxlength="8" autocomplete="nickname" autocapitalize="characters"
         spellcheck="false" placeholder="PLAYER" enterkeyhint="go" />
-    </label>
+      <button type="button" id="sound-toggle" class="sound-toggle" aria-pressed="true">SOUND ON</button>
+    </div>
     <div class="game-touch" aria-hidden="true">
       <button type="button" tabindex="-1" data-key="left">&#9664;</button>
       <button type="button" tabindex="-1" data-key="right">&#9654;</button>
@@ -130,15 +142,35 @@
       <button type="button" tabindex="-1" data-key="jump">A</button>
     </div>
     <p class="game-help">
-      Left/Right run &middot; Z or Space jump &middot; hold X to sprint &middot; C step in &middot; P pause<br />
+      Left/Right run &middot; Z or Space jump &middot; hold X to sprint &middot; C step in &middot; P pause &middot; M sound<br />
       <a href="index.html">Back to the site</a>
     </p>
   </main>
   <script>if (window.self !== window.top) document.documentElement.classList.add('embedded');</script>
+  <script src="game-audio.js"></script>
   <script src="game.js"></script>
   <script>
     // Standalone page: focus the game straight away so keys work.
     document.getElementById('game-canvas').focus({ preventScroll: true });
+
+    // Sound on/off button (same as the M key)
+    (() => {
+      const btn = document.getElementById('sound-toggle');
+      const show = () => {
+        const on = !(window.S3Audio && S3Audio.muted);
+        btn.textContent = on ? 'SOUND ON' : 'SOUND OFF';
+        btn.setAttribute('aria-pressed', String(on));
+      };
+      btn.addEventListener('click', () => {
+        if (!window.S3Audio) return;
+        S3Audio.unlock();
+        S3Audio.toggleMute();
+        show();
+        document.getElementById('game-canvas').focus({ preventScroll: true });
+      });
+      window.addEventListener('keydown', e => { if (e.code === 'KeyM') setTimeout(show, 0); });
+      show();
+    })();
   </script>
 </body>
 </html>
