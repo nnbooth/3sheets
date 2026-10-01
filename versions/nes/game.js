@@ -450,7 +450,7 @@
     };
 
     // Opening: a coin block, then a row with the Dashboard
-    set(10, 9, '?');
+    set(10, 9, 'A');
     set(15, 9, 'B'); set(16, 9, 'D'); set(17, 9, 'B'); set(18, 9, '?'); set(19, 9, 'B');
     set(17, 5, '?');
 
@@ -462,7 +462,7 @@
 
     // Brick shelf with the Automation bolt
     for (let x = 44; x <= 48; x++) set(x, 9, 'B');
-    set(46, 9, 'A');
+    set(46, 9, '?');
     for (let x = 44; x <= 48; x++) spawns.coins.push([x, 6]);
 
     set(52, 9, '?'); set(53, 9, 'B'); set(54, 9, '?');
@@ -521,6 +521,7 @@
 
   function newGame() {
     sfx('start');
+    crashReport = null; stomps = 0;
     score = 0; coins = 0; lives = 3;
     resetLevel();
     state = 'play';
@@ -528,102 +529,146 @@
 
   /* ================================================================ AUTOMATION */
 
-  // Automation is a helper bot that does a run every second. Each run
-  // costs $1 and returns a little less than the last (drift). Past zero it
-  // starts making errors. Set a run limit up front, or step in (C) to check
-  // and fix it — otherwise it keeps spending until you stop it.
-  // This is the point: automation needs a human in the loop.
-  const RUN_CHOICES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]; // 0 = no limit
-  const AUTO_EVERY = 60;     // frames per run
-  const AUTO_DRIFT = 15;     // % return lost per unchecked run
-  const AUTO_COST = 1;       // $ per run
+  // Automation hands the controls to an autopilot. It's fast and sharp at
+  // first, but it needs a human in the loop:
+  //  - an approval gate opens every few seconds. Press C to approve and it
+  //    stays sharp; miss it and its quality drops (it drifts): late jumps,
+  //    short jumps, hesitation, missed enemies, and eventually a pit;
+  //  - every second and every jump burns tokens, faster as it gets sloppy.
+  //    Set a token limit up front, or it keeps spending (past OVER_BUDGET
+  //    your score drains);
+  //  - press any direction or jump to take the controls back.
+  // When it ends, a report compares value against token cost per gate.
+  const LIMIT_CHOICES = [100, 200, 300, 0]; // 0 = no limit
   const SETUP_WAIT = 240;    // frames before setup defaults to NO LIMIT
+  const GATE_EVERY = 150;    // frames between approval gates
+  const GATE_OPEN = 75;      // frames you have to approve
+  const DRIFT = 0.25;        // quality lost per missed gate
+  const OVER_BUDGET = 250;   // tokens before NO LIMIT starts draining score
+  const JUMP_TOKENS = 3;
 
-  const runsLabel = n => (n === 0 ? 'NO LIMIT' : String(n));
+  let stomps = 0;            // enemies defeated, for the report
+  let crashReport = null;    // report to show after respawning, if the autopilot crashed
+  let ctl = { jump: false }; // this frame's controls (yours or the autopilot's)
+  let rngSeed = 1;
+  const rng = () => (rngSeed = (rngSeed * 16807) % 2147483647) / 2147483647;
 
   function openSetup() {
-    autoMenu = { type: 'setup', sel: RUN_CHOICES.length - 1, t: SETUP_WAIT, touched: false };
+    autoMenu = { type: 'setup', sel: LIMIT_CHOICES.length - 1, t: SETUP_WAIT };
     sfx('ready');
   }
 
-  function openReview() {
-    autoMenu = { type: 'review', sel: 0 };
-    sfx('pause');
+  function startAutopilot(limit) {
+    rngSeed = 12345;
+    auto = {
+      limit, q: 1, tokens: 0, t: 0, lastClose: 0,
+      gateOpen: 0, flash: 0, grace: 24, overT: 0, jumpHold: 0, hesitate: 0,
+      segs: [], seg: { x: player.x, tokens: 0, coins, stomps },
+    };
+    popup('AUTOPILOT ON', player.x - 44, player.y - 20, 'auto');
   }
 
-  function startAutomation(limit) {
-    auto = { limit, runs: 0, eff: 100, t: AUTO_EVERY, earned: 0, spent: 0, errors: 0, flash: 0, checkT: 0 };
-    popup(limit ? limit + (limit === 1 ? ' RUN' : ' RUNS') : 'NO LIMIT!', player.x - 20, player.y - 18);
+  // One bar of the report: progress, coins and stomps since the last gate
+  // (value) against tokens burned (cost).
+  function closeSegment(approved) {
+    const a = auto, p = player;
+    const value = Math.max(0, Math.round((p.x - a.seg.x) / 16)) + 3 * Math.max(0, coins - a.seg.coins) + 2 * (stomps - a.seg.stomps);
+    const cost = Math.round((a.tokens - a.seg.tokens) / 3);
+    a.segs.push({ value, cost, approved });
+    a.seg = { x: p.x, tokens: a.tokens, coins, stomps };
+    a.lastClose = a.t;
   }
 
-  function endAutomation(reason) {
-    const net = auto.earned - auto.spent;
-    popups = popups.filter(pu => pu.tag !== 'auto'); // let the summary stand alone
-    popup(reason, player.x - reason.length * 4 + 5, player.y - 28);
-    popup('NET ' + (net >= 0 ? '+$' : '-$') + Math.abs(net), player.x - 24, player.y - 16);
+  function endAutopilot(why) {
+    const a = auto;
+    if (a.t - a.lastClose > 30) closeSegment(false);
     auto = null;
+    popups = popups.filter(pu => pu.tag !== 'auto');
+    autoMenu = { type: 'report', why, segs: a.segs, tokens: Math.round(a.tokens), limit: a.limit };
+    sfx(why === 'YOU TOOK CONTROL' ? 'stop' : 'pause');
   }
 
   function updateAutoMenu(press) {
     const m = autoMenu;
     if (m.type === 'setup') {
-      if (press.left) { m.sel = (m.sel + RUN_CHOICES.length - 1) % RUN_CHOICES.length; m.touched = true; sfx('blip'); }
-      if (press.right) { m.sel = (m.sel + 1) % RUN_CHOICES.length; m.touched = true; sfx('blip'); }
-      // Nobody decides? It starts anyway, with whatever is selected (NO LIMIT by default)
-      if (press.jump || press.check || --m.t <= 0) { autoMenu = null; sfx('confirm'); startAutomation(RUN_CHOICES[m.sel]); }
-    } else {
-      if (press.left || press.right) { m.sel = 1 - m.sel; sfx('blip'); }
-      if (press.jump || press.check) {
-        autoMenu = null;
-        if (m.sel === 0) {
-          // Human check: fix the drift, carry on
-          if (auto.eff < 100) score += 50;
-          auto.eff = 100; auto.checkT = 30; auto.t = AUTO_EVERY;
-          popup('CHECKED', player.x - 22, player.y - 18);
-          sfx('check');
-        } else {
-          sfx('stop');
-          endAutomation('STOPPED');
-        }
-      }
+      if (press.left) { m.sel = (m.sel + LIMIT_CHOICES.length - 1) % LIMIT_CHOICES.length; sfx('blip'); }
+      if (press.right) { m.sel = (m.sel + 1) % LIMIT_CHOICES.length; sfx('blip'); }
+      // Nobody decides? It starts anyway, with no limit
+      if (press.jump || press.check || --m.t <= 0) { autoMenu = null; sfx('confirm'); startAutopilot(LIMIT_CHOICES[m.sel]); }
+    } else if (m.type === 'report') {
+      if (press.jump || press.check) { autoMenu = null; sfx('confirm'); }
     }
   }
 
-  function updateAutomation() {
-    if (!auto) return;
-    if (auto.flash > 0) auto.flash--;
-    if (auto.checkT > 0) { auto.checkT--; return; }
-    if (--auto.t > 0) return;
-    auto.t = AUTO_EVERY;
-    auto.runs++;
+  // Runs every frame while the autopilot drives. Returns the controls it
+  // presses this frame, or null once it has handed control back.
+  function autopilot(press) {
+    const a = auto, p = player;
+    a.t++;
+    if (a.flash > 0) a.flash--;
 
-    const p = player;
-    // Every run costs, whatever it returns
-    if (coins >= AUTO_COST) { coins -= AUTO_COST; auto.spent += AUTO_COST; }
-    else {
-      auto.spent += AUTO_COST; score = Math.max(0, score - 250); time = Math.max(1, time - 5);
+    // A fresh press of a direction or jump takes the controls back
+    if (a.grace > 0) a.grace--;
+    else if (press.left || press.right || press.jump) { endAutopilot('YOU TOOK CONTROL'); return null; }
+
+    // Tokens: a steady burn that climbs steeply as it drifts (retries,
+    // wasted moves); hesitating is pure spend with nothing to show for it
+    a.tokens += (5 + (1 - a.q) * 30) / 60 + (a.hesitate > 0 ? 0.25 : 0);
+    if (a.limit && a.tokens >= a.limit) { a.tokens = a.limit; endAutopilot('TOKEN LIMIT REACHED'); return null; }
+    if (!a.limit && a.tokens > OVER_BUDGET && ++a.overT % 60 === 0) {
+      score = Math.max(0, score - 150);
       popup('OVER BUDGET', p.x - 36, p.y - 30, 'auto');
       sfx('overspend');
     }
 
-    if (auto.eff > 0) {
-      const gain = Math.max(1, Math.round(auto.eff / 25));
-      coins += gain; auto.earned += gain; score += gain * 100;
-      popup('+$' + gain, p.x - 4, p.y - 18, 'auto');
-      sfx('kaching');
-    } else {
-      auto.errors++; auto.flash = 24;
-      score = Math.max(0, score - 200);
-      popup('ERROR', p.x - 12, p.y - 18, 'auto');
-      sfx('error');
-      if (auto.errors % 3 === 0) {
-        // The automation produced a bad invoice
-        enemies.push({ type: 'invoice', x: Math.min(camX + W - 20, p.x + 96), y: 3 * T, w: 14, h: 14, vx: -1, vy: 0,
-          alive: true, active: true, squash: 0, flip: false, anim: 0 });
+    // Approval gates
+    if (a.gateOpen > 0) {
+      if (press.check) {
+        a.gateOpen = 0; a.q = 1; score += 50;
+        popup('APPROVED', p.x - 28, p.y - 22, 'auto'); sfx('check');
+        closeSegment(true);
+      } else if (--a.gateOpen === 0) {
+        a.q = Math.max(0, a.q - DRIFT); a.flash = 30;
+        popup('UNCHECKED', p.x - 32, p.y - 22, 'auto'); sfx('error');
+        closeSegment(false);
       }
+    } else if (a.t % GATE_EVERY === 0) {
+      a.gateOpen = GATE_OPEN; sfx('blip');
     }
-    auto.eff -= AUTO_DRIFT;
-    if (auto.limit && auto.runs >= auto.limit) endAutomation('AUTOMATION DONE');
+
+    // Drive: look ahead for walls, gaps, enemies and blocks to hit. A sharp
+    // autopilot looks further ahead and reacts every frame; a drifting one
+    // looks closer, reacts late, misfires, hesitates and jumps short.
+    const c = { left: false, right: true, run: true, jump: false, jumpPressed: false };
+    const reach = Math.round(4 + 22 * a.q);
+    const ahead = p.x + p.w;
+    const feetRow = Math.floor((p.y + p.h - 1) / T), headRow = Math.floor(p.y / T);
+    const colAhead = Math.floor((ahead + Math.max(4, reach / 3)) / T);
+    let wall = false;
+    for (let r = headRow; r <= feetRow; r++) if (solidAt(colAhead, r)) wall = true;
+    const gap = !solidAt(Math.floor((ahead + reach / 2) / T), GROUND) || !solidAt(Math.floor((ahead + reach) / T), GROUND);
+    const sees = a.q >= 0.5 || rng() < 0.5 + a.q;
+    const foe = sees && enemies.some(e => e.alive && e.active && e.x - ahead > -2 && e.x - ahead < 8 + reach && Math.abs((e.y + e.h) - (p.y + p.h)) < 14);
+    const midCol = Math.floor((p.x + p.w / 2) / T);
+    let block = false;
+    if (a.q > 0.6) for (let k = 1; k <= 4; k++) if ('?DA'.includes(tileAt(midCol, headRow - k))) block = true;
+
+    if (a.q < 0.75 && a.hesitate === 0 && rng() < (1 - a.q) * 0.03) a.hesitate = 12 + Math.floor(rng() * 20);
+    if (a.hesitate > 0) { a.hesitate--; c.right = false; c.run = false; }
+
+    if (p.onGround) {
+      const reacts = rng() < 0.3 + 0.7 * a.q;
+      const misfire = rng() < (1 - a.q) * 0.012;
+      if (((wall || gap || foe || block) && reacts) || misfire) {
+        c.jump = c.jumpPressed = true;
+        a.jumpHold = a.q >= 0.75 ? 60 : Math.floor(4 + rng() * 14 * (a.q + 0.3));
+        a.tokens += JUMP_TOKENS;
+      }
+    } else if (a.jumpHold > 0) {
+      a.jumpHold--;
+      c.jump = true;
+    }
+    return c;
   }
 
   /* ================================================================ PHYSICS */
@@ -711,6 +756,7 @@
   }
 
   function killEnemy(e, flip) {
+    stomps++;
     sfx('stomp');
     e.alive = false;
     score += 100;
@@ -742,6 +788,16 @@
 
   function die(cause) {
     sfx('die');
+    if (auto) {
+      // The autopilot crashed: keep its report for when you're back on your feet
+      closeSegment(false);
+      // A crash produces nothing and costs a life
+      const last = auto.segs[auto.segs.length - 1];
+      last.value = 0; last.cost += 20; last.crashed = true;
+      crashReport = { type: 'report', why: 'THE AUTOPILOT CRASHED', segs: auto.segs, tokens: Math.round(auto.tokens), limit: auto.limit };
+      cause = 'UNCHECKED AUTOPILOT';
+      auto = null;
+    }
     state = 'dying';
     deathCause = cause;
     stateTimer = 150;
@@ -786,24 +842,29 @@
     const p = player;
     // Automation setup/review panel: the world waits while you decide
     if (autoMenu) { updateAutoMenu(press); return; }
-    if (auto && press.check) { openReview(); return; }
     // Growing/shrinking: the world pauses for a moment, like the original
     if (p.growT > 0) { p.growT--; return; }
+
+    // Whoever is driving this frame: the autopilot, or you
+    let c = auto ? autopilot(press) : null;
+    if (autoMenu) return; // the autopilot just handed back control: show its report
+    if (!c) c = { left: keys.left, right: keys.right, run: keys.run, jump: keys.jump, jumpPressed };
+    ctl = c;
 
     // Direct control: move only while a direction is held, stop the
     // moment it's released (on the ground and in the air). Whole-pixel
     // speeds keep movement perfectly even on screen.
-    const speed = keys.run ? 2 : 1;
-    if (keys.left && !keys.right) { p.vx = -speed; p.facing = -1; }
-    else if (keys.right && !keys.left) { p.vx = speed; p.facing = 1; }
+    const speed = c.run ? 2 : 1;
+    if (c.left && !c.right) { p.vx = -speed; p.facing = -1; }
+    else if (c.right && !c.left) { p.vx = speed; p.facing = 1; }
     else p.vx = 0;
 
-    if (jumpPressed && p.onGround) {
-      p.vy = keys.run ? -6 : -5.6;
+    if (c.jumpPressed && p.onGround) {
+      p.vy = c.run ? -6 : -5.6;
       sfx('jump');
       p.onGround = false;
     }
-    p.vy += keys.jump && p.vy < 0 ? 0.26 : 0.6;
+    p.vy += c.jump && p.vy < 0 ? 0.26 : 0.6;
     if (p.vy > 5) p.vy = 5;
 
     moveX(p);
@@ -829,10 +890,10 @@
 
     updateItems();
     updateEnemies();
-    updateAutomation();
 
     // Sign-off board: touching its post or plinth gets the report approved
     if (p.x + p.w >= FLAG_COL * T - 1) {
+      auto = null;
       state = 'win';
       winPhase = 0;
       stateTimer = 50;
@@ -896,7 +957,7 @@
           killEnemy(e, true);
         } else if (p.vy > 0 && (p.y + p.h) - e.y < 8) {
           killEnemy(e, false);
-          p.vy = keys.jump ? -5.5 : -3.5;
+          p.vy = ctl.jump ? -5.5 : -3.5;
         } else {
           hurtPlayer(e.type === 'clock' ? 'OVERTIME GOT YOU' : 'ROGUE INVOICE!');
         }
@@ -910,7 +971,7 @@
     if (stateTimer < 130) { p.vy += 0.35; p.y += p.vy; }
     if (--stateTimer <= 0) {
       lives--;
-      if (lives > 0) { resetLevel(); state = 'play'; }
+      if (lives > 0) { resetLevel(); state = 'play'; if (crashReport) { autoMenu = crashReport; crashReport = null; } }
       else { state = 'gameover'; sfx('gameover'); }
     }
   }
@@ -1114,8 +1175,15 @@
     if (auto && state === 'play') {
       // Bot rides at the player's shoulder (locked to them, so it never jitters)
       const bx = p.facing > 0 ? ix(p) - 14 : ix(p) + p.w + 4;
-      const img = auto.flash > 0 ? BOT.error : auto.checkT > 0 || autoMenu ? BOT.check : BOT.ok;
+      const img = auto.flash > 0 ? BOT.error : auto.gateOpen > 0 ? BOT.check : BOT.ok;
       ctx.drawImage(img, bx, iy(p) - 12 + yOff);
+      // Approval gate: a prompt over the player with a draining time bar
+      if (auto.gateOpen > 0) {
+        const gx = Math.max(4, Math.min(W - 92, ix(p) - 40)), gy = Math.max(44, iy(p) - 40 + yOff);
+        ctx.fillStyle = C.black; ctx.fillRect(gx, gy, 88, 20);
+        ctx.fillStyle = C.gold; ctx.fillRect(gx + 2, gy + 16, Math.round(84 * auto.gateOpen / GATE_OPEN), 2);
+        if (Math.floor(tick / 10) % 3 !== 2) text('APPROVE? C', gx + 44, gy + 4, C.gold, 'center');
+      }
     }
   }
 
@@ -1145,11 +1213,12 @@
     text('TIME', 208, 10);
     text(state === 'title' ? '' : String(Math.max(0, time)).padStart(3, ' '), 208, 20);
     if (auto && state === 'play') {
-      const eff = Math.max(0, auto.eff);
-      const col = auto.eff > 40 ? C.white : auto.eff > 0 ? C.gold : C.red;
+      const q = Math.round(auto.q * 100);
       ctx.drawImage(BOT.ok, 16, 31);
-      text((auto.limit ? auto.runs + '/' + auto.limit : 'RUN ' + auto.runs) + ' ' + eff + '%', 30, 32, col);
-      if ((auto.eff <= 40 || !auto.limit) && Math.floor(tick / 30) % 2 === 0) text('C STEP IN', 176, 32, C.gold);
+      text('AUTO ' + q + '%', 30, 32, q >= 75 ? C.white : q >= 50 ? C.gold : C.red);
+      const tk = Math.round(auto.tokens);
+      const over = auto.limit ? tk >= auto.limit * 0.8 : tk > OVER_BUDGET;
+      text('TOKENS ' + tk + (auto.limit ? '/' + auto.limit : ''), 240, 32, over ? C.red : C.white, 'right');
     }
   }
 
@@ -1170,24 +1239,51 @@
 
   function drawAutoMenu() {
     const m = autoMenu;
-    panel(60, 120);
     if (m.type === 'setup') {
-      text('AUTOMATION READY', W / 2, 72, C.gold, 'center');
-      text('HOW MANY RUNS?', W / 2, 90, C.white, 'center');
-      const choice = RUN_CHOICES[m.sel];
-      text('<  ' + runsLabel(choice) + '  >', W / 2, 108, choice === 0 ? C.red : C.greenLight, 'center');
-      text('EACH RUN COSTS $1', W / 2, 126, C.white, 'center');
-      text('RETURNS DROP EVERY RUN', W / 2, 138, C.white, 'center');
+      panel(60, 120);
+      text('AUTOPILOT READY', W / 2, 72, C.gold, 'center');
+      text('SET A TOKEN LIMIT?', W / 2, 90, C.white, 'center');
+      const choice = LIMIT_CHOICES[m.sel];
+      text('<  ' + (choice ? choice + ' TOKENS' : 'NO LIMIT') + '  >', W / 2, 108, choice ? C.greenLight : C.red, 'center');
+      text('EVERY SECOND AND', W / 2, 126, C.white, 'center');
+      text('EVERY JUMP COSTS TOKENS', W / 2, 138, C.white, 'center');
       text('A START  ' + Math.ceil(m.t / 60), W / 2, 158, C.gold, 'center');
-    } else {
-      const net = auto.earned - auto.spent;
-      text('AUTOMATION REVIEW', W / 2, 72, C.gold, 'center');
-      text('RUN ' + auto.runs + (auto.limit ? '/' + auto.limit : '') + '  RETURN ' + Math.max(0, auto.eff) + '%', W / 2, 90, auto.eff > 40 ? C.white : C.red, 'center');
-      text('EARNED $' + auto.earned + '  SPENT $' + auto.spent, W / 2, 104, C.white, 'center');
-      text('NET ' + (net >= 0 ? '+$' : '-$') + Math.abs(net) + (auto.errors ? '  ERRORS ' + auto.errors : ''), W / 2, 118, net >= 0 ? C.greenLight : C.red, 'center');
-      text((m.sel === 0 ? '> ' : '  ') + 'CHECK & CONTINUE', 44, 138, m.sel === 0 ? C.gold : C.white);
-      text((m.sel === 1 ? '> ' : '  ') + 'STOP', 44, 152, m.sel === 1 ? C.gold : C.white);
+      return;
     }
+    // Report card: value vs token cost for each gate
+    panel(28, 186);
+    text('AUTOMATION REPORT', W / 2, 38, C.gold, 'center');
+    text(m.why, W / 2, 52, C.white, 'center');
+    const segs = m.segs.slice(0, 9);
+    const x0 = 40, x1 = 216, top = 68, base = 126;
+    ctx.fillStyle = C.greyDark; ctx.fillRect(x0 - 2, base, x1 - x0 + 4, 1);
+    if (segs.length) {
+      const max = Math.max(1, ...segs.flatMap(sg => [sg.value, sg.cost]));
+      const slot = Math.floor((x1 - x0) / segs.length), bw = Math.max(3, Math.min(8, Math.floor(slot / 3)));
+      segs.forEach((sg, i) => {
+        const sx = x0 + i * slot + Math.floor((slot - bw * 2 - 2) / 2);
+        const vh = Math.round((sg.value / max) * (base - top)), ch = Math.round((sg.cost / max) * (base - top));
+        ctx.fillStyle = C.greenLight; ctx.fillRect(sx, base - vh, bw, vh);
+        ctx.fillStyle = C.red; ctx.fillRect(sx + bw + 2, base - ch, bw, ch);
+        ctx.fillStyle = sg.approved ? C.greenLight : C.red;
+        ctx.fillRect(sx + bw - 1, base + 4, 4, 4); // gate marker: approved or missed
+      });
+    } else {
+      text('NOT ENOUGH RUNNING TO MEASURE', W / 2, 92, C.grey, 'center');
+    }
+    ctx.fillStyle = C.greenLight; ctx.fillRect(48, 140, 6, 6); text('VALUE', 58, 139, C.white);
+    ctx.fillStyle = C.red; ctx.fillRect(130, 140, 6, 6); text('TOKEN COST', 140, 139, C.white);
+    // Verdict: the best place to have stepped in is the last gate before cost caught up with value
+    let best = 0;
+    while (best < segs.length && segs[best].value > segs[best].cost) best++;
+    let verdict;
+    if (!segs.length) verdict = '';
+    else if (best === segs.length) verdict = 'WORTH IT ALL THE WAY';
+    else if (best === 0) verdict = 'COST MORE THAN IT GAVE';
+    else verdict = 'BEST STOP: AFTER GATE ' + best;
+    text(verdict, W / 2, 156, best === segs.length ? C.greenLight : C.gold, 'center');
+    text('TOKENS USED ' + m.tokens + (m.limit ? ' OF ' + m.limit : ''), W / 2, 170, C.white, 'center');
+    if (Math.floor(tick / 30) % 2 === 0) text('A CONTINUE', W / 2, 194, C.gold, 'center');
   }
 
   function drawOverlay() {
@@ -1198,7 +1294,7 @@
       text('THE MONTH-END RUN', W / 2, 54, C.white, 'center');
       ctx.drawImage(COIN, 30, 72);             text('DATA POINTS', 50, 74);
       ctx.drawImage(DASHBOARD, 27, 87);        text('CLARITY: GROW BIG', 50, 90);
-      ctx.drawImage(BOLT, 27, 104);            text('AUTOMATION: CHECK IT', 50, 106);
+      ctx.drawImage(BOLT, 27, 104);            text('AUTOMATION: APPROVE IT', 50, 106);
       ctx.drawImage(CLOCK[0], 27, 118);        text('OVERTIME', 50, 122);
       ctx.drawImage(INVOICE[0], 27, 134);      text('ROGUE INVOICE', 50, 138);
       // Character select
@@ -1262,10 +1358,10 @@
     { title: 'THE HELP', entries: [
       ['coin', 'DATA POINTS', 'COLLECT THEM ALL.', 'EVERY NUMBER COUNTS'],
       ['dash', 'CLARITY',     'GROW BIG, SMASH', 'BRICKS, SURVIVE A HIT'],
-      ['bolt', 'AUTOMATION',  'DOES THE WORK. PRESS', 'C TO STEP IN'],
+      ['bolt', 'AUTOMATION',  'AN AUTOPILOT. PRESS C', 'AT EACH GATE'],
     ] },
-    { lines: ['AUTOMATION SAVES TIME,', 'BUT EVERY RUN COSTS', 'AND UNCHECKED RUNS DRIFT.', '', 'SET A LIMIT, OR STEP IN', 'AND CHECK IT. NO HUMAN', 'IN THE LOOP? YOU OVERSPEND.'], art: 'bot' },
-    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'C ............ STEP IN', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
+    { lines: ['AUTOMATION GETS YOU FAR,', 'FAST. BUT EVERY STEP', 'BURNS TOKENS, AND', 'UNCHECKED IT DRIFTS.', '', 'APPROVE IT AT EACH GATE,', 'OR TAKE BACK CONTROL.'], art: 'bot' },
+    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'C ............ APPROVE', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
     { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
   ];
 
