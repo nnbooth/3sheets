@@ -160,6 +160,7 @@
   const BASS = [[0, 0, 3], [3, 0, 1], [4, 7, 2], [6, 12, 1], [7, 7, 1]];
 
   let playing = false, step = 0, nextTime = 0, timer = null, loopCount = 0;
+  let autoLayer = false; // busy arpeggio while automation is on
 
   function stepTime(i, base) {
     const beat = Math.floor(i / 2), off = i % 2;
@@ -176,6 +177,8 @@
     for (const [p, interval, len] of BASS) if (p === pos) tone(musicBus, t, { note: ch.root + interval, type: 'tri', dur: EIGHTH * len * 0.9, vol: 0.42 });
     // Electric-piano-ish stabs on the "and" of 2 and on 4
     if (pos === 3 || pos === 6) ch.notes.forEach(n => tone(musicBus, t, { note: n, type: 'p25', dur: 0.16, vol: 0.045, lowpass: 2600, release: 0.12 }));
+    // Automation on: a busy, bubbly arpeggio over the chords
+    if (autoLayer) tone(musicBus, t, { note: ch.notes[pos % 4] + 12, type: 'p12', dur: EIGHTH * 0.5, vol: 0.05, release: 0.03 });
     // The cheesy lead (an octave lower on alternate loops for variety)
     const ld = LEAD_AT.get(i);
     if (ld) tone(musicBus, t, { note: ld[1] - (loopCount % 4 === 3 ? 12 : 0), type: 'p50', dur: EIGHTH * ld[2] * 0.95, vol: 0.085, vibrato: 0.012, attack: 0.02, release: 0.08, lowpass: 3200 });
@@ -229,6 +232,7 @@
       SFX[name](ac.currentTime + 0.005);
     },
     music,
+    layer(on) { autoLayer = !!on; },
     toggleMute() {
       muted = !muted;
       try { localStorage.setItem('s3-muted', muted ? '1' : '0'); } catch (e) { /* ignore */ }
