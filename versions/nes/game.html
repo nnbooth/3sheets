@@ -97,8 +97,8 @@
     @media (pointer: coarse) {
       .game-touch {
         display: grid;
-        grid-template-columns: 64px 64px 1fr 64px 64px;
-        grid-template-areas: "left right check run jump";
+        grid-template-columns: 64px 64px 1fr 64px;
+        grid-template-areas: "left right check jump";
         gap: 10px;
         margin: 16px auto 0;
         max-width: 560px;
@@ -117,7 +117,6 @@
       .game-touch [data-key="left"] { grid-area: left; }
       .game-touch [data-key="right"] { grid-area: right; }
       .game-touch [data-key="check"] { grid-area: check; font-size: 10px; background: #007800; }
-      .game-touch [data-key="run"] { grid-area: run; border-radius: 50%; background: var(--red-dark); }
       .game-touch [data-key="jump"] { grid-area: jump; border-radius: 50%; background: var(--red); }
       .game-touch .is-down { transform: translateY(var(--px)); filter: brightness(0.8); }
       .game-help { display: none; }
@@ -138,11 +137,10 @@
       <button type="button" tabindex="-1" data-key="left">&#9664;</button>
       <button type="button" tabindex="-1" data-key="right">&#9654;</button>
       <button type="button" tabindex="-1" data-key="check">C APPROVE</button>
-      <button type="button" tabindex="-1" data-key="run">B</button>
       <button type="button" tabindex="-1" data-key="jump">A</button>
     </div>
     <p class="game-help">
-      Left/Right run &middot; Z or Space jump &middot; hold X to sprint &middot; C approve &middot; P pause &middot; M sound<br />
+      Left/Right move &middot; Z or Space jump &middot; C approve &middot; P pause &middot; M sound<br />
       <a href="index.html">Back to the site</a>
     </p>
   </main>
