@@ -315,6 +315,25 @@
     '...oo...........',
   ], { o: C.brickDark, y: C.gold });
 
+  // Automation bot: three lights — working (green), being checked (gold), error (red)
+  const BOT_ROWS = [
+    '....k.....',
+    '....a.....',
+    '.kkkkkkkk.',
+    '.kggggggk.',
+    '.kgkggkgk.',
+    '.kggggggk.',
+    '.kgkkkkgk.',
+    '.kkkkkkkk.',
+    '..k....k..',
+    '..a....a..',
+  ];
+  const BOT = {
+    ok:    sprite(BOT_ROWS, { k: C.black, g: '#bcbcbc', a: '#58d854' }),
+    check: sprite(BOT_ROWS, { k: C.black, g: '#bcbcbc', a: '#f8b800' }),
+    error: sprite(BOT_ROWS, { k: C.black, g: '#fc7460', a: '#d82800' }),
+  };
+
   /* ================================================================ TILES */
 
   function tile(draw) {
@@ -461,7 +480,10 @@
 
   /* ================================================================ STATE */
 
-  const keys = { left: false, right: false, jump: false, run: false };
+  const keys = { left: false, right: false, jump: false, run: false, check: false };
+  let prevLeft = false, prevRight = false, prevCheck = false;
+  // Taps remembered until the next frame, so a very quick tap is never missed
+  const tapped = { jump: false, left: false, right: false, check: false };
   let prevJump = false;
 
   let state = 'title';      // title | attract | play | paused | dying | win | gameover
@@ -470,6 +492,7 @@
   let score = 0, coins = 0, lives = 3, time = 200, timeTick = 0;
   let camX = 0;
   let player, enemies, items, particles, popups, bumps;
+  let auto = null, autoMenu = null; // automation run + its setup/review panel
   let deathCause = '', stateTimer = 0, winPhase = 0, bonusShown = 0;
 
   function resetLevel() {
@@ -486,6 +509,7 @@
     }));
     items = spawns.coins.map(([c, r]) => ({ type: 'coin', x: c * T + 3, y: r * T + 2, w: 10, h: 11, static: true }));
     particles = []; popups = []; bumps = [];
+    auto = null; autoMenu = null;
     camX = 0; time = 200; timeTick = 0;
     winPhase = 0; bonusShown = 0;
   }
@@ -494,6 +518,99 @@
     score = 0; coins = 0; lives = 3;
     resetLevel();
     state = 'play';
+  }
+
+  /* ================================================================ AUTOMATION */
+
+  // Automation is a helper bot that does a run every second. Each run
+  // costs $1 and returns a little less than the last (drift). Past zero it
+  // starts making errors. Set a run limit up front, or step in (C) to check
+  // and fix it — otherwise it keeps spending until you stop it.
+  // This is the point: automation needs a human in the loop.
+  const RUN_CHOICES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]; // 0 = no limit
+  const AUTO_EVERY = 60;     // frames per run
+  const AUTO_DRIFT = 15;     // % return lost per unchecked run
+  const AUTO_COST = 1;       // $ per run
+  const SETUP_WAIT = 240;    // frames before setup defaults to NO LIMIT
+
+  const runsLabel = n => (n === 0 ? 'NO LIMIT' : String(n));
+
+  function openSetup() {
+    autoMenu = { type: 'setup', sel: RUN_CHOICES.length - 1, t: SETUP_WAIT, touched: false };
+  }
+
+  function openReview() {
+    autoMenu = { type: 'review', sel: 0 };
+  }
+
+  function startAutomation(limit) {
+    auto = { limit, runs: 0, eff: 100, t: AUTO_EVERY, earned: 0, spent: 0, errors: 0, flash: 0, checkT: 0 };
+    popup(limit ? limit + (limit === 1 ? ' RUN' : ' RUNS') : 'NO LIMIT!', player.x - 20, player.y - 18);
+  }
+
+  function endAutomation(reason) {
+    const net = auto.earned - auto.spent;
+    popups = popups.filter(pu => pu.tag !== 'auto'); // let the summary stand alone
+    popup(reason, player.x - reason.length * 4 + 5, player.y - 28);
+    popup('NET ' + (net >= 0 ? '+$' : '-$') + Math.abs(net), player.x - 24, player.y - 16);
+    auto = null;
+  }
+
+  function updateAutoMenu(press) {
+    const m = autoMenu;
+    if (m.type === 'setup') {
+      if (press.left) { m.sel = (m.sel + RUN_CHOICES.length - 1) % RUN_CHOICES.length; m.touched = true; }
+      if (press.right) { m.sel = (m.sel + 1) % RUN_CHOICES.length; m.touched = true; }
+      // Nobody decides? It starts anyway, with whatever is selected (NO LIMIT by default)
+      if (press.jump || press.check || --m.t <= 0) { autoMenu = null; startAutomation(RUN_CHOICES[m.sel]); }
+    } else {
+      if (press.left || press.right) m.sel = 1 - m.sel;
+      if (press.jump || press.check) {
+        autoMenu = null;
+        if (m.sel === 0) {
+          // Human check: fix the drift, carry on
+          if (auto.eff < 100) score += 50;
+          auto.eff = 100; auto.checkT = 30; auto.t = AUTO_EVERY;
+          popup('CHECKED', player.x - 22, player.y - 18);
+        } else {
+          endAutomation('STOPPED');
+        }
+      }
+    }
+  }
+
+  function updateAutomation() {
+    if (!auto) return;
+    if (auto.flash > 0) auto.flash--;
+    if (auto.checkT > 0) { auto.checkT--; return; }
+    if (--auto.t > 0) return;
+    auto.t = AUTO_EVERY;
+    auto.runs++;
+
+    const p = player;
+    // Every run costs, whatever it returns
+    if (coins >= AUTO_COST) { coins -= AUTO_COST; auto.spent += AUTO_COST; }
+    else {
+      auto.spent += AUTO_COST; score = Math.max(0, score - 250); time = Math.max(1, time - 5);
+      popup('OVER BUDGET', p.x - 36, p.y - 30, 'auto');
+    }
+
+    if (auto.eff > 0) {
+      const gain = Math.max(1, Math.round(auto.eff / 25));
+      coins += gain; auto.earned += gain; score += gain * 100;
+      popup('+$' + gain, p.x - 4, p.y - 18, 'auto');
+    } else {
+      auto.errors++; auto.flash = 24;
+      score = Math.max(0, score - 200);
+      popup('ERROR', p.x - 12, p.y - 18, 'auto');
+      if (auto.errors % 3 === 0) {
+        // The automation produced a bad invoice
+        enemies.push({ type: 'invoice', x: Math.min(camX + W - 20, p.x + 96), y: 3 * T, w: 14, h: 14, vx: -1, vy: 0,
+          alive: true, active: true, squash: 0, flip: false, anim: 0 });
+      }
+    }
+    auto.eff -= AUTO_DRIFT;
+    if (auto.limit && auto.runs >= auto.limit) endAutomation('AUTOMATION DONE');
   }
 
   /* ================================================================ PHYSICS */
@@ -543,7 +660,7 @@
 
   const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-  function popup(text, x, y) { popups.push({ text, x, y, t: 50 }); }
+  function popup(text, x, y, tag) { popups.push({ text, x, y, t: 50, tag }); }
 
   function bumpTile(col, row) {
     const t = tileAt(col, row);
@@ -619,10 +736,18 @@
     tick++;
     const jumpPressed = keys.jump && !prevJump;
     prevJump = keys.jump;
+    const press = {
+      jump: jumpPressed || tapped.jump,
+      left: (keys.left && !prevLeft) || tapped.left,
+      right: (keys.right && !prevRight) || tapped.right,
+      check: (keys.check && !prevCheck) || tapped.check,
+    };
+    prevLeft = keys.left; prevRight = keys.right; prevCheck = keys.check;
+    tapped.jump = tapped.left = tapped.right = tapped.check = false;
 
     if (state === 'title' && ++titleIdle > ATTRACT_AFTER) { state = 'attract'; attractPage = 0; attractT = 0; }
     else if (state === 'attract') updateAttract();
-    if (state === 'play') updatePlay(jumpPressed);
+    if (state === 'play') updatePlay(press.jump, press);
     else if (state === 'dying') updateDying();
     else if (state === 'win') updateWin();
 
@@ -635,8 +760,11 @@
     particles = particles.filter(p => p.t > 0 && p.y < H + 16);
   }
 
-  function updatePlay(jumpPressed) {
+  function updatePlay(jumpPressed, press) {
     const p = player;
+    // Automation setup/review panel: the world waits while you decide
+    if (autoMenu) { updateAutoMenu(press); return; }
+    if (auto && press.check) { openReview(); return; }
     // Growing/shrinking: the world pauses for a moment, like the original
     if (p.growT > 0) { p.growT--; return; }
 
@@ -678,6 +806,7 @@
 
     updateItems();
     updateEnemies();
+    updateAutomation();
 
     // Sign-off board: touching its post or plinth gets the report approved
     if (p.x + p.w >= FLAG_COL * T - 1) {
@@ -715,7 +844,7 @@
         it.dead = true;
         if (it.type === 'coin') { coins++; score += 200; }
         else if (it.type === 'dash') { setBig(p, true); score += 1000; popup('CLARITY!', it.x - 12, it.y - 8); }
-        else if (it.type === 'bolt') { p.star = 480; score += 1000; popup('AUTOMATED!', it.x - 20, it.y - 8); }
+        else if (it.type === 'bolt') { score += 500; openSetup(); }
       }
     }
     items = items.filter(i => !i.dead);
@@ -958,6 +1087,12 @@
     const f = (big ? PLAYER_BIG : PLAYER)[character][pal][frame];
     const yOff = big === p.powered ? 0 : (big ? SMALL_H - BIG_H : BIG_H - SMALL_H);
     ctx.drawImage(p.facing > 0 ? f.r : f.l, ix(p) - 3, iy(p) - 1 + yOff);
+    if (auto && state === 'play') {
+      // Bot rides at the player's shoulder (locked to them, so it never jitters)
+      const bx = p.facing > 0 ? ix(p) - 14 : ix(p) + p.w + 4;
+      const img = auto.flash > 0 ? BOT.error : auto.checkT > 0 || autoMenu ? BOT.check : BOT.ok;
+      ctx.drawImage(img, bx, iy(p) - 12 + yOff);
+    }
   }
 
   function drawParticles() {
@@ -985,6 +1120,13 @@
     text(PERIOD, 144, 20);
     text('TIME', 208, 10);
     text(state === 'title' ? '' : String(Math.max(0, time)).padStart(3, ' '), 208, 20);
+    if (auto && state === 'play') {
+      const eff = Math.max(0, auto.eff);
+      const col = auto.eff > 40 ? C.white : auto.eff > 0 ? C.gold : C.red;
+      ctx.drawImage(BOT.ok, 16, 31);
+      text((auto.limit ? auto.runs + '/' + auto.limit : 'RUN ' + auto.runs) + ' ' + eff + '%', 30, 32, col);
+      if ((auto.eff <= 40 || !auto.limit) && Math.floor(tick / 30) % 2 === 0) text('C STEP IN', 176, 32, C.gold);
+    }
   }
 
   // Character select: the whole cast in a row
@@ -1002,14 +1144,37 @@
     ctx.fillRect(W - 20, y + 2, 2, h - 4);
   }
 
+  function drawAutoMenu() {
+    const m = autoMenu;
+    panel(60, 120);
+    if (m.type === 'setup') {
+      text('AUTOMATION READY', W / 2, 72, C.gold, 'center');
+      text('HOW MANY RUNS?', W / 2, 90, C.white, 'center');
+      const choice = RUN_CHOICES[m.sel];
+      text('<  ' + runsLabel(choice) + '  >', W / 2, 108, choice === 0 ? C.red : C.greenLight, 'center');
+      text('EACH RUN COSTS $1', W / 2, 126, C.white, 'center');
+      text('RETURNS DROP EVERY RUN', W / 2, 138, C.white, 'center');
+      text('A START  ' + Math.ceil(m.t / 60), W / 2, 158, C.gold, 'center');
+    } else {
+      const net = auto.earned - auto.spent;
+      text('AUTOMATION REVIEW', W / 2, 72, C.gold, 'center');
+      text('RUN ' + auto.runs + (auto.limit ? '/' + auto.limit : '') + '  RETURN ' + Math.max(0, auto.eff) + '%', W / 2, 90, auto.eff > 40 ? C.white : C.red, 'center');
+      text('EARNED $' + auto.earned + '  SPENT $' + auto.spent, W / 2, 104, C.white, 'center');
+      text('NET ' + (net >= 0 ? '+$' : '-$') + Math.abs(net) + (auto.errors ? '  ERRORS ' + auto.errors : ''), W / 2, 118, net >= 0 ? C.greenLight : C.red, 'center');
+      text((m.sel === 0 ? '> ' : '  ') + 'CHECK & CONTINUE', 44, 138, m.sel === 0 ? C.gold : C.white);
+      text((m.sel === 1 ? '> ' : '  ') + 'STOP', 44, 152, m.sel === 1 ? C.gold : C.white);
+    }
+  }
+
   function drawOverlay() {
+    if (autoMenu && state === 'play') { drawAutoMenu(); return; }
     if (state === 'title') {
       panel(30, 196);
       text('3SHEETS', W / 2, 40, C.gold, 'center');
       text('THE MONTH-END RUN', W / 2, 54, C.white, 'center');
       ctx.drawImage(COIN, 30, 72);             text('DATA POINTS', 50, 74);
       ctx.drawImage(DASHBOARD, 27, 87);        text('CLARITY: GROW BIG', 50, 90);
-      ctx.drawImage(BOLT, 27, 104);            text('AUTOMATION', 50, 106);
+      ctx.drawImage(BOLT, 27, 104);            text('AUTOMATION: CHECK IT', 50, 106);
       ctx.drawImage(CLOCK[0], 27, 118);        text('OVERTIME', 50, 122);
       ctx.drawImage(INVOICE[0], 27, 134);      text('ROGUE INVOICE', 50, 138);
       // Character select
@@ -1073,9 +1238,10 @@
     { title: 'THE HELP', entries: [
       ['coin', 'DATA POINTS', 'COLLECT THEM ALL.', 'EVERY NUMBER COUNTS'],
       ['dash', 'CLARITY',     'GROW BIG, SMASH', 'BRICKS, SURVIVE A HIT'],
-      ['bolt', 'AUTOMATION',  'UPDATES THAT SEND', 'THEMSELVES'],
+      ['bolt', 'AUTOMATION',  'DOES THE WORK. PRESS', 'C TO STEP IN'],
     ] },
-    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'P .............. PAUSE', '', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
+    { lines: ['AUTOMATION SAVES TIME,', 'BUT EVERY RUN COSTS', 'AND UNCHECKED RUNS DRIFT.', '', 'SET A LIMIT, OR STEP IN', 'AND CHECK IT. NO HUMAN', 'IN THE LOOP? YOU OVERSPEND.'], art: 'bot' },
+    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'C ............ STEP IN', 'P .............. PAUSE', '', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
     { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
   ];
 
@@ -1127,6 +1293,8 @@
       drawScaled(CLOCK[step], 176, top + 34, 2);
     } else if (art === 'cast') {
       ROSTER.forEach((id, i) => ctx.drawImage(PLAYER[id].normal.stand.r, W / 2 - (ROSTER.length * 24) / 2 + i * 24 + 4, top + 10));
+    } else if (art === 'bot') {
+      drawScaled(Math.floor(tick / 40) % 3 === 2 ? BOT.error : BOT.ok, W / 2, top + 36, 3);
     } else if (art === 'dashboard') {
       drawScaled(DASHBOARD, W / 2, top + 36, 2);
     } else if (art === 'flag') {
@@ -1212,6 +1380,7 @@
     ArrowRight: 'right', KeyD: 'right',
     ArrowUp: 'jump', KeyW: 'jump', Space: 'jump', KeyZ: 'jump',
     KeyX: 'run', ShiftLeft: 'run', ShiftRight: 'run',
+    KeyC: 'check',
   };
 
   function pressStart() {
@@ -1257,6 +1426,7 @@
     }
     if (k) {
       if (state === 'paused') state = 'play'; // any game key resumes
+      if (!e.repeat && k in tapped) tapped[k] = true;
       keys[k] = true;
     }
   });
@@ -1344,6 +1514,7 @@
       titleIdle = 0;
       if (state === 'title' && (k === 'left' || k === 'right')) { cycleCharacter(k === 'left' ? -1 : 1); return; }
       if (state !== 'play') pressStart();
+      if (k in tapped) tapped[k] = true;
       keys[k] = true;
       btn.classList.add('is-down');
     };
