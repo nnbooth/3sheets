@@ -4,7 +4,7 @@
   A tiny single-level side-scroller drawn on a 256x240 canvas.
   No images or libraries: every sprite is a pixel map below.
 
-  Controls: ←/→ or A/D run · Z / Space / ↑ jump · X / Shift sprint
+  Controls: ←/→ or A/D move · Z / Space / ↑ jump · C automation on/off
             Enter or click to start / resume. Touch buttons on phones.
 
   Power-ups (from the site copy):
@@ -439,7 +439,7 @@
     map = Array.from({ length: ROWS }, () => Array(COLS).fill('.'));
     spawns = { enemies: [], coins: [] };
     const set = (x, y, c) => { map[y][x] = c; };
-    const gaps = [[39, 40], [57, 59]];
+    const gaps = [[39, 40], [57, 58]];
     for (let x = 0; x < COLS; x++) {
       if (gaps.some(([a, b]) => x >= a && x <= b)) continue;
       set(x, GROUND, 'H'); set(x, GROUND + 1, 'G');
@@ -485,7 +485,8 @@
 
   /* ================================================================ STATE */
 
-  const keys = { left: false, right: false, jump: false, run: false, check: false };
+  const WALK = 1.5;
+  const keys = { left: false, right: false, jump: false, check: false };
   let prevLeft = false, prevRight = false, prevCheck = false;
   // Taps remembered until the next frame, so a very quick tap is never missed
   const tapped = { jump: false, left: false, right: false, check: false };
@@ -506,7 +507,7 @@
     player = {
       x: 3 * T, y: (GROUND - 1) * T + 1, w: 10, h: 15,
       vx: 0, vy: 0, onGround: false, facing: 1,
-      powered: false, growT: 0, star: 0, hurt: 0, anim: 0,
+      powered: false, growT: 0, star: 0, hurt: 0, anim: 0, coyote: 0, jumpBuf: 0,
     };
     enemies = spawns.enemies.map(([type, col]) => ({
       type, x: col * T, y: (GROUND - 1) * T + 2, w: 14, h: 14,
@@ -544,7 +545,8 @@
   // boring work, not on empty stretches. NET shows the benefit live, and
   // the sign-off shows the month-end summary.
   const TOKEN_BUDGET = 150;   // tokens for the month
-  const TOKENS_PER_SEC = 4;   // while automation is ON
+  const TOKENS_PER_SEC = 3;   // while automation is ON and working
+  const IDLE_TOKENS_PER_SEC = 12; // while it's ON with nothing to do: paying for nothing
   const TOKENS_PER_JOB = 1;
   const TOKEN_VALUE = 5;      // $ per token
   const HOUR_VALUE = 50;      // $ per hour saved
@@ -640,9 +642,11 @@
     a.frames++;
     if (press.check) setAutomation(!a.on);
 
+    // Idle: on, but no jobs on screen and the bots are all home
+    a.idle = a.on && bots.every(b => b.state === 'home') && !findJobs().length;
     if (a.on) {
       a.onFrames++;
-      spendTokens(TOKENS_PER_SEC / 60);
+      spendTokens((a.idle ? IDLE_TOKENS_PER_SEC : TOKENS_PER_SEC) / 60);
     }
 
     // Bots: fly out to a job, do it, fly back, pick the next one
@@ -669,9 +673,9 @@
     }
     if (!a.on) bots = bots.filter(b => b.state !== 'home'); // finish the job in hand, then stand down
 
-    // Idle: on, but nothing to do on screen. Still costing tokens.
-    if (a.on && !findJobs().length && bots.every(b => b.state === 'home')) {
-      if (++a.idleT % 90 === 45) popup('IDLE', p.x - 12, p.y - 24);
+    // Idle warning: it's burning tokens 4x faster for nothing
+    if (a.on && a.idle) {
+      if (++a.idleT % 90 === 20) { popup('IDLE: BURNING TOKENS', p.x - 76, p.y - 26); sfx('overspend'); }
     } else a.idleT = 0;
 
     // The moment savings overtake the fee and the running cost
@@ -846,21 +850,31 @@
     // Growing/shrinking: the world pauses for a moment, like the original
     if (p.growT > 0) { p.growT--; return; }
 
-    const c = { left: keys.left, right: keys.right, run: keys.run, jump: keys.jump, jumpPressed };
+    const c = { left: keys.left, right: keys.right, jump: keys.jump, jumpPressed };
     ctl = c;
 
     // Direct control: move only while a direction is held, stop the
     // moment it's released (on the ground and in the air). Whole-pixel
     // speeds keep movement perfectly even on screen.
-    const speed = c.run ? 2 : 1;
+    // One walking speed (no sprint). 1.5px a step: quick enough to clear
+    // every gap without precise timing. The camera follows the player's
+    // whole-pixel position so the character itself never jitters.
+    const speed = WALK;
     if (c.left && !c.right) { p.vx = -speed; p.facing = -1; }
     else if (c.right && !c.left) { p.vx = speed; p.facing = 1; }
     else p.vx = 0;
 
-    if (c.jumpPressed && p.onGround) {
-      p.vy = c.run ? -6 : -5.6;
+    // Forgiving jumps: a press just before landing still counts (buffer),
+    // and you can still jump just after running off an edge (coyote time)
+    if (c.jumpPressed) p.jumpBuf = 8;
+    else if (p.jumpBuf > 0) p.jumpBuf--;
+    if (p.onGround) p.coyote = 7;
+    else if (p.coyote > 0) p.coyote--;
+    if (p.jumpBuf > 0 && (p.onGround || p.coyote > 0) && p.vy >= 0) {
+      p.vy = -6;
       sfx('jump');
       p.onGround = false;
+      p.coyote = 0; p.jumpBuf = 0;
     }
     p.vy += c.jump && p.vy < 0 ? 0.26 : 0.6;
     if (p.vy > 5) p.vy = 5;
@@ -875,7 +889,7 @@
     if (p.hurt > 0) p.hurt--;
 
     // Camera: forward only, like the original
-    camX = Math.max(camX, Math.min(p.x - 100, COLS * T - W));
+    camX = Math.max(camX, Math.min(Math.round(p.x) - 100, COLS * T - W));
 
     // Visibility gap
     if (p.y > H) { die('LOST IN A VISIBILITY GAP'); return; }
@@ -952,12 +966,15 @@
       if (e.y > H) { e.alive = false; continue; }
 
       if (overlap(p, e)) {
+        const solidHit = overlap({ x: p.x + 2, y: p.y + 2, w: p.w - 4, h: p.h - 3 }, { x: e.x + 3, y: e.y + 3, w: e.w - 6, h: e.h - 4 });
         if (p.star > 0) {
           killEnemy(e, true);
-        } else if (p.vy > 0 && (p.y + p.h) - e.y < 8) {
+        } else if (p.vy > 0 && (p.y + p.h) - e.y < 10) {
+          // Landing on top: a generous stomp window
           killEnemy(e, false);
           p.vy = ctl.jump ? -5.5 : -3.5;
-        } else {
+        } else if (solidHit) {
+          // Only a solid hit hurts, not a graze
           hurtPlayer(e.type === 'clock' ? 'OVERTIME GOT YOU' : 'ROGUE INVOICE!');
         }
       }
@@ -1205,8 +1222,8 @@
     if (auto && state === 'play') {
       const flash = Math.floor(tick / 15) % 2 === 0;
       ctx.drawImage(auto.on ? BOT.ok : BOT.error, 16, 31);
-      text(auto.on ? 'AUTO ON' : 'AUTO OFF', 30, 32, auto.on ? (flash ? C.greenLight : C.white) : C.grey);
-      text('+' + auto.hours + 'H', 100, 32, C.white);
+      text(!auto.on ? 'AUTO OFF' : auto.idle ? 'AUTO IDLE' : 'AUTO ON', 30, 32, !auto.on ? C.grey : auto.idle ? (flash ? C.red : C.gold) : (flash ? C.greenLight : C.white));
+      text('+' + auto.hours + 'H', 112, 32, C.white);
       const net = netBenefit(auto);
       text('NET ' + money(net), 240, 32, net >= 0 ? C.greenLight : C.red, 'right');
     }
@@ -1319,8 +1336,8 @@
       ['dash', 'CLARITY',     'GROW BIG, SMASH', 'BRICKS, SURVIVE A HIT'],
       ['bolt', 'AUTOMATION',  'BOTS DO THE BORING JOBS.', 'C SWITCHES IT ON/OFF'],
     ] },
-    { lines: ['AUTOMATION DOES THE', 'TEDIOUS WORK FOR YOU.', '', 'BUT TOKENS ARE FINITE.', 'SWITCH IT ON WHERE THE', 'WORK IS, AND THE HOURS', 'SAVED BEAT THE COST.'], art: 'bot' },
-    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'C ........... AUTOMATE', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
+    { lines: ['AUTOMATION DOES THE', 'TEDIOUS WORK FOR YOU.', '', 'BUT TOKENS ARE FINITE,', 'AND IDLING BURNS THEM.', 'SWITCH IT ON WHERE THE', 'WORK IS. OFF WHERE IT ISN\'T.'], art: 'bot' },
+    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'C ........... AUTOMATE', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
     { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
   ];
 
@@ -1449,7 +1466,8 @@
     drawHUD();
     if (auto && auto.on && state === 'play') {
       // Impossible to miss: a pulsing green frame around the screen
-      ctx.fillStyle = Math.floor(tick / 15) % 2 === 0 ? C.greenLight : C.green;
+      const on = Math.floor(tick / (auto.idle ? 8 : 15)) % 2 === 0;
+      ctx.fillStyle = auto.idle ? (on ? C.red : C.gold) : (on ? C.greenLight : C.green);
       ctx.fillRect(0, 0, W, 3); ctx.fillRect(0, H - 3, W, 3); ctx.fillRect(0, 0, 3, H); ctx.fillRect(W - 3, 0, 3, H);
     }
     drawOverlay();
@@ -1463,7 +1481,6 @@
     ArrowLeft: 'left', KeyA: 'left',
     ArrowRight: 'right', KeyD: 'right',
     ArrowUp: 'jump', KeyW: 'jump', Space: 'jump', KeyZ: 'jump',
-    KeyX: 'run', ShiftLeft: 'run', ShiftRight: 'run',
     KeyC: 'check',
   };
 
