@@ -21,6 +21,10 @@
   if (!canvas) return;
   const W = 256, H = 240, T = 16;
 
+  // Sound (game-audio.js). Safe no-ops if it didn't load.
+  const AUDIO = window.S3Audio || { sfx() {}, music() {}, unlock() {}, toggleMute() { return true; }, muted: true };
+  const sfx = name => AUDIO.sfx(name);
+
   // Everything is drawn at native NES resolution into this buffer, then
   // copied to the visible canvas at a whole-number scale (see fit()).
   const view = canvas.getContext('2d');
@@ -216,6 +220,7 @@
   try { const saved = localStorage.getItem('s3-character'); if (CHARACTERS[saved]) character = saved; } catch (e) { /* storage blocked */ }
 
   function cycleCharacter(dir) {
+    sfx('blip');
     const i = ROSTER.indexOf(character);
     setCharacter(ROSTER[(i + dir + ROSTER.length) % ROSTER.length]);
   }
@@ -515,6 +520,7 @@
   }
 
   function newGame() {
+    sfx('start');
     score = 0; coins = 0; lives = 3;
     resetLevel();
     state = 'play';
@@ -537,10 +543,12 @@
 
   function openSetup() {
     autoMenu = { type: 'setup', sel: RUN_CHOICES.length - 1, t: SETUP_WAIT, touched: false };
+    sfx('ready');
   }
 
   function openReview() {
     autoMenu = { type: 'review', sel: 0 };
+    sfx('pause');
   }
 
   function startAutomation(limit) {
@@ -559,12 +567,12 @@
   function updateAutoMenu(press) {
     const m = autoMenu;
     if (m.type === 'setup') {
-      if (press.left) { m.sel = (m.sel + RUN_CHOICES.length - 1) % RUN_CHOICES.length; m.touched = true; }
-      if (press.right) { m.sel = (m.sel + 1) % RUN_CHOICES.length; m.touched = true; }
+      if (press.left) { m.sel = (m.sel + RUN_CHOICES.length - 1) % RUN_CHOICES.length; m.touched = true; sfx('blip'); }
+      if (press.right) { m.sel = (m.sel + 1) % RUN_CHOICES.length; m.touched = true; sfx('blip'); }
       // Nobody decides? It starts anyway, with whatever is selected (NO LIMIT by default)
-      if (press.jump || press.check || --m.t <= 0) { autoMenu = null; startAutomation(RUN_CHOICES[m.sel]); }
+      if (press.jump || press.check || --m.t <= 0) { autoMenu = null; sfx('confirm'); startAutomation(RUN_CHOICES[m.sel]); }
     } else {
-      if (press.left || press.right) m.sel = 1 - m.sel;
+      if (press.left || press.right) { m.sel = 1 - m.sel; sfx('blip'); }
       if (press.jump || press.check) {
         autoMenu = null;
         if (m.sel === 0) {
@@ -572,7 +580,9 @@
           if (auto.eff < 100) score += 50;
           auto.eff = 100; auto.checkT = 30; auto.t = AUTO_EVERY;
           popup('CHECKED', player.x - 22, player.y - 18);
+          sfx('check');
         } else {
+          sfx('stop');
           endAutomation('STOPPED');
         }
       }
@@ -593,16 +603,19 @@
     else {
       auto.spent += AUTO_COST; score = Math.max(0, score - 250); time = Math.max(1, time - 5);
       popup('OVER BUDGET', p.x - 36, p.y - 30, 'auto');
+      sfx('overspend');
     }
 
     if (auto.eff > 0) {
       const gain = Math.max(1, Math.round(auto.eff / 25));
       coins += gain; auto.earned += gain; score += gain * 100;
       popup('+$' + gain, p.x - 4, p.y - 18, 'auto');
+      sfx('kaching');
     } else {
       auto.errors++; auto.flash = 24;
       score = Math.max(0, score - 200);
       popup('ERROR', p.x - 12, p.y - 18, 'auto');
+      sfx('error');
       if (auto.errors % 3 === 0) {
         // The automation produced a bad invoice
         enemies.push({ type: 'invoice', x: Math.min(camX + W - 20, p.x + 96), y: 3 * T, w: 14, h: 14, vx: -1, vy: 0,
@@ -670,22 +683,25 @@
       bumps.push({ col, row, t: 10 });
       if (t === '?') {
         coins++; score += 200;
+        sfx('coin');
         items.push({ type: 'popcoin', x: bx + 3, y: by - 12, w: 10, h: 11, vy: -4, t: 28 });
       } else {
         items.push({
-          type: t === 'D' ? 'dash' : 'bolt', x: bx, y: by, w: 16, h: t === 'D' ? 14 : 12,
+          type: (sfx('sprout'), t === 'D' ? 'dash' : 'bolt'), x: bx, y: by, w: 16, h: t === 'D' ? 14 : 12,
           vx: 0, vy: 0, emerge: 16, onGround: false,
         });
       }
     } else if (t === 'B') {
       if (player.powered) {
         map[row][col] = '.';
+        sfx('break');
         score += 50;
         for (let i = 0; i < 4; i++) {
           particles.push({ x: bx + (i % 2) * 8, y: by + (i < 2 ? 0 : 8), vx: (i % 2 ? 1.2 : -1.2), vy: i < 2 ? -5 : -3.5, t: 60 });
         }
       } else {
         bumps.push({ col, row, t: 10 });
+        sfx('bump');
       }
     }
     // Knock out enemies standing on a bumped block
@@ -695,6 +711,7 @@
   }
 
   function killEnemy(e, flip) {
+    sfx('stomp');
     e.alive = false;
     score += 100;
     popup('100', e.x, e.y - 8);
@@ -708,6 +725,7 @@
     p.y += big ? SMALL_H - BIG_H : BIG_H - SMALL_H;
     p.h = big ? BIG_H : SMALL_H;
     p.powered = big;
+    sfx(big ? 'grow' : 'shrink');
     p.growT = 36; // brief freeze while flicking between sizes
   }
 
@@ -723,6 +741,7 @@
   }
 
   function die(cause) {
+    sfx('die');
     state = 'dying';
     deathCause = cause;
     stateTimer = 150;
@@ -751,6 +770,9 @@
     else if (state === 'dying') updateDying();
     else if (state === 'win') updateWin();
 
+    // Soundtrack plays on the title, in attract mode and while playing
+    AUDIO.music(!AUDIO.muted && !document.hidden && (state === 'title' || state === 'attract' || state === 'play'));
+
     // Always-running bits
     for (const b of bumps) b.t--;
     bumps = bumps.filter(b => b.t > 0);
@@ -778,6 +800,7 @@
 
     if (jumpPressed && p.onGround) {
       p.vy = keys.run ? -6 : -5.6;
+      sfx('jump');
       p.onGround = false;
     }
     p.vy += keys.jump && p.vy < 0 ? 0.26 : 0.6;
@@ -814,6 +837,7 @@
       winPhase = 0;
       stateTimer = 50;
       score += 1000;
+      sfx('approved');
       popup('APPROVED!', FLAG_COL * T - 28, 4 * T - 14);
       p.x = FLAG_COL * T + 2;
       p.vx = 0; p.vy = 0;
@@ -842,7 +866,7 @@
       }
       if (overlap(p, it)) {
         it.dead = true;
-        if (it.type === 'coin') { coins++; score += 200; }
+        if (it.type === 'coin') { coins++; score += 200; sfx('coin'); }
         else if (it.type === 'dash') { setBig(p, true); score += 1000; popup('CLARITY!', it.x - 12, it.y - 8); }
         else if (it.type === 'bolt') { score += 500; openSetup(); }
       }
@@ -887,7 +911,7 @@
     if (--stateTimer <= 0) {
       lives--;
       if (lives > 0) { resetLevel(); state = 'play'; }
-      else { state = 'gameover'; }
+      else { state = 'gameover'; sfx('gameover'); }
     }
   }
 
@@ -906,7 +930,7 @@
       if (p.x >= HQ_COL * T + 24) { winPhase = 2; stateTimer = 0; }
     } else if (winPhase === 2) {
       // Tally remaining time
-      if (time > 0 && tick % 2 === 0) { time = Math.max(0, time - 2); score += 100; bonusShown += 100; }
+      if (time > 0 && tick % 2 === 0) { time = Math.max(0, time - 2); score += 100; bonusShown += 100; if (tick % 6 === 0) sfx('tick'); }
       if (time === 0) { winPhase = 3; }
     }
   }
@@ -1241,7 +1265,7 @@
       ['bolt', 'AUTOMATION',  'DOES THE WORK. PRESS', 'C TO STEP IN'],
     ] },
     { lines: ['AUTOMATION SAVES TIME,', 'BUT EVERY RUN COSTS', 'AND UNCHECKED RUNS DRIFT.', '', 'SET A LIMIT, OR STEP IN', 'AND CHECK IT. NO HUMAN', 'IN THE LOOP? YOU OVERSPEND.'], art: 'bot' },
-    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'C ............ STEP IN', 'P .............. PAUSE', '', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
+    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'HOLD X ......... SPRINT', 'C ............ STEP IN', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
     { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
   ];
 
@@ -1413,6 +1437,8 @@
 
   window.addEventListener('keydown', e => {
     if (!ownsKeys()) return;
+    AUDIO.unlock();
+    if (e.code === 'KeyM') { e.preventDefault(); AUDIO.toggleMute(); return; }
     if (state === 'attract') { e.preventDefault(); exitAttract(); return; }
     if (state === 'title') titleIdle = 0;
     const k = KEYMAP[e.code];
@@ -1421,7 +1447,7 @@
     if (state === 'title' && (k === 'left' || k === 'right')) { if (!e.repeat) cycleCharacter(k === 'left' ? -1 : 1); return; }
     if (e.code === 'Enter' || (e.code === 'Space' && state !== 'play' && state !== 'paused')) { pressStart(); return; }
     if (e.code === 'KeyP' || e.code === 'Escape') {
-      if (state === 'play') { releaseKeys(); state = 'paused'; } else if (state === 'paused') state = 'play';
+      if (state === 'play') { releaseKeys(); state = 'paused'; sfx('pause'); } else if (state === 'paused') { state = 'play'; sfx('pause'); }
       return;
     }
     if (k) {
@@ -1438,6 +1464,7 @@
 
   canvas.addEventListener('pointerdown', e => {
     canvas.focus({ preventScroll: true });
+    AUDIO.unlock();
     if (state === 'attract') { exitAttract(); return; }
     titleIdle = 0;
     if (state === 'title') {
@@ -1510,6 +1537,7 @@
     const k = btn.dataset.key;
     const on = e => {
       e.preventDefault();
+      AUDIO.unlock();
       if (state === 'attract') { exitAttract(); return; }
       titleIdle = 0;
       if (state === 'title' && (k === 'left' || k === 'right')) { cycleCharacter(k === 'left' ? -1 : 1); return; }
