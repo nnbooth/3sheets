@@ -114,6 +114,8 @@
     confirm: t => { tone(sfxBus, t, { note: 76, type: 'p25', dur: 0.06, vol: 0.18 }); tone(sfxBus, t + 0.06, { note: 84, type: 'p25', dur: 0.12, vol: 0.18 }); },
     start:   t => seq(t, [72, 76, 79, 84], 0.06, { type: 'p25', vol: 0.18 }),
     pause:   t => { tone(sfxBus, t, { note: 88, type: 'p50', dur: 0.06, vol: 0.15 }); tone(sfxBus, t + 0.09, { note: 88, type: 'p50', dur: 0.06, vol: 0.15 }); },
+    lead:    t => seq(t, [76, 79, 84, 88], 0.05, { type: 'p25', vol: 0.18, release: 0.1 }),
+    leadlost:t => { tone(sfxBus, t, { note: 67, type: 'p25', dur: 0.1, vol: 0.14 }); tone(sfxBus, t + 0.11, { note: 62, type: 'p25', dur: 0.2, vol: 0.14, release: 0.1 }); },
     // automation
     ready:   t => seq(t, [64, 69, 73, 76], 0.07, { type: 'p12', vol: 0.2 }),
     kaching: t => { tone(sfxBus, t, { note: 79, type: 'p12', dur: 0.04, vol: 0.14 }); tone(sfxBus, t + 0.04, { note: 84, type: 'p12', dur: 0.12, vol: 0.14, release: 0.08 }); noise(sfxBus, t + 0.04, { dur: 0.05, vol: 0.05, freq: 8000 }); },
