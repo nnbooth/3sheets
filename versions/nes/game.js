@@ -339,6 +339,26 @@
     error: sprite(BOT_ROWS, { k: C.black, g: '#fc7460', a: '#d82800' }),
   };
 
+  // A lead: a prospect in a grey suit with a green briefcase
+  const LEAD_TOP = [
+    '...kkkkk....',
+    '..kHHHHHk...',
+    '..kHssssk...',
+    '..ksskskk...',
+    '..kssssk....',
+    '...kssk.....',
+    '..kgggggk...',
+    '.kgggwgggk..',
+    '.kgggwgggk..',
+    '.ksgggggsk..',
+    '..kgggggk...',
+  ];
+  const LEAD_MAP = { k: C.black, H: '#5c3c1c', s: '#e8a47c', g: '#7c7c7c', w: C.white, b: C.green, B: C.greenDark };
+  const LEAD = [
+    sprite([...LEAD_TOP, '..kgk.kgkbbb', '..kk..kkkbBb', '.......kkkkk'], LEAD_MAP),
+    sprite([...LEAD_TOP, '...kgkgk.bbb', '...kk.kk.bBb', '.........kkk'], LEAD_MAP),
+  ];
+
   /* ================================================================ TILES */
 
   function tile(draw) {
@@ -500,6 +520,8 @@
   let player, enemies, items, particles, popups, bumps;
   let stomps = 0;
   let auto = null;       // automation for this month: installed, on/off, the ledger, the bots
+  let leads = [];        // prospects walking through the level
+  let crm = null;        // this month's lead ledger
   let deathCause = '', stateTimer = 0, winPhase = 0, bonusShown = 0;
 
   function resetLevel() {
@@ -518,6 +540,7 @@
     particles = []; popups = []; bumps = [];
     if (auto) auto.on = false; // automation (and its ledger) survives a lost life; bots stand down
     bots = [];
+    leads = []; leadTimer = 120;
     camX = 0; time = 200; timeTick = 0;
     winPhase = 0; bonusShown = 0;
   }
@@ -525,6 +548,7 @@
   function newGame() {
     sfx('start');
     auto = null; tokens = TOKEN_BUDGET;
+    crm = { arrived: 0, won: 0, byBot: 0, lost: 0 };
     score = 0; coins = 0; lives = 3;
     resetLevel();
     state = 'play';
@@ -552,7 +576,7 @@
   const HOUR_VALUE = 50;      // $ per hour saved
   const SETUP_FEE = 200;      // one-off setup, counted in with running costs
   const BOT_SPEED = 4;
-  const JOB_HOURS = { coin: 1, block: 1, box: 1, enemy: 2 };
+  const JOB_HOURS = { coin: 1, block: 1, box: 1, enemy: 2, lead: 1 };
 
   let tokens = TOKEN_BUDGET;
   let bots = [];
@@ -591,6 +615,9 @@
     for (const e of enemies) {
       if (e.alive && e.active && e.x > x0 && e.x < x1) jobs.push({ kind: 'enemy', key: e, ref: e });
     }
+    for (const l of leads) {
+      if (!l.done && l.x > x0 - 8 && l.x < x1) jobs.push({ kind: 'lead', key: l, ref: l });
+    }
     const c0 = Math.floor(x0 / T), c1 = Math.min(COLS - 1, Math.floor(x1 / T));
     for (let r = 0; r < ROWS; r++) for (let c = c0; c <= c1; c++) {
       const t = map[r][c];
@@ -602,6 +629,7 @@
   function jobPoint(j) {
     if (j.kind === 'coin') return [j.ref.x + 5, j.ref.y + 5];
     if (j.kind === 'enemy') return [j.ref.x + 7, j.ref.y + 7];
+    if (j.kind === 'lead') return [j.ref.x + 6, j.ref.y + 6];
     return [j.col * T + 8, j.row * T + 8];
   }
 
@@ -609,6 +637,7 @@
     const a = auto;
     if (j.kind === 'coin') { if (j.ref.dead) return; j.ref.dead = true; coins++; score += 200; sfx('kaching'); }
     else if (j.kind === 'enemy') { if (!j.ref.alive) return; killEnemy(j.ref, true); }
+    else if (j.kind === 'lead') { if (j.ref.done) return; winLead(j.ref, true); }
     else {
       const t = map[j.row][j.col];
       if (j.kind === 'block' && t === '?') bumpTile(j.col, j.row);
@@ -656,8 +685,9 @@
       if (b.state === 'home' && a.on) {
         const jobs = findJobs();
         if (jobs.length) {
-          // nearest job to this bot
-          jobs.sort((m, n) => Math.hypot(...jobPoint(m).map((v, k) => v - [b.x, b.y][k])) - Math.hypot(...jobPoint(n).map((v, k) => v - [b.x, b.y][k])));
+          // Leads first (they walk away), then the nearest job to this bot
+          const dist = j => Math.hypot(...jobPoint(j).map((v, k) => v - [b.x, b.y][k])) - (j.kind === 'lead' ? 1000 : 0);
+          jobs.sort((m, n) => dist(m) - dist(n));
           b.target = jobs[0]; b.state = 'go';
         }
       }
@@ -684,6 +714,60 @@
       popup('BREAK-EVEN!', p.x - 40, p.y - 34);
       sfx('check');
     }
+  }
+
+  /* ================================================================ LEADS (CRM) */
+
+  // Leads walk in from the right. Each one cost marketing spend to bring
+  // in, won or not. Touch one to win it; let it walk off screen (or fall
+  // through a gap: "through the cracks") and it's lost. Automation's bots
+  // follow up on leads too, which is the point: a system loses fewer.
+  const LEAD_COST = 25;       // $ marketing spend per lead that arrives
+  const LEAD_VALUE = 150;     // $ pipeline value per lead won
+  const LEAD_EVERY = 120;     // frames between arrivals
+  const MAX_LEADS = 2;
+  let leadTimer = 120;
+
+  const crmNet = () => crm ? crm.won * LEAD_VALUE - crm.arrived * LEAD_COST : 0;
+  const businessNet = () => (auto ? netBenefit(auto) : 0) + crmNet();
+
+  function winLead(l, byBot) {
+    l.done = true;
+    crm.won++; if (byBot) crm.byBot++;
+    score += 300;
+    popup('+LEAD', l.x - 6, l.y - 22);
+    sfx('lead');
+  }
+
+  function loseLead(l, cracks) {
+    l.done = true;
+    crm.lost++;
+    popup(cracks ? 'THROUGH THE CRACKS' : 'LEAD LOST', Math.max(camX + 4, l.x - (cracks ? 68 : 36)), Math.min(H - 40, l.y - 22));
+    sfx('leadlost');
+  }
+
+  function updateLeads() {
+    const p = player;
+    // Arrivals from the right edge, standing on whatever is below
+    if (--leadTimer <= 0 && leads.filter(l => !l.done).length < MAX_LEADS && camX < (FLAG_COL - 14) * T) {
+      const x = camX + W + 4, col = Math.floor((x + 6) / T);
+      if (solidAt(col, GROUND)) {
+        leads.push({ x, y: (GROUND - 1) * T + 1, w: 12, h: 14, vx: -0.5, vy: 0, anim: 0, done: false });
+        crm.arrived++;
+        leadTimer = LEAD_EVERY;
+      }
+    }
+    for (const l of leads) {
+      if (l.done) continue;
+      l.vy += 0.4; if (l.vy > 5) l.vy = 5;
+      if (moveX(l)) l.vx *= -1;
+      moveY(l);
+      l.anim += 0.06;
+      if (overlap(p, l)) { winLead(l, false); continue; }
+      if (l.y > H) { loseLead(l, true); continue; }
+      if (l.x + l.w < camX - 4) loseLead(l, false);
+    }
+    leads = leads.filter(l => !l.done);
   }
 
   /* ================================================================ PHYSICS */
@@ -902,6 +986,7 @@
 
     updateItems();
     updateEnemies();
+    updateLeads();
     updateAutomation(press);
 
     // Sign-off board: touching its post or plinth gets the report approved
@@ -1155,6 +1240,18 @@
     }
   }
 
+  function drawLeads() {
+    for (const l of leads) {
+      const x = ix(l) - 0, y = iy(l) - 2;
+      ctx.drawImage(LEAD[Math.floor(l.anim) % 2], x, y);
+      // "?" bubble: an open enquiry
+      ctx.fillStyle = C.black; ctx.fillRect(x + 7, y - 13, 11, 11);
+      ctx.fillStyle = C.white; ctx.fillRect(x + 8, y - 12, 9, 9);
+      ctx.fillStyle = C.black;
+      [[1, 0], [2, 0], [3, 0], [0, 1], [4, 1], [3, 2], [2, 3], [2, 5]].forEach(([dx, dy]) => ctx.fillRect(x + 10 + dx, y - 11 + dy, 1, 1));
+    }
+  }
+
   function drawEnemies() {
     for (const e of enemies) {
       if (!e.active) continue;
@@ -1224,7 +1321,7 @@
       ctx.drawImage(auto.on ? BOT.ok : BOT.error, 16, 31);
       text(!auto.on ? 'AUTO OFF' : auto.idle ? 'AUTO IDLE' : 'AUTO ON', 30, 32, !auto.on ? C.grey : auto.idle ? (flash ? C.red : C.gold) : (flash ? C.greenLight : C.white));
       text('+' + auto.hours + 'H', 112, 32, C.white);
-      const net = netBenefit(auto);
+      const net = businessNet();
       text('NET ' + money(net), 240, 32, net >= 0 ? C.greenLight : C.red, 'right');
     }
   }
@@ -1285,30 +1382,35 @@
       text('NOT BALANCE', W / 2, 120, C.white, 'center');
       if (Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 136, C.gold, 'center');
     } else if (state === 'win' && winPhase >= 2) {
-      panel(24, 196);
-      text('REPORT PUBLISHED!', W / 2, 34, C.gold, 'center');
-      text('MONTH-END SUMMARY  ' + PERIOD, W / 2, 48, C.white, 'center');
+      panel(8, 224);
+      text('REPORT PUBLISHED!', W / 2, 16, C.gold, 'center');
+      text('MONTH-END SUMMARY  ' + PERIOD, W / 2, 28, C.white, 'center');
       const row = (label, value, y, col = C.white) => { text(label, 30, y, C.grey); text(value, 226, y, col, 'right'); };
+      const head = (label, y) => { text(label, 30, y, C.gold); };
+      // Automation
+      head('AUTOMATION', 44);
       if (auto && auto.jobs > 0) {
-        const a = auto, value = a.hours * HOUR_VALUE, running = Math.round(a.tokensUsed * TOKEN_VALUE), net = netBenefit(a);
-        row('JOBS AUTOMATED', String(a.jobs), 66);
-        row('HOURS SAVED', a.hours + 'H', 78);
-        row('VALUE @ $' + HOUR_VALUE + '/H', '+$' + value, 90, C.greenLight);
-        row('TOKENS USED', Math.round(a.tokensUsed) + '/' + TOKEN_BUDGET, 102);
-        row('SETUP & TOKENS', '-$' + (SETUP_FEE + running), 114, C.red);
-        ctx.fillStyle = C.grey; ctx.fillRect(30, 125, 196, 1);
-        row('NET BENEFIT', money(net), 130, net >= 0 ? C.greenLight : C.red);
-        const roi = (value / (SETUP_FEE + running)).toFixed(1);
-        row('RETURN', roi + 'X', 142, net >= 0 ? C.greenLight : C.red);
-        if (a.brokeEvenAt) row('PAID BACK AFTER', a.brokeEvenAt + 'H SAVED', 154);
-        else row('PAID BACK', 'NOT YET', 154, C.gold);
+        const a = auto, value = a.hours * HOUR_VALUE, running = Math.round(a.tokensUsed * TOKEN_VALUE);
+        row('HOURS SAVED', a.hours + 'H  +$' + value, 55, C.greenLight);
+        row('TOKENS USED', Math.round(a.tokensUsed) + '/' + TOKEN_BUDGET, 66);
+        row('SETUP & TOKENS', '-$' + (SETUP_FEE + running), 77, C.red);
+        row('PAID BACK', a.brokeEvenAt ? 'AFTER ' + a.brokeEvenAt + 'H' : 'NOT YET', 88, a.brokeEvenAt ? C.white : C.gold);
       } else {
-        text('NO AUTOMATION THIS MONTH', W / 2, 84, C.gold, 'center');
-        text('0 HOURS SAVED.', W / 2, 100, C.white, 'center');
-        text('YOU DID IT ALL BY HAND.', W / 2, 112, C.white, 'center');
+        row('HOURS SAVED', '0H', 55);
+        text('YOU DID IT ALL BY HAND.', 30, 66, C.white);
       }
-      text('BONUS ' + bonusShown + '  SCORE ' + String(score).padStart(6, '0'), W / 2, 172, C.white, 'center');
-      if (winPhase === 3 && Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 198, C.greenLight, 'center');
+      // CRM
+      head('LEADS', 104);
+      row('WON', crm.won + (crm.byBot ? ' (' + crm.byBot + ' AUTOMATED)' : ''), 115, C.greenLight);
+      row('LOST', String(crm.lost), 126, crm.lost ? C.red : C.white);
+      row('MARKETING SPEND', '-$' + crm.arrived * LEAD_COST, 137, C.red);
+      row('PIPELINE VALUE', '+$' + crm.won * LEAD_VALUE, 148, C.greenLight);
+      // Bottom line for the business
+      ctx.fillStyle = C.grey; ctx.fillRect(30, 159, 196, 1);
+      const net = businessNet();
+      row('NET BENEFIT', money(net), 164, net >= 0 ? C.greenLight : C.red);
+      text('BONUS ' + bonusShown + '  SCORE ' + String(score).padStart(6, '0'), W / 2, 184, C.white, 'center');
+      if (winPhase === 3 && Math.floor(tick / 30) % 2 === 0) text('PRESS START', W / 2, 208, C.greenLight, 'center');
     }
   }
 
@@ -1337,7 +1439,8 @@
       ['bolt', 'AUTOMATION',  'BOTS DO THE BORING JOBS.', 'C SWITCHES IT ON/OFF'],
     ] },
     { lines: ['AUTOMATION DOES THE', 'TEDIOUS WORK FOR YOU.', '', 'BUT TOKENS ARE FINITE,', 'AND IDLING BURNS THEM.', 'SWITCH IT ON WHERE THE', 'WORK IS. OFF WHERE IT ISN\'T.'], art: 'bot' },
-    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT ... RUN', 'Z OR SPACE .... JUMP', 'C ........... AUTOMATE', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
+    { lines: ['EVERY LEAD COSTS MONEY', 'TO WIN. CATCH THEM BEFORE', 'THEY WALK, OR THEY FALL', 'THROUGH THE CRACKS.', '', 'A SYSTEM FOLLOWS UP FOR', 'YOU. YOU LOSE FEWER.'], art: 'lead' },
+    { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT .... MOVE', 'Z OR SPACE .... JUMP', 'C ........... AUTOMATE', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
     { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
   ];
 
@@ -1391,6 +1494,8 @@
       ROSTER.forEach((id, i) => ctx.drawImage(PLAYER[id].normal.stand.r, W / 2 - (ROSTER.length * 24) / 2 + i * 24 + 4, top + 10));
     } else if (art === 'bot') {
       drawScaled(Math.floor(tick / 40) % 3 === 2 ? BOT.error : BOT.ok, W / 2, top + 36, 3);
+    } else if (art === 'lead') {
+      drawScaled(LEAD[Math.floor(tick / 20) % 2], W / 2, top + 40, 3);
     } else if (art === 'dashboard') {
       drawScaled(DASHBOARD, W / 2, top + 36, 2);
     } else if (art === 'flag') {
@@ -1461,6 +1566,7 @@
     drawTiles();
     drawItems(false);
     drawEnemies();
+    drawLeads();
     if (state !== 'title') drawPlayer();
     drawParticles();
     drawHUD();
