@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Month-End Run | 3Sheets Consulting</title>
+  <meta name="description" content="The Month-End Run: a 30-second game about month-end done by hand, then done by reporting that runs itself. From 3Sheets Consulting." />
+  <link rel="icon" href="../Assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../Assets/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" />
+  <!--
+    The Month-End Run — game page.
+    Opened directly (…/game/) it fills the window. The website loads it in an
+    iframe with ?embed=1 once a visitor presses Play.
+    Game code and all the numbers it shows: game.js (CONFIG at the top).
+  -->
+  <style>
+    /* Colours match the website (styles.css :root) */
+    :root {
+      --bg: #f4f7f2; --surface: #fbfdf9; --border: #dce8dc; --text: #25342a;
+      --muted: #5f6f63; --accent: #2f7a5d; --accent-soft: #eaf6ee;
+      --font: 'Press Start 2P', 'Courier New', monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+    }
+    /* In the website's iframe: no page padding, no full-height centring */
+    .embedded body { min-height: 0; padding: 0; display: block; background: transparent; }
+
+    .game-wrap { width: 100%; max-width: 1600px; }
+
+    /* The canvas plus the clickable end-card buttons laid over it */
+    .stage { position: relative; width: fit-content; margin: 0 auto; }
+    #game-canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background: var(--bg);
+      border: 2px solid var(--text);
+      touch-action: manipulation;
+    }
+    #game-canvas:focus { outline: none; }
+    #game-canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+    /* Invisible real link/button over the drawn end-card buttons (so the
+       call to action is a proper, clickable, keyboard-reachable link). */
+    .overlay-btn {
+      position: absolute;
+      margin: 2px; /* the canvas border */
+      background: transparent;
+      border: 0;
+      color: transparent;
+      font-size: 1px;
+      cursor: pointer;
+    }
+    .overlay-btn[hidden] { display: none; }
+    .overlay-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    .game-below { max-width: 640px; margin: 12px auto 0; }
+    .game-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+    .game-bar button {
+      min-height: 40px;
+      padding: 8px 12px;
+      font-family: var(--font);
+      font-size: 10px;
+      color: var(--text);
+      background: var(--surface);
+      border: 2px solid var(--text);
+      cursor: pointer;
+    }
+    .game-bar button:disabled { opacity: 0.45; cursor: default; }
+    .game-bar button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    #sound-btn[aria-pressed="true"] { background: var(--accent-soft); }
+
+    /* Touch controls: only on touch screens */
+    .game-touch { display: none; }
+    @media (pointer: coarse) {
+      .game-touch {
+        display: grid;
+        grid-template-columns: 72px 72px 1fr 96px;
+        grid-template-areas: "left right . jump";
+        gap: 10px;
+        margin-top: 12px;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .game-touch button {
+        height: 64px;
+        font-family: var(--font);
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface);
+        border: 2px solid var(--text);
+        touch-action: none;
+      }
+      .game-touch [data-key="left"] { grid-area: left; }
+      .game-touch [data-key="right"] { grid-area: right; }
+      .game-touch [data-key="jump"] { grid-area: jump; background: var(--accent); color: #fff; font-size: 11px; }
+      .game-touch .is-down { transform: translateY(2px); filter: brightness(0.9); }
+      .game-help { display: none; }
+    }
+
+    .game-help { margin: 12px 0 0; font-size: 8px; line-height: 2; text-align: center; color: var(--muted); }
+    .game-help a { color: var(--accent); }
+    .embedded .game-help .back { display: none; }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  </style>
+  <script>
+    // Mark the page as embedded before it draws, so the layout doesn't jump
+    if (window.self !== window.top || /[?&]embed/.test(location.search)) document.documentElement.classList.add('embedded');
+  </script>
+</head>
+<body>
+  <main class="game-wrap">
+    <div class="stage">
+      <canvas id="game-canvas" width="256" height="144" tabindex="0"
+        aria-label="The Month-End Run: a short game. Month-end done by hand, then done by reporting that runs itself. Press Enter to start."></canvas>
+      <!-- End-card buttons (positioned by game.js over the drawn ones) -->
+      <a class="overlay-btn" id="cta-book" hidden>Book a free 20-min data check</a>
+      <button class="overlay-btn" id="cta-again" type="button" hidden>Play again</button>
+    </div>
+
+    <div class="game-below">
+      <div class="game-bar">
+        <button type="button" id="skip-btn">Skip to results</button>
+        <button type="button" id="sound-btn" aria-pressed="false">Sound: off</button>
+      </div>
+      <div class="game-touch" aria-hidden="true">
+        <button type="button" tabindex="-1" data-key="left">&#9664;</button>
+        <button type="button" tabindex="-1" data-key="right">&#9654;</button>
+        <button type="button" tabindex="-1" data-key="jump">JUMP</button>
+      </div>
+      <p class="game-help">
+        Arrows move &middot; Space jumps &middot; P pauses &middot; M sound
+        <span class="back">&middot; <a href="../">Back to the site</a></span>
+      </p>
+    </div>
+
+    <!-- Screen readers: the results are read out here -->
+    <p class="sr-only" id="game-status" aria-live="polite"></p>
+  </main>
+
+  <script src="game-audio.js"></script>
+  <script src="game.js"></script>
+  <script>
+    // Standalone page: focus the game straight away so the keys work
+    if (!document.documentElement.classList.contains('embedded')) {
+      document.getElementById('game-canvas').focus({ preventScroll: true });
+    }
+  </script>
+</body>
+</html>
