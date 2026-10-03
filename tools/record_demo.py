@@ -60,7 +60,7 @@ GIF_LIMIT_MB = 5.0
 CUT_15S = [
     ("open",    0.0, 1.5),   # the opening line, short
     ("before2", 0.0, 2.5),   # one "by hand" beat: Payroll & overtime, clocks multiplying
-    ("switch",  0.0, 2.6),   # "Built by a CPA. Runs itself." and the sheet tidying
+    ("switch",  0.0, 2.6),   # "Built by a CPA. No re-keying." and the sheet tidying
     ("summary", 0.0, 4.5),   # the month-end report card
     ("end",     0.0, 3.5),   # the call to action (stays for the last 3.5 s)
 ]
