@@ -12,6 +12,7 @@
   - Placeholder "TBC" chip ................... .tbc
   - Report cards / mock dashboard ............ search "REPORT CARDS" / "REPORT MOCK"
   - Embed loading spinner .................... search "EMBED LOADING STATE"
+  - Focus outlines / skip link .............. search "ACCESSIBILITY"
   - Mobile breakpoints ....................... @media (max-width: 900px) and (max-width: 720px)
 */
 
@@ -44,6 +45,34 @@ img { max-width: 100%; }
 .nav-links a { color: var(--muted); text-decoration: none; transition: color 180ms ease; font-size: 0.95rem; }
 .nav-links a:hover { color: var(--text); }
 .nav-toggle { display: none; background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0.45rem 0.7rem; border-radius: 0.5rem; }
+/* ACCESSIBILITY — visible keyboard focus everywhere, and a "Skip to content"
+   link that only appears when tabbed to. */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 0.3rem;
+}
+.button:focus-visible { border-radius: 999px; }
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 50;
+  padding: 0.6rem 1rem;
+  background: var(--accent);
+  color: #f8f7f2;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+.skip-link:focus { top: 0.75rem; }
+/* Stop the sticky header covering a section's heading after a nav click. */
+section[id], main[id] { scroll-margin-top: 4.5rem; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .spinner { animation-duration: 3s; }
+}
+.button:hover { filter: brightness(0.95); }
 /* HERO SPACING — top/bottom padding on the hero banner */
 .hero { padding: 3.5rem 0 2.25rem; }
 .hero-grid { display: grid; gap: 2rem; grid-template-columns: 1.4fr 0.9fr; align-items: center; }
@@ -56,7 +85,7 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 .hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
 .button { display: inline-block; padding: 0.8rem 1.1rem; border-radius: 999px; text-decoration: none; font-weight: 600; }
 .button.primary { background: var(--accent); color: #f8f7f2; }
-.button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.button.secondary { background: transparent; color: var(--text); border: 1px solid #9db8a6; }
 .hero-card, .info-card, .dashboard-card, .step-card, .contact-box { background: var(--surface); border: 1px solid var(--border); border-radius: 0.9rem; }
 .hero-card { padding: 1.3rem; }
 .mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
