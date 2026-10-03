@@ -96,7 +96,10 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 }
 .decision-item p { margin: 0; color: var(--text); font-size: 0.95rem; }
 .contact-box { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.7rem; }
+/* LIVE SHEET PANEL — the published Google Sheet. Height/width variables are
+   set by script.js from the sheet's row/column count; these are defaults. */
 .embed-panel {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.9rem;
@@ -107,50 +110,142 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 }
 
 .sheet-embed {
-  width: 100%;
+  display: block;
+  width: min(100%, var(--sheet-width-desktop));
   height: var(--sheet-height-desktop);
   min-height: 220px;
   max-height: 520px;
+  margin: 0 auto;
   border: none;
   background: transparent;
-  display: block;
 }
 
-.desktop-sheet {
-  width: min(100%, var(--sheet-width-desktop));
-  margin: 0 auto;
-}
-
-.mobile-sheet {
+/* EMBED LOADING STATE — spinner/message laid over an iframe until it loads.
+   script.js (watchEmbedLoad) adds .is-loading / .is-slow / .is-loaded to the
+   container. Without JavaScript the overlay never shows. */
+.embed-status {
   display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+  background: var(--surface);
+  border-radius: inherit;
 }
+.is-loading > .embed-status { display: flex; }
+.is-slow > .embed-status { flex-direction: column; }
+.is-slow .spinner { display: none; }
+.spinner {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: none;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* REPORT CARDS — built by script.js from the REPORTS list. */
+.report-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 1.4rem;
+}
+/* A report with a real embed spans the full row so it's readable. */
+.report-card--live { grid-column: 1 / -1; }
+.report-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; }
+.report-card-header h3 { margin: 0; }
+.report-question { color: var(--muted); margin: 0.5rem 0 1rem; }
+.status-chip {
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  white-space: nowrap;
+}
+.report-frame {
+  position: relative;
+  margin-top: auto;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  overflow: hidden;
+}
+.report-card--live .report-frame { aspect-ratio: 16 / 9.5; }
+.report-frame iframe { display: block; width: 100%; height: 100%; border: none; }
+.report-pending-msg {
+  position: absolute;
+  left: 50%;
+  bottom: 0.75rem;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(251, 253, 249, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* REPORT MOCK — the grey outline of a dashboard shown while a report is
+   "In build". Purely decorative (hidden from screen readers). */
+.report-mock {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.6rem;
+  padding: 0.8rem 0.8rem 3rem;
+}
+.mock-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.mock-kpi { height: 1.6rem; border-radius: 0.4rem; background: var(--accent-soft); border: 1px solid var(--border); }
+.mock-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6%;
+  padding: 0 0.3rem;
+  border-bottom: 1px solid var(--border);
+  min-height: 2.5rem;
+}
+.mock-bar { flex: 1; border-radius: 0.25rem 0.25rem 0 0; background: #cfe3d5; }
+.mock-rows { display: grid; gap: 0.35rem; }
+.mock-row { height: 0.45rem; border-radius: 999px; background: var(--border); }
+.mock-row:nth-child(2) { width: 85%; }
+.mock-row:nth-child(3) { width: 65%; }
+
+.noscript-note { color: var(--muted); }
 
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .card-grid, .dashboard-grid, .steps-grid, .hero-grid { grid-template-columns: 1fr; }
+  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }
   .section-heading { margin-bottom: 1.1rem; }
 }
 @media (max-width: 720px) {
-  .desktop-sheet {
-    display: none;
-  }
-
-  .embed-panel {
-    padding: 0.7rem;
-  }
-
-  .mobile-sheet {
-    display: block;
-    width: 100%;
-    height: var(--sheet-height-mobile);
-    min-height: 220px;
-    max-height: 420px;
-    border: none;
-  }
+  .embed-panel { padding: 0.7rem; }
+  .sheet-embed { width: 100%; height: var(--sheet-height-mobile); max-height: 420px; }
 
   .nav-toggle { display: inline-block; }
   .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; padding: 1rem; background: rgba(252, 251, 247, 0.98); border-bottom: 1px solid var(--border); }

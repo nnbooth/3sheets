@@ -2,9 +2,205 @@
   script.js — 3Sheets Consulting
 
   KEY LOCATIONS:
-  - Google Sheet iframe auto-height .......... applyDynamicSheetHeight()
+  - Report cards (edit this to add reports) .. REPORTS list, just below
+  - Report card builder ...................... renderReports() / buildReportCard()
+  - Loading message + 8-second fallback ...... watchEmbedLoad()
+  - Google Sheet auto-height ................. applyDynamicSheetHeight()
+  - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
+
+  No frameworks or build step: this file is loaded as-is by index.html.
 */
 
+/* ---------------------------------------------------------------------------
+   REPORTS — one entry per report card in the "Reports" section.
+
+   To add a report, copy one { ... } block and change the values:
+     title     Card heading, e.g. 'Sales'.
+     question  The one-line question the report answers.
+     embedUrl  Power BI "Publish to web" link (starts with
+               https://app.powerbi.com/view?r=...). Leave as '' while the
+               report is still being built: the card then shows a mock
+               dashboard outline and "In build — preview coming soon".
+               Never paste a link to your private workspace here
+               (app.fabric.microsoft.com/groups/...): visitors can't sign in.
+     status    Short label for the chip on the card, e.g. 'Live demo'.
+               Ignored while embedUrl is empty (the chip says "In build").
+--------------------------------------------------------------------------- */
+const REPORTS = [
+  {
+    title: 'Sales',
+    question: "What's selling, what's cancelling and what's in the pipeline",
+    embedUrl: '',
+    status: 'In build',
+  },
+  {
+    title: 'Purchasing',
+    question: 'Which suppliers are late, and where costs are moving',
+    embedUrl: '',
+    status: 'In build',
+  },
+  {
+    title: 'Payroll & overtime',
+    question: 'Where overtime is growing, and why',
+    embedUrl: '',
+    status: 'In build',
+  },
+];
+
+// How long an embedded sheet/report may take before we show the
+// "taking longer than usual" message (milliseconds).
+const EMBED_SLOW_AFTER_MS = 8000;
+
+/* ---------------------------------------------------------------------------
+   Report cards
+--------------------------------------------------------------------------- */
+
+// Small helper: create an element with a class and optional text.
+// Uses textContent (not innerHTML) so report text can never inject HTML.
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  return node;
+}
+
+// The "In build" placeholder: a grey outline of a dashboard (KPI tiles,
+// a bar chart and a table) drawn with plain divs styled in styles.css
+// (search "REPORT MOCK"). `variant` just varies the bar heights per card.
+function buildReportMock(variant) {
+  const barSets = [
+    [45, 60, 52, 70, 64, 82, 76],
+    [70, 58, 66, 50, 62, 48, 55],
+    [30, 38, 35, 48, 55, 61, 72],
+  ];
+  const bars = barSets[variant % barSets.length];
+
+  const mock = el('div', 'report-mock');
+  mock.setAttribute('aria-hidden', 'true'); // decorative only
+
+  const kpis = el('div', 'mock-kpis');
+  for (let i = 0; i < 3; i += 1) kpis.appendChild(el('span', 'mock-kpi'));
+
+  const chart = el('div', 'mock-chart');
+  bars.forEach((height) => {
+    const bar = el('span', 'mock-bar');
+    bar.style.height = `${height}%`;
+    chart.appendChild(bar);
+  });
+
+  const rows = el('div', 'mock-rows');
+  for (let i = 0; i < 3; i += 1) rows.appendChild(el('span', 'mock-row'));
+
+  mock.append(kpis, chart, rows);
+  return mock;
+}
+
+function buildReportCard(report, index) {
+  const isLive = Boolean(report.embedUrl);
+
+  const card = el('article', isLive ? 'report-card report-card--live' : 'report-card');
+
+  const header = el('div', 'report-card-header');
+  header.appendChild(el('h3', '', report.title));
+  header.appendChild(el('span', 'status-chip', isLive ? report.status || 'Live demo' : 'In build'));
+  card.appendChild(header);
+
+  card.appendChild(el('p', 'report-question', report.question));
+
+  const frame = el('div', 'report-frame');
+
+  if (isLive) {
+    // Real Power BI "Publish to web" report, loaded only when scrolled near.
+    frame.setAttribute('data-embed', '');
+    frame.dataset.slowMessage = 'This report is taking longer than usual to load. Try refreshing the page in a moment.';
+
+    const status = el('div', 'embed-status');
+    status.setAttribute('role', 'status');
+    status.appendChild(el('span', 'spinner'));
+    status.appendChild(el('span', 'embed-status-msg', 'Loading report…'));
+
+    const iframe = document.createElement('iframe');
+    iframe.src = report.embedUrl;
+    iframe.title = `${report.title} report: interactive Power BI preview`;
+    iframe.loading = 'lazy';
+    iframe.allowFullscreen = true;
+
+    frame.append(status, iframe);
+  } else {
+    // Nothing to embed yet: show the mock outline, never an empty iframe.
+    frame.classList.add('report-frame--pending');
+    frame.appendChild(buildReportMock(index));
+    frame.appendChild(el('p', 'report-pending-msg', 'In build — preview coming soon'));
+  }
+
+  card.appendChild(frame);
+  return card;
+}
+
+function renderReports() {
+  const grid = document.getElementById('report-grid');
+  if (!grid) return;
+  REPORTS.forEach((report, index) => grid.appendChild(buildReportCard(report, index)));
+}
+
+/* ---------------------------------------------------------------------------
+   Loading state for embedded iframes (Google Sheet and Power BI reports).
+
+   Any element with a `data-embed` attribute that contains an <iframe> and an
+   .embed-status box gets:
+     - "is-loading" while waiting (spinner shown over the frame),
+     - "is-loaded" once the iframe finishes loading (spinner hidden),
+     - "is-slow" if it hasn't loaded EMBED_SLOW_AFTER_MS after scrolling
+       into view (message swapped for the element's data-slow-message).
+   The timer starts on scroll-into-view because the iframes are lazy-loaded
+   and don't start downloading until then.
+--------------------------------------------------------------------------- */
+function watchEmbedLoad(container) {
+  const iframe = container.querySelector('iframe');
+  const message = container.querySelector('.embed-status-msg');
+  if (!iframe) return;
+
+  container.classList.add('is-loading');
+  let slowTimer = null;
+
+  iframe.addEventListener('load', () => {
+    clearTimeout(slowTimer);
+    container.classList.remove('is-loading', 'is-slow');
+    container.classList.add('is-loaded');
+  });
+
+  const startTimer = () => {
+    slowTimer = setTimeout(() => {
+      if (container.classList.contains('is-loaded')) return;
+      container.classList.add('is-slow');
+      if (message && container.dataset.slowMessage) {
+        message.textContent = container.dataset.slowMessage;
+      }
+    }, EMBED_SLOW_AFTER_MS);
+  };
+
+  if (!('IntersectionObserver' in window)) {
+    startTimer();
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    if (entries.some((entry) => entry.isIntersecting)) {
+      observer.disconnect();
+      startTimer();
+    }
+  });
+  observer.observe(container);
+}
+
+/* ---------------------------------------------------------------------------
+   Google Sheet auto-height.
+
+   Reads the sheet's published CSV (the panel's data-csv-url) to count rows
+   and columns, then sizes the frame so a short sheet doesn't leave a big
+   empty box and a long one doesn't run off the page. Falls back to the
+   defaults below if the CSV can't be read.
+--------------------------------------------------------------------------- */
 const MIN_VISIBLE_ROWS = 3;
 const MAX_VISIBLE_ROWS = 30;
 const DESKTOP_ROW_HEIGHT_PX = 30;
@@ -26,99 +222,67 @@ const MIN_DESKTOP_WIDTH_PX = 520;
 const MAX_DESKTOP_WIDTH_PX = 980;
 const DEFAULT_DESKTOP_WIDTH_PX = 860;
 
-const SHEET_SELECTORS = {
-  panel: '.embed-panel',
-  desktopIframe: '.desktop-sheet',
-  mobileIframe: '.mobile-sheet',
-};
-
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-async function applyDynamicSheetHeight() {
-  const panel = document.querySelector(SHEET_SELECTORS.panel);
-  await applyDynamicSheetHeightForPanel(panel);
+function setSheetSize(panel, desktopHeight, mobileHeight, desktopWidth) {
+  panel.style.setProperty('--sheet-height-desktop', `${desktopHeight}px`);
+  panel.style.setProperty('--sheet-height-mobile', `${mobileHeight}px`);
+  panel.style.setProperty('--sheet-width-desktop', `${desktopWidth}px`);
 }
 
-async function applyDynamicSheetHeightForPanel(panel) {
-  if (!panel) return;
-
+async function applyDynamicSheetHeight(panel) {
   const csvUrl = panel.dataset.csvUrl;
-  if (!csvUrl) {
-    panel.style.setProperty('--sheet-height-desktop', `${DEFAULT_DESKTOP_HEIGHT_PX}px`);
-    panel.style.setProperty('--sheet-height-mobile', `${DEFAULT_MOBILE_HEIGHT_PX}px`);
-    panel.style.setProperty('--sheet-width-desktop', `${DEFAULT_DESKTOP_WIDTH_PX}px`);
-    return;
-  }
+  if (!csvUrl) return; // CSS defaults apply
 
   try {
     const response = await fetch(csvUrl, { cache: 'no-store' });
     if (!response.ok) throw new Error('Unable to fetch sheet data');
 
-    const csvText = await response.text();
-    const rows = csvText
+    const rows = (await response.text())
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean);
 
-    const headerLine = rows[0] || '';
-    const columnCount = headerLine ? headerLine.split(',').length : 0;
-    const boundedCols = clamp(columnCount, MIN_VISIBLE_COLS, MAX_VISIBLE_COLS);
+    const columnCount = rows[0] ? rows[0].split(',').length : 0;
+    const cols = clamp(columnCount, MIN_VISIBLE_COLS, MAX_VISIBLE_COLS);
+    const dataRows = clamp(Math.max(0, rows.length - 1), MIN_VISIBLE_ROWS, MAX_VISIBLE_ROWS);
 
-    const dataRowCount = Math.max(0, rows.length - 1);
-    const boundedRows = clamp(dataRowCount, MIN_VISIBLE_ROWS, MAX_VISIBLE_ROWS);
-
-    const desktopHeight = clamp(
-      DESKTOP_BASE_HEIGHT_PX + (boundedRows * DESKTOP_ROW_HEIGHT_PX),
-      MIN_DESKTOP_HEIGHT_PX,
-      MAX_DESKTOP_HEIGHT_PX
+    setSheetSize(
+      panel,
+      clamp(DESKTOP_BASE_HEIGHT_PX + dataRows * DESKTOP_ROW_HEIGHT_PX, MIN_DESKTOP_HEIGHT_PX, MAX_DESKTOP_HEIGHT_PX),
+      clamp(MOBILE_BASE_HEIGHT_PX + dataRows * MOBILE_ROW_HEIGHT_PX, MIN_MOBILE_HEIGHT_PX, MAX_MOBILE_HEIGHT_PX),
+      clamp(DESKTOP_FRAME_PADDING_PX + cols * DESKTOP_COL_WIDTH_PX, MIN_DESKTOP_WIDTH_PX, MAX_DESKTOP_WIDTH_PX)
     );
-
-    const mobileHeight = clamp(
-      MOBILE_BASE_HEIGHT_PX + (boundedRows * MOBILE_ROW_HEIGHT_PX),
-      MIN_MOBILE_HEIGHT_PX,
-      MAX_MOBILE_HEIGHT_PX
-    );
-
-    const desktopWidth = clamp(
-      DESKTOP_FRAME_PADDING_PX + (boundedCols * DESKTOP_COL_WIDTH_PX),
-      MIN_DESKTOP_WIDTH_PX,
-      MAX_DESKTOP_WIDTH_PX
-    );
-
-    panel.style.setProperty('--sheet-height-desktop', `${desktopHeight}px`);
-    panel.style.setProperty('--sheet-height-mobile', `${mobileHeight}px`);
-    panel.style.setProperty('--sheet-width-desktop', `${desktopWidth}px`);
   } catch {
-    panel.style.setProperty('--sheet-height-desktop', `${DEFAULT_DESKTOP_HEIGHT_PX}px`);
-    panel.style.setProperty('--sheet-height-mobile', `${DEFAULT_MOBILE_HEIGHT_PX}px`);
-    panel.style.setProperty('--sheet-width-desktop', `${DEFAULT_DESKTOP_WIDTH_PX}px`);
+    setSheetSize(panel, DEFAULT_DESKTOP_HEIGHT_PX, DEFAULT_MOBILE_HEIGHT_PX, DEFAULT_DESKTOP_WIDTH_PX);
   }
 }
 
-function applyDynamicSheetHeights() {
-  const panels = document.querySelectorAll(SHEET_SELECTORS.panel);
-  panels.forEach((panel) => {
-    applyDynamicSheetHeightForPanel(panel);
-  });
-}
-
+/* ---------------------------------------------------------------------------
+   Page start-up
+--------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
   const year = document.getElementById('year');
   if (year) year.textContent = new Date().getFullYear();
 
+  // Mobile menu toggle (the ☰ button shown on narrow screens).
   const toggle = document.querySelector('.nav-toggle');
   const navLinks = document.querySelector('.nav-links');
 
   if (toggle && navLinks) {
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      const nextExpanded = !expanded;
-      toggle.setAttribute('aria-expanded', String(nextExpanded));
-      navLinks.classList.toggle('open', nextExpanded);
-    });
+    const setOpen = (open) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      navLinks.classList.toggle('open', open);
+    };
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    // Close the menu after picking a section.
+    navLinks.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
   }
 
-  applyDynamicSheetHeights();
+  renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
+  document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
+  document.querySelectorAll('.embed-panel[data-csv-url]').forEach(applyDynamicSheetHeight);
 });
