@@ -1,58 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3Sheets Consulting | Practical business reporting</title>
-    <meta name="description" content="Clear, practical reporting for SMEs. Visibility over sales, purchasing, and labour using the data you already have." />
+    <title>3Sheets Consulting | Know your numbers by the 3rd, not the 20th</title>
+    <meta name="description" content="CPA-built reporting for SMEs. Stop waiting until the 20th for your month-end numbers: reporting built from the spreadsheets, inboxes and exports you already have, updated automatically." />
     <link rel="stylesheet" href="styles.css" />
   </head>
 
+  <!--
+    PLACEHOLDERS: anything still to be filled in is marked with a
+    data-placeholder="[[TOKEN]]" attribute. See PLACEHOLDERS.md for the full
+    list and how to replace each one.
+  -->
+
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
     <header class="site-header">
       <div class="container nav-bar">
         <a class="brand" href="#top">3Sheets Consulting</a>
-        <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
-        <nav class="nav-links" aria-label="Primary navigation">
+        <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
+        <!-- Keep these links in the same order as the sections below. -->
+        <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
           <a href="#experience">About</a>
           <a href="#services">Problems solved</a>
+          <a href="#risks">Why it matters</a>
+          <a href="#reports">Reports</a>
           <a href="#offer">Starter bundle</a>
           <a href="#workflow">How it works</a>
-          <a href="#risks">Why clarity matters</a>
           <a href="#contact">Contact</a>
         </nav>
       </div>
     </header>
 
-    <main id="top">
+    <main id="main">
       <!-- HERO -->
-      <section class="hero">
+      <section class="hero" id="top">
         <div class="container hero-grid">
           <div>
-            <p class="eyebrow">Reporting and automation for SMEs</p>
-            <h1>Clear visibility over what matters most.</h1>
+            <!-- [[LOCATION]]: replace "Australian" below with your city/region, e.g. "Brisbane". -->
+            <p class="eyebrow">CPA-built reporting for <span data-placeholder="[[LOCATION]]">Australian</span> SMEs</p>
+            <h1>Know your numbers by the 3rd, not the 20th.</h1>
             <p class="hero-copy">
-              Many businesses operate with limited visibility. Information sits in spreadsheets, inboxes, and disconnected systems.
-              I turn the data you already have into straightforward reporting that shows what’s happening, what’s changing, and where attention is needed.
+              I turn the spreadsheets, inboxes and exports you already have into reporting that updates itself.
+              No new systems, no major IT project.
             </p>
             <div class="hero-actions">
-              <a class="button primary" href="#offer">See the starter bundle</a>
-              <a class="button secondary" href="#contact">Book a call</a>
+              <!-- [[BOOKING_URL]]: replace href="#contact" with your booking link. -->
+              <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-min data check</a>
+              <a class="button secondary" href="#offer">See the starter bundle</a>
             </div>
           </div>
 
           <div class="hero-card">
+            <!-- The person behind the business. See PLACEHOLDERS.md for
+                 [[PHOTO]], [[NAME]] and [[LOCATION]]. -->
+            <div class="hero-person">
+              <img
+                class="headshot"
+                src="Assets/headshot-placeholder.svg"
+                data-placeholder="[[PHOTO]]"
+                alt="Headshot placeholder: photo coming soon"
+                width="64"
+                height="64"
+              />
+              <div>
+                <p class="person-name"><span class="tbc" data-placeholder="[[NAME]]">Name TBC</span>, CPA</p>
+                <p class="person-meta">20 years in finance · <span class="tbc" data-placeholder="[[LOCATION]]">Location TBC</span></p>
+              </div>
+            </div>
+
             <div class="mini-grid">
               <div class="mini-metric">
-                <span class="mini-label">Sales clarity</span>
-                <strong class="metric-value positive">Orders, cancellations, churn, pipeline</strong>
+                <span class="mini-label">Sales</span>
+                <strong class="metric-value positive">Orders, cancellations, pipeline</strong>
               </div>
               <div class="mini-metric">
-                <span class="mini-label">Purchasing clarity</span>
-                <strong class="metric-value neutral">POs, vendor delays, cost changes</strong>
+                <span class="mini-label">Purchasing</span>
+                <strong class="metric-value neutral">Late suppliers, cost changes</strong>
               </div>
               <div class="mini-metric">
-                <span class="mini-label">Payroll insight</span>
+                <span class="mini-label">Payroll &amp; overtime</span>
                 <strong class="metric-value positive">Overtime, labour cost, staffing</strong>
               </div>
               <div class="mini-metric">
@@ -64,35 +93,62 @@
         </div>
       </section>
 
-      <!-- EXPERIENCE -->
-      <section id="experience" class="section section-alt">
+      <!-- GAME SLOT
+           Wiring only: the game itself lives in versions/nes/ and is built
+           separately. The game task replaces the poster image below and can
+           change the link if the game moves. -->
+      <section id="game" class="section section-alt">
+        <div class="container game-grid">
+          <img
+            class="game-poster"
+            src="Assets/game-poster-placeholder.svg"
+            alt="The Month-End Run: game poster coming soon"
+            width="640"
+            height="360"
+            loading="lazy"
+          />
+          <div>
+            <p class="eyebrow">Take a break</p>
+            <h2>Play the month-end run.</h2>
+            <p class="game-copy">A tiny 8-bit side-scroller about getting the numbers out before the deadline.</p>
+            <a class="button primary" href="versions/nes/game.html">Play the game</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section id="experience" class="section">
         <div class="container">
           <div class="section-heading">
             <p class="eyebrow">About</p>
-            <h2>Experience that supports practical outcomes.</h2>
+            <h2>A CPA who also builds the dashboards.</h2>
+            <p class="lead">
+              Dashboard builders often don't understand the numbers, and accountants often can't build the dashboards.
+              I do both, so your reports reconcile to your accounts and still make sense to the people running the business.
+            </p>
           </div>
 
           <div class="card-grid">
             <article class="info-card">
               <h3>20 years as a CPA</h3>
               <p>
-                I’m a Certified Practising Accountant with two decades of experience across mining, property, manufacturing, distribution, sales, and service industries.
-                I’ve worked with NYSE-listed companies, ASX-listed companies, and sole traders.
+                I'm a Certified Practising Accountant with two decades of experience across mining, property, manufacturing, distribution, sales and services.
+                I've worked with NYSE-listed companies, ASX-listed companies and sole traders.
               </p>
             </article>
 
             <article class="info-card">
               <h3>Real operational understanding</h3>
               <p>
-                I’ve seen how businesses actually run — the bottlenecks, the delays, the cost pressures, and the gaps in process that create avoidable issues.
-                My goal is to help people achieve better outcomes and make processes work for them, not the other way around.
+                I've seen how businesses actually run: the bottlenecks, the delays, the cost pressures and the gaps in process that create avoidable issues.
+                My goal is to make your processes work for you, not the other way around.
               </p>
             </article>
 
             <article class="info-card">
               <h3>Support and training</h3>
               <p>
-                If your team needs help with the basics — checking invoices against deliveries, raising purchase orders correctly, or improving record-keeping —
+                If your team needs help with the basics, such as checking invoices against deliveries, raising purchase orders correctly or improving record-keeping,
                 I can provide practical guidance and training to build confidence and capability.
               </p>
             </article>
@@ -101,138 +157,74 @@
       </section>
 
       <!-- SERVICES -->
-      <section id="services" class="section">
+      <section id="services" class="section section-alt">
         <div class="container">
           <div class="section-heading">
             <p class="eyebrow">Problems solved</p>
-            <h2>Visibility gaps that affect cost, performance, and planning.</h2>
+            <h2>The gaps that keep you waiting for month-end.</h2>
           </div>
 
           <div class="card-grid">
             <article class="info-card">
               <h3>Unclear sales performance</h3>
               <p>
-                A consolidated view of revenue trends, cancellations, churn reasons, rep activity, and pipeline movement.
-                Helps you understand what’s coming in and where performance is shifting.
+                A consolidated view of revenue trends, cancellations, churn reasons, rep activity and pipeline movement,
+                so you can see what's coming in and where performance is shifting.
               </p>
             </article>
 
             <article class="info-card">
               <h3>Slow or unreliable purchasing visibility</h3>
               <p>
-                Track purchase orders, vendor delays, overdue items, cost changes, and delivery reliability.
-                Makes it easier to see where timelines or costs are moving.
+                Track purchase orders, supplier delays, overdue items, cost changes and delivery reliability,
+                so it's easier to see where timelines or costs are moving.
               </p>
             </article>
 
             <article class="info-card">
               <h3>Rising labour costs and overtime</h3>
               <p>
-                Identify overtime patterns, labour cost changes, team imbalance, and staffing pressure points.
-                Where possible, link labour effort to output for clearer context.
+                Identify overtime patterns, labour cost changes, team imbalance and staffing pressure points.
+                Where the data allows, link labour effort to output for clearer context.
               </p>
             </article>
           </div>
         </div>
       </section>
 
-      <!-- RISKS -->
-      <section id="risks" class="section section-alt">
+      <!-- WHY CLARITY MATTERS: one question per report (Sales, Purchasing, Payroll & overtime). -->
+      <section id="risks" class="section">
         <div class="container">
           <div class="section-heading">
             <p class="eyebrow">Why clarity matters</p>
-            <h2>Small changes can create big impacts.</h2>
+            <h2>Three questions you should be able to answer on the 3rd.</h2>
           </div>
 
           <div class="card-grid">
             <article class="info-card">
-              <h3>Do you know the cost of a 15% fuel increase?</h3>
+              <span class="card-tag">Sales</span>
+              <h3>Which customers are cancelling, and why?</h3>
               <p>
-                Fuel changes affect transport, logistics, delivery schedules, and margins.
-                A 15% increase can shift profitability across multiple jobs or customers.
-                Clear reporting shows the real impact before it becomes a financial surprise.
+                Cancellations and churn usually surface weeks later, buried in the month-end figures.
+                The Sales report shows them as they happen, alongside what's selling and what's in the pipeline.
               </p>
             </article>
 
             <article class="info-card">
-              <h3>Have you planned for future shocks?</h3>
+              <span class="card-tag">Purchasing</span>
+              <h3>Would you spot a 15% jump in supplier or freight costs before it hit your margin?</h3>
               <p>
-                Supplier delays, cost spikes, overtime surges, and demand changes can hit without warning.
-                Understanding your current position makes it easier to prepare, adjust, and respond quickly.
+                Fuel, freight and supplier price rises flow quietly into your margin.
+                The Purchasing report tracks cost movement and late suppliers, so you see it in the week it happens.
               </p>
             </article>
 
             <article class="info-card">
-              <h3>Are hidden costs affecting performance?</h3>
+              <span class="card-tag">Payroll &amp; overtime</span>
+              <h3>Is overtime growing, and can you explain why?</h3>
               <p>
-                Missed follow-ups, slow purchasing cycles, rising labour hours, and small inefficiencies add up fast.
-                Clear reporting makes these issues visible so they can be addressed early.
-              </p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- OFFER -->
-      <section id="offer" class="section">
-        <div class="container">
-          <div class="section-heading">
-            <p class="eyebrow">Starter bundle</p>
-            <h2>Essential reporting built from the tools you already use.</h2>
-          </div>
-
-          <div class="dashboard-grid">
-            <article class="dashboard-card">
-              <h3>Sales dashboard</h3>
-              <p>
-                A clear summary of your sales performance — movement, risk, opportunity, cancellations, churn, and key trends.
-              </p>
-            </article>
-
-            <article class="dashboard-card">
-              <h3>Purchasing dashboard</h3>
-              <p>
-                Vendor performance, overdue orders, cost changes, delivery reliability, and simple procurement tracking without new systems.
-              </p>
-            </article>
-
-            <article class="dashboard-card">
-              <h3>Automated update</h3>
-              <p>
-                A weekly or monthly reporting pack that keeps teams aligned without manual data collection or follow-up.
-              </p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- WORKFLOW -->
-      <section id="workflow" class="section">
-        <div class="container">
-          <div class="section-heading">
-            <p class="eyebrow">How it works</p>
-            <h2>Simple process. Practical output.</h2>
-          </div>
-
-          <div class="steps-grid">
-            <article class="step-card">
-              <h3>1. Connect</h3>
-              <p>
-                Excel, Sheets, Power BI, accounting systems, vendor exports — whatever your business already uses.
-              </p>
-            </article>
-
-            <article class="step-card">
-              <h3>2. Shape</h3>
-              <p>
-                Clean and structure the data so the important numbers stand out and the noise is removed.
-              </p>
-            </article>
-
-            <article class="step-card">
-              <h3>3. Publish</h3>
-              <p>
-                Dashboards, automated updates, and reporting packs designed to be read and acted on.
+                Overtime creeps up a few hours at a time.
+                The Payroll &amp; overtime report shows where it's growing and, where the data allows, links hours to output.
               </p>
             </article>
           </div>
@@ -242,7 +234,7 @@
       <!-- REPORTS
            Cards are generated by script.js from the REPORTS list near the top
            of that file. To add or update a report, edit that list only. -->
-      <section id="reports" class="section">
+      <section id="reports" class="section section-alt">
         <div class="container">
           <div class="section-heading">
             <p class="eyebrow">Reports</p>
@@ -262,7 +254,7 @@
            ("Publish to web") address here, never the /edit address.
            The loading message and 8-second fallback are handled in script.js
            (search "watchEmbedLoad"). -->
-      <section id="live-sheet" class="section section-alt">
+      <section id="live-sheet" class="section">
         <div class="container">
           <div class="section-heading">
             <p class="eyebrow">Live example</p>
@@ -294,26 +286,145 @@
         </div>
       </section>
 
+
+      <!-- OFFER (starter bundle). Scope wording is a first draft: confirm it
+           against what you'll actually deliver (see PLACEHOLDERS.md). -->
+      <section id="offer" class="section">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Starter bundle</p>
+            <h2>Essential reporting built from the tools you already use.</h2>
+          </div>
+
+          <div class="offer-summary">
+            <div class="offer-fact">
+              <span class="mini-label">Price</span>
+              <strong><span class="tbc" data-placeholder="[[PRICE]]">Price TBC</span></strong>
+              <span class="offer-note">AUD</span>
+            </div>
+            <div class="offer-fact">
+              <span class="mini-label">Delivery</span>
+              <strong><span class="tbc" data-placeholder="[[TIMEFRAME]]">Timeframe TBC</span></strong>
+              <span class="offer-note">from kickoff to go-live</span>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="dashboard-card">
+              <h3>Sales dashboard</h3>
+              <p>
+                What's selling, what's cancelling and what's in the pipeline, with churn reasons and key trends in one place.
+              </p>
+            </article>
+
+            <article class="dashboard-card">
+              <h3>Purchasing dashboard</h3>
+              <p>
+                Late suppliers, overdue orders, cost changes and delivery reliability, without a new purchasing system.
+              </p>
+            </article>
+
+            <article class="dashboard-card">
+              <h3>Automated update</h3>
+              <p>
+                A weekly reporting pack that sends itself, so your team stays aligned without anyone chasing figures.
+              </p>
+            </article>
+          </div>
+
+          <dl class="scope-list">
+            <div>
+              <dt>What's included</dt>
+              <dd>The two dashboards and the automated update above. A Payroll &amp; overtime report can replace either dashboard.</dd>
+            </div>
+            <div>
+              <dt>Data sources</dt>
+              <dd>Excel and Google Sheets, exports from your accounting system (such as Xero or MYOB), CRM and supplier exports, and reports that arrive by email.</dd>
+            </div>
+            <div>
+              <dt>How often it refreshes</dt>
+              <dd>Automatically, every week. Daily is possible where your data source allows it.</dd>
+            </div>
+            <div>
+              <dt>After go-live</dt>
+              <dd>30 days of support for fixes and small changes, plus a short handover so your team knows how to read and use the reports.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section id="workflow" class="section section-alt">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">How it works</p>
+            <h2>Simple process. Practical output.</h2>
+          </div>
+
+          <div class="steps-grid">
+            <article class="step-card">
+              <h3>1. Connect</h3>
+              <p>
+                Excel, Google Sheets, accounting exports, supplier files, inbox attachments: whatever your business already uses.
+              </p>
+            </article>
+
+            <article class="step-card">
+              <h3>2. Shape</h3>
+              <p>
+                Clean and structure the data so the important numbers stand out and the noise is removed.
+              </p>
+            </article>
+
+            <article class="step-card">
+              <h3>3. Publish</h3>
+              <p>
+                Dashboards, automated updates and reporting packs designed to be read and acted on.
+              </p>
+            </article>
+          </div>
+
+          <div class="client-needs">
+            <h3>What you'll need to do</h3>
+            <p>
+              About an hour of your time for a kickoff call, and read-only access to the files and exports you already have.
+              Nothing to install and no new systems to learn.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <!-- CONTACT -->
       <section id="contact" class="section">
         <div class="container contact-box">
           <div>
             <p class="eyebrow">Contact</p>
-            <h2>Ready for clearer reporting?</h2>
+            <h2>Clearer numbers, without a major IT project.</h2>
             <p>
-              Ideal for SMEs that rely on spreadsheets, manage complex purchasing, experience rising overtime,
-              or need better visibility without a major IT project.
+              Ideal for SMEs that rely on spreadsheets, juggle complex purchasing or are watching overtime climb.
+              Book a free 20-minute data check and I'll tell you what's possible with the files you already have.
+            </p>
+            <!-- [[EMAIL]] and [[LINKEDIN_URL]]: replace each chip with a link,
+                 e.g. <a href="mailto:you@example.com">you@example.com</a>. -->
+            <p class="contact-secondary">
+              Prefer email or LinkedIn?
+              <span class="tbc" data-placeholder="[[EMAIL]]">Email TBC</span>
+              <span class="tbc" data-placeholder="[[LINKEDIN_URL]]">LinkedIn TBC</span>
             </p>
           </div>
-          <a class="button primary" href="mailto:hello@3sheetsconsulting.com">hello@3sheetsconsulting.com</a>
+          <!-- [[BOOKING_URL]]: replace href="#contact" with your booking link. -->
+          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-min data check</a>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="container footer-content">
-        <p>© <span id="year"></span> 3Sheets Consulting</p>
-        <p>Practical reporting for small and medium businesses.</p>
+        <p>
+          © <span id="year">2026</span> 3Sheets Consulting ·
+          <span class="tbc" data-placeholder="[[NAME]]">Name TBC</span>, CPA ·
+          <span class="tbc" data-placeholder="[[LOCATION]]">Location TBC</span>
+        </p>
       </div>
     </footer>
 

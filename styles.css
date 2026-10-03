@@ -7,9 +7,12 @@
   - Section vertical spacing (mobile) ........ @media (max-width: 900px) — search "MOBILE SECTION SPACING"
   - Hero banner spacing ...................... search "HERO SPACING"
   - Section heading gap ...................... .section-heading { margin-bottom }
-  - Button styles ............................ .sheet-btn
+  - Button styles ............................ .button / .button.primary
   - Vertical annotation list (diagram notes) . .decision-list / .decision-item
-  - Mobile breakpoints ....................... @media (max-width: 720px)
+  - Placeholder "TBC" chip ................... .tbc
+  - Report cards / mock dashboard ............ search "REPORT CARDS" / "REPORT MOCK"
+  - Embed loading spinner .................... search "EMBED LOADING STATE"
+  - Mobile breakpoints ....................... @media (max-width: 900px) and (max-width: 720px)
 */
 
 :root {
@@ -234,10 +237,86 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 
 .noscript-note { color: var(--muted); }
 
+/* PLACEHOLDER CHIP — marks a detail still to be confirmed ("Name TBC").
+   The real token (e.g. [[NAME]]) is in the element's data-placeholder
+   attribute. Delete the chip when you fill the value in: see PLACEHOLDERS.md. */
+.tbc {
+  display: inline-block;
+  padding: 0.05em 0.55em;
+  font-size: 0.8em;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--muted);
+  background: var(--accent-soft);
+  border: 1px dashed #9db8a6;
+  border-radius: 999px;
+  white-space: nowrap;
+  vertical-align: 0.05em;
+}
+
+/* HERO PERSON — photo, name and location at the top of the hero card. */
+.hero-person { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1rem; }
+.headshot { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: none; background: var(--accent-soft); }
+.person-name { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.person-meta { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.9rem; }
+
+/* GAME SLOT — poster image beside a short call to play. */
+.game-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; align-items: center; }
+.game-poster { display: block; width: 100%; height: auto; border-radius: 0.9rem; border: 1px solid var(--border); }
+.game-copy { color: var(--muted); }
+
+/* ABOUT lead paragraph — the differentiator, slightly larger than body text. */
+.section-heading .lead { color: var(--text); font-size: 1.1rem; max-width: 48rem; }
+
+/* Small label above a card heading, e.g. "Sales" on the Why clarity matters cards. */
+.card-tag {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+}
+
+/* STARTER BUNDLE — price/delivery strip and the scope list. */
+.offer-summary { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
+.offer-fact {
+  flex: 1 1 14rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0.75rem;
+  padding: 0.9rem 1.2rem;
+}
+.offer-fact strong { font-size: 1.25rem; margin-right: 0.4rem; }
+.offer-note { color: var(--muted); font-size: 0.9rem; }
+.scope-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; margin: 1.5rem 0 0; }
+.scope-list dt { font-weight: 700; }
+.scope-list dd { margin: 0.2rem 0 0; color: var(--muted); }
+
+/* HOW IT WORKS — what the client has to do. */
+.client-needs {
+  margin-top: 1.25rem;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 1.2rem 1.4rem;
+}
+.client-needs h3 { margin-bottom: 0.4rem; font-size: 1.05rem; }
+.client-needs p { margin: 0; }
+
+/* CONTACT — secondary contact options under the main text. */
+.contact-secondary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0; }
+.contact-cta { flex: none; }
+
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid { grid-template-columns: 1fr; }
+  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }
