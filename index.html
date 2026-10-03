@@ -120,25 +120,32 @@
         </div>
       </section>
 
-      <!-- GAME SLOT
-           Wiring only: the game itself lives in versions/nes/ and is built
-           separately. The game task replaces the poster image below and can
-           change the link if the game moves. -->
+      <!-- GAME SLOT: "The Month-End Run" (files in game/).
+           To keep the page fast only the poster loads; the game loads into an
+           iframe when someone presses Play (script.js, search "GAME SLOT").
+           Poster and videos are made by tools/record_demo.py (media/). -->
       <section id="game" class="section section-alt">
         <div class="container game-grid">
-          <img
-            class="game-poster"
-            src="Assets/game-poster-placeholder.svg"
-            alt="The Month-End Run: game poster coming soon"
-            width="640"
-            height="360"
-            loading="lazy"
-          />
-          <div>
+          <div class="game-stage" data-game-src="game/index.html?embed=1">
+            <img
+              class="game-poster"
+              src="media/poster.png"
+              alt="The Month-End Run title screen: Month-end. 40 hours of copy-paste."
+              width="1280"
+              height="720"
+              loading="lazy"
+            />
+            <button class="game-play" type="button">&#9654; Play</button>
+          </div>
+          <div class="game-text">
             <p class="eyebrow">Take a break</p>
             <h2>Play the month-end run.</h2>
-            <p class="game-copy">A tiny 8-bit side-scroller about getting the numbers out before the deadline.</p>
-            <a class="button primary" href="versions/nes/game.html">Play the game</a>
+            <p class="game-copy">Thirty seconds: month-end by hand, then the same month with reporting that runs itself.</p>
+            <button class="button primary" type="button" data-game-play>Play the game</button>
+            <p class="game-links">
+              <a href="media/month-end-run-full.mp4">Watch the 30-second video</a> ·
+              <a href="game/">Open full screen</a>
+            </p>
           </div>
         </div>
       </section>

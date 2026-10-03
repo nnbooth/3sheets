@@ -6,6 +6,7 @@
   - Report card builder ...................... renderReports() / buildReportCard()
   - Loading message + 8-second fallback ...... watchEmbedLoad()
   - Google Sheet auto-height ................. applyDynamicSheetHeight()
+  - Game (load on Play) ...................... setupGameSlot()
   - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
 
   No frameworks or build step: this file is loaded as-is by index.html.
@@ -261,6 +262,52 @@ async function applyDynamicSheetHeight(panel) {
 }
 
 /* ---------------------------------------------------------------------------
+   GAME SLOT — "The Month-End Run".
+
+   The page only loads the poster image. Pressing Play (on the poster or the
+   button beside it) swaps the poster for the game in an iframe, so visitors
+   who don't play never download it. The game tells us its height
+   ('s3-game-height' message) so the iframe fits without scrollbars, and we
+   ask it to pause ('s3:pause') when it's scrolled out of view.
+--------------------------------------------------------------------------- */
+function setupGameSlot() {
+  const stage = document.querySelector('.game-stage');
+  if (!stage) return;
+  const grid = stage.closest('.game-grid');
+  let frame = null;
+
+  const play = () => {
+    if (frame) return;
+    frame = document.createElement('iframe');
+    frame.className = 'game-frame';
+    frame.src = stage.dataset.gameSrc;
+    frame.title = 'The Month-End Run (game)';
+    frame.allow = 'fullscreen';
+    grid.classList.add('is-playing');
+    // A first guess at the height until the game reports its real one
+    frame.style.height = `${Math.round((grid.clientWidth * 9) / 16) + 120}px`;
+    stage.replaceChildren(frame);
+    frame.addEventListener('load', () => {
+      // Same site, so we can put keyboard focus straight into the game
+      try { frame.contentDocument.getElementById('game-canvas').focus({ preventScroll: true }); } catch { /* ignore */ }
+    });
+  };
+
+  document.querySelectorAll('.game-play, [data-game-play]').forEach((btn) => btn.addEventListener('click', play));
+
+  window.addEventListener('message', (event) => {
+    if (!frame || event.origin !== location.origin || event.source !== frame.contentWindow) return;
+    if (event.data && event.data.type === 's3-game-height') frame.style.height = `${event.data.height}px`;
+  });
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      if (frame && !entries[0].isIntersecting) frame.contentWindow.postMessage('s3:pause', location.origin);
+    }, { threshold: 0.2 }).observe(stage);
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Page start-up
 --------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -282,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     navLinks.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
   }
 
+  setupGameSlot();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
   document.querySelectorAll('.embed-panel[data-csv-url]').forEach(applyDynamicSheetHeight);

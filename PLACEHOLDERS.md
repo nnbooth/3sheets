@@ -36,6 +36,7 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
 | --- | --- | --- | --- |
 | `[[NAME]]` | Your name | `index.html` → Hero card (beside the photo) | "Name TBC" chip, then ", CPA" |
 | | | `index.html` → Footer | "Name TBC" chip |
+| | | `game/game.js` → `CONFIG.name` (end card "Name, CPA · 3Sheets") | Game shows "CPA-built reporting · 3Sheets" |
 | `[[PHOTO]]` | Headshot image path | `index.html` → Hero card `<img class="headshot">` | Neutral silhouette, `Assets/headshot-placeholder.svg` |
 | `[[LOCATION]]` | City/region | `index.html` → Hero eyebrow ("CPA-built reporting for … SMEs") | Fallback word **"Australian"** |
 | | | `index.html` → Hero card ("20 years in finance · …") | "Location TBC" chip |
@@ -44,9 +45,12 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
 | `[[LINKEDIN_URL]]` | LinkedIn profile | `index.html` → Contact ("Prefer email or LinkedIn?") | "LinkedIn TBC" chip |
 | `[[BOOKING_URL]]` | Calendar booking link | `index.html` → Hero button "Book a free 20-min data check" | Button links to `#contact` for now |
 | | | `index.html` → Contact button "Book a free 20-min data check" | Button links to `#contact` for now, so it currently goes nowhere |
+| | | `game/game.js` → `CONFIG.bookingUrl` (end card button) | Game button opens the site's Contact section |
 | `[[DOMAIN]]` | Final domain | `index.html` → `<head>`: `canonical`, `og:url`, `og:image`, `twitter:image` | Not visible. Only affects link previews |
+| | | `game/game.js` → `CONFIG.domain` (end card text) | Game shows `nnbooth.github.io/3sheets` |
 | `[[PRICE]]` | Starter bundle price (AUD) | `index.html` → Starter bundle, "Price" box | "Price TBC" chip, followed by "AUD" |
 | `[[TIMEFRAME]]` | Starter bundle delivery time | `index.html` → Starter bundle, "Delivery" box | "Timeframe TBC" chip, followed by "from kickoff to go-live" |
+| `[[DAYS]]` | Days to finish month-end with the reporting in place | `game/game.js` → `CONFIG.daysToClose` (summary: "October 2026 – month-end done in N days") | Game shows **3** (matches "by the 3rd") |
 
 ### Notes on specific tokens
 
@@ -61,6 +65,9 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
   `<a href="https://www.linkedin.com/in/you/" target="_blank" rel="noopener">LinkedIn</a>`.
 - **`[[BOOKING_URL]]`:** for an external link, also add `target="_blank" rel="noopener"` to both buttons.
 - **`[[LOCATION]]` in the hero eyebrow:** "Australian" reads naturally until you choose a city. Replace it with e.g. "Brisbane" or "Perth".
+- **The game (`game/game.js`, `CONFIG` at the top):** the tokens there are written in quotes, e.g. `name: '[[NAME]]'`. Find-and-replace them like everywhere else, keeping the quotes: `name: 'Jane Citizen'`, `daysToClose: 3`. Until a value is replaced, the game shows the fallback listed above, never the raw token.
+  - **Re-record the videos after you change anything in `CONFIG`:** run `python3 tools/record_demo.py` from the repo root. The videos, GIF and poster in `media/` are pictures of the game, so they keep showing the fallbacks until you do.
+  - `CONFIG.setupCostAUD` (currently 1500) is the setup cost on the game's summary. **Keep it the same as `[[PRICE]]`**, or the game and the site will disagree.
 - **`[[DOMAIN]]`:** use the bare domain without `https://` or a trailing slash, e.g. `3sheets.com.au`. The `https://` and paths are already in the tags.
 
 ## Draft copy to confirm (not tokens, but please check)
@@ -82,7 +89,7 @@ These sentences are on the page now and make promises you should confirm or edit
 
   Never use the `/edit` address.
 - [ ] **Power BI reports.** None are built yet. When one is ready, use **File → Embed report → Publish to web** in Power BI and paste the `https://app.powerbi.com/view?r=…` link into that report's `embedUrl` in the `REPORTS` list at the top of `script.js`. Set its `status` to e.g. `'Live demo'`. "Publish to web" makes the report public, so only publish demo data.
-- [ ] **Game poster.** `Assets/game-poster-placeholder.svg` is a stand-in; the game task replaces it (Game slot section in `index.html`).
+- [ ] **Game numbers.** The game's summary uses illustrative assumptions in `game/game.js` `CONFIG`: 32 hours saved, $85/hour, $1,500 setup, $120/month running cost and a 40-hour manual month-end. Confirm or change them, then re-record (`python3 tools/record_demo.py`).
 
 ## Before going live: checklist
 
@@ -99,4 +106,5 @@ These sentences are on the page now and make promises you should confirm or edit
 - [ ] Mailbox on the new domain set up and tested before any traffic goes to the site.
 - [ ] Paste the live URL into LinkedIn Post Inspector (linkedin.com/post-inspector) and check the preview title, description and image.
 - [ ] Still no client results or case studies claimed anywhere until you have a real, approved one.
+- [ ] Game `CONFIG` filled in (name, booking link, domain, days, numbers) and the media re-recorded with `python3 tools/record_demo.py`.
 - [ ] Final check at phone, tablet and desktop widths.
