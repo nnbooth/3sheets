@@ -61,7 +61,7 @@
     weeksInMonth: 4,            // used for "Paid for itself in week N"
 
     // --- People and links ---
-    name: '[[NAME]]',           // end card "Name, CPA · 3Sheets". Fallback: "CPA-built reporting · 3Sheets"
+    name: 'Nathan Booth',       // end card "Nathan Booth, CPA · 3Sheets" (if blank: "CPA-built reporting · 3Sheets")
     bookingUrl: '[[BOOKING_URL]]', // "Book a free 20-min data check". Fallback: the website's Contact section
     domain: '[[DOMAIN]]',       // shown as text on the end card. Fallback: nnbooth.github.io/3sheets
   };
