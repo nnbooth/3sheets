@@ -1,0 +1,31 @@
+<!-- Placeholder poster for "The Month-End Run". The game task replaces this file
+     (or the <img> src in index.html, section GAME SLOT). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="The Month-End Run: poster coming soon">
+  <rect width="640" height="360" fill="#25342a"/>
+  <!-- pixel ground -->
+  <g fill="#2f7a5d">
+    <rect y="296" width="640" height="64"/>
+  </g>
+  <g fill="#3f9a75">
+    <rect x="0" y="296" width="640" height="8"/>
+  </g>
+  <!-- stacked "sheets" as platforms -->
+  <g fill="#eaf6ee">
+    <rect x="88" y="232" width="96" height="16"/>
+    <rect x="248" y="184" width="96" height="16"/>
+    <rect x="408" y="136" width="96" height="16"/>
+  </g>
+  <!-- runner -->
+  <g fill="#f8b800">
+    <rect x="120" y="200" width="24" height="32"/>
+  </g>
+  <g fill="#fbfdf9">
+    <rect x="128" y="206" width="6" height="6"/>
+  </g>
+  <!-- calendar flag at the goal: "3rd" -->
+  <rect x="452" y="72" width="6" height="64" fill="#fbfdf9"/>
+  <rect x="458" y="72" width="44" height="30" fill="#fbfdf9"/>
+  <text x="480" y="93" font-family="Courier New, monospace" font-size="16" font-weight="700" fill="#25342a" text-anchor="middle">3rd</text>
+  <text x="320" y="48" font-family="Courier New, monospace" font-size="28" font-weight="700" fill="#fbfdf9" text-anchor="middle">THE MONTH-END RUN</text>
+  <text x="320" y="338" font-family="Courier New, monospace" font-size="14" fill="#eaf6ee" text-anchor="middle">POSTER COMING SOON</text>
+</svg>
