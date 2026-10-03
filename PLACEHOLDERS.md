@@ -47,6 +47,7 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
 | | | `game/game.js` → `CONFIG.domain` (end card text) | Game shows `nnbooth.github.io/3sheets` |
 | `[[PRICE]]` | Starter bundle price (AUD) | `index.html` → Starter bundle, "Price" box | "Price TBC" chip, followed by "AUD" |
 | `[[TIMEFRAME]]` | Starter bundle delivery time | `index.html` → Starter bundle, "Delivery" box | "Timeframe TBC" chip, followed by "from kickoff to go-live" |
+| `[[MONTHLY_PRICE]]` | Monthly fee for "Stay on top" (part-time management accountant) | `index.html` → What I do, package 3 | "Monthly price TBC" chip |
 | `[[DAYS]]` | Days to finish month-end with the reporting in place | `game/game.js` → `CONFIG.daysToClose` (summary: "October 2026 – month-end done in N days") | Game shows **3** (matches "by the 3rd") |
 
 ### Notes on specific tokens
@@ -78,8 +79,9 @@ These sentences are on the page now and make promises you should confirm or edit
 - **Price:** say whether `[[PRICE]]` includes or excludes GST.
 - **How it works:** "About an hour of your time for a kickoff call and read-only access to the files and exports you already have."
 
-- **New offer line (Starter bundle, What's included):** "Driver-based budgets and forecasts are available as a separate piece of work." Keep it only if you'll sell that.
 - **About section facts (from your resume):** the industries list; NYSE- and ASX-listed employers; and the Power BI platform used across Australia, New Zealand and the Pacific Islands. These describe your employment, not client results, so they're fine to keep, but check you're comfortable naming them publicly.
+
+- **The three packages (What I do):** 1 Set up (fixed price, the starter bundle), 2 Dig in (quoted per project), 3 Stay on top (monthly). Check what's listed in each, and that "quoted per project" and a monthly fee are how you want to sell them.
 
 ## TODO outside this repo
 

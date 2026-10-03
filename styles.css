@@ -336,6 +336,15 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
   padding: 0.1rem 0.5rem;
 }
 
+/* WHAT I DO — the three packages (Set up / Dig in / Stay on top). */
+.package-card { display: flex; flex-direction: column; }
+.package-card .card-tag { align-self: flex-start; }
+.package-price { margin: 0 0 0.6rem; font-weight: 600; color: var(--text); }
+.package-price a { color: var(--accent); text-underline-offset: 3px; }
+.package-list { margin: 0; padding-left: 1.1rem; color: var(--muted); }
+.package-list li { margin-bottom: 0.45rem; }
+.package-list li::marker { color: var(--accent); }
+
 /* STARTER BUNDLE — price/delivery strip and the scope list. */
 .offer-summary { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
 .offer-fact {
@@ -351,6 +360,7 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 .scope-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; margin: 1.5rem 0 0; }
 .scope-list dt { font-weight: 700; }
 .scope-list dd { margin: 0.2rem 0 0; color: var(--muted); }
+.scope-list a { color: var(--accent); text-underline-offset: 3px; }
 
 /* HOW IT WORKS — what the client has to do. */
 .client-needs {
