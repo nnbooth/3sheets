@@ -76,7 +76,7 @@ These sentences are on the page now and make promises you should confirm or edit
 
 - **What's included:** the Sales dashboard, the Purchasing dashboard and the automated weekly update; a Payroll & overtime report can replace either dashboard.
 - **Data sources:** Excel/Google Sheets, accounting exports (Xero or MYOB named as examples), CRM and supplier exports, and emailed reports.
-- **Refresh:** weekly, and daily where the source allows.
+- **Refresh:** on a set schedule, usually weekly, daily where the data allows, **and "You review the numbers before they go out."** That last sentence is a promise about how you work: keep it only if it's true.
 - **After go-live:** 30 days of support for fixes and small changes, plus a short handover.
 - **Price:** say whether `[[PRICE]]` includes or excludes GST.
 - **How it works:** "About an hour of your time for a kickoff call and read-only access to the files and exports you already have."

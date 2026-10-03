@@ -3,7 +3,7 @@
 
   A ~30-second story game on a 256x144 canvas (16:9). Its one job: show a
   business owner the month-end grind, then the same month with CPA-built
-  reporting that runs itself, then the numbers, then a call to action.
+  reporting that's built once and refreshed on a schedule, then the numbers, then a call to action.
 
   STORY (states, in order)
     title    Title + "Month-end. 40 hours of copy-paste." (held)
@@ -724,7 +724,7 @@
         sigma.y = GROUND_Y - 16; sigma.landed = true; sigma.at = t;
         sfx('build');
         hudLive = true; // costs are in: net saving starts below zero
-        showBanner([{ t: 'BUILT BY A CPA. RUNS ITSELF.', c: PAL.accent, big: true }], TIMING.switchLen - t, 46);
+        showBanner([{ t: 'BUILT BY A CPA. NO RE-KEYING.', c: PAL.accent, big: true }], TIMING.switchLen - t, 46);
       }
       return;
     }
