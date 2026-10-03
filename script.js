@@ -21,8 +21,8 @@
                https://app.powerbi.com/view?r=...). Leave as '' while the
                report is still being built: the card then shows a mock
                dashboard outline and "In build — preview coming soon".
-               Never paste a link to your private workspace here
-               (app.fabric.microsoft.com/groups/...): visitors can't sign in.
+               Never paste the address you see while signed in to your
+               own Power BI workspace: visitors can't sign in to it.
      status    Short label for the chip on the card, e.g. 'Live demo'.
                Ignored while embedUrl is empty (the chip says "In build").
 --------------------------------------------------------------------------- */
