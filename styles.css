@@ -289,10 +289,35 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 .person-name { margin: 0; font-weight: 700; font-size: 1.05rem; }
 .person-meta { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.9rem; }
 
-/* GAME SLOT — poster image beside a short call to play. */
+/* GAME SLOT — poster with a Play button; pressing Play swaps in the game
+   (script.js, search "GAME SLOT"). While playing, the game takes the full
+   width and the text sits underneath. */
 .game-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; align-items: center; }
+.game-stage { position: relative; }
 .game-poster { display: block; width: 100%; height: auto; border-radius: 0.9rem; border: 1px solid var(--border); }
+.game-play {
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #f8f7f2;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 52, 42, 0.25);
+}
+.game-play:hover { filter: brightness(0.95); }
+.game-play:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
 .game-copy { color: var(--muted); }
+.game-links { margin: 1rem 0 0; font-size: 0.9rem; color: var(--muted); }
+.game-links a { color: var(--accent); text-underline-offset: 3px; }
+.game-frame { display: block; width: 100%; border: 0; }
+.game-grid.is-playing { grid-template-columns: minmax(0, 1fr); }
+.game-grid.is-playing [data-game-play] { display: none; }
 
 /* ABOUT lead paragraph — the differentiator, slightly larger than body text. */
 .section-heading .lead { color: var(--text); font-size: 1.1rem; max-width: 48rem; }
