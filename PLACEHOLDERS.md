@@ -1,6 +1,6 @@
 # Placeholders: what's still to fill in
 
-Every detail that isn't final yet is marked with a token like `[[NAME]]`.
+Every detail that isn't final yet is marked with a token like `[[EMAIL]]`.
 Search the repo for `[[` to find them all. Most of them are in `index.html`.
 
 ## How placeholders look on the page
@@ -10,10 +10,10 @@ Each token appears in one of three ways, so the live page never shows raw `[[TOK
 1. **TBC chip in body text.** It shows as a small dashed "Name TBC" pill:
 
    ```html
-   <span class="tbc" data-placeholder="[[NAME]]">Name TBC</span>
+   <span class="tbc" data-placeholder="[[EMAIL]]">Email TBC</span>
    ```
 
-   **To fill in:** replace the whole `<span …>…</span>` with the real value, e.g. `Jane Citizen`.
+   **To fill in:** replace the whole `<span …>…</span>` with the real value (for email, a `mailto:` link).
 
 2. **Fallback in a heading or button.** The page shows a sensible default and the token sits in `data-placeholder` with an HTML comment above it:
 
@@ -34,12 +34,9 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
 
 | Token | Meaning | Where it appears (file → section) | Shown on the page as |
 | --- | --- | --- | --- |
-| `[[NAME]]` | Your name | `index.html` → Hero card (beside the photo) | "Name TBC" chip, then ", CPA" |
-| | | `index.html` → Footer | "Name TBC" chip |
-| | | `game/game.js` → `CONFIG.name` (end card "Name, CPA · 3Sheets") | Game shows "CPA-built reporting · 3Sheets" |
 | `[[PHOTO]]` | Headshot image path | `index.html` → Hero card `<img class="headshot">` | Neutral silhouette, `Assets/headshot-placeholder.svg` |
 | `[[LOCATION]]` | City/region | `index.html` → Hero eyebrow ("CPA-built reporting for … SMEs") | Fallback word **"Australian"** |
-| | | `index.html` → Hero card ("20 years in finance · …") | "Location TBC" chip |
+| | | `index.html` → Hero card ("20 years in sales and cost reporting · …") | "Location TBC" chip |
 | | | `index.html` → Footer | "Location TBC" chip |
 | `[[EMAIL]]` | Contact email | `index.html` → Contact ("Prefer email or LinkedIn?") | "Email TBC" chip |
 | `[[LINKEDIN_URL]]` | LinkedIn profile | `index.html` → Contact ("Prefer email or LinkedIn?") | "LinkedIn TBC" chip |
@@ -56,7 +53,7 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
 
 - **`[[PHOTO]]`:** add your photo to `Assets/` (square, at least 256×256 px, JPG or WebP, e.g. `Assets/headshot.jpg`). Then in the hero `<img class="headshot">`:
   - set `src="Assets/headshot.jpg"`;
-  - change `alt` to `"[Your name], CPA"`;
+  - change `alt` to `"Nathan Booth, CPA"`;
   - remove `data-placeholder`.
 
   You can delete `Assets/headshot-placeholder.svg` afterwards.
@@ -65,7 +62,7 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
   `<a href="https://www.linkedin.com/in/you/" target="_blank" rel="noopener">LinkedIn</a>`.
 - **`[[BOOKING_URL]]`:** for an external link, also add `target="_blank" rel="noopener"` to both buttons.
 - **`[[LOCATION]]` in the hero eyebrow:** "Australian" reads naturally until you choose a city. Replace it with e.g. "Brisbane" or "Perth".
-- **The game (`game/game.js`, `CONFIG` at the top):** the tokens there are written in quotes, e.g. `name: '[[NAME]]'`. Find-and-replace them like everywhere else, keeping the quotes: `name: 'Jane Citizen'`, `daysToClose: 3`. Until a value is replaced, the game shows the fallback listed above, never the raw token.
+- **The game (`game/game.js`, `CONFIG` at the top):** the tokens there are written in quotes, e.g. `domain: '[[DOMAIN]]'`. Find-and-replace them like everywhere else, keeping the quotes: `domain: '3sheets.com.au'`, `daysToClose: 3`. Until a value is replaced, the game shows the fallback listed above, never the raw token.
   - **Re-record the videos after you change anything in `CONFIG`:** run `python3 tools/record_demo.py` from the repo root. The videos, GIF and poster in `media/` are pictures of the game, so they keep showing the fallbacks until you do.
   - `CONFIG.setupCostAUD` (currently 1500) is the setup cost on the game's summary. **Keep it the same as `[[PRICE]]`**, or the game and the site will disagree.
 - **`[[DOMAIN]]`:** use the bare domain without `https://` or a trailing slash, e.g. `3sheets.com.au`. The `https://` and paths are already in the tags.
@@ -80,6 +77,9 @@ These sentences are on the page now and make promises you should confirm or edit
 - **After go-live:** 30 days of support for fixes and small changes, plus a short handover.
 - **Price:** say whether `[[PRICE]]` includes or excludes GST.
 - **How it works:** "About an hour of your time for a kickoff call and read-only access to the files and exports you already have."
+
+- **New offer line (Starter bundle, What's included):** "Driver-based budgets and forecasts are available as a separate piece of work." Keep it only if you'll sell that.
+- **About section facts (from your resume):** the industries list; NYSE- and ASX-listed employers; and the Power BI platform used across Australia, New Zealand and the Pacific Islands. These describe your employment, not client results, so they're fine to keep, but check you're comfortable naming them publicly.
 
 ## TODO outside this repo
 
@@ -99,12 +99,12 @@ These sentences are on the page now and make promises you should confirm or edit
 - [ ] No `class="tbc"` chips remain in `index.html`.
 - [ ] Both "Book a free 20-min data check" buttons open your booking page.
 - [ ] Email link opens a mail client addressed to a mailbox that exists and is monitored.
-- [ ] Real photo in the hero, with alt text set to your name.
+- [ ] Real photo in the hero, with alt text "Nathan Booth, CPA".
 - [ ] Price and timeframe filled in; GST treatment stated; the starter bundle scope wording confirmed.
 - [ ] Finished, read-only Google Sheet published; "Testing" tab renamed (see TODO above).
 - [ ] Domain registered, pointed at GitHub Pages (custom domain in the repo's Pages settings, which adds a `CNAME` file) and HTTPS enforced.
 - [ ] Mailbox on the new domain set up and tested before any traffic goes to the site.
 - [ ] Paste the live URL into LinkedIn Post Inspector (linkedin.com/post-inspector) and check the preview title, description and image.
 - [ ] Still no client results or case studies claimed anywhere until you have a real, approved one.
-- [ ] Game `CONFIG` filled in (name, booking link, domain, days, numbers) and the media re-recorded with `python3 tools/record_demo.py`.
+- [ ] Game `CONFIG` filled in (booking link, domain, days, numbers) and the media re-recorded with `python3 tools/record_demo.py`.
 - [ ] Final check at phone, tablet and desktop widths.
