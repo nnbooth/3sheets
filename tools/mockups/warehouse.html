@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="mock.css">
+<style>
+body{background:#0f1a14;color:#eaf6ee;padding:34px 40px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
+.top h1{font-size:40px;letter-spacing:.02em}.top .live{display:flex;align-items:center;gap:12px;font-size:24px;color:#9db8a6}
+.dot{width:16px;height:16px;border-radius:50%;background:#3ddc84;box-shadow:0 0 12px #3ddc84}
+.grid{display:grid;grid-template-columns:1.25fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:22px;height:735px}
+.card{background:#16261d;border:2px solid #24392d;border-radius:18px;padding:26px 30px;position:relative}
+.card h2{font-size:22px;letter-spacing:.14em;text-transform:uppercase;color:#9db8a6;margin-bottom:12px}
+.big{font-size:150px;font-weight:800;line-height:1}.big small{font-size:56px;color:#9db8a6;font-weight:600}
+.bar{height:30px;background:#24392d;border-radius:15px;margin-top:22px;overflow:hidden}.bar i{display:block;height:100%;background:#3ddc84}
+.sub{font-size:26px;color:#9db8a6;margin-top:14px}
+.amber{color:#ffb020}.green{color:#3ddc84}.red{color:#ff6b5e}
+.span2{grid-row:span 2}
+li{list-style:none;font-size:30px;padding:14px 0;border-bottom:1px solid #24392d;display:flex;justify-content:space-between}
+li span:last-child{font-weight:700}
+</style>
+<body>
+<div class="top"><h1>DESPATCH · TODAY</h1><div class="live"><span class="dot"></span>LIVE · updated 2 min ago</div></div>
+<div class="grid">
+ <div class="card span2"><h2>Orders picked</h2><div class="big green">142<small> / 180</small></div>
+  <div class="bar"><i style="width:79%"></i></div><div class="sub">79% of today's target · 38 lines to go</div>
+  <svg viewBox="0 0 560 250" width="100%" style="margin-top:34px"><g fill="#3ddc84">
+   <rect x="10" y="150" width="46" height="90" opacity=".55"/><rect x="76" y="110" width="46" height="130" opacity=".55"/><rect x="142" y="80" width="46" height="160" opacity=".55"/>
+   <rect x="208" y="60" width="46" height="180" opacity=".55"/><rect x="274" y="95" width="46" height="145" opacity=".55"/><rect x="340" y="70" width="46" height="170"/><rect x="406" y="120" width="46" height="120" opacity=".35"/><rect x="472" y="170" width="46" height="70" opacity=".2"/></g>
+   <g fill="#9db8a6" font-size="17"><text x="10" y="266">7</text><text x="76" y="266">8</text><text x="142" y="266">9</text><text x="208" y="266">10</text><text x="274" y="266">11</text><text x="340" y="266">12</text><text x="406" y="266">1</text><text x="472" y="266">2</text></g></svg>
+  <div class="sub" style="margin-top:6px">Picks per hour</div></div>
+ <div class="card"><h2>On time, in full</h2><div class="big amber">94<small>%</small></div><div class="sub">Target 95% · <span class="amber">1 point under</span></div></div>
+ <div class="card"><h2>Late inbound</h2><div class="big red">3</div><div class="sub">deliveries overdue</div></div>
+ <div class="card" style="grid-column:span 2"><h2>Overdue deliveries</h2><ul>
+  <li><span>Supplier A · steel coil</span><span class="red">2 days late</span></li>
+  <li><span>Supplier B · fasteners</span><span class="amber">1 day late</span></li>
+  <li><span>Supplier C · packaging</span><span class="amber">1 day late</span></li></ul></div>
+</div>
+<div class="tag">Illustrative data · Sample Co</div></body>

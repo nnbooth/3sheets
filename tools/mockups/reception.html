@@ -1,0 +1,30 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="mock.css">
+<style>
+body{background:linear-gradient(160deg,#f4f7f2,#dfeee4);color:#25342a;padding:44px 80px}
+.hello{font-size:68px;white-space:nowrap;font-weight:800;letter-spacing:-.02em}.hello span{color:#2f7a5d}
+.lead{font-size:30px;color:#5f6f63;margin:6px 0 34px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:34px}
+.card{background:#fff;border:2px solid #dce8dc;border-radius:26px;padding:28px 40px;box-shadow:0 10px 30px rgba(37,52,42,.08)}
+.card h2{font-size:24px;letter-spacing:.14em;text-transform:uppercase;color:#5f6f63;margin-bottom:10px}
+.big{font-size:112px;font-weight:800;line-height:1.05;color:#2f7a5d}.big small{font-size:50px;color:#5f6f63}
+.sub{font-size:28px;color:#5f6f63;margin-top:8px}
+.wide{margin-top:28px;display:grid;grid-template-columns:1.4fr 1fr;gap:34px}
+.brand{position:absolute;left:80px;bottom:26px;font-size:26px;font-weight:700;color:#2f7a5d}
+ul{list-style:none;padding:0}li{font-size:30px;padding:9px 0;display:flex;justify-content:space-between;border-bottom:1px solid #eaf6ee}
+</style>
+<body>
+<div class="hello">Good morning. <span>Welcome to Sample Co.</span></div>
+<div class="lead">Here's where we are this month.</div>
+<div class="row">
+ <div class="card"><h2>Orders shipped</h2><div class="big">1,248</div><div class="sub">this month so far</div></div>
+ <div class="card"><h2>Delivered on time</h2><div class="big">96<small>%</small></div><div class="sub">last 30 days</div></div>
+ <div class="card"><h2>Team in today</h2><div class="big">24<small> / 31</small></div><div class="sub">on site or working from home</div></div>
+</div>
+<div class="wide">
+ <div class="card"><h2>Orders shipped by week</h2>
+  <svg viewBox="0 0 700 190" width="100%" height="170"><polyline fill="none" stroke="#2f7a5d" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" points="10,140 120,110 230,125 340,80 450,95 560,55 690,40"/>
+  <g fill="#2f7a5d"><circle cx="10" cy="140" r="9"/><circle cx="120" cy="110" r="9"/><circle cx="230" cy="125" r="9"/><circle cx="340" cy="80" r="9"/><circle cx="450" cy="95" r="9"/><circle cx="560" cy="55" r="9"/><circle cx="690" cy="40" r="9"/></g>
+  <g fill="#5f6f63" font-size="20"><text x="0" y="182">W1</text><text x="110" y="182">W2</text><text x="220" y="182">W3</text><text x="330" y="182">W4</text><text x="440" y="182">W5</text><text x="550" y="182">W6</text><text x="660" y="182">W7</text></g></svg></div>
+ <div class="card"><h2>Today</h2><ul><li><span>Deliveries expected</span><b>6</b></li><li><span>Visitors booked</span><b>4</b></li><li><span>Open jobs on the floor</span><b>37</b></li></ul></div>
+</div>
+<div class="brand">Sample Co</div><div class="tag">Illustrative data · Sample Co</div></body>
