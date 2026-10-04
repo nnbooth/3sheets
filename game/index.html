@@ -48,8 +48,11 @@
       border: 2px solid var(--text);
       touch-action: manipulation;
     }
-    #game-canvas:focus { outline: none; }
-    #game-canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    /* Keyboard focus recolours the one border instead of adding an outline
+       outside it (an outside outline got clipped by the website's iframe and
+       showed as a second, unfinished line). */
+    #game-canvas:focus, #game-canvas:focus-visible { outline: none; }
+    #game-canvas:focus-visible { border-color: var(--accent); }
 
     /* Invisible real link/button over the drawn end-card buttons (so the
        call to action is a proper, clickable, keyboard-reachable link). */
