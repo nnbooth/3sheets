@@ -26,22 +26,28 @@
                own Power BI workspace: visitors can't sign in to it.
      status    Short label for the chip on the card, e.g. 'Live demo'.
                Ignored while embedUrl is empty (the chip says "In build").
+     preview   Picture shown while embedUrl is empty, e.g. a screenshot of
+               the report in progress. The current ones are mock-ups made by
+               tools/render_mockups.py. Leave as '' for a plain grey outline.
 --------------------------------------------------------------------------- */
 const REPORTS = [
   {
     title: 'Sales',
+    preview: 'media/report-sales.png',
     question: "What's selling, what's cancelling and what's in the pipeline",
     embedUrl: '',
     status: 'In build',
   },
   {
     title: 'Purchasing',
+    preview: 'media/report-purchasing.png',
     question: 'Which suppliers are late, and where costs are moving',
     embedUrl: '',
     status: 'In build',
   },
   {
     title: 'Payroll & overtime',
+    preview: 'media/report-payroll.png',
     question: 'Where overtime is growing, and why',
     embedUrl: '',
     status: 'In build',
@@ -130,7 +136,24 @@ function buildReportCard(report, index) {
   } else {
     // Nothing to embed yet: show the mock outline, never an empty iframe.
     frame.classList.add('report-frame--pending');
-    frame.appendChild(buildReportMock(index));
+    if (report.preview) {
+      // Preview image (a mock-up for now), opens full size in a new tab
+      const link = document.createElement('a');
+      link.href = report.preview;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.className = 'report-preview';
+      const img = document.createElement('img');
+      img.src = report.preview;
+      img.alt = `${report.title} report preview: illustrative mock-up with invented data.`;
+      img.loading = 'lazy';
+      img.width = 1600;
+      img.height = 900;
+      link.appendChild(img);
+      frame.appendChild(link);
+    } else {
+      frame.appendChild(buildReportMock(index));
+    }
     // Reminder for the site owner; hidden unless <body class="dev-notes"> (see styles.css)
     const note = el('span', 'devnote devnote--big');
     note.setAttribute('role', 'note');
@@ -139,7 +162,7 @@ function buildReportCard(report, index) {
       el('small', '', `${report.title} report. Publish to web, then paste the link into this report's embedUrl in script.js.`)
     );
     frame.appendChild(note);
-    frame.appendChild(el('p', 'report-pending-msg', 'In build — preview coming soon'));
+    frame.appendChild(el('p', 'report-pending-msg', report.preview ? 'Mock-up · report in build' : 'In build — preview coming soon'));
   }
 
   card.appendChild(frame);

@@ -128,24 +128,58 @@
       </section>
 
       <!-- TOOLS I WORK IN
-           Logos are shown only to say which tools I use: no partnership is
-           implied. Python, R, Google Sheets and Claude use their own marks
-           (Assets/tools/). The Microsoft tools use a plain monogram chip:
-           swap in Microsoft's official icons if you like (PLACEHOLDERS.md). -->
+           Grouped chips. Each chip is a small mark plus the tool's name.
+           LOGOS: Python, R, Google Sheets and Claude use their own marks
+           (Assets/tools/, from the Simple Icons set). Every other tool uses a
+           plain letter mark: their logos aren't in that set, and Microsoft's
+           own icon licence doesn't cover marketing pages. To use an official
+           logo you have permission for, save it in Assets/tools/ and swap
+           the <span class="tool-mono">…</span> for an <img> (see PLACEHOLDERS.md).
+           Naming a tool you use is fine; don't imply a partnership. -->
       <section class="tools-strip" aria-labelledby="tools-heading">
         <div class="container">
-          <h2 id="tools-heading" class="tools-heading">Tools I work in</h2>
-          <ul class="tool-list">
-            <li class="tool"><span class="tool-mono" aria-hidden="true">X</span>Excel</li>
-            <li class="tool"><span class="tool-mono" aria-hidden="true">PQ</span>Power Query</li>
-            <li class="tool"><span class="tool-mono" aria-hidden="true">BI</span>Power BI</li>
-            <li class="tool"><span class="tool-mono" aria-hidden="true">PA</span>Power Automate</li>
-            <li class="tool"><img src="Assets/tools/python.svg" alt="" width="22" height="22" />Python</li>
-            <li class="tool"><img src="Assets/tools/r.svg" alt="" width="22" height="22" />R</li>
-            <li class="tool"><img src="Assets/tools/sql.svg" alt="" width="22" height="22" />SQL</li>
-            <li class="tool"><img src="Assets/tools/googlesheets.svg" alt="" width="22" height="22" />Google Sheets</li>
-            <li class="tool tool--ai"><img src="Assets/tools/claude.svg" alt="" width="22" height="22" />Claude (AI)</li>
-          </ul>
+          <div class="tools-top">
+            <h2 id="tools-heading" class="tools-heading">Tools I work in</h2>
+            <p class="tools-note">Technology agnostic: I work with what you already have.</p>
+          </div>
+          <div class="tool-groups">
+            <div class="tool-group">
+              <h3 class="tool-group-name">Reporting and dashboards</h3>
+              <ul class="tool-list">
+                <li class="tool"><span class="tool-mono" aria-hidden="true">X</span>Excel</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">BI</span>Power BI</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">PQ</span>Power Query</li>
+                <li class="tool"><img src="Assets/tools/googlesheets.svg" alt="" width="22" height="22" />Google Sheets</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">DW</span>Datawrapper</li>
+              </ul>
+            </div>
+            <div class="tool-group">
+              <h3 class="tool-group-name">Data and automation</h3>
+              <ul class="tool-list">
+                <li class="tool"><span class="tool-mono" aria-hidden="true">PA</span>Power Automate</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">Az</span>Azure</li>
+                <li class="tool"><img src="Assets/tools/sql.svg" alt="" width="22" height="22" />SQL</li>
+                <li class="tool"><img src="Assets/tools/python.svg" alt="" width="22" height="22" />Python</li>
+                <li class="tool"><img src="Assets/tools/r.svg" alt="" width="22" height="22" />R</li>
+              </ul>
+            </div>
+            <div class="tool-group">
+              <h3 class="tool-group-name">Business systems</h3>
+              <ul class="tool-list">
+                <li class="tool"><span class="tool-mono" aria-hidden="true">QAD</span>QAD (ERP)</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">T1</span>TechnologyOne</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">SF</span>Salesforce</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">E</span>Elite (legal)</li>
+                <li class="tool"><span class="tool-mono" aria-hidden="true">EH</span>Employment Hero</li>
+              </ul>
+            </div>
+            <div class="tool-group">
+              <h3 class="tool-group-name">AI</h3>
+              <ul class="tool-list">
+                <li class="tool tool--ai"><img src="Assets/tools/claude.svg" alt="" width="22" height="22" />Claude</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -353,6 +387,45 @@
                 <li>Dashboards and automations kept running and adjusted as the business changes</li>
                 <li>Swap the focus month to month: a costing review one month, a pricing check the next</li>
               </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- "CAN I HAVE IT IN EXCEL?": technology-agnostic message -->
+      <section id="excel" class="section section-alt">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">The question everyone asks</p>
+            <h2>&ldquo;Can I have it in Excel?&rdquo; Yes.</h2>
+            <p class="lead">
+              In the data world that question usually gets an eye-roll. Not here. I'm technology agnostic: if your team lives in Excel,
+              the report lands in Excel. If you've already paid for Power BI, Salesforce or your ERP's reporting, I build on that.
+              The tool should fit the business, not the other way around.
+            </p>
+          </div>
+
+          <div class="card-grid">
+            <article class="info-card">
+              <h3>Excel, done properly</h3>
+              <p>
+                A workbook that refreshes from the source with Power Query, using the same numbers and definitions as any dashboard,
+                so nobody is copying and pasting into it at month-end.
+              </p>
+            </article>
+            <article class="info-card">
+              <h3>Use what you've already got</h3>
+              <p>
+                ERP (QAD, TechnologyOne, Elite), CRM (Salesforce), Google Sheets, Azure: I connect to what you run today
+                rather than asking you to replace it.
+              </p>
+            </article>
+            <article class="info-card">
+              <h3>New tools only if they earn it</h3>
+              <p>
+                If a new licence or platform would genuinely save you time or money, I'll show you why. If it wouldn't,
+                you won't hear about it.
+              </p>
             </article>
           </div>
         </div>

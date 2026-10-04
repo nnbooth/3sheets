@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="report.css"><script src="charts.js"></script>
+<body>
+<div class="head"><h1>Payroll &amp; overtime <span>· where overtime is growing, and why</span></h1>
+ <div class="slicers"><div class="slicer">Month <b>October</b></div><div class="slicer">Team <b>All</b></div></div></div>
+<div class="kpis">
+ <div class="kpi"><h2>Labour cost</h2><b>$198k</b><small>month to date</small></div>
+ <div class="kpi"><h2>Overtime hours</h2><b>412</b><small class="down">▲ 18% on last month</small></div>
+ <div class="kpi"><h2>Overtime share</h2><b>9.6%</b><small>of hours worked</small></div>
+ <div class="kpi"><h2>Labour per job</h2><b>$142</b><small class="down">▲ $11</small></div>
+</div>
+<div class="grid">
+ <div class="vis"><h2>Overtime hours by week</h2><div class="chart" id="c1"></div></div>
+ <div class="vis tall"><h2>By team</h2>
+  <table><tr><th>Team</th><th class="n">OT hours</th><th class="n">Jobs</th><th class="n">Labour/job</th></tr>
+  <tr><td>Fabrication</td><td class="n down">168</td><td class="n">412</td><td class="n down">$171</td></tr>
+  <tr><td>Assembly</td><td class="n">97</td><td class="n">388</td><td class="n">$139</td></tr>
+  <tr><td>Despatch</td><td class="n">74</td><td class="n">520</td><td class="n">$96</td></tr>
+  <tr><td>Maintenance</td><td class="n">49</td><td class="n">63</td><td class="n">$228</td></tr>
+  <tr><td>Office</td><td class="n">24</td><td class="n">-</td><td class="n">-</td></tr></table></div>
+ <div class="vis"><h2>Hours worked vs jobs completed</h2><div class="chart" id="c2"></div></div>
+</div>
+<div class="tag">Illustrative data · Sample Co</div>
+<script>
+bars('c1', ['W1','W2','W3','W4','W5','W6'], [58, 61, 66, 72, 74, 81], { colors: [C.sage, C.sage, C.sage, C.amber, C.amber, C.alert] });
+lines('c2', ['W1','W2','W3','W4','W5','W6'], [{ values: [100, 102, 105, 109, 111, 116], color: C.alert, name: 'Hours worked' }, { values: [100, 101, 101, 102, 101, 103], color: C.accent, dash: '12 8', name: 'Jobs completed' }]);
+</script></body>
