@@ -369,6 +369,15 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
   border-radius: 0.3rem;
 }
 
+/* LIVE DISPLAYS — three dashboard screenshots (warehouse, reception, boardroom). */
+.display-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+.display { margin: 0; }
+.display img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+.display a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 0.75rem; }
+.display figcaption { margin-top: 0.6rem; font-size: 0.95rem; color: var(--muted); }
+.display figcaption strong { color: var(--text); }
+.display-note { margin: 1rem 0 0; font-size: 0.85rem; color: var(--muted); }
+
 /* WHAT I DO — the three packages (Set up / Dig in / Stay on top). */
 .package-card { display: flex; flex-direction: column; }
 .package-card .card-tag { align-self: flex-start; }
@@ -413,7 +422,7 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list { grid-template-columns: 1fr; }
+  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }
