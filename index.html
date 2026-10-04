@@ -51,6 +51,7 @@
         <!-- Keep these links in the same order as the sections below. -->
         <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
           <a href="#experience">About</a>
+          <a href="#ai">How I build</a>
           <a href="#services">What I do</a>
           <a href="#risks">Why it matters</a>
           <a href="#reports">Reports</a>
@@ -119,6 +120,28 @@
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- TOOLS I WORK IN
+           Logos are shown only to say which tools I use: no partnership is
+           implied. Python, R, Google Sheets and Claude use their own marks
+           (Assets/tools/). The Microsoft tools use a plain monogram chip:
+           swap in Microsoft's official icons if you like (PLACEHOLDERS.md). -->
+      <section class="tools-strip" aria-labelledby="tools-heading">
+        <div class="container">
+          <h2 id="tools-heading" class="tools-heading">Tools I work in</h2>
+          <ul class="tool-list">
+            <li class="tool"><span class="tool-mono" aria-hidden="true">X</span>Excel</li>
+            <li class="tool"><span class="tool-mono" aria-hidden="true">PQ</span>Power Query</li>
+            <li class="tool"><span class="tool-mono" aria-hidden="true">BI</span>Power BI</li>
+            <li class="tool"><span class="tool-mono" aria-hidden="true">PA</span>Power Automate</li>
+            <li class="tool"><img src="Assets/tools/python.svg" alt="" width="22" height="22" />Python</li>
+            <li class="tool"><img src="Assets/tools/r.svg" alt="" width="22" height="22" />R</li>
+            <li class="tool"><img src="Assets/tools/sql.svg" alt="" width="22" height="22" />SQL</li>
+            <li class="tool"><img src="Assets/tools/googlesheets.svg" alt="" width="22" height="22" />Google Sheets</li>
+            <li class="tool tool--ai"><img src="Assets/tools/claude.svg" alt="" width="22" height="22" />Claude (AI)</li>
+          </ul>
         </div>
       </section>
 
@@ -195,6 +218,47 @@
         </div>
       </section>
 
+      <!-- BUILT WITH AI: the speed-of-build selling point. No numbers are
+           claimed; the wording is in PLACEHOLDERS.md under "Draft copy". -->
+      <section id="ai" class="section">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">How I build</p>
+            <h2>Built with AI, checked by a CPA.</h2>
+            <p class="lead">
+              I use Claude to write and test the queries, code and report logic behind your reporting. The first working version
+              arrives sooner, so you react to something real instead of a specification, and you pay for judgement rather than typing time.
+            </p>
+          </div>
+
+          <div class="card-grid">
+            <article class="info-card">
+              <h3>A shorter build cycle</h3>
+              <p>
+                Power Query steps, SQL, Python and R scripts, and Power BI report logic are drafted and tested with AI assistance.
+                Changes that used to mean another round of development become a quick conversation.
+              </p>
+            </article>
+
+            <article class="info-card">
+              <h3>The numbers are still checked</h3>
+              <p>
+                AI speeds up the build; it doesn't sign off the numbers. Every report is reconciled to your accounts and tested
+                against the source data before it reaches you. That's the accountant's half of the job.
+              </p>
+            </article>
+
+            <article class="info-card">
+              <h3>This website is proof</h3>
+              <p>
+                I built this site, and the game on it, with Claude. Sections like this were drafted, tested and redone in
+                a fraction of the usual back-and-forth, which is the same speed your reporting gets.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <!-- WHAT I DO: the product package, in three steps. A client can start
            at any step. Edit the lists below to change what's in each one. -->
       <section id="services" class="section section-alt">
@@ -211,10 +275,10 @@
               <h3>Get the data right</h3>
               <p class="package-price">Fixed price: the <a href="#offer">starter bundle</a></p>
               <ul class="package-list">
-                <li>Clean and connect your spreadsheets, accounting exports, CRM, supplier files and emailed reports</li>
+                <li>Clean and connect your spreadsheets, accounting exports, CRM, supplier files and emailed reports (Power Query, with Python, R or SQL for the heavier jobs)</li>
                 <li>Agree the definitions: what counts as a sale, a cancellation, an on-time delivery</li>
                 <li>Dashboards in Power BI or Excel: sales and pipeline, purchasing, labour and overtime</li>
-                <li>Automated updates: refreshed and emailed on a set schedule, with no re-keying</li>
+                <li>Automated updates with Power Automate: refreshed and emailed on a set schedule, with no re-keying</li>
               </ul>
             </article>
             <article class="info-card package-card">
@@ -393,7 +457,7 @@
             </div>
             <div>
               <dt>Data sources</dt>
-              <dd>Excel and Google Sheets, exports from your accounting system (such as Xero or MYOB), CRM and supplier exports, and reports that arrive by email.</dd>
+              <dd>Excel and Google Sheets, exports from your accounting system, CRM and supplier exports, and reports that arrive by email.</dd>
             </div>
             <div>
               <dt>How often it refreshes</dt>
@@ -477,7 +541,7 @@
       <div class="container footer-content">
         <p>
           © <span id="year">2026</span> 3Sheets Consulting ·
-          Nathan Booth, CPA ·
+          Nathan Booth, CPA · built with Claude ·
           <span class="tbc" data-placeholder="[[LOCATION]]">Location TBC</span>
         </p>
       </div>

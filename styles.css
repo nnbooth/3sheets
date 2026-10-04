@@ -336,6 +336,39 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
   padding: 0.1rem 0.5rem;
 }
 
+/* TOOLS STRIP — "Tools I work in" chips under the hero. */
+.tools-strip { padding: 1.25rem 0 1.5rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
+.tools-heading { margin: 0 0 0.75rem; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+.tool-list { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem 0.4rem 0.55rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.tool img { display: block; }
+.tool--ai { background: var(--accent-soft); border-color: #9db8a6; }
+.tool-mono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: var(--accent);
+  border-radius: 0.3rem;
+}
+
 /* WHAT I DO — the three packages (Set up / Dig in / Stay on top). */
 .package-card { display: flex; flex-direction: column; }
 .package-card .card-tag { align-self: flex-start; }

@@ -83,6 +83,9 @@ These sentences are on the page now and make promises you should confirm or edit
 
 - **The three packages (What I do):** 1 Set up (fixed price, the starter bundle), 2 Dig in (quoted per project), 3 Stay on top (monthly). Check what's listed in each, and that "quoted per project" and a monthly fee are how you want to sell them.
 
+- **"How I build" (AI) section: claims to confirm.** It says you use Claude to write and test queries, code and report logic; that every report is reconciled to the client's accounts and tested against source data before it's delivered; and that this site and the game were built with Claude. Keep each only if it's true of how you work. No speed figures are claimed, which is deliberate: add one only when you can back it up. Clients may also ask whether their data goes into an AI tool, so decide your answer before they do and add it to this section.
+- **Tools strip.** Python, R, Google Sheets and Claude use their own logos (from the open-licence Simple Icons set, in `Assets/tools/`); SQL uses a generic database symbol. Excel, Power Query, Power BI and Power Automate use plain monogram chips. If you want Microsoft's official icons, download them from Microsoft's site, put the files in `Assets/tools/` and swap them in for the chips in `index.html` (search "TOOLS I WORK IN"). Logos only say which tools you use: don't imply a partnership or endorsement, and check each owner's brand guidelines. Only list tools you're happy to be hired for.
+
 ## TODO outside this repo
 
 - [ ] **Live sheet (Live example section).** The embedded Google Sheet tab is titled **"Testing : Team_Budget"**, and it's thin test data with a `stevo` row. The title shows at the top of the embed. Publish a finished, read-only sheet, rename the tab, and if the published address changes, update both addresses on the `live-sheet` panel in `index.html`:
