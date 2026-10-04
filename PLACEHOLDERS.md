@@ -100,6 +100,8 @@ These sentences are on the page now and make promises you should confirm or edit
 
 ## Before going live: checklist
 
+- [ ] **Turn off the orange TO DO notes:** in `index.html`, delete `class="dev-notes"` from the `<body>` tag (and the "DEV NOTES ARE ON" bar under it). While that class is there, the notes show over the three dashboard images, the three "In build" report cards and the test Google Sheet.
+
 - [ ] **Undeploy or restrict the old Apps Script web app** behind the removed "Email Staff Individually" button. Removing the button doesn't stop anyone who has the URL, and the URL is still in git history.
 - [ ] **Deal with the old copies in `versions/`.** Every `versions/*/index.html` + `script.js` (apple, nes, sms, snes, geocities, social, as400, modern, insta) still contains the email button and its Apps Script address, the Power BI test embed and the case study. They're publicly served under `/3sheets/versions/…`. Delete them, strip them, or stop serving them before launch.
 - [ ] Every token above is replaced: searching the repo for `[[` finds only this file.

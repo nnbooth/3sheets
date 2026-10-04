@@ -131,6 +131,14 @@ function buildReportCard(report, index) {
     // Nothing to embed yet: show the mock outline, never an empty iframe.
     frame.classList.add('report-frame--pending');
     frame.appendChild(buildReportMock(index));
+    // Reminder for the site owner; hidden unless <body class="dev-notes"> (see styles.css)
+    const note = el('span', 'devnote devnote--big');
+    note.setAttribute('role', 'note');
+    note.append(
+      el('strong', '', 'TO DO: BUILD THIS IN POWER BI'),
+      el('small', '', `${report.title} report. Publish to web, then paste the link into this report's embedUrl in script.js.`)
+    );
+    frame.appendChild(note);
     frame.appendChild(el('p', 'report-pending-msg', 'In build — preview coming soon'));
   }
 
