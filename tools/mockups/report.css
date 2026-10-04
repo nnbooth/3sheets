@@ -1,0 +1,27 @@
+/* Shared look for the report mock-ups (a report canvas with slicers, KPI cards
+   and visuals). Invented "Sample Co" data. */
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1600px; height: 900px; overflow: hidden; }
+body { font-family: "Inter","Segoe UI",Helvetica,Arial,sans-serif; background: #eef2ee; color: #25342a; padding: 26px 32px; }
+.head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.head h1 { font-size: 34px; } .head h1 span { color: #5f6f63; font-weight: 500; }
+.slicers { display: flex; gap: 12px; }
+.slicer { background: #fff; border: 2px solid #dce8dc; border-radius: 8px; padding: 8px 16px; font-size: 18px; color: #5f6f63; }
+.slicer b { color: #25342a; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+.kpi { background: #fff; border: 2px solid #dce8dc; border-radius: 12px; padding: 14px 20px; }
+.kpi h2 { font-size: 16px; letter-spacing: .1em; text-transform: uppercase; color: #5f6f63; }
+.kpi b { display: block; font-size: 46px; margin-top: 2px; }
+.kpi small { font-size: 17px; color: #5f6f63; }
+.up { color: #2f7a5d !important; } .down { color: #b93a3a !important; }
+.grid { display: grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: 1fr 1fr; gap: 16px; height: 575px; }
+.vis { background: #fff; border: 2px solid #dce8dc; border-radius: 12px; padding: 14px 20px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.vis h2 { font-size: 17px; letter-spacing: .1em; text-transform: uppercase; color: #5f6f63; margin-bottom: 6px; }
+.vis .chart { flex: 1; min-height: 0; position: relative; }
+.vis .chart svg { position: absolute; inset: 0; } /* fill the box, never push it taller */
+.tall { grid-row: span 2; }
+table { width: 100%; border-collapse: collapse; font-size: 20px; }
+th { text-align: left; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: #5f6f63; padding: 8px 6px; border-bottom: 2px solid #dce8dc; }
+td { padding: 10px 6px; border-bottom: 1px solid #eef2ee; }
+td.n, th.n { text-align: right; }
+.tag { position: absolute; right: 30px; bottom: 8px; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: #5f6f63; }
