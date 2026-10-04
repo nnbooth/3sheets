@@ -101,7 +101,11 @@ These sentences are on the page now and make promises you should confirm or edit
 - [ ] **Power BI reports.** None are built yet. When one is ready, use **File → Embed report → Publish to web** in Power BI and paste the `https://app.powerbi.com/view?r=…` link into that report's `embedUrl` in the `REPORTS` list at the top of `script.js`. Set its `status` to e.g. `'Live demo'`. "Publish to web" makes the report public, so only publish demo data.
 - [ ] **Game numbers.** The game's summary uses illustrative assumptions in `game/game.js` `CONFIG`: 32 hours saved, $85/hour, $1,500 setup, $120/month running cost and a 40-hour manual month-end. Confirm or change them, then re-record (`python3 tools/record_demo.py`).
 
+- [ ] **Email test feature (Live example section).** Password-protected "email this pack". Until set up, it says "not set up yet". To switch it on: follow `tools/apps-script/README.md` (new Apps Script, `TEST_PASSWORD` and `SHEET_ID` in Script Properties, deploy as a web app), then paste the `/exec` address into `EMAIL_TEST_URL` in `script.js`. The password lives only in the Apps Script, never in the website or git.
+
 ## Before going live: checklist
+
+- [ ] Decide whether the password-protected email test panel stays on the live site (it's visible to visitors, locked). To hide it, delete the `<div class="email-test">` block in `index.html` or leave `EMAIL_TEST_URL` empty.
 
 - [ ] **Turn off the orange TO DO notes:** in `index.html`, delete `class="dev-notes"` from the `<body>` tag (and the "DEV NOTES ARE ON" bar under it). While that class is there, the notes show over the three dashboard images, the three "In build" report cards and the test Google Sheet.
 
