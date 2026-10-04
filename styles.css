@@ -185,6 +185,43 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* EMAIL TEST — password-protected "email this pack" panel under the live sheet */
+.email-test { margin-top: 1rem; }
+.email-test-toggle {
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px dashed #9db8a6;
+  border-radius: 0.6rem;
+  cursor: pointer;
+}
+.email-test-toggle span { font-weight: 400; color: var(--muted); }
+.email-test-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.email-test-body { margin-top: 0.75rem; padding: 1rem 1.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; max-width: 36rem; }
+.email-test-form label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+.email-test-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.email-test-row input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid #9db8a6;
+  border-radius: 0.5rem;
+}
+.email-test-row input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.email-test-row input[aria-invalid="true"] { border-color: #b93a3a; }
+.email-test-row .button { border: 0; font: inherit; font-weight: 600; cursor: pointer; }
+.email-test-row .button:disabled, .email-test-row input:disabled { opacity: 0.6; cursor: wait; }
+.email-test-hint { margin: 0.4rem 0 0; font-size: 0.85rem; color: var(--muted); }
+.email-test-status { margin: 0.6rem 0 0; min-height: 1.4em; font-size: 0.95rem; }
+.email-test-status[data-kind="error"] { color: #b93a3a; font-weight: 600; }
+.email-test-status[data-kind="ok"] { color: var(--accent); font-weight: 600; }
+
 /* REPORT CARDS — built by script.js from the REPORTS list. */
 .report-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .report-card {

@@ -7,6 +7,7 @@
   - Loading message + 8-second fallback ...... watchEmbedLoad()
   - Google Sheet auto-height ................. applyDynamicSheetHeight()
   - Game (load on Play) ...................... setupGameSlot()
+  - Email test feature (password) ............ EMAIL_TEST_URL / setupEmailTest()
   - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
 
   No frameworks or build step: this file is loaded as-is by index.html.
@@ -339,6 +340,112 @@ function setupGameSlot() {
 }
 
 /* ---------------------------------------------------------------------------
+   EMAIL TEST — password-protected "email this pack" test feature.
+
+   EMAIL_TEST_URL is the address of YOUR Google Apps Script web app (from
+   tools/apps-script/email-test.gs; setup steps in tools/apps-script/README.md).
+   Leave it '' and the panel just says it isn't set up yet.
+
+   Security: this page never knows the password. It sends what you type to
+   the Apps Script, which checks it (with a lockout), re-checks the email
+   address, applies limits and sends one fixed email. Anything checked only
+   here could be read or bypassed by anyone viewing the page source.
+   The password is kept in memory only, never saved.
+--------------------------------------------------------------------------- */
+const EMAIL_TEST_URL = '';
+
+// Same rule as the Apps Script: a sensible length, one @, a real-looking domain
+function isValidEmail(value) {
+  return value.length <= 254 && /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[A-Za-z]{2,}$/.test(value);
+}
+
+// Post to the Apps Script. Plain-text JSON keeps it a "simple" request,
+// which Apps Script web apps accept from other websites.
+async function callEmailService(payload) {
+  const res = await fetch(EMAIL_TEST_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect: 'follow',
+  });
+  return res.json();
+}
+
+function setupEmailTest() {
+  const box = document.getElementById('email-test');
+  if (!box) return;
+  const toggle = box.querySelector('.email-test-toggle');
+  const body = document.getElementById('email-test-body');
+  const unlockForm = document.getElementById('email-test-unlock');
+  const sendForm = document.getElementById('email-test-send');
+  const passwordInput = document.getElementById('email-test-password');
+  const toInput = document.getElementById('email-test-to');
+  const status = document.getElementById('email-test-status');
+  let password = ''; // in memory only
+
+  const say = (text, kind = '') => { status.textContent = text; status.dataset.kind = kind; };
+  const busy = (form, on) => form.querySelectorAll('button, input').forEach((el) => { el.disabled = on; });
+
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') !== 'true';
+    toggle.setAttribute('aria-expanded', String(open));
+    body.hidden = !open;
+    if (open) {
+      if (!EMAIL_TEST_URL) say('Not set up yet: deploy the Apps Script and set EMAIL_TEST_URL in script.js.', 'error');
+      (password ? toInput : passwordInput).focus();
+    }
+  });
+
+  unlockForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!EMAIL_TEST_URL) { say('Not set up yet: deploy the Apps Script and set EMAIL_TEST_URL in script.js.', 'error'); return; }
+    const attempt = passwordInput.value;
+    if (!attempt) { say('Enter the password.', 'error'); passwordInput.focus(); return; }
+    busy(unlockForm, true); say('Checking…');
+    try {
+      const result = await callEmailService({ action: 'verify', password: attempt });
+      if (result.ok) {
+        password = attempt;
+        passwordInput.value = '';
+        unlockForm.hidden = true;
+        sendForm.hidden = false;
+        say('Unlocked.', 'ok');
+        toInput.focus();
+      } else {
+        say(result.error || 'Wrong password.', 'error');
+        passwordInput.select();
+      }
+    } catch {
+      say("Couldn't reach the email service. Try again shortly.", 'error');
+    } finally {
+      busy(unlockForm, false);
+    }
+  });
+
+  sendForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const to = toInput.value.trim();
+    if (!isValidEmail(to)) {
+      toInput.setAttribute('aria-invalid', 'true');
+      say('Enter a valid email address, like name@company.com.au.', 'error');
+      toInput.focus();
+      return;
+    }
+    toInput.removeAttribute('aria-invalid');
+    busy(sendForm, true); say('Sending…');
+    try {
+      const result = await callEmailService({ action: 'send', password, to });
+      if (result.ok) say(`Sent to ${to}. It can take a minute to arrive.`, 'ok');
+      else say(result.error || 'Sending failed.', 'error');
+    } catch {
+      say("Couldn't reach the email service. Try again shortly.", 'error');
+    } finally {
+      busy(sendForm, false);
+    }
+  });
+}
+
+/* ---------------------------------------------------------------------------
    Page start-up
 --------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -361,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupGameSlot();
+  setupEmailTest();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
   document.querySelectorAll('.embed-panel[data-csv-url]').forEach(applyDynamicSheetHeight);

@@ -523,6 +523,34 @@
               sandbox="allow-same-origin allow-scripts"
             ></iframe>
           </div>
+
+          <!-- EMAIL TEST FEATURE (password protected). The password is checked
+               by the Google Apps Script, never by this page: see
+               tools/apps-script/README.md. Behaviour is in script.js, search
+               "EMAIL TEST". -->
+          <div class="email-test" id="email-test">
+            <button class="email-test-toggle" type="button" aria-expanded="false" aria-controls="email-test-body">
+              &#128274; Test feature: email this pack <span>(password required)</span>
+            </button>
+            <div class="email-test-body" id="email-test-body" hidden>
+              <form class="email-test-form" id="email-test-unlock" novalidate>
+                <label for="email-test-password">Password</label>
+                <div class="email-test-row">
+                  <input id="email-test-password" type="password" autocomplete="off" required maxlength="200" />
+                  <button class="button primary" type="submit">Unlock</button>
+                </div>
+              </form>
+              <form class="email-test-form" id="email-test-send" novalidate hidden>
+                <label for="email-test-to">Send the sample pack to</label>
+                <div class="email-test-row">
+                  <input id="email-test-to" type="email" inputmode="email" autocomplete="email" required maxlength="254" placeholder="name@company.com.au" aria-describedby="email-test-hint" />
+                  <button class="button primary" type="submit">Send test email</button>
+                </div>
+                <p class="email-test-hint" id="email-test-hint">One test email per address every 10 minutes. Sample data only.</p>
+              </form>
+              <p class="email-test-status" id="email-test-status" role="status" aria-live="polite"></p>
+            </div>
+          </div>
         </div>
       </section>
 
