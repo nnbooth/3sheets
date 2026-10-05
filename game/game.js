@@ -1168,7 +1168,7 @@
 
     const b = END_BUTTONS.book;
     box(b.x, b.y, b.w, b.h, PAL.accent, PAL.accentDark);
-    const label = fitText('BOOK A FREE 20-MIN DATA CHECK', b.w - 8, 1, [8]);
+    const label = fitText('BOOK A FREE NUMBERS CHECK', b.w - 8, 1, [8]);
     text(label.lines[0], W / 2, b.y + 5, PAL.white, 8, 'center');
 
     // Web address: one line if it fits, otherwise split after the last "/"

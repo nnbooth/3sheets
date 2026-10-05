@@ -1,5 +1,5 @@
 /*
-  game-audio.js — sound for "3Sheets: The Month-End Run"
+  game-audio.js — sound for "The Fourth Sheet: The Month-End Run"
 
   A tiny NES-style synth on the Web Audio API: two pulse channels
   (12.5% / 25% / 50% duty), a triangle and a noise channel. No audio

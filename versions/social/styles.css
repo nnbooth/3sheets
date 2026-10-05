@@ -1,5 +1,5 @@
 /*
-  styles.css — 3Sheets Consulting
+  styles.css — The Fourth Sheet
   SOCIAL-FEED THEME (in the manner of Facebook's current web UI) — just
   for fun. Same class names as main, so index.html and script.js are
   unchanged.
@@ -113,7 +113,7 @@ li + li { margin-top: 4px; }
 
 /* Round page avatar */
 .brand::before {
-  content: "3S";
+  content: "4";
   display: grid;
   place-items: center;
   width: 40px;
@@ -229,7 +229,7 @@ li + li { margin-top: 4px; }
 .hero-grid > div:first-child { position: relative; padding-left: 196px; min-height: 120px; }
 
 .hero-grid > div:first-child::before {
-  content: "3S";
+  content: "4";
   position: absolute;
   left: 16px;
   top: -84px;
@@ -415,7 +415,7 @@ main > section:last-of-type { padding-bottom: 16px; }
 }
 
 .section-heading::before {
-  content: "3S";
+  content: "4";
   grid-row: span 2;
   display: grid;
   place-items: center;
@@ -440,7 +440,7 @@ main > section:last-of-type { padding-bottom: 16px; }
 
 /* Page name sits above the eyebrow */
 .section-heading::after {
-  content: "3Sheets Consulting";
+  content: "The Fourth Sheet";
   grid-column: 2;
   grid-row: 1;
   font-size: 15px;
@@ -519,7 +519,7 @@ main > section:last-of-type { padding-bottom: 16px; }
 }
 
 .dashboard-card::before {
-  content: "3SHEETSCONSULTING.COM";
+  content: "THEFOURTHSHEET";
   display: block;
   padding: 72px 14px 6px;
   font-size: 12px;
