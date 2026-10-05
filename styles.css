@@ -129,30 +129,6 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 }
 .decision-item p { margin: 0; color: var(--text); font-size: 0.95rem; }
 .contact-box { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.7rem; }
-/* LIVE SHEET PANEL — the published Google Sheet. Height/width variables are
-   set by script.js from the sheet's row/column count; these are defaults. */
-.embed-panel {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0.9rem;
-  padding: 0.9rem;
-  --sheet-height-desktop: 300px;
-  --sheet-height-mobile: 280px;
-  --sheet-width-desktop: 860px;
-}
-
-.sheet-embed {
-  display: block;
-  width: min(100%, var(--sheet-width-desktop));
-  height: var(--sheet-height-desktop);
-  min-height: 220px;
-  max-height: 520px;
-  margin: 0 auto;
-  border: none;
-  background: transparent;
-}
-
 /* EMBED LOADING STATE — spinner/message laid over an iframe until it loads.
    script.js (watchEmbedLoad) adds .is-loading / .is-slow / .is-loaded to the
    container. Without JavaScript the overlay never shows. */
@@ -184,70 +160,6 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* EMAIL TEST — password-protected "email this pack" panel under the live sheet */
-.email-test { margin-top: 1rem; }
-.email-test-toggle {
-  padding: 0.55rem 0.9rem;
-  font: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px dashed #9db8a6;
-  border-radius: 0.6rem;
-  cursor: pointer;
-}
-.email-test-toggle span { font-weight: 400; color: var(--muted); }
-.email-test-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.email-test-body { margin-top: 0.75rem; padding: 1rem 1.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; max-width: 36rem; }
-.email-test-form label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
-.email-test-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.email-test-row input {
-  flex: 1 1 14rem;
-  min-width: 0;
-  padding: 0.65rem 0.8rem;
-  font: inherit;
-  color: var(--text);
-  background: #ffffff;
-  border: 1px solid #9db8a6;
-  border-radius: 0.5rem;
-}
-.email-test-row input:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
-.email-test-row input[aria-invalid="true"] { border-color: #b93a3a; }
-.email-test-row .button { border: 0; font: inherit; font-weight: 600; cursor: pointer; }
-.email-test-row .button:disabled, .email-test-row input:disabled { opacity: 0.6; cursor: wait; }
-.email-test-hint { margin: 0.4rem 0 0; font-size: 0.85rem; color: var(--muted); }
-.email-test-status { margin: 0.6rem 0 0; min-height: 1.4em; font-size: 0.95rem; }
-.email-test-status[data-kind="error"] { color: #b93a3a; font-weight: 600; }
-.email-test-status[data-kind="ok"] { color: var(--accent); font-weight: 600; }
-
-/* EXCEL — "Can I have it in Excel?": intro on the left, ticked points on the right */
-.excel-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; }
-.excel-intro .lead { margin-bottom: 0; }
-.excel-points {
-  display: grid;
-  gap: 1.1rem;
-  margin: 0;
-  padding: 1.5rem 1.6rem;
-  list-style: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0.9rem;
-}
-.excel-points li { position: relative; padding-left: 2.1rem; color: var(--muted); line-height: 1.55; }
-.excel-points strong { display: block; color: var(--text); margin-bottom: 0.15rem; }
-/* tick in a soft green circle */
-.excel-points li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.15rem;
-  width: 1.35rem;
-  height: 1.35rem;
-  border-radius: 50%;
-  background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%232f7a5d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 0.85rem no-repeat;
-}
 
 /* REPORT CARDS — built by script.js from the REPORTS list. */
 .report-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -441,6 +353,62 @@ body.dev-notes .devnote { display: flex; }
 .devnote--big small { font-size: 0.8rem; line-height: 1.3; }
 .display-link { display: block; position: relative; }
 
+/* BRAND MARK — the green "4" square before the name in the header */
+.brand { display: inline-flex; align-items: center; gap: 0.55rem; }
+.brand-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.75rem; height: 1.75rem; border-radius: 0.45rem;
+  background: var(--accent); color: #fbfdf9; font-weight: 800; font-size: 1.05rem; line-height: 1;
+}
+
+/* HERO extras — the "three sheets" lead line and the two audience links */
+.hero-lead { margin: 0 0 0.6rem; font-size: 1.25rem; font-weight: 600; color: var(--accent); line-height: 1.35; }
+.hero-paths { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin: 0; font-weight: 600; }
+.hero-paths a { color: var(--accent); text-decoration: none; }
+.hero-paths a:hover { text-decoration: underline; }
+
+/* CREDIBILITY STRIP — one line under the hero */
+.cred-strip { background: var(--text); color: #eaf6ee; padding: 1.1rem 0; }
+.cred-inner { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem 1.5rem; }
+.cred-line { margin: 0; font-size: 1.02rem; max-width: 52rem; }
+.cred-names { margin: 0; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.cred-names a { color: #cfe3d5; text-decoration: none; }
+.cred-names a:hover { text-decoration: underline; }
+
+/* AUDIENCE SECTIONS — spine number beside the "next layer" numbers */
+.audience-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 1.5rem; align-items: start; }
+.spine { background: var(--accent); color: #fbfdf9; border-radius: 0.9rem; padding: 1.5rem 1.6rem; }
+.spine-label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #cfe3d5; }
+.spine strong { display: block; margin: 0.35rem 0 0.5rem; font-size: 1.7rem; line-height: 1.15; }
+.spine p { margin: 0; color: #eaf6ee; }
+.next-layer { display: grid; gap: 0.85rem; margin: 0; padding: 0; list-style: none; }
+.next-layer li { padding: 0 0 0.85rem; border-bottom: 1px solid var(--border); color: var(--muted); }
+.next-layer li:last-child { border-bottom: 0; padding-bottom: 0; }
+.next-layer strong { color: var(--text); }
+.audience-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.proof { margin: 0; color: var(--muted); }
+.proof strong { color: var(--text); }
+.proof-label { display: inline-block; margin-right: 0.4rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 0.1rem 0.5rem; }
+
+/* TRACK RECORD — two groups of cards */
+.record-group { margin: 1.5rem 0 0.75rem; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.record-group:first-of-type { margin-top: 0; }
+.card-grid--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.info-card a { color: var(--accent); text-underline-offset: 3px; }
+
+/* THE OFFER — three-rung ladder */
+.ladder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.rung { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: 0.9rem; padding: 1.4rem; }
+.rung:first-child { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.rung-step { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; margin-bottom: 0.6rem; border-radius: 50%; background: var(--accent); color: #fbfdf9; font-weight: 800; }
+.rung p { color: var(--muted); }
+.rung-price { margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border); font-weight: 700; color: var(--text); }
+.rung-price small { display: block; font-weight: 400; color: var(--muted); }
+.offer-cta { margin-top: 1.5rem; }
+
+/* DEV NOTE (inline) — a small orange TO DO line in the page flow */
+.devnote--inline { margin: 0 0 0.75rem; padding: 0.35rem 0.7rem; font-size: 0.85rem; font-weight: 700; color: #3a2300; background: #ffb020; border: 2px dashed #3a2300; border-radius: 0.4rem; width: fit-content; }
+
 /* TOOLS STRIP — "Tools I work in", grouped chips under the hero. */
 .tools-strip { padding: 1.5rem 0 1.75rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
 .tools-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1rem; margin-bottom: 1rem; }
@@ -563,7 +531,7 @@ body.dev-notes .devnote { display: flex; }
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .wins-grid, .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
+  .wins-grid, .card-grid, .card-grid--two, .audience-grid, .ladder, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }
@@ -571,9 +539,6 @@ body.dev-notes .devnote { display: flex; }
 }
 @media (max-width: 720px) {
   .tool-group { grid-template-columns: 1fr; gap: 0.45rem; }
-  .embed-panel { padding: 0.7rem; }
-  .sheet-embed { width: 100%; height: var(--sheet-height-mobile); max-height: 420px; }
-
   .nav-toggle { display: inline-block; }
   .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; padding: 1rem; background: rgba(252, 251, 247, 0.98); border-bottom: 1px solid var(--border); }
   .nav-links.open { display: flex; }

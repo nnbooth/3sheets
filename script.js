@@ -5,9 +5,8 @@
   - Report cards (edit this to add reports) .. REPORTS list, just below
   - Report card builder ...................... renderReports() / buildReportCard()
   - Loading message + 8-second fallback ...... watchEmbedLoad()
-  - Google Sheet auto-height ................. applyDynamicSheetHeight()
   - Game (load on Play) ...................... setupGameSlot()
-  - Email test feature (password) ............ EMAIL_TEST_URL / setupEmailTest()
+  - Prices (switched off by default) ......... SHOW_PRICES / PRICES
   - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
 
   No frameworks or build step: this file is loaded as-is by index.html.
@@ -146,7 +145,7 @@ function buildReportCard(report, index) {
       link.className = 'report-preview';
       const img = document.createElement('img');
       img.src = report.preview;
-      img.alt = `${report.title} report preview: illustrative mock-up with invented data.`;
+      img.alt = `${report.title} report preview with sample data.`;
       img.loading = 'lazy';
       img.width = 1600;
       img.height = 900;
@@ -155,15 +154,7 @@ function buildReportCard(report, index) {
     } else {
       frame.appendChild(buildReportMock(index));
     }
-    // Reminder for the site owner; hidden unless <body class="dev-notes"> (see styles.css)
-    const note = el('span', 'devnote devnote--big');
-    note.setAttribute('role', 'note');
-    note.append(
-      el('strong', '', 'TO DO: BUILD THIS IN POWER BI'),
-      el('small', '', `${report.title} report. Publish to web, then paste the link into this report's embedUrl in script.js.`)
-    );
-    frame.appendChild(note);
-    frame.appendChild(el('p', 'report-pending-msg', report.preview ? 'Mock-up · report in build' : 'In build — preview coming soon'));
+    frame.appendChild(el('p', 'report-pending-msg', report.preview ? 'Sample data · live report coming soon' : 'Live report coming soon'));
   }
 
   card.appendChild(frame);
@@ -177,7 +168,7 @@ function renderReports() {
 }
 
 /* ---------------------------------------------------------------------------
-   Loading state for embedded iframes (Google Sheet and Power BI reports).
+   Loading state for embedded iframes (Power BI reports).
 
    Any element with a `data-embed` attribute that contains an <iframe> and an
    .embed-status box gets:
@@ -227,73 +218,6 @@ function watchEmbedLoad(container) {
 }
 
 /* ---------------------------------------------------------------------------
-   Google Sheet auto-height.
-
-   Reads the sheet's published CSV (the panel's data-csv-url) to count rows
-   and columns, then sizes the frame so a short sheet doesn't leave a big
-   empty box and a long one doesn't run off the page. Falls back to the
-   defaults below if the CSV can't be read.
---------------------------------------------------------------------------- */
-const MIN_VISIBLE_ROWS = 3;
-const MAX_VISIBLE_ROWS = 30;
-const DESKTOP_ROW_HEIGHT_PX = 30;
-const MOBILE_ROW_HEIGHT_PX = 24;
-const DESKTOP_BASE_HEIGHT_PX = 100;
-const MOBILE_BASE_HEIGHT_PX = 90;
-const MIN_DESKTOP_HEIGHT_PX = 230;
-const MAX_DESKTOP_HEIGHT_PX = 500;
-const MIN_MOBILE_HEIGHT_PX = 230;
-const MAX_MOBILE_HEIGHT_PX = 380;
-const DEFAULT_DESKTOP_HEIGHT_PX = 300;
-const DEFAULT_MOBILE_HEIGHT_PX = 280;
-
-const MIN_VISIBLE_COLS = 2;
-const MAX_VISIBLE_COLS = 8;
-const DESKTOP_COL_WIDTH_PX = 150;
-const DESKTOP_FRAME_PADDING_PX = 150;
-const MIN_DESKTOP_WIDTH_PX = 520;
-const MAX_DESKTOP_WIDTH_PX = 980;
-const DEFAULT_DESKTOP_WIDTH_PX = 860;
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function setSheetSize(panel, desktopHeight, mobileHeight, desktopWidth) {
-  panel.style.setProperty('--sheet-height-desktop', `${desktopHeight}px`);
-  panel.style.setProperty('--sheet-height-mobile', `${mobileHeight}px`);
-  panel.style.setProperty('--sheet-width-desktop', `${desktopWidth}px`);
-}
-
-async function applyDynamicSheetHeight(panel) {
-  const csvUrl = panel.dataset.csvUrl;
-  if (!csvUrl) return; // CSS defaults apply
-
-  try {
-    const response = await fetch(csvUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error('Unable to fetch sheet data');
-
-    const rows = (await response.text())
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-    const columnCount = rows[0] ? rows[0].split(',').length : 0;
-    const cols = clamp(columnCount, MIN_VISIBLE_COLS, MAX_VISIBLE_COLS);
-    const dataRows = clamp(Math.max(0, rows.length - 1), MIN_VISIBLE_ROWS, MAX_VISIBLE_ROWS);
-
-    setSheetSize(
-      panel,
-      clamp(DESKTOP_BASE_HEIGHT_PX + dataRows * DESKTOP_ROW_HEIGHT_PX, MIN_DESKTOP_HEIGHT_PX, MAX_DESKTOP_HEIGHT_PX),
-      clamp(MOBILE_BASE_HEIGHT_PX + dataRows * MOBILE_ROW_HEIGHT_PX, MIN_MOBILE_HEIGHT_PX, MAX_MOBILE_HEIGHT_PX),
-      clamp(DESKTOP_FRAME_PADDING_PX + cols * DESKTOP_COL_WIDTH_PX, MIN_DESKTOP_WIDTH_PX, MAX_DESKTOP_WIDTH_PX)
-    );
-  } catch {
-    setSheetSize(panel, DEFAULT_DESKTOP_HEIGHT_PX, DEFAULT_MOBILE_HEIGHT_PX, DEFAULT_DESKTOP_WIDTH_PX);
-  }
-}
-
-/* ---------------------------------------------------------------------------
    GAME SLOT — "The Month-End Run".
 
    The page only loads the poster image. Pressing Play (on the poster or the
@@ -340,108 +264,25 @@ function setupGameSlot() {
 }
 
 /* ---------------------------------------------------------------------------
-   EMAIL TEST — password-protected "email this pack" test feature.
+   PRICES — switched OFF by default.
 
-   EMAIL_TEST_URL is the address of YOUR Google Apps Script web app (from
-   tools/apps-script/email-test.gs; setup steps in tools/apps-script/README.md).
-   Leave it '' and the panel just says it isn't set up yet.
-
-   Security: this page never knows the password. It sends what you type to
-   the Apps Script, which checks it (with a lockout), re-checks the email
-   address, applies limits and sends one fixed email. Anything checked only
-   here could be read or bypassed by anyone viewing the page source.
-   The password is kept in memory only, never saved.
+   Each price on the page shows "Talk to me about pricing" (that text is in
+   index.html, so it's what visitors see even without JavaScript). To show
+   real prices: fill in PRICES below, then set SHOW_PRICES = true.
+   A price still written like [[TOKEN]] is never shown.
 --------------------------------------------------------------------------- */
-const EMAIL_TEST_URL = '';
+const SHOW_PRICES = false;
+const PRICES = {
+  setup: '[[PRICE_SETUP]]',     // e.g. 'From $3,500'
+  bedding: '[[PRICE_BEDDING]]', // e.g. '$5,500 over 3 months'
+  monthly: '[[PRICE_MONTHLY]]', // e.g. 'From $900 a month'
+};
 
-// Same rule as the Apps Script: a sensible length, one @, a real-looking domain
-function isValidEmail(value) {
-  return value.length <= 254 && /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[A-Za-z]{2,}$/.test(value);
-}
-
-// Post to the Apps Script. Plain-text JSON keeps it a "simple" request,
-// which Apps Script web apps accept from other websites.
-async function callEmailService(payload) {
-  const res = await fetch(EMAIL_TEST_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload),
-    redirect: 'follow',
-  });
-  return res.json();
-}
-
-function setupEmailTest() {
-  const box = document.getElementById('email-test');
-  if (!box) return;
-  const toggle = box.querySelector('.email-test-toggle');
-  const body = document.getElementById('email-test-body');
-  const unlockForm = document.getElementById('email-test-unlock');
-  const sendForm = document.getElementById('email-test-send');
-  const passwordInput = document.getElementById('email-test-password');
-  const toInput = document.getElementById('email-test-to');
-  const status = document.getElementById('email-test-status');
-  let password = ''; // in memory only
-
-  const say = (text, kind = '') => { status.textContent = text; status.dataset.kind = kind; };
-  const busy = (form, on) => form.querySelectorAll('button, input').forEach((el) => { el.disabled = on; });
-
-  toggle.addEventListener('click', () => {
-    const open = toggle.getAttribute('aria-expanded') !== 'true';
-    toggle.setAttribute('aria-expanded', String(open));
-    body.hidden = !open;
-    if (open) {
-      if (!EMAIL_TEST_URL) say('Not set up yet: deploy the Apps Script and set EMAIL_TEST_URL in script.js.', 'error');
-      (password ? toInput : passwordInput).focus();
-    }
-  });
-
-  unlockForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!EMAIL_TEST_URL) { say('Not set up yet: deploy the Apps Script and set EMAIL_TEST_URL in script.js.', 'error'); return; }
-    const attempt = passwordInput.value;
-    if (!attempt) { say('Enter the password.', 'error'); passwordInput.focus(); return; }
-    busy(unlockForm, true); say('Checking…');
-    try {
-      const result = await callEmailService({ action: 'verify', password: attempt });
-      if (result.ok) {
-        password = attempt;
-        passwordInput.value = '';
-        unlockForm.hidden = true;
-        sendForm.hidden = false;
-        say('Unlocked.', 'ok');
-        toInput.focus();
-      } else {
-        say(result.error || 'Wrong password.', 'error');
-        passwordInput.select();
-      }
-    } catch {
-      say("Couldn't reach the email service. Try again shortly.", 'error');
-    } finally {
-      busy(unlockForm, false);
-    }
-  });
-
-  sendForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const to = toInput.value.trim();
-    if (!isValidEmail(to)) {
-      toInput.setAttribute('aria-invalid', 'true');
-      say('Enter a valid email address, like name@company.com.au.', 'error');
-      toInput.focus();
-      return;
-    }
-    toInput.removeAttribute('aria-invalid');
-    busy(sendForm, true); say('Sending…');
-    try {
-      const result = await callEmailService({ action: 'send', password, to });
-      if (result.ok) say(`Sent to ${to}. It can take a minute to arrive.`, 'ok');
-      else say(result.error || 'Sending failed.', 'error');
-    } catch {
-      say("Couldn't reach the email service. Try again shortly.", 'error');
-    } finally {
-      busy(sendForm, false);
-    }
+function applyPrices() {
+  if (!SHOW_PRICES) return;
+  document.querySelectorAll('[data-price]').forEach((node) => {
+    const value = PRICES[node.dataset.price];
+    if (value && !/\[\[.*\]\]/.test(value)) node.textContent = value;
   });
 }
 
@@ -468,8 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupGameSlot();
-  setupEmailTest();
+  applyPrices();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
-  document.querySelectorAll('.embed-panel[data-csv-url]').forEach(applyDynamicSheetHeight);
 });
