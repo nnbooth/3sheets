@@ -2,7 +2,7 @@
   game.js — "The Month-End Run" (The Fourth Sheet)
 
   A ~30-second story game on a 256x144 canvas (16:9). Its one job: show a
-  business owner the month-end grind, then the same month with CPA-built
+  business owner the month-end grind, then the same month with properly built
   reporting that's built once and refreshed on a schedule, then the numbers, then a call to action.
 
   STORY (states, in order)
@@ -43,7 +43,7 @@
      Everything the summary and end card say comes from here. Change a
      number, reload, done. All money is AUD.
 
-     Placeholders: values written like '[[NAME]]' are the same tokens as
+     Placeholders: values written like '[[DOMAIN]]' are the same tokens as
      the website (see PLACEHOLDERS.md). Until you replace them, the game
      shows the fallback noted beside each one, so it never displays
      raw [[TOKENS]].                                                       */
@@ -56,12 +56,12 @@
     // --- The month's numbers (ASSUMPTIONS: shown on the summary) ---
     hoursSaved: 32,             // hours of manual work automation takes off your plate this month
     hourlyRateAUD: 85,          // what an hour of that work costs you (stated as an assumption on screen)
-    setupCostAUD: 1500,         // one-off build cost. Keep in line with [[PRICE]] on the website
+    setupCostAUD: 1500,         // one-off build cost (illustrative). Keep in line with the real setup fee (PRICES.setup in script.js)
     runningCostAUD: 120,        // monthly running cost (software/hosting)
     weeksInMonth: 4,            // used for "Paid for itself in week N"
 
     // --- People and links ---
-    name: 'Nathan Booth',       // end card "Nathan Booth, CPA" + "The Fourth Sheet" (if blank: "CPA-built reporting")
+    name: 'Nathan Booth',       // end card "Nathan Booth" + "The Fourth Sheet". "CPA" is not shown until confirmed.
     bookingUrl: '[[BOOKING_URL]]', // "Book a free 20-min data check". Fallback: the website's Contact section
     domain: '[[DOMAIN]]',       // shown as text on the end card. Fallback: nnbooth.github.io/thefourthsheet
   };
@@ -724,7 +724,7 @@
         sigma.y = GROUND_Y - 16; sigma.landed = true; sigma.at = t;
         sfx('build');
         hudLive = true; // costs are in: net saving starts below zero
-        showBanner([{ t: 'BUILT BY A CPA. NO RE-KEYING.', c: PAL.accent, big: true }], TIMING.switchLen - t, 46);
+        showBanner([{ t: 'BUILT ONCE. NO RE-KEYING.', c: PAL.accent, big: true }], TIMING.switchLen - t, 46);
       }
       return;
     }
@@ -1160,7 +1160,7 @@
     text('THE FOURTH SHEET', W / 2, 34, PAL.accent, 8, 'center');
 
     const name = cfg('name', '');
-    const byline = name ? `${String(name).toUpperCase()}, CPA` : 'CPA-BUILT REPORTING';
+    const byline = name ? String(name).toUpperCase() : 'THE NUMBERS UNDERNEATH';
     let y = 44;
     for (const line of wrap(byline, 236, 8)) { text(line, W / 2, y, PAL.muted, 8, 'center'); y += 10; }
     y += 4;
