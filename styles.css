@@ -396,6 +396,33 @@ body.dev-notes .devnote { display: flex; }
 .card-grid--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .info-card a { color: var(--accent); text-underline-offset: 3px; }
 
+/* HUB AND SPOKE — home "doors", sub-page headers, links between pages */
+.doors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.door {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 1.6rem 1.7rem; text-decoration: none; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 0.9rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.door:hover { border-color: var(--accent); box-shadow: 0 6px 20px rgba(37, 52, 42, 0.08); transform: translateY(-2px); }
+.door:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.door-eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.door strong { font-size: 1.45rem; line-height: 1.2; }
+.door-text { color: var(--muted); }
+.door-go { margin-top: auto; padding-top: 0.5rem; font-weight: 700; color: var(--accent); }
+.page-top { padding-top: 3.25rem; }
+.page-top h1 { font-size: clamp(1.9rem, 3vw, 2.6rem); }
+.more-link { margin: 1.25rem 0 0; font-weight: 700; }
+.more-link a { color: var(--accent); text-decoration: none; }
+.more-link a:hover { text-decoration: underline; }
+.nav-links a[aria-current="page"] { color: var(--text); font-weight: 700; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 6px; }
+
+/* WHO I'VE WORKED WITH — plain lists of organisations */
+.org-lists { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 2rem 3rem; }
+.org-group { margin: 0 0 0.6rem; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.org-list { margin: 0; padding: 0; list-style: none; columns: 2 14rem; column-gap: 2rem; }
+.org-list li { break-inside: avoid; padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 1.1rem; font-weight: 600; color: var(--text); }
+
 /* THE OFFER — three-rung ladder */
 .ladder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin: 0 0 1.5rem; padding: 0; list-style: none; }
 .rung { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: 0.9rem; padding: 1.4rem; }
@@ -531,7 +558,7 @@ body.dev-notes .devnote { display: flex; }
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .wins-grid, .card-grid, .card-grid--two, .audience-grid, .ladder, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
+  .wins-grid, .card-grid, .card-grid--two, .audience-grid, .ladder, .doors, .org-lists, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }

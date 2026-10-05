@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Fourth Sheet | The numbers underneath your three sheets</title>
-    <meta name="description" content="Financial discipline for small businesses and not-for-profits: cost to win a customer, cost to raise a dollar, cash and what's next, set up from the data you already have. Brisbane-based. Without the full-time hire." />
+    <title>Small business | The Fourth Sheet</title>
+    <meta name="description" content="What does it cost you to win a customer? Leads, profit per customer, true job costs and cash, set up from the data you already have. Without the full-time hire." />
 
     <!-- Favicon: SVG for modern browsers, PNG fallbacks for older ones / iOS. -->
     <link rel="icon" href="Assets/favicon.svg" type="image/svg+xml" />
@@ -16,19 +16,19 @@
          [[DOMAIN]]: replace with your final domain, e.g. thefourthsheet.com.au.
          These must be full https:// addresses for LinkedIn to show the image.
          Check the result with https://www.linkedin.com/post-inspector/ -->
-    <link rel="canonical" href="https://[[DOMAIN]]/" />
+    <link rel="canonical" href="https://[[DOMAIN]]/small-business.html" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="The Fourth Sheet" />
     <meta property="og:locale" content="en_AU" />
-    <meta property="og:title" content="The Fourth Sheet | The numbers underneath" />
+    <meta property="og:title" content="Small business | The Fourth Sheet" />
     <meta property="og:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for small businesses and not-for-profits." />
-    <meta property="og:url" content="https://[[DOMAIN]]/" />
+    <meta property="og:url" content="https://[[DOMAIN]]/small-business.html" />
     <meta property="og:image" content="https://[[DOMAIN]]/Assets/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="The Fourth Sheet: your accountant gives you three sheets. I give you the fourth." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="The Fourth Sheet | The numbers underneath" />
+    <meta name="twitter:title" content="Small business | The Fourth Sheet" />
     <meta name="twitter:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for small businesses and not-for-profits." />
     <meta name="twitter:image" content="https://[[DOMAIN]]/Assets/og-image.png" />
 
@@ -61,7 +61,7 @@
         <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
         <!-- Keep these links in the same order as the sections below. -->
         <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
-          <a href="small-business.html">Small business</a>
+          <a href="small-business.html" aria-current="page">Small business</a>
           <a href="not-for-profit.html">Not-for-profit</a>
           <a href="work.html">Our work</a>
           <a href="how-we-work.html">How we work</a>
@@ -72,105 +72,55 @@
     </header>
 
     <main id="main">
-      <!-- HERO: lean. Headline + the "three sheets" line + one short line.
-           [[BOOKING_URL]]: replace href="#contact" on every "numbers check" button. -->
-      <section class="hero" id="top">
-        <div class="container hero-grid">
-          <div>
-            <p class="eyebrow">For small businesses and not-for-profits · Brisbane</p>
-            <!-- HEADLINE: interim (option 1) until Nathan chooses. The three
-                 options are listed in PLACEHOLDERS.md. -->
-            <h1>What does it cost you to win a customer? To raise a dollar?</h1>
-            <span class="devnote devnote--inline" role="note">TO DO: choose the headline (option 1 shown for now; options in PLACEHOLDERS.md)</span>
-            <p class="hero-lead">Your accountant gives you three sheets. I give you the fourth.</p>
-            <p class="hero-copy">You already know your business. This is the layer underneath, set up from the data you already have. Without the full-time hire.</p>
-            <div class="hero-actions">
-              <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
-            </div>
-          </div>
-
-          <div class="hero-card">
-            <!-- The person behind the business. [[PHOTO]]: see PLACEHOLDERS.md.
-                 "CPA" is not shown until Nathan confirms what's allowed. -->
-            <div class="hero-person">
-              <img
-                class="headshot"
-                src="Assets/headshot-placeholder.svg"
-                data-placeholder="[[PHOTO]]"
-                alt="Headshot placeholder: photo coming soon"
-                width="64"
-                height="64"
-              />
-              <div>
-                <p class="person-name">Nathan Booth</p>
-                <p class="person-meta">20 years in corporate reporting · Brisbane, Australia</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- DOORS: one per audience. Each opens its own page. -->
-      <section id="doors" class="section">
-        <div class="container">
-          <div class="doors">
-            <a class="door" href="small-business.html">
-              <span class="door-eyebrow">For small businesses</span>
-              <strong>What does it cost you to win a customer?</strong>
-              <span class="door-text">Leads, profit per customer, true job costs and cash.</span>
-              <span class="door-go">See the numbers &rarr;</span>
-            </a>
-            <a class="door" href="not-for-profit.html">
-              <span class="door-eyebrow">For not-for-profits</span>
-              <strong>What does it cost you to raise a dollar?</strong>
-              <span class="door-text">Cost per program, funding and cash runway, and board reporting.</span>
-              <span class="door-go">See the numbers &rarr;</span>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <!-- CREDIBILITY STRIP -->
-      <section class="cred-strip" aria-label="Background">
-        <div class="container cred-inner">
-          <p class="cred-line">Twenty years building the reporting that listed and global companies ran on, now set up for organisations your size, dealing with you directly.</p>
-          <p class="cred-names"><a href="work.html">Abbott Rapid Diagnostics · Shine Lawyers</a></p>
-        </div>
-      </section>
-
-      <!-- THE OFFER: a three-rung ladder. Setup is the front door.
-           PRICES are switched off: they show "Talk to me about pricing" until
-           SHOW_PRICES is set to true in script.js (search "PRICES"). -->
-      <section id="offer" class="section section-alt">
+      <!-- AUDIENCE: FOR SMALL BUSINESSES. Self-contained (heading, numbers, proof,
+           call to action) so it can move to its own page later. -->
+      <section id="small-business" class="section page-top audience">
         <div class="container">
           <div class="section-heading">
-            <p class="eyebrow">How we work together</p>
-            <h2>Start with setup. Go as far up as you like.</h2>
-            <p class="lead">Setup is the front door. Once your system is running, you choose: take it from there, have me alongside while the habit forms, or have me run your month-end.</p>
+            <p class="eyebrow">For small businesses</p>
+            <h1>What does it cost you to win a customer?</h1>
+            <p class="lead">You know who your good customers are. The next layer is what each one cost to win, and what they're worth once they're in.</p>
           </div>
 
-          <ol class="ladder">
-            <li class="rung">
-              <span class="rung-step">1</span>
-              <h3>Set up and hand over</h3>
-              <p>I build the system, train your team and leave it running.</p>
-              <p class="rung-price"><span data-price="setup">Talk to me about pricing</span><small>One-off fixed fee</small></p>
-            </li>
-            <li class="rung">
-              <span class="rung-step">2</span>
-              <h3>Bedding-in</h3>
-              <p>Setup, plus a few months alongside you while the habit forms.</p>
-              <p class="rung-price"><span data-price="bedding">Talk to me about pricing</span><small>Fixed term</small></p>
-            </li>
-            <li class="rung">
-              <span class="rung-step">3</span>
-              <h3>Monthly</h3>
-              <p>I run your month-end and review rhythm with you.</p>
-              <p class="rung-price"><span data-price="monthly">Talk to me about pricing</span><small>Monthly retainer</small></p>
-            </li>
-          </ol>
+          <div class="audience-grid">
+            <div class="spine">
+              <span class="spine-label">The number that matters</span>
+              <strong>Cost to win a customer</strong>
+              <p>What you spend on marketing, sales time and discounts, against the customers it actually brought in.</p>
+            </div>
+            <ul class="next-layer">
+              <li><strong>Leads.</strong> Where they come from, and how many become customers.</li>
+              <li><strong>Profit per customer.</strong> What each customer is worth after the cost of serving them.</li>
+              <li><strong>True job costs.</strong> Labour, materials, freight and rework on every job, not just the quote.</li>
+              <li><strong>Cash.</strong> The bank balance today, and what's due in and out.</li>
+            </ul>
+          </div>
 
-          <p class="more-link"><a href="how-we-work.html">How we work, in full &rarr;</a></p>
+          <div class="audience-foot">
+            <p class="proof"><span class="proof-label">Example</span> <strong>A sole-trader fitness business:</strong> leads and the cost to win each new client, in one view.</p>
+            <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- SMALL BUSINESS: related work -->
+      <section id="sb-work" class="section section-alt">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Work for organisations your size</p>
+            <h2>Built for businesses like yours.</h2>
+          </div>
+          <div class="card-grid card-grid--two">
+            <article class="info-card">
+              <h3>A manufacturer</h3>
+              <p>Live warehouse-floor screens, job costing, time and attendance reporting, and an ERP rollout. <a href="work.html#displays">See the kind of screen</a></p>
+            </article>
+            <article class="info-card">
+              <h3>A sole-trader fitness business</h3>
+              <p>Leads and the cost to win a customer.</p>
+            </article>
+          </div>
+          <p class="more-link"><a href="how-we-work.html">How we work together &rarr;</a></p>
         </div>
       </section>
 

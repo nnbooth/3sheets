@@ -1,5 +1,7 @@
 # Placeholders and open decisions
 
+**Site structure (hub and spoke):** `index.html` (home: hero, two audience doors, credibility strip, short ladder, contact) → `small-business.html`, `not-for-profit.html`, `work.html` (who I've worked with, examples, tools, game), `how-we-work.html` (full ladder, steps, quick wins, Excel, AI) and `about.html`. The header, nav, contact block and footer are repeated in each page: change them in all six files.
+
 Every detail that isn't final is marked with a token like `[[EMAIL]]`. Search the repo for `[[` to find them all. Most are in `index.html`.
 
 ## How placeholders look on the page
@@ -49,15 +51,15 @@ To switch prices on, open `script.js`, search for **PRICES**, fill in the three 
    3. *The financial discipline of a seasoned finance team, brought into a business that's never had one.*
 
    Change the `<h1>` in the hero and remove the orange note under it.
-4. **Audience order:** Small business is first (interim). To swap, move the `#not-for-profit` section above `#small-business` in `index.html`; both are self-contained.
-5. **Naming clients:** may Bradbury Group Australia and Pocket Rocket Sports be named? How should the not-for-profit work be referenced, and what was it? Everything is de-identified for now.
+4. **Audience order:** on the home page the Small business door comes first (interim). To swap, reorder the two `<a class="door">` blocks in `index.html`. Each audience has its own page (`small-business.html`, `not-for-profit.html`).
+5. **Naming clients:** may Bradbury Group Australia and Pocket Rocket Sports be named? (Our work lists them as "A manufacturer" and "A sole-trader fitness business". Also confirm the corporate list there: it's every employer on your resume.) How should the not-for-profit work be referenced, and what was it? Everything is de-identified for now.
 6. **CPA:** "CPA" is removed everywhere (site, game, meta) until you confirm what's allowed. The same rule applies to the business card.
 7. **Prices:** the three values (see above).
 8. **Power BI:** is there a new "Publish to web" link? Paste it into that report's `embedUrl` in `script.js`. The cards show sample previews with "live report coming soon".
 9. **Quick wins:** keep all six, cut to 2–3 and move lower, or remove? Unchanged for now. Its "quoted up front" pricing wording also needs confirming.
 10. **Tools:** keep Azure, Salesforce, TechnologyOne and Datawrapper? Unchanged for now.
 11. **Contact:** email, LinkedIn, whether to publish your mobile ([removed]), and a booking link.
-12. **"Why it matters"** (the old "answer these on the 3rd" section): remove it? It overlaps the audience sections.
+12. **"Why it matters"** (the old "answer these on the 3rd" section, now on `how-we-work.html`): keep or remove?
 13. **Game summary costs:** keep the illustrative setup and running costs, or relabel or remove them while prices are off?
 
 ## Domain setup (once the domain is chosen)
