@@ -503,6 +503,22 @@ body.dev-notes .devnote { display: flex; }
 .example-list li { margin-bottom: 0.35rem; }
 .example-list li::marker { color: var(--accent); }
 
+/* QUICK WINS — six small automations in a ticked grid */
+.wins-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.4rem 2rem; margin: 0; padding: 0; list-style: none; }
+.wins-grid li { position: relative; padding-left: 2.1rem; color: var(--muted); line-height: 1.55; }
+.wins-grid strong { display: block; color: var(--text); margin-bottom: 0.15rem; }
+.wins-grid li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8h7M7.5 4.5L11 8l-3.5 3.5' fill='none' stroke='%232f7a5d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 0.85rem no-repeat;
+}
+.win-tools { display: block; margin-top: 0.35rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); }
+
 /* WHAT I DO — the three packages (Set up / Dig in / Stay on top). */
 .package-card { display: flex; flex-direction: column; }
 .package-card .card-tag { align-self: flex-start; }
@@ -547,7 +563,7 @@ body.dev-notes .devnote { display: flex; }
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
+  .wins-grid, .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }
