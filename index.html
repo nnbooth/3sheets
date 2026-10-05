@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-06b" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-07" />
   </head>
 
   <!--
@@ -72,41 +72,61 @@
     </header>
 
     <main id="main">
-      <!-- HERO: lean. Headline + the "three sheets" line + one short line.
+      <!-- HERO: the brand line as the headline, one short line underneath, and a
+           sample "fourth sheet" dashboard on the right (data and toggle in
+           script.js, search "HERO DASHBOARD"). Headline options: PLACEHOLDERS.md.
            [[BOOKING_URL]]: replace href="#contact" on every "numbers check" button. -->
       <section class="hero" id="top">
-        <div class="container hero-grid">
+        <div class="container hero-grid hero-grid--dash">
           <div>
             <p class="eyebrow">For small businesses and not-for-profits · Brisbane</p>
-            <!-- HEADLINE: interim (option 1) until Nathan chooses. The three
-                 options are listed in PLACEHOLDERS.md. -->
-            <h1>What does it cost you to win a customer? To raise a dollar?</h1>
-            <span class="devnote devnote--inline" role="note">TO DO: choose the headline (option 1 shown for now; options in PLACEHOLDERS.md)</span>
-            <p class="hero-lead">Your accountant gives you three sheets. I give you the fourth.</p>
-            <p class="hero-copy">You already know your business. This is the layer underneath, set up from the data you already have. Without the full-time hire.</p>
+            <h1>Your accountant gives you three sheets. <span class="h1-accent">I give you the fourth.</span></h1>
+            <p class="hero-copy">The numbers underneath: what each customer costs to win, what each dollar costs to raise, and where your cash is heading. Set up from the data you already have, without the full-time hire.</p>
             <div class="hero-actions">
               <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
             </div>
-          </div>
-
-          <div class="hero-card">
             <!-- The person behind the business. [[PHOTO]]: see PLACEHOLDERS.md.
                  "CPA" is not shown until Nathan confirms what's allowed. -->
-            <div class="hero-person">
-              <img
-                class="headshot"
-                src="Assets/headshot-placeholder.svg"
-                data-placeholder="[[PHOTO]]"
-                alt="Headshot placeholder: photo coming soon"
-                width="64"
-                height="64"
-              />
-              <div>
-                <p class="person-name">Nathan Booth</p>
-                <p class="person-meta">20 years in corporate reporting · Brisbane, Australia</p>
-              </div>
-            </div>
+            <p class="hero-byline">
+              <img class="headshot headshot--sm" src="Assets/headshot-placeholder.svg" data-placeholder="[[PHOTO]]" alt="" width="36" height="36" />
+              <span><strong>Nathan Booth</strong> · 20 years in corporate reporting · Brisbane</span>
+            </p>
           </div>
+
+          <!-- HERO DASHBOARD: sample data only. The tabs show the idea behind the
+               name: the three statements, then the fourth sheet. -->
+          <figure class="hero-dash" id="hero-dash">
+            <div class="dash-tabs" aria-hidden="true">
+              <span>P&amp;L</span><span>Balance sheet</span><span>Cash flow</span><span class="dash-tab-on">The fourth sheet</span>
+            </div>
+            <div class="dash-body">
+              <div class="dash-toggle" role="group" aria-label="Show sample numbers for">
+                <button type="button" data-dash="sb" aria-pressed="true">Small business</button>
+                <button type="button" data-dash="nfp" aria-pressed="false">Not-for-profit</button>
+              </div>
+
+              <div class="dash-kpis">
+                <div class="dash-kpi dash-kpi--spine"><span data-k="k1l">Cost to win a customer</span><strong data-k="k1v">$184</strong><em class="good" data-k="k1d">▼ 20% on last quarter</em></div>
+                <div class="dash-kpi"><span data-k="k2l">Profit per customer</span><strong data-k="k2v">$1,240</strong><em class="good" data-k="k2d">▲ 8% on last quarter</em></div>
+                <div class="dash-kpi"><span data-k="k3l">Cash in 30 days</span><strong data-k="k3v">$42.6k</strong><em data-k="k3d">after payroll and BAS</em></div>
+              </div>
+
+              <div class="dash-chart">
+                <p class="dash-chart-title" data-k="chartTitle">Cost to win a customer, by month</p>
+                <div id="dash-chart"><svg class="dash-svg" viewBox="0 0 300 120" role="img" aria-label="Bar chart: cost to win a customer by month, falling from $310 to $184, against a target of $200."><line class="dash-grid" x1="6" x2="294" y1="92" y2="92"/><rect class="dash-bar" x="16.6" y="22.4" width="26.9" height="69.6" rx="2"/><text class="dash-axis" x="30.0" y="106" text-anchor="middle">Apr</text><rect class="dash-bar" x="64.6" y="28.2" width="26.9" height="63.8" rx="2"/><text class="dash-axis" x="78.0" y="106" text-anchor="middle">May</text><rect class="dash-bar" x="112.6" y="33.8" width="26.9" height="58.2" rx="2"/><text class="dash-axis" x="126.0" y="106" text-anchor="middle">Jun</text><rect class="dash-bar" x="160.6" y="40.1" width="26.9" height="51.9" rx="2"/><text class="dash-axis" x="174.0" y="106" text-anchor="middle">Jul</text><rect class="dash-bar" x="208.6" y="45.7" width="26.9" height="46.3" rx="2"/><text class="dash-axis" x="222.0" y="106" text-anchor="middle">Aug</text><rect class="dash-bar dash-bar--now" x="256.6" y="50.7" width="26.9" height="41.3" rx="2"/><text class="dash-axis" x="270.0" y="106" text-anchor="middle">Sep</text><line class="dash-target" x1="6" x2="294" y1="47.1" y2="47.1"/><text class="dash-target-label" x="294" y="43.1" text-anchor="end">Target $200</text></svg></div>
+              </div>
+
+              <table class="dash-table">
+                <thead><tr><th data-k="t0">Channel</th><th class="n" data-k="t1">Leads</th><th class="n" data-k="t2">Won</th><th class="n" data-k="t3">Cost to win</th></tr></thead>
+                <tbody id="dash-rows">
+                  <tr><td>Referrals</td><td class="n">42</td><td class="n">18</td><td class="n good">$95</td></tr>
+                  <tr><td>Google ads</td><td class="n">61</td><td class="n">14</td><td class="n">$210</td></tr>
+                  <tr><td>Social</td><td class="n">38</td><td class="n">7</td><td class="n bad">$260</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <figcaption class="dash-caption">Sample data</figcaption>
+          </figure>
         </div>
       </section>
 
@@ -209,6 +229,6 @@
       </div>
     </footer>
 
-    <script src="script.js?v=2026-10-06b"></script>
+    <script src="script.js?v=2026-10-07"></script>
   </body>
 </html>

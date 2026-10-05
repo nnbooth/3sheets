@@ -45,12 +45,13 @@ To switch prices on, open `script.js`, search for **PRICES**, fill in the three 
 
 1. **Domain:** `thefourthsheet.com.au`, `.com`, or both, and which is primary? Then fill in `[[DOMAIN]]` and add a `CNAME` (steps below).
 2. **ABN:** the number, or keep the placeholder.
-3. **Headline:** the interim is option 1. The options:
-   1. *What does it cost you to win a customer? To raise a dollar?*
-   2. *The next layer of your numbers.*
-   3. *The financial discipline of a seasoned finance team, brought into a business that's never had one.*
+3. **Headline:** now the brand line, *"Your accountant gives you three sheets. I give you the fourth."*, with the "what each customer costs to win / what each dollar costs to raise" line under it; the audience doors carry the questions. Alternatives:
+   1. *Your P&L tells you what happened. The fourth sheet tells you why.*
+   2. *Three sheets tell you where you've been. The fourth shows where you're going.*
+   3. *The numbers underneath.*
+   4. *See the numbers underneath your numbers.*
 
-   Change the `<h1>` in the hero and remove the orange note under it.
+   To change it, edit the `<h1>` in the home hero (`index.html`).
 4. **Audience order:** on the home page the Small business door comes first (interim). To swap, reorder the two `<a class="door">` blocks in `index.html`. Each audience has its own page (`small-business.html`, `not-for-profit.html`).
 5. **Naming clients:** may Bradbury Group Australia and Pocket Rocket Sports be named? (Our work lists them as "A manufacturer" and "A sole-trader fitness business". Also confirm the corporate list there: it's every employer on your resume.) How should the not-for-profit work be referenced, and what was it? Everything is de-identified for now.
 6. **CPA:** "CPA" is removed everywhere (site, game, meta) until you confirm what's allowed. The same rule applies to the business card.
@@ -72,6 +73,10 @@ To switch prices on, open `script.js`, search for **PRICES**, fill in the three 
 4. **On GitHub:** repo **Settings → Pages → Custom domain**. Enter the domain, wait for the DNS check, then tick **Enforce HTTPS**. Optionally verify the domain under your account's **Settings → Pages** to protect it.
 5. **Re-record the game media** (`python3 tools/record_demo.py`) so the end card shows the real domain.
 
+## Home-page sample dashboard
+
+The dashboard in the home hero uses **sample data** (captioned "Sample data"). Its numbers live in `DASH_DATA` in `script.js` (search "HERO DASHBOARD"). The first view is also written into `index.html` so it shows without JavaScript: if you change the Small business numbers, change both.
+
 ## Sample-data images
 
 The dashboard, report and template images are mock-ups with invented "Sample Co" data, captioned "Sample data".
@@ -82,7 +87,7 @@ The dashboard, report and template images are mock-ups with invented "Sample Co"
 ## Before going live: checklist
 
 - [ ] All open decisions above resolved.
-- [ ] **Turn off the orange TO DO notes:** delete `class="dev-notes"` from `<body>` in `index.html` and the "DEV NOTES ARE ON" bar under it. The notes still showing: the headline choice and the not-for-profit example.
+- [ ] **Turn off the orange TO DO notes:** delete `class="dev-notes"` from `<body>` in `index.html` and the "DEV NOTES ARE ON" bar under it. The note still showing: the not-for-profit example.
 - [ ] Searching for `[[` finds only this file (and the comments in `script.js` and `game/game.js` that explain the tokens).
 - [ ] Real photo in the hero.
 - [ ] Domain live with HTTPS (steps above); LinkedIn Post Inspector shows the right preview.

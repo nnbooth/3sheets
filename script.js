@@ -7,6 +7,7 @@
   - Loading message + 8-second fallback ...... watchEmbedLoad()
   - Game (load on Play) ...................... setupGameSlot()
   - Prices (switched off by default) ......... SHOW_PRICES / PRICES
+  - Home-page sample dashboard ............... DASH_DATA / setupHeroDash()
   - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
 
   No frameworks or build step: this file is loaded as-is by index.html.
@@ -287,6 +288,80 @@ function applyPrices() {
 }
 
 /* ---------------------------------------------------------------------------
+   HERO DASHBOARD — the sample "fourth sheet" on the home page.
+
+   SAMPLE DATA ONLY. Two views, switched by the Small business /
+   Not-for-profit buttons. To change a number, edit DASH_DATA. The first
+   view is also written into index.html so it shows without JavaScript.
+--------------------------------------------------------------------------- */
+const money = (v) => `$${Math.round(v).toLocaleString('en-AU')}`;
+const cents = (v) => `$${v.toFixed(2)}`;
+
+const DASH_DATA = {
+  sb: {
+    k1l: 'Cost to win a customer', k1v: '$184', k1d: ['good', '▼ 20% on last quarter'],
+    k2l: 'Profit per customer', k2v: '$1,240', k2d: ['good', '▲ 8% on last quarter'],
+    k3l: 'Cash in 30 days', k3v: '$42.6k', k3d: ['', 'after payroll and BAS'],
+    chartTitle: 'Cost to win a customer, by month',
+    chart: { values: [310, 284, 259, 231, 206, 184], target: 200, fmt: money, what: 'cost to win a customer' },
+    head: ['Channel', 'Leads', 'Won', 'Cost to win'],
+    rows: [['Referrals', '42', '18', ['good', '$95']], ['Google ads', '61', '14', ['', '$210']], ['Social', '38', '7', ['bad', '$260']]],
+  },
+  nfp: {
+    k1l: 'Cost to raise a dollar', k1v: '$0.18', k1d: ['good', '▼ 16c since April'],
+    k2l: 'Cost per program hour', k2v: '$62', k2d: ['', '▲ $4 on last quarter'],
+    k3l: 'Cash runway', k3v: '7.5 months', k3d: ['', 'at current spend'],
+    chartTitle: 'Cost to raise a dollar, by month',
+    chart: { values: [0.34, 0.31, 0.27, 0.24, 0.21, 0.18], target: 0.2, fmt: cents, what: 'cost to raise a dollar' },
+    head: ['Funding source', 'Raised', 'Share', 'Cost per $1'],
+    rows: [['Grants', '$120k', '59%', ['good', '$0.06']], ['Events', '$48k', '23%', ['bad', '$0.41']], ['Donations', '$36k', '18%', ['', '$0.12']]],
+  },
+};
+const DASH_MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+
+// Bar chart as SVG. Keep the maths in step with the copy in index.html.
+function renderDashChart({ values, target, fmt, what }) {
+  const W = 300, H = 120, top = 14, base = 92, left = 6, right = 294;
+  const max = Math.max(...values, target) * 1.12;
+  const slot = (right - left) / values.length, bw = slot * 0.56;
+  const y = (v) => base - (v / max) * (base - top);
+  let g = `<line class="dash-grid" x1="${left}" x2="${right}" y1="${base}" y2="${base}"/>`;
+  values.forEach((v, i) => {
+    const x = left + i * slot + (slot - bw) / 2, yy = y(v);
+    g += `<rect class="dash-bar${i === values.length - 1 ? ' dash-bar--now' : ''}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - yy).toFixed(1)}" rx="2"/>`;
+    g += `<text class="dash-axis" x="${(x + bw / 2).toFixed(1)}" y="${base + 14}" text-anchor="middle">${DASH_MONTHS[i]}</text>`;
+  });
+  const ty = y(target);
+  g += `<line class="dash-target" x1="${left}" x2="${right}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`;
+  g += `<text class="dash-target-label" x="${right}" y="${(ty - 4).toFixed(1)}" text-anchor="end">Target ${fmt(target)}</text>`;
+  const label = `Bar chart: ${what} by month, falling from ${fmt(values[0])} to ${fmt(values[values.length - 1])}, against a target of ${fmt(target)}.`;
+  return `<svg class="dash-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}">${g}</svg>`;
+}
+
+function showDash(key) {
+  const d = DASH_DATA[key];
+  const dash = document.getElementById('hero-dash');
+  if (!d || !dash) return;
+  const set = (k, val) => {
+    const node = dash.querySelector(`[data-k="${k}"]`);
+    if (!node) return;
+    if (Array.isArray(val)) { node.className = val[0]; node.textContent = val[1]; } else node.textContent = val;
+  };
+  ['k1l', 'k1v', 'k1d', 'k2l', 'k2v', 'k2d', 'k3l', 'k3v', 'k3d', 'chartTitle'].forEach((k) => set(k, d[k]));
+  d.head.forEach((h, i) => set(`t${i}`, h));
+  document.getElementById('dash-chart').innerHTML = renderDashChart(d.chart);
+  document.getElementById('dash-rows').innerHTML = d.rows.map((r) =>
+    `<tr><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n">${r[2]}</td><td class="n ${r[3][0]}">${r[3][1]}</td></tr>`).join('');
+  dash.querySelectorAll('[data-dash]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.dash === key)));
+}
+
+function setupHeroDash() {
+  const dash = document.getElementById('hero-dash');
+  if (!dash) return;
+  dash.querySelectorAll('[data-dash]').forEach((btn) => btn.addEventListener('click', () => showDash(btn.dataset.dash)));
+}
+
+/* ---------------------------------------------------------------------------
    Page start-up
 --------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -310,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupGameSlot();
   applyPrices();
+  setupHeroDash();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
 });
