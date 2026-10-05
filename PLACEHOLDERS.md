@@ -41,7 +41,7 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
 | | | `index.html` → Contact button "Book a free 20-min data check" | Button links to `#contact` for now, so it currently goes nowhere |
 | | | `game/game.js` → `CONFIG.bookingUrl` (end card button) | Game button opens the site's Contact section |
 | `[[DOMAIN]]` | Final domain | `index.html` → `<head>`: `canonical`, `og:url`, `og:image`, `twitter:image` | Not visible. Only affects link previews |
-| | | `game/game.js` → `CONFIG.domain` (end card text) | Game shows `nnbooth.github.io/3sheets` |
+| | | `game/game.js` → `CONFIG.domain` (end card text) | Game shows `nnbooth.github.io/thefourthsheet` |
 | `[[PRICE]]` | Starter bundle price (AUD) | `index.html` → Starter bundle, "Price" box | "Price TBC" chip, followed by "AUD" |
 | `[[TIMEFRAME]]` | Starter bundle delivery time | `index.html` → Starter bundle, "Delivery" box | "Timeframe TBC" chip, followed by "from kickoff to go-live" |
 | `[[MONTHLY_PRICE]]` | Monthly fee for "Stay on top" (part-time management accountant) | `index.html` → What I do, package 3 | "Monthly price TBC" chip |
@@ -59,10 +59,10 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
   `<a href="mailto:you@yourdomain.com.au">you@yourdomain.com.au</a>` and
   `<a href="https://www.linkedin.com/in/you/" target="_blank" rel="noopener">LinkedIn</a>`.
 - **`[[BOOKING_URL]]`:** for an external link, also add `target="_blank" rel="noopener"` to both buttons.
-- **The game (`game/game.js`, `CONFIG` at the top):** the tokens there are written in quotes, e.g. `domain: '[[DOMAIN]]'`. Find-and-replace them like everywhere else, keeping the quotes: `domain: '3sheets.com.au'`, `daysToClose: 3`. Until a value is replaced, the game shows the fallback listed above, never the raw token.
+- **The game (`game/game.js`, `CONFIG` at the top):** the tokens there are written in quotes, e.g. `domain: '[[DOMAIN]]'`. Find-and-replace them like everywhere else, keeping the quotes: `domain: 'thefourthsheet.com.au'`, `daysToClose: 3`. Until a value is replaced, the game shows the fallback listed above, never the raw token.
   - **Re-record the videos after you change anything in `CONFIG`:** run `python3 tools/record_demo.py` from the repo root. The videos, GIF and poster in `media/` are pictures of the game, so they keep showing the fallbacks until you do.
   - `CONFIG.setupCostAUD` (currently 1500) is the setup cost on the game's summary. **Keep it the same as `[[PRICE]]`**, or the game and the site will disagree.
-- **`[[DOMAIN]]`:** use the bare domain without `https://` or a trailing slash, e.g. `3sheets.com.au`. The `https://` and paths are already in the tags.
+- **`[[DOMAIN]]`:** use the bare domain without `https://` or a trailing slash, e.g. `thefourthsheet.com.au`. The `https://` and paths are already in the tags.
 
 ## Draft copy to confirm (not tokens, but please check)
 
@@ -110,7 +110,7 @@ These sentences are on the page now and make promises you should confirm or edit
 - [ ] **Turn off the orange TO DO notes:** in `index.html`, delete `class="dev-notes"` from the `<body>` tag (and the "DEV NOTES ARE ON" bar under it). While that class is there, the notes show over the three dashboard images, the three "In build" report cards and the test Google Sheet.
 
 - [ ] **Undeploy or restrict the old Apps Script web app** behind the removed "Email Staff Individually" button. Removing the button doesn't stop anyone who has the URL, and the URL is still in git history.
-- [ ] **Deal with the old copies in `versions/`.** Every `versions/*/index.html` + `script.js` (apple, nes, sms, snes, geocities, social, as400, modern, insta) still contains the email button and its Apps Script address, the Power BI test embed and the case study. They're publicly served under `/3sheets/versions/…`. Delete them, strip them, or stop serving them before launch.
+- [ ] **Deal with the old copies in `versions/`.** Every `versions/*/index.html` + `script.js` (apple, nes, sms, snes, geocities, social, as400, modern, insta) still contains the email button and its Apps Script address, the Power BI test embed and the case study. They're publicly served under `/thefourthsheet/versions/…`. Delete them, strip them, or stop serving them before launch.
 - [ ] Every token above is replaced: searching the repo for `[[` finds only this file.
 - [ ] No `class="tbc"` chips remain in `index.html`.
 - [ ] Both "Book a free 20-min data check" buttons open your booking page.

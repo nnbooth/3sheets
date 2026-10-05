@@ -1,5 +1,5 @@
 /*
-  game.js — "The Month-End Run" (3Sheets Consulting)
+  game.js — "The Month-End Run" (The Fourth Sheet)
 
   A ~30-second story game on a 256x144 canvas (16:9). Its one job: show a
   business owner the month-end grind, then the same month with CPA-built
@@ -61,16 +61,16 @@
     weeksInMonth: 4,            // used for "Paid for itself in week N"
 
     // --- People and links ---
-    name: 'Nathan Booth',       // end card "Nathan Booth, CPA · 3Sheets" (if blank: "CPA-built reporting · 3Sheets")
+    name: 'Nathan Booth',       // end card "Nathan Booth, CPA" + "The Fourth Sheet" (if blank: "CPA-built reporting")
     bookingUrl: '[[BOOKING_URL]]', // "Book a free 20-min data check". Fallback: the website's Contact section
-    domain: '[[DOMAIN]]',       // shown as text on the end card. Fallback: nnbooth.github.io/3sheets
+    domain: '[[DOMAIN]]',       // shown as text on the end card. Fallback: nnbooth.github.io/thefourthsheet
   };
 
   // Fallbacks used while a CONFIG value is still a [[TOKEN]]
   const FALLBACK = {
     daysToClose: 3,
     bookingUrl: '../#contact',
-    domain: 'nnbooth.github.io/3sheets',
+    domain: 'nnbooth.github.io/thefourthsheet',
   };
 
   // True for '' or anything still written like [[TOKEN]]
@@ -977,8 +977,8 @@
     rect(0, 0, W, HUD_H, PAL.paper);
     rect(0, HUD_H - 1, W, 1, PAL.sage);
     box(6, 6, 20, 16, PAL.accent, PAL.accentDark);
-    text('3S', 16, 10, PAL.white, 8, 'center');
-    text('3SHEETS CONSULTING', 32, 10, PAL.ink);
+    text('4', 16, 10, PAL.white, 8, 'center');
+    text('THE FOURTH SHEET', 32, 10, PAL.ink);
   }
 
   /* ---------------------------------------------------------------- banners */
@@ -1149,18 +1149,19 @@
   // links/buttons over exactly these rectangles (see updateDom()).
   const END_BUTTONS = {
     book: { x: 8, y: 80, w: 240, h: 18 },
-    again: { x: 80, y: 118, w: 96, h: 16 },
+    again: { x: 80, y: 124, w: 96, h: 16 },
   };
 
   function drawEnd() {
     rect(0, 0, W, H, PAL.bg);
-    // 3S mark
-    box(W / 2 - 14, 8, 28, 24, PAL.accent, PAL.accentDark);
-    text('3S', W / 2, 16, PAL.white, 8, 'center');
+    // "4" mark, then the business name and the person
+    box(W / 2 - 12, 6, 24, 24, PAL.accent, PAL.accentDark);
+    text('4', W / 2, 10, PAL.white, 16, 'center');
+    text('THE FOURTH SHEET', W / 2, 34, PAL.accent, 8, 'center');
 
     const name = cfg('name', '');
-    const byline = name ? `${String(name).toUpperCase()}, CPA · 3SHEETS` : 'CPA-BUILT REPORTING · 3SHEETS';
-    let y = 38;
+    const byline = name ? `${String(name).toUpperCase()}, CPA` : 'CPA-BUILT REPORTING';
+    let y = 44;
     for (const line of wrap(byline, 236, 8)) { text(line, W / 2, y, PAL.muted, 8, 'center'); y += 10; }
     y += 4;
     for (const line of wrap('YOUR NUMBERS, WITHOUT THE MONTH-END GRIND.', 236, 8)) { text(line, W / 2, y, PAL.ink, 8, 'center'); y += 11; }
@@ -1170,8 +1171,15 @@
     const label = fitText('BOOK A FREE 20-MIN DATA CHECK', b.w - 8, 1, [8]);
     text(label.lines[0], W / 2, b.y + 5, PAL.white, 8, 'center');
 
+    // Web address: one line if it fits, otherwise split after the last "/"
+    // (never cut short)
     const domain = String(cfg('domain', FALLBACK.domain));
-    text(domain.length * 8 > 236 ? domain.slice(0, 29) : domain, W / 2, 104, PAL.ink, 8, 'center');
+    let lines = [domain];
+    if (textW(domain, 8) > 236) {
+      const cut = domain.lastIndexOf('/') + 1;
+      lines = cut > 0 ? [domain.slice(0, cut), domain.slice(cut)] : wrap(domain, 236, 8);
+    }
+    lines.slice(0, 2).forEach((line, i) => text(line, W / 2, (lines.length > 1 ? 103 : 107) + i * 9, PAL.ink, 8, 'center'));
 
     const a = END_BUTTONS.again;
     box(a.x, a.y, a.w, a.h, PAL.paper, PAL.sage);
