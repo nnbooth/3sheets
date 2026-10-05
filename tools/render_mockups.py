@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 render_mockups.py: turn the HTML dashboard mock-ups in tools/mockups/ into
-the PNG images used on the website (media/display-*.png and media/report-*.png, 1600x900).
+the PNG images used on the website (media/display-*.png, report-*.png and template-excel.png, 1600x900).
 
 The data in them is invented ("Sample Co") and labelled illustrative.
 Edit a .html file, then run from the repo root:   python3 tools/render_mockups.py
@@ -16,6 +16,7 @@ OUT = REPO / "media"
 NAMES = {
     "warehouse": "display-warehouse.png", "reception": "display-reception.png", "boardroom": "display-boardroom.png",
     "report-sales": "report-sales.png", "report-purchasing": "report-purchasing.png", "report-payroll": "report-payroll.png",
+    "template-excel": "template-excel.png",
 }
 
 with sync_playwright() as p:

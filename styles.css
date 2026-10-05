@@ -473,7 +473,6 @@ body.dev-notes .devnote { display: flex; }
   border-radius: 999px;
 }
 .tool img { display: block; }
-.tool--ai { background: var(--accent-soft); border-color: #9db8a6; }
 .tool-mono {
   display: inline-flex;
   align-items: center;
@@ -497,6 +496,12 @@ body.dev-notes .devnote { display: flex; }
 .display figcaption { margin-top: 0.6rem; font-size: 0.95rem; color: var(--muted); }
 .display figcaption strong { color: var(--text); }
 .display-note { margin: 1rem 0 0; font-size: 0.85rem; color: var(--muted); }
+
+/* EXAMPLE SPLIT — text beside one large example image (templates) */
+.example-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 2.5rem; align-items: center; }
+.example-list { margin: 1rem 0 0; padding-left: 1.1rem; color: var(--muted); }
+.example-list li { margin-bottom: 0.35rem; }
+.example-list li::marker { color: var(--accent); }
 
 /* WHAT I DO — the three packages (Set up / Dig in / Stay on top). */
 .package-card { display: flex; flex-direction: column; }
@@ -542,7 +547,7 @@ body.dev-notes .devnote { display: flex; }
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid { grid-template-columns: 1fr; }
+  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }
