@@ -1,0 +1,49 @@
+<!doctype html><meta charset="utf-8">
+<!-- Illustrative spreadsheet template mock-up (invented Sample Co data). Generic
+     spreadsheet look, not a copy of any product's interface. -->
+<style>
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1600px; height: 900px; overflow: hidden; }
+body { font-family: "Inter","Segoe UI",Helvetica,Arial,sans-serif; background: #fff; color: #25342a; display: flex; flex-direction: column; }
+.title { background: #2f7a5d; color: #fff; padding: 14px 24px; font-size: 22px; font-weight: 600; display: flex; justify-content: space-between; }
+.title span { opacity: .8; font-weight: 400; font-size: 18px; }
+.fx { display: flex; align-items: center; gap: 14px; padding: 10px 24px; border-bottom: 2px solid #dce8dc; font-size: 19px; font-family: Menlo, Consolas, monospace; color: #3a4a40; }
+.fx b { font-family: "Inter",Arial,sans-serif; color: #5f6f63; font-style: italic; }
+.fx .cell { font-family: "Inter",Arial,sans-serif; border: 1px solid #dce8dc; padding: 2px 10px; color: #25342a; }
+.sheet { flex: 1; overflow: hidden; }
+table { border-collapse: collapse; width: 100%; font-size: 20px; }
+th.col { background: #f1f5f1; color: #5f6f63; font-weight: 500; font-size: 16px; height: 30px; border: 1px solid #dce8dc; }
+td.row { background: #f1f5f1; color: #5f6f63; font-size: 16px; text-align: center; width: 44px; border: 1px solid #dce8dc; }
+td { border: 1px solid #e8efe8; padding: 8px 14px; height: 42px; white-space: nowrap; }
+.n { text-align: right; font-variant-numeric: tabular-nums; }
+.h td { font-weight: 700; background: #eaf6ee; }
+.t td { font-weight: 700; border-top: 2px solid #25342a; }
+.good { color: #1f7a4a; background: #e3f4e8; } .bad { color: #b93a3a; background: #fbe7e5; }
+.note { color: #5f6f63; font-style: italic; white-space: normal; font-size: 17px; }
+.sel { outline: 3px solid #2f7a5d; outline-offset: -3px; }
+.tabs { display: flex; gap: 2px; padding: 0 24px; background: #f1f5f1; border-top: 2px solid #dce8dc; font-size: 18px; }
+.tabs span { padding: 10px 22px; color: #5f6f63; }
+.tabs .on { background: #fff; color: #2f7a5d; font-weight: 700; border-bottom: 3px solid #2f7a5d; }
+.tag { position: absolute; right: 26px; bottom: 54px; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: #5f6f63; }
+</style>
+<body>
+<div class="title">Sample Co · Management pack · October <span>Refreshed from source this morning</span></div>
+<div class="fx"><span class="cell">E6</span><b>fx</b>=SUMIFS(Actuals[Amount], Actuals[Account], $B6, Actuals[Month], E$3)</div>
+<div class="sheet"><table>
+<tr><th class="col"></th><th class="col">A</th><th class="col">B</th><th class="col">C</th><th class="col">D</th><th class="col">E</th><th class="col">F</th><th class="col">G</th></tr>
+<tr><td class="row">1</td><td colspan="7" style="font-size:24px;font-weight:700;border:0">Profit and loss: actual against budget</td></tr>
+<tr class="h"><td class="row">2</td><td></td><td>Line</td><td class="n">Actual</td><td class="n">Budget</td><td class="n">Variance</td><td class="n">Var %</td><td>What drove it</td></tr>
+<tr><td class="row">3</td><td></td><td>Revenue</td><td class="n">412,300</td><td class="n">398,000</td><td class="n good">14,300</td><td class="n good">3.6%</td><td class="note">Two new customers; volume up 5%</td></tr>
+<tr><td class="row">4</td><td></td><td>Materials</td><td class="n">156,700</td><td class="n">151,200</td><td class="n bad">-5,500</td><td class="n bad">-3.6%</td><td class="note">Steel price up 4% from 1 Oct</td></tr>
+<tr><td class="row">5</td><td></td><td>Freight</td><td class="n">28,900</td><td class="n">23,500</td><td class="n bad">-5,400</td><td class="n bad">-23.0%</td><td class="note">Fuel levy; three urgent shipments</td></tr>
+<tr><td class="row">6</td><td></td><td>Wastage</td><td class="n">16,400</td><td class="n">12,000</td><td class="n bad sel">-4,400</td><td class="n bad">-36.7%</td><td class="note">Rework on one large job</td></tr>
+<tr class="t"><td class="row">7</td><td></td><td>Gross margin</td><td class="n">210,300</td><td class="n">211,300</td><td class="n bad">-1,000</td><td class="n bad">-0.5%</td><td class="note">Volume gains eaten by freight and wastage</td></tr>
+<tr><td class="row">8</td><td></td><td>Wages</td><td class="n">98,600</td><td class="n">101,000</td><td class="n good">2,400</td><td class="n good">2.4%</td><td class="note">Overtime down 40 hours</td></tr>
+<tr><td class="row">9</td><td></td><td>Overheads</td><td class="n">61,200</td><td class="n">60,000</td><td class="n bad">-1,200</td><td class="n bad">-2.0%</td><td class="note">Annual software renewal</td></tr>
+<tr class="t"><td class="row">10</td><td></td><td>Net profit</td><td class="n">50,500</td><td class="n">50,300</td><td class="n good">200</td><td class="n good">0.4%</td><td class="note">On budget, but margin needs watching</td></tr>
+<tr><td class="row">11</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="row">12</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table></div>
+<div class="tabs"><span class="on">Summary</span><span>P&amp;L</span><span>Sales</span><span>Costs</span><span>Drivers</span><span>Data</span></div>
+<div class="tag">Illustrative data · Sample Co</div>
+</body>
