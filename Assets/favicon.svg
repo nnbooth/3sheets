@@ -1,6 +1,6 @@
-<!-- 3Sheets "3S" mark in the brand green (#2f7a5d). favicon-32.png and
+<!-- The Fourth Sheet "4" mark in the brand green (#2f7a5d). favicon-32.png and
      apple-touch-icon.png are PNG copies of this for older browsers/iOS. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="14" fill="#2f7a5d"/>
-  <text x="32" y="43" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="30" font-weight="800" fill="#fbfdf9" text-anchor="middle" letter-spacing="-1">3S</text>
+  <text x="32" y="46" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="40" font-weight="800" fill="#fbfdf9" text-anchor="middle">4</text>
 </svg>

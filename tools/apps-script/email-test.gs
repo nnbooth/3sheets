@@ -75,7 +75,7 @@ function doPost(e) {
       to: to,
       subject: 'Sample weekly reporting pack (test)',
       htmlBody: buildEmail(props),
-      name: '3Sheets Consulting',
+      name: 'The Fourth Sheet',
     });
 
     // Tidy old day counters, record this one
@@ -92,7 +92,7 @@ function doPost(e) {
 
 // Visiting the web app address in a browser just says what it is.
 function doGet() {
-  return ContentService.createTextOutput('3Sheets email test endpoint. Use the website.');
+  return ContentService.createTextOutput('The Fourth Sheet email test endpoint. Use the website.');
 }
 
 function isValidEmail(s) {
@@ -111,7 +111,7 @@ function buildEmail(props) {
 
   return '<div style="font-family:Arial,sans-serif;color:#25342a">' +
     '<h2 style="color:#2f7a5d">Sample weekly reporting pack</h2>' +
-    '<p>This is a test email from the 3Sheets Consulting website. The figures are sample data.</p>' +
+    '<p>This is a test email from The Fourth Sheet website. The figures are sample data.</p>' +
     '<table style="border-collapse:collapse;font-size:14px">' + rows + '</table>' +
     '<p style="color:#5f6f63;font-size:12px;margin-top:16px">You received this because your address was entered in the ' +
     "website's password-protected test feature. If that wasn't expected, you can ignore this email.</p></div>";

@@ -8,7 +8,7 @@ The old "Email Staff Individually" web app is still in git history, so anyone ca
 
 ## 2. Create the new script
 
-1. Go to <https://script.google.com> → **New project**. Name it "3Sheets email test".
+1. Go to <https://script.google.com> → **New project**. Name it "The Fourth Sheet email test".
 2. Replace the code with everything in `email-test.gs` (this folder) and save.
 3. **Project Settings (gear) → Script properties → Add**:
    - `TEST_PASSWORD`: a long random password (e.g. 4 random words). Share it only with people testing. It is never stored in the website.

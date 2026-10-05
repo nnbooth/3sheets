@@ -1,5 +1,5 @@
 /*
-  script.js — 3Sheets Consulting
+  script.js — The Fourth Sheet
 
   KEY LOCATIONS:
   - Report cards (edit this to add reports) .. REPORTS list, just below
