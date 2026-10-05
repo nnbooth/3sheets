@@ -35,9 +35,6 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
 | Token | Meaning | Where it appears (file → section) | Shown on the page as |
 | --- | --- | --- | --- |
 | `[[PHOTO]]` | Headshot image path | `index.html` → Hero card `<img class="headshot">` | Neutral silhouette, `Assets/headshot-placeholder.svg` |
-| `[[LOCATION]]` | City/region | `index.html` → Hero eyebrow ("CPA-built reporting for … SMEs") | Fallback word **"Australian"** |
-| | | `index.html` → Hero card ("20 years in sales and cost reporting · …") | "Location TBC" chip |
-| | | `index.html` → Footer | "Location TBC" chip |
 | `[[EMAIL]]` | Contact email | `index.html` → Contact ("Prefer email or LinkedIn?") | "Email TBC" chip |
 | `[[LINKEDIN_URL]]` | LinkedIn profile | `index.html` → Contact ("Prefer email or LinkedIn?") | "LinkedIn TBC" chip |
 | `[[BOOKING_URL]]` | Calendar booking link | `index.html` → Hero button "Book a free 20-min data check" | Button links to `#contact` for now |
@@ -62,7 +59,6 @@ When you're done, searching the repo for `[[` and for `class="tbc"` should only 
   `<a href="mailto:you@yourdomain.com.au">you@yourdomain.com.au</a>` and
   `<a href="https://www.linkedin.com/in/you/" target="_blank" rel="noopener">LinkedIn</a>`.
 - **`[[BOOKING_URL]]`:** for an external link, also add `target="_blank" rel="noopener"` to both buttons.
-- **`[[LOCATION]]` in the hero eyebrow:** "Australian" reads naturally until you choose a city. Replace it with e.g. "Brisbane" or "Perth".
 - **The game (`game/game.js`, `CONFIG` at the top):** the tokens there are written in quotes, e.g. `domain: '[[DOMAIN]]'`. Find-and-replace them like everywhere else, keeping the quotes: `domain: '3sheets.com.au'`, `daysToClose: 3`. Until a value is replaced, the game shows the fallback listed above, never the raw token.
   - **Re-record the videos after you change anything in `CONFIG`:** run `python3 tools/record_demo.py` from the repo root. The videos, GIF and poster in `media/` are pictures of the game, so they keep showing the fallbacks until you do.
   - `CONFIG.setupCostAUD` (currently 1500) is the setup cost on the game's summary. **Keep it the same as `[[PRICE]]`**, or the game and the site will disagree.
