@@ -1,0 +1,5 @@
+kpi,value,unit,comparison
+Spend,286000,AUD,month to date
+Delivered on time,91,percent,-3 pts on last month
+Late purchase orders,14,orders,+5 on last month
+Price variance,4.2,percent,paid vs purchase order price
