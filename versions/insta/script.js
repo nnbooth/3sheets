@@ -1,5 +1,5 @@
 /*
-  script.js — 3Sheets Consulting
+  script.js — The Fourth Sheet
 
   KEY LOCATIONS:
   - Google Sheet iframe auto-height .......... applyDynamicSheetHeight()

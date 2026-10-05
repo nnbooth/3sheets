@@ -1,5 +1,5 @@
 /*
-  game.js — "3Sheets: The Month-End Run" (NES theme bonus stage)
+  game.js — "The Fourth Sheet: The Month-End Run" (NES theme bonus stage)
 
   A tiny single-level side-scroller drawn on a 256x240 canvas.
   No images or libraries: every sprite is a pixel map below.
@@ -1344,7 +1344,7 @@
   function drawOverlay() {
     if (state === 'title') {
       panel(30, 196);
-      text('3SHEETS', W / 2, 40, C.gold, 'center');
+      text('THE FOURTH SHEET', W / 2, 40, C.gold, 'center');
       text('THE MONTH-END RUN', W / 2, 54, C.white, 'center');
       ctx.drawImage(COIN, 30, 72);             text('DATA POINTS', 50, 74);
       ctx.drawImage(DASHBOARD, 27, 87);        text('CLARITY: GROW BIG', 50, 90);
@@ -1441,7 +1441,7 @@
     { lines: ['AUTOMATION DOES THE', 'TEDIOUS WORK FOR YOU.', '', 'BUT TOKENS ARE FINITE,', 'AND IDLING BURNS THEM.', 'SWITCH IT ON WHERE THE', 'WORK IS. OFF WHERE IT ISN\'T.'], art: 'bot' },
     { lines: ['EVERY LEAD COSTS MONEY', 'TO WIN. CATCH THEM BEFORE', 'THEY WALK, OR THEY FALL', 'THROUGH THE CRACKS.', '', 'A SYSTEM FOLLOWS UP FOR', 'YOU. YOU LOSE FEWER.'], art: 'lead' },
     { title: 'HOW TO PLAY', lines: ['LEFT / RIGHT .... MOVE', 'Z OR SPACE .... JUMP', 'C ........... AUTOMATE', 'P .............. PAUSE', 'M .............. SOUND', 'REACH THE SIGN-OFF AND', 'PUBLISH THE REPORT', 'BEFORE TIME RUNS OUT.'], art: 'flag', instant: true },
-    { lines: ['3SHEETS CONSULTING', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'HELLO@3SHEETSCONSULTING.COM'], art: 'logo', instant: true },
+    { lines: ['THE FOURTH SHEET', '', 'PRACTICAL REPORTING FOR', 'SMALL AND MEDIUM', 'BUSINESSES.', '', 'NNBOOTH.GITHUB.IO/', 'THEFOURTHSHEET'], art: 'logo', instant: true },
   ];
 
   const pageChars = pg => (pg.lines || []).join('').length;
@@ -1504,7 +1504,7 @@
       ctx.fillStyle = '#2f7a5d'; ctx.beginPath(); ctx.arc(W / 2, top + 18, 18, 0, Math.PI * 2); ctx.fill();
       ctx.font = '16px "Press Start 2P", monospace';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.white;
-      ctx.fillText('3S', W / 2 + 1, top + 19);
+      ctx.fillText('4', W / 2 + 1, top + 19);
     }
   }
 

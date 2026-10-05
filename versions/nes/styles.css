@@ -1,5 +1,5 @@
 /*
-  styles.css — 3Sheets Consulting
+  styles.css — The Fourth Sheet
   8-BIT / NES THEME — just for fun. Same class names as main, so
   index.html and script.js are unchanged.
 
@@ -122,7 +122,7 @@ strong, b { color: var(--gold); font-weight: 400; }
 }
 
 .brand::before {
-  content: "3S";
+  content: "4";
   display: inline-block;
   margin-right: 10px;
   padding: 3px 5px 2px;
@@ -620,7 +620,7 @@ strong, b { color: var(--gold); font-weight: 400; }
   .hero::after { display: none; }
 }
 
-/* ---------- 3Sheets: The Month-End Run launcher (game lives in game.html) ---------- */
+/* ---------- The Fourth Sheet: The Month-End Run launcher (game lives in game.html) ---------- */
 
 /* Pop-up: fills the whole window */
 .game-dialog {
