@@ -91,6 +91,8 @@ These sentences are on the page now and make promises you should confirm or edit
 - **Reports section images.** The three report previews (`media/report-*.png`) are mock-ups with invented data, made from `tools/mockups/report-*.html` by `python3 tools/render_mockups.py`. Replace each with a real Power BI build (sample data) or its "Publish to web" link (`embedUrl` in `script.js`).
 - **"Can I have it in Excel?" section.** Says you're technology agnostic, build on the client's existing tools, and only recommend new tools that earn their keep. Confirm that's how you want to work.
 
+- **Starter bundle scope.** It now offers "two dashboards, your choice" (the client picks the topics) plus clean, connected data and an automated update. Confirm two is the right number for a fixed price.
+
 ## TODO outside this repo
 
 - [ ] **Live sheet (Live example section).** The embedded Google Sheet tab is titled **"Testing : Team_Budget"**, and it's thin test data with a `stevo` row. The title shows at the top of the embed. Publish a finished, read-only sheet, rename the tab, and if the published address changes, update both addresses on the `live-sheet` panel in `index.html`:
