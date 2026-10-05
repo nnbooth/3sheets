@@ -29,6 +29,8 @@ venv/
 
 #Exclude Excel, CSV, and Word files
 *.csv
+# ...except the sample data behind the website mock-ups (tools/sample_data.py)
+!sample-data/*.csv
 *.xlsx
 *.xls
 *.docx

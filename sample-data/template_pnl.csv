@@ -1,0 +1,9 @@
+month,line,actual_aud,budget_aud,variance_aud,variance_pct,what_drove_it
+2026-10-01,Revenue,412300,398000,14300,3.6,Two new customers; volume up 5%
+2026-10-01,Materials,156700,151200,-5500,-3.6,Steel price up 4% from 1 Oct
+2026-10-01,Freight,28900,23500,-5400,-23.0,Fuel levy; three urgent shipments
+2026-10-01,Wastage,16400,12000,-4400,-36.7,Rework on one large job
+2026-10-01,Gross margin,210300,211300,-1000,-0.5,Volume gains eaten by freight and wastage
+2026-10-01,Wages,98600,101000,2400,2.4,Overtime down 40 hours
+2026-10-01,Overheads,61200,60000,-1200,-2.0,Annual software renewal
+2026-10-01,Net profit,50500,50300,200,0.4,"On budget, but margin needs watching"

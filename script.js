@@ -290,7 +290,7 @@ function applyPrices() {
 /* ---------------------------------------------------------------------------
    HERO DASHBOARD — the sample "fourth sheet" on the home page.
 
-   SAMPLE DATA ONLY. Two views, switched by the Small business /
+   SAMPLE DATA ONLY (also in sample-data/hero_*.csv). Two views, switched by the Small business /
    Not-for-profit buttons. To change a number, edit DASH_DATA. The first
    view is also written into index.html so it shows without JavaScript.
 --------------------------------------------------------------------------- */
@@ -305,7 +305,7 @@ const DASH_DATA = {
     chartTitle: 'Cost to win a customer, by month',
     chart: { values: [310, 284, 259, 231, 206, 184], target: 200, fmt: money, what: 'cost to win a customer' },
     head: ['Channel', 'Leads', 'Won', 'Cost to win'],
-    rows: [['Referrals', '42', '18', ['good', '$95']], ['Google ads', '61', '14', ['', '$210']], ['Social', '38', '7', ['bad', '$260']]],
+    rows: [['Referrals', '42', '18', ['good', '$115']], ['Google ads', '61', '14', ['', '$225']], ['Social', '38', '7', ['bad', '$280']]],
   },
   nfp: {
     k1l: 'Cost to raise a dollar', k1v: '$0.18', k1d: ['good', '▼ 16c since April'],
@@ -314,7 +314,7 @@ const DASH_DATA = {
     chartTitle: 'Cost to raise a dollar, by month',
     chart: { values: [0.34, 0.31, 0.27, 0.24, 0.21, 0.18], target: 0.2, fmt: cents, what: 'cost to raise a dollar' },
     head: ['Funding source', 'Raised', 'Share', 'Cost per $1'],
-    rows: [['Grants', '$120k', '59%', ['good', '$0.06']], ['Events', '$48k', '23%', ['bad', '$0.41']], ['Donations', '$36k', '18%', ['', '$0.12']]],
+    rows: [['Grants', '$120k', '59%', ['good', '$0.06']], ['Events', '$46k', '23%', ['bad', '$0.54']], ['Donations', '$36k', '18%', ['', '$0.12']]],
   },
 };
 const DASH_MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];

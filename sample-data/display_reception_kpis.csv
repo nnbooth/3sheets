@@ -1,0 +1,4 @@
+kpi,value,of_total,unit,period
+Orders shipped,1248,,orders,month to date
+Delivered on time,96,,percent,last 30 days
+Team in today,24,31,people,today
