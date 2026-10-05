@@ -222,6 +222,33 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 .email-test-status[data-kind="error"] { color: #b93a3a; font-weight: 600; }
 .email-test-status[data-kind="ok"] { color: var(--accent); font-weight: 600; }
 
+/* EXCEL — "Can I have it in Excel?": intro on the left, ticked points on the right */
+.excel-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; }
+.excel-intro .lead { margin-bottom: 0; }
+.excel-points {
+  display: grid;
+  gap: 1.1rem;
+  margin: 0;
+  padding: 1.5rem 1.6rem;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+}
+.excel-points li { position: relative; padding-left: 2.1rem; color: var(--muted); line-height: 1.55; }
+.excel-points strong { display: block; color: var(--text); margin-bottom: 0.15rem; }
+/* tick in a soft green circle */
+.excel-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%232f7a5d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 0.85rem no-repeat;
+}
+
 /* REPORT CARDS — built by script.js from the REPORTS list. */
 .report-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .report-card {
@@ -419,9 +446,19 @@ body.dev-notes .devnote { display: flex; }
 .tools-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1rem; margin-bottom: 1rem; }
 .tools-heading { margin: 0; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
 .tools-note { margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--accent); }
-.tool-groups { display: flex; flex-wrap: wrap; gap: 1rem 2rem; }
-.tool-group { flex: 1 1 15rem; }
-.tool-group-name { margin: 0 0 0.5rem; font-size: 0.8rem; font-weight: 700; color: var(--text); }
+/* One row per group: label on the left, tools in a single line to the
+   right. On phones the label sits above its tools. */
+.tool-groups { display: grid; }
+.tool-group {
+  display: grid;
+  grid-template-columns: 12.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border);
+}
+.tool-group:first-child { border-top: 0; padding-top: 0; }
+.tool-group-name { margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--text); }
 .tool-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
 .tool {
   display: inline-flex;
@@ -505,13 +542,14 @@ body.dev-notes .devnote { display: flex; }
 .site-footer { padding: 1.5rem 0 2rem; color: var(--muted); }
 .footer-content { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 1rem; }
 @media (max-width: 900px) {
-  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid { grid-template-columns: 1fr; }
+  .card-grid, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
   .section { padding: 2rem 0; }
   .section-heading { margin-bottom: 1.1rem; }
 }
 @media (max-width: 720px) {
+  .tool-group { grid-template-columns: 1fr; gap: 0.45rem; }
   .embed-panel { padding: 0.7rem; }
   .sheet-embed { width: 100%; height: var(--sheet-height-mobile); max-height: 420px; }
 
