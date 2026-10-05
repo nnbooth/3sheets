@@ -63,6 +63,14 @@ To switch prices on, open `script.js`, search for **PRICES**, fill in the three 
 12. **"Why it matters"** (the old "answer these on the 3rd" section, now on `how-we-work.html`): keep or remove?
 13. **Game summary costs:** keep the illustrative setup and running costs, or relabel or remove them while prices are off?
 
+## Example questions (doors and audience pages)
+
+The questions on the home doors and the two audience pages are **examples**, finishing with "…or bring your own". Confirm you're happy to answer each one:
+- **Small business:** What does it cost to win a customer? · Which jobs actually make money? · Will cash cover payroll next month? · Which products or services should we drop? · Is the overtime worth it?
+- **Not-for-profit:** What does it cost to raise a dollar? · What does each program really cost? · How many months of runway do we have? · Which funding is worth chasing? · What does the board need to see?
+
+To change them, edit the `<ul class="q-chips">` lists in `index.html`, `small-business.html` and `not-for-profit.html`.
+
 ## Domain setup (once the domain is chosen)
 
 1. Replace `[[DOMAIN]]` everywhere (`index.html`, `game/game.js`).
