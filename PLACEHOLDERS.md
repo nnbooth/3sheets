@@ -89,6 +89,8 @@ These sentences are on the page now and make promises you should confirm or edit
 
 - **Starter bundle scope.** It now offers "two dashboards, your choice" (the client picks the topics) plus clean, connected data and an automated update. Confirm two is the right number for a fixed price.
 
+- **Quick wins section.** Six small automations, described as "small, fixed-scope jobs, quoted up front". Confirm that's how you'll price them, that you're happy to deliver each one, and the licence line (some Power Automate connectors and AI Builder need paid licences).
+
 ## TODO outside this repo
 
 - [ ] **Live sheet (Live example section).** The embedded Google Sheet tab is titled **"Testing : Team_Budget"**, and it's thin test data with a `stevo` row. The title shows at the top of the embed. Publish a finished, read-only sheet, rename the tab, and if the published address changes, update both addresses on the `live-sheet` panel in `index.html`:
