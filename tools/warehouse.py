@@ -357,6 +357,9 @@ def build(res):
     tbl("fact_grant_instalment", "Grant payment schedule.",
         [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("date_key", "INT REFERENCES dim_date(date_key)"), ("amount", "INT")],
         [r for r in instal if FIRST <= date(r[1] // 10000, r[1] // 100 % 100, r[1] % 100) <= LAST])
+    tbl("fact_grant_spend_month", "Each grant's spend (= grant income) and budget by month, from the grant's start to Sep 2026. Spend adds up to spent_to_date; budget over the whole grant adds up to the grant total.",
+        [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("month_key", V(7)), ("spend", "INT"), ("budget", "INT")],
+        [[g["code"], x["month"], x["spend"], x["budget"]] for g in n["grants"] for x in g["monthly"]])
     tbl("fact_grant_position", "Each grant at 30 Sep 2026: received, spent, budget to date, still to spend. balance = received - spent (+ in advance, - receivable).",
         [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("date_key", "INT"), ("received_to_date", "INT"), ("spent_to_date", "INT"),
          ("budget_to_date", "INT"), ("spend_vs_budget_pct", "DECIMAL(6,1)"), ("still_to_spend", "INT"), ("balance", "INT"), ("months_left", "INT")], gpos)

@@ -73,7 +73,7 @@ SUBURBS = [
     ("Toowoomba", -27.5600, 151.9500, "Toowoomba"), ("Toowoomba", -27.5800, 151.9300, "Toowoomba"),
 ]
 KINDS = ["Hardware", "Trade centre", "Pharmacy", "Building supplies", "Garden centre", "Grocer", "Auto parts",
-         "Café supplies", "Medical clinic", "Homewares", "Pet supplies"]
+         "Cafe supplies", "Medical clinic", "Homewares", "Pet supplies"]
 CARRIER_BY_REGION = {"Inner Brisbane": "Own trucks", "Brisbane West": "Own trucks", "Brisbane North": "Own trucks",
                      "Brisbane East": "Own trucks", "Brisbane South": "Own trucks", "Ipswich": "Own trucks",
                      "Logan": "Carrier A", "Gold Coast": "Carrier A", "Moreton Bay": "Carrier B",

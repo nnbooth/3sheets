@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-15" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-16" />
   </head>
 
   <!--
@@ -127,6 +127,14 @@
               <button type="button" class="assumptions-close" id="assumptions-close" aria-label="Close">&times;</button>
             </div>
             <div class="assumptions-body" id="assumptions-body"></div>
+          </dialog>
+          <!-- Workings behind any number on the dashboard (filled by script.js) -->
+          <dialog class="assumptions" id="support-dialog" aria-labelledby="support-title">
+            <div class="assumptions-head">
+              <h2 id="support-title">How it's worked out</h2>
+              <button type="button" class="assumptions-close" id="support-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="assumptions-body" id="support-body"></div>
           </dialog>
         </div>
       </section>
@@ -241,7 +249,7 @@
       </div>
     </footer>
 
-    <script src="dashboard-data.js?v=2026-10-15"></script>
-    <script src="script.js?v=2026-10-15"></script>
+    <script src="dashboard-data.js?v=2026-10-16"></script>
+    <script src="script.js?v=2026-10-16"></script>
   </body>
 </html>

@@ -709,3 +709,25 @@ body.dev-notes .devnote { display: flex; }
   .deliv-body { grid-template-columns: 1fr; }
   .deliv-map { height: 340px; }
 }
+
+/* Workings behind the numbers (hero dashboard) */
+button.dash-kpi { font: inherit; text-align: left; color: inherit; cursor: pointer; }
+button.dash-kpi:hover { border-color: var(--accent); }
+button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.dash-how { display: block; margin-top: 0.15rem; font-size: 0.68rem; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.dash-chart-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem; }
+.dash-toggle--small { margin-bottom: 0.3rem; }
+.dash-toggle--small button { padding: 0.2rem 0.6rem; font-size: 0.72rem; }
+.dash-svg .dash-row { cursor: pointer; outline: none; }
+.dash-svg .dash-hit { fill: transparent; }
+.dash-svg .dash-row:hover .dash-hit, .dash-svg .dash-row:focus-visible .dash-hit { fill: #eef2ee; }
+.dash-svg .dash-mark { stroke: #2f2f2f; stroke-width: 1.4; }
+.dash-hint { margin: 0.2rem 0 0; font-size: 0.7rem; color: var(--muted); }
+.support-formula { margin: 0.6rem 0; font-weight: 600; }
+.support-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.support-table th, .support-table td { padding: 0.35rem 0.3rem; border-bottom: 1px solid #eef2ee; text-align: left; font-weight: 400; }
+.support-table thead th { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.support-table .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.support-table tbody tr:last-child th, .support-table tbody tr:last-child td { font-weight: 700; border-top: 1px solid var(--border); }
+.support-chart-title { margin: 1rem 0 0.3rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.support-foot { margin-top: 0.8rem; font-size: 0.75rem; color: var(--muted); }
