@@ -16,7 +16,7 @@ gets Excel and PDF downloads; data lives in OneDrive, not git.
 This repo is **public** and the website is served straight from it. Private notes and data live in OneDrive, never here.
 
 ```
-index.html  sme.html  not-for-profit.html  work.html  how-we-work.html  about.html
+index.html  sme.html  not-for-profit.html  examples.html  services.html  about.html  numbers-explained.html  report-*.html
 styles.css  script.js
 data/                       generated data the pages read (dashboard-data.js, deliveries-data.js)
 assets/brand/               the 4th mark, wordmark, share image

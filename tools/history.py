@@ -117,7 +117,7 @@ def trades_lines(m, mo):
     grow = 0.86 + 0.14 * i / 24
     t = trades_techs(mo)
     office = 14600 if mo < "2025-07" else 21900
-    lines = {"Technician wages (incl. super)": -t * 7800, "Office and admin wages": -office,
+    lines = {"Technician wages (incl. on-costs)": -t * 7800, "Office and admin wages": -office,
              "Marketing": -round(7600 * (0.85 + 0.25 * season(mo, {9: 1.1, 10: 1.1, 2: 1.1, 12: 0.7, 1: 0.8})) / 100) * 100,
              "Vehicles and fuel": -round(7900 * t / 7 / 100) * 100, "Rent and occupancy": -(6400 if mo < "2025-07" else 7000),
              "Insurance": -(2700 if mo < "2025-07" else 3000), "IT and software": -round(2300 * grow / 100) * 100,
@@ -198,7 +198,7 @@ def services_engagements(m):
 def services_lines(m, mo):
     i = idx(mo)
     grow = 0.85 + 0.15 * i / 24
-    return {"Consultant salaries (incl. super)": -services_consultants(mo) * 7750,
+    return {"Consultant salaries (incl. on-costs)": -services_consultants(mo) * 7750,
             "Management and admin wages": -(18000 if mo < "2025-07" else 24000),
             "Marketing and business development": -round(5800 * grow / 100) * 100,
             "Rent and occupancy": -(7200 if mo < "2025-07" else 8000), "IT and software": -round(4500 * grow / 100) * 100,

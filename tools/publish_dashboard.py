@@ -62,7 +62,8 @@ def checks(org):
 
 
 def export_paths(org):
-    return {"xlsx": f"media/exports/{org}-sample-statements.xlsx", "pdf": f"media/exports/{org}-sample-statements.pdf"}
+    return {"xlsx": f"media/exports/{org}-sample-statements.xlsx", "pdf": f"media/exports/{org}-sample-statements.pdf",
+            "pptx": f"media/exports/{org}-sample-statements.pptx"}
 
 
 def dashboard_payload(res):
@@ -98,7 +99,7 @@ def detail_table(org, v):
     o = v["out"]
     if org == "trades":
         head = ["Month", "Job", "Type", "Invoiced", "Paid", "Revenue", "Materials", "Subcontractors",
-                "Tech hours", "Labour cost", "Gross profit", "Margin %"]
+                "Tech hours", "Labour cost (incl. on-costs)", "Job gross margin", "Job gross margin %"]
         rows = [[j["month"], j["description"], j["type"], j["invoice_date"].isoformat(), j["paid_date"].isoformat(),
                  j["revenue"], j["materials"], j["subcontractors"], j["hours"], j["labour_cost"], j["gross_profit"],
                  round(100 * j["gross_profit"] / j["revenue"], 1)] for j in o["jobs"] if j["month"] in fm.PERIODS]
@@ -106,7 +107,7 @@ def detail_table(org, v):
         return "Jobs, September and August 2026", head, rows
     if org == "services":
         head = ["Month", "Engagement", "Type", "Hours", "Revenue", "Billed", "Contractors",
-                "Consultant time cost", "Contribution", "Margin %"]
+                "Consultant time cost (incl. on-costs)", "Gross margin", "Gross margin %"]
         rows = [[x["month"], x["description"], x["type"], x["hours"], x["revenue"], x["billed"], x["contractors"],
                  x["allocated_cost"], x["contribution"], round(100 * x["contribution"] / x["revenue"], 1)] for x in o["engagements"]]
         rows.sort(key=lambda r: (r[0] != "2026-09", r[1]))
@@ -339,10 +340,10 @@ def xl_list(ws, org, v, status, sub):
     if org == "trades":
         title = "Jobs, September and August 2026"
         title_block(ws, title, sub, status)
-        ws["A4"], ws["B4"] = "Technician cost rate ($ per hour)", m["tech_cost_rate"]
+        ws["A4"], ws["B4"] = "Technician cost rate ($ per hour, wages and all on-costs)", m["tech_cost_rate"]
         ws["B4"].number_format = F["money"]
         heads = ["Month", "Job", "Type", "Invoiced", "Paid", "Revenue", "Materials", "Subcontractors", "Tech hours",
-                 "Labour cost", "Gross profit", "Margin %"]
+                 "Labour cost (incl. on-costs)", "Job gross margin", "Job gross margin %"]
         kinds = ["text", "text", "text", "date", "date", "money", "money", "money", "hours", "money", "money", "pct"]
         jobs = sorted([j for j in o["jobs"] if j["month"] in fm.PERIODS], key=lambda j: (j["month"] != "2026-09", j["type"], j["description"]))
         data = [[j["month"], j["description"], j["type"], j["invoice_date"], j["paid_date"], j["revenue"], j["materials"],
@@ -351,9 +352,9 @@ def xl_list(ws, org, v, status, sub):
     elif org == "services":
         title = "Client engagements, September and August 2026"
         title_block(ws, title, sub, status)
-        ws["A4"], ws["B4"] = "Consultant cost rate ($ per hour)", m["cost_rate"]
+        ws["A4"], ws["B4"] = "Consultant cost rate ($ per hour, wages and all on-costs)", m["cost_rate"]
         ws["B4"].number_format = F["money"]
-        heads = ["Month", "Engagement", "Type", "Hours", "Revenue", "Billed", "Contractors", "Consultant time cost", "Contribution", "Margin %"]
+        heads = ["Month", "Engagement", "Type", "Hours", "Revenue", "Billed", "Contractors", "Consultant time cost (incl. on-costs)", "Gross margin", "Gross margin %"]
         kinds = ["text", "text", "text", "hours", "money", "money", "money", "money", "money", "pct"]
         eng = sorted(o["engagements"], key=lambda x: (x["month"] != "2026-09", x["description"]))
         data = [[x["month"], x["description"], x["type"], x["hours"], x["revenue"], x["billed"], x["contractors"],
@@ -536,11 +537,11 @@ def html_report(org, v):
             if rw["values"] is None:
                 out.append(f"<tr class=heading><td colspan=4>{esc(rw['label'])}</td></tr>")
             else:
-                out.append(f"<tr class={rw['level']}><td>{esc(rw['label'])}</td>" + "".join(f"<td class=n>{fmt(x)}</td>" for x in rw["values"] + [rw["values"][0] - rw["values"][1]]) + "</tr>")
+                out.append(f"<tr class={rw['level']}><td>{esc(rw['label'])}</td>" + "".join(f"<td class=n>{ek.neg_html(fmt(x))}</td>" for x in rw["values"] + [rw["values"][0] - rw["values"][1]]) + "</tr>")
         return "".join(out) + "</table>"
 
     f4 = v["fourth"]
-    kpis = "".join(f"<div class=kpi><span>{esc(k['label'])}</span><b>{esc(k['value'])}</b><em>{esc(k['sub'])}</em></div>" for k in f4["kpis"])
+    kpis = "".join(f"<div class=kpi><span>{esc(k['label'])}</span><b>{ek.neg_html(k['value'])}</b><em>{esc(k['sub'])}</em></div>" for k in f4["kpis"])
     dtitle, dhead, drows = pdf_detail_rows(org, v)
     cellv = lambda c: fmt(c) if isinstance(c, int) else (f"{c:,.1f}" if isinstance(c, float) else c)
     num = lambda c: isinstance(c, (int, float))
@@ -549,12 +550,12 @@ def html_report(org, v):
     ch = f4["chart"]
     views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
     chart_svg = "".join((f"<p class=viewlabel>{esc(vw['label'])}</p>" if len(views) > 1 else "")
-                        + ek.hbar_svg({**ch, **{k_: vw.get(k_) for k_ in ("values", "format", "target", "marks", "mark_label", "below_marks")}})
+                        + ek.hbar_svg({**ch, **{k_: vw.get(k_) for k_ in ("values", "format", "target", "marks", "mark_label", "below_marks")}, "order_by": views[0]["values"]})
                         for vw in views)
     def wk(sp):
         two = all(not r_[2] for r_ in sp["rows"])
         head = "" if two else "<tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sp["head"])) + "</tr>"
-        body = "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{esc(c)}</td>" for i, c in enumerate(r_[:2] if two else r_)) + "</tr>" for r_ in sp["rows"])
+        body = "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{ek.neg_html(c) if i else esc(c)}</td>" for i, c in enumerate(r_[:2] if two else r_)) + "</tr>" for r_ in sp["rows"])
         return f"<h3>{esc(sp['title'])}</h3><p class=formula>{esc(sp['formula'])}</p><table class=wk>{head}{body}</table>" + (f"<p class=note>{esc(sp['note'])}</p>" if sp.get("note") else "")
     workings = "".join(wk(k["support"]) for k in f4["kpis"])
     assum = "".join(f"<h3>{esc(g)}</h3><table class=assum>" + "".join(f"<tr><td>{esc(a)}</td><td>{esc(b)}</td></tr>" for a, b in items) + "</table>" for g, items in v["assumptions"])
@@ -568,7 +569,7 @@ header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px soli
 .mark {{ min-width: 30px; height: 30px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 15px; }} .mark sup, header b sup {{ font-size: 0.55em; }}
 header b {{ font-size: 13pt; }} header small {{ margin-left: auto; color: #5f6f63; }}
 h1 {{ font-size: 17pt; margin: 6px 0 2px; }} .about {{ color: #5f6f63; margin: 0 0 10px; }}
-.sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #c8a77e; color: #6b5532; border-radius: 4px; padding: 2px 8px; font-size: 8.5pt; font-weight: 700; }}
+.sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #b28a92; color: #6b5532; border-radius: 4px; padding: 2px 8px; font-size: 8.5pt; font-weight: 700; }}
 h2 {{ font-size: 12.5pt; color: #2f7a5d; margin: 16px 0 6px; }} h3 {{ font-size: 10.5pt; margin: 10px 0 4px; color: #2f7a5d; }}
 table {{ width: 100%; border-collapse: collapse; page-break-inside: avoid; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 4px 6px; font-size: 9pt; }}
 td {{ padding: 3px 6px; border-bottom: 1px solid #eef2ee; }} .n {{ text-align: right; font-variant-numeric: tabular-nums; }}
@@ -581,7 +582,7 @@ tr.key td {{ font-weight: 800; background: #eaf6ee; border-top: 1px solid #25342
 @page wide {{ size: A4 landscape; margin: 14mm; }} .wide {{ page: wide; }}
 .formula {{ margin: 0 0 4px; font-style: italic; color: #5f6f63; }} .wk {{ margin-bottom: 10px; }} .wk tr:last-child td {{ font-weight: 700; border-top: 1px solid #9db8a6; }} .note {{ font-size: 8.5pt; color: #5f6f63; margin: 2px 0 8px; }}
 .viewlabel {{ margin: 6px 0 0; font-size: 8.5pt; font-weight: 700; color: #5f6f63; }}
-.stline {{ margin: -4px 0 6px; font-size: 8pt; color: #5f6f63; }} .chart {{ margin: 4px 0 10px; page-break-inside: avoid; }}
+.neg {{ color: #B42318; }} .stline {{ margin: -4px 0 6px; font-size: 8pt; color: #5f6f63; }} .chart {{ margin: 4px 0 10px; page-break-inside: avoid; }}
 """ + ek.STATUS_CSS + f"""
 .two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }} .page {{ page-break-before: always; }}
 .assum td:first-child {{ width: 40%; color: #5f6f63; }} .checks li {{ margin: 2px 0; }}
@@ -601,6 +602,36 @@ footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
 <div class=page><h2>Assumptions</h2>{assum}<h3>Checks (all passed)</h3><ul class=checks>{''.join(f'<li>✓ {esc(c)}</li>' for c in checks(org))}</ul>
 <footer>Generated {date.today().isoformat()} by a driver-based model: every figure is calculated from the assumptions above. Sample data only, not financial advice.</footer></div>
 </body></html>"""
+
+
+def write_pptx(org, v):
+    """PowerPoint version of the statements PDF."""
+    import pptkit
+    f4 = v["fourth"]
+    name = v["model"]["long_name"]
+    d = pptkit.Deck(name, "Monthly report pack, September 2026", f"{org}-sample-statements.pptx", ds.as_at_text())
+    d.title_slide(v["model"]["about"], [f"{date.fromisoformat(m + '-01').strftime('%B %Y')}: {ds.month_status(m)[0]}. {ds.month_status(m)[1]}" for m in STATUS_MONTHS])
+    d.kpi_slide("The fourth sheet: September 2026 vs August 2026", [(k["label"], k["value"], k["sub"]) for k in f4["kpis"]])
+    ch = f4["chart"]
+    views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
+    for vw in views:
+        tgt = vw.get("target")
+        below = None if ch.get("plain") else [(tgt is not None and x < tgt) or (vw.get("below_marks") and vw.get("marks") and x < vw["marks"][i]) for i, x in enumerate(vw["values"])]
+        d.bar_slide(ch["title"] + (f" · {vw['label']}" if len(views) > 1 else ""), ch["labels"], vw["values"], vw["format"],
+                    (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"), order_by=views[0]["values"])
+    for k in f4["kpis"]:
+        sp = k["support"]
+        d.table_slides(f"How it's worked out: {sp['title']}", sp["head"] if any(r_[2] for r_ in sp["rows"]) else sp["head"][:2],
+                       [r_ if any(x[2] for x in sp["rows"]) else r_[:2] for r_ in sp["rows"]], sub=sp["formula"])
+    fmt = lambda n: f"({abs(n):,})" if n < 0 else (f"{n:,}" if n else "-")
+    for key, st in statements(org, v).items():
+        rows = [[rw["label"], *[fmt(x) for x in rw["values"]], fmt(rw["values"][0] - rw["values"][1])] for rw in st["rows"] if rw["values"] is not None]
+        d.table_slides(st["title"], ["$"] + fm.COLUMNS + ["Change"], rows)
+    dtitle, dhead, drows = pdf_detail_rows(org, v)
+    cellv = lambda c: fmt(c) if isinstance(c, int) else (f"{c:,.1f}" if isinstance(c, float) else c)
+    d.table_slides(dtitle, dhead, [[cellv(c) for c in r_] for r_ in drows])
+    d.table_slides("Assumptions", ["", ""], [[a_, b_] for g_, items in v["assumptions"] for a_, b_ in items])
+    d.save(EXPORTS / f"{org}-sample-statements.pptx")
 
 
 def write_pdfs(res):
@@ -627,5 +658,6 @@ def publish():
     write_dashboard_js(res)
     for org in ORDER:
         write_xlsx(org, res[org])
+        write_pptx(org, res[org])
     write_pdfs(res)
     return csv_tables(res)

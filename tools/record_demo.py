@@ -219,3 +219,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    import sync_media   # media/ kept identical with OneDrive
+    sync_media.sync()

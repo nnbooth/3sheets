@@ -1,0 +1,5 @@
+# Python packages the tools need (python3 -m pip install -r requirements.txt; then: python3 -m playwright install chromium)
+openpyxl
+playwright
+python-pptx
+pycel

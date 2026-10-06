@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 deliveries.py — mock deliveries in and out for a Brisbane distribution centre,
-for the map example on work.html.
+for the map example on examples.html.
 
 Sample Distribution's DC is at Wacol. Every delivery OUT to a customer
 (~65 customers across south-east Queensland) and every delivery IN from a
@@ -121,7 +121,7 @@ SUPPLIERS = [
     ("S14", "Supplier N", "Bundamba", "QLD", -27.610, 152.800, 1, "Supplier's own truck", 0.04),
 ]
 IN_REASONS = [("Line-haul delay", 4), ("Supplier stock shortage", 3), ("Booking slot missed", 2), ("Port / customs hold", 1)]
-COLOURS = {"On time": "#5e8b76", "Late": "#c8a77e", "Very late": "#8f4a3e", "Overdue": "#8f4a3e", "In transit": "#8e9cab",
+COLOURS = {"On time": "#0E9F6E", "Late": "#b28a92", "Very late": "#8f4a3e", "Overdue": "#8f4a3e", "In transit": "#8e9cab",
            "Due": "#8e9cab"}
 
 
@@ -306,7 +306,7 @@ def build():
         "periods": [{"id": p["id"], "label": p["label"], "long": p["long"]} for p in periods()],
         "out": summarise(out_rows, "promised_date", "customer_id", cplace, lambda r: f"{r['carrier']} · {region[r['customer_id']]}"),
         "in": summarise(in_rows, "due_date", "supplier_id", splace, lambda r: f"{sname[r['supplier_id']]} · {r['carrier']}"),
-        "exports": {"xlsx": "media/exports/deliveries-sample.xlsx", "pdf": "media/exports/deliveries-sample.pdf"},
+        "exports": {"xlsx": "media/exports/deliveries-sample.xlsx", "pdf": "media/exports/deliveries-sample.pdf", "pptx": "media/exports/deliveries-sample.pptx"},
     }
     return dict(customers=custs, out=out_rows, inn=in_rows, payload=payload)
 
@@ -559,7 +559,7 @@ def html_report(d):
 <div class=kpis><div><span>Deliveries</span><b>{k['total']:,}</b></div><div><span>On time</span><b>{k['on_time_pct']:.1f}%</b></div>
 <div><span>Late</span><b>{k['late']}</b></div><div><span>Overdue now</span><b>{k['overdue']}</b></div><div><span>In full</span><b>{k['in_full_pct']:.1f}%</b></div></div>
 <div class=row><div id=map-{s} class=map></div><div class=side><h3>Where it's going wrong</h3><ul>{hot}</ul>
-<p class=legend><i style="background:#5e8b76"></i>95%+ on time <i style="background:#c8a77e"></i>80–95% <i style="background:#8f4a3e"></i>under 80% or overdue</p>
+<p class=legend><i style="background:#0E9F6E"></i>95%+ on time <i style="background:#b28a92"></i>80–95% <i style="background:#8f4a3e"></i>under 80% or overdue</p>
 <p class=note>Dot size = number of deliveries. Every delivery is in the Excel download.</p></div></div></section>"""
 
     return f"""<!doctype html><html><head><meta charset=utf-8>
@@ -570,7 +570,7 @@ def html_report(d):
 header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #2f7a5d; padding-bottom: 6px; margin-bottom: 8px; }}
 .mark {{ min-width: 28px; height: 28px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }}
 sup {{ font-size: .55em; }} header small {{ margin-left: auto; color: #5f6f63; }}
-.sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #c8a77e; color: #6b5532; border-radius: 4px; padding: 1px 7px; font-size: 8pt; font-weight: 700; }}
+.sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #b28a92; color: #6b5532; border-radius: 4px; padding: 1px 7px; font-size: 8pt; font-weight: 700; }}
 h1 {{ font-size: 15pt; margin: 4px 0; }} h2 {{ font-size: 12pt; color: #2f7a5d; margin: 6px 0; }} h3 {{ font-size: 10.5pt; margin: 0 0 4px; }}
 .pg + .pg {{ page-break-before: always; }} .kpis {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 8px; }}
 .kpis div {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 5px 8px; }} .kpis span {{ display: block; font-size: 8pt; color: #5f6f63; }} .kpis b {{ font-size: 14pt; color: #2f7a5d; }}
@@ -589,7 +589,7 @@ h1 {{ font-size: 15pt; margin: 4px 0; }} h2 {{ font-size: 12pt; color: #2f7a5d; 
 <script>
 const D = {json.dumps(p)};
 function band(pt) {{ const done = pt.on_time + pt.late + pt.very_late; if (pt.overdue) return '#8f4a3e'; if (!done) return '#8e9cab';
-  const r = pt.on_time / done; return r >= 0.95 ? '#5e8b76' : r >= 0.8 ? '#c8a77e' : '#8f4a3e'; }}
+  const r = pt.on_time / done; return r >= 0.95 ? '#0E9F6E' : r >= 0.8 ? '#b28a92' : '#8f4a3e'; }}
 window.tilesLoaded = 0;
 for (const s of ['out', 'in']) {{
   const m = L.map('map-' + s, {{ zoomControl: false, attributionControl: true }});
@@ -616,9 +616,33 @@ def write_pdf(d):
         page.set_content(html_report(d), wait_until="networkidle")
         page.wait_for_function("window.tilesLoaded >= 2", timeout=30000)
         page.evaluate("document.fonts.ready")
+        for side in ("out", "in"):      # map pictures for the PowerPoint version
+            page.locator(f"#map-{side}").screenshot(path=str(EXPORTS / f".map-{side}.png"))
         page.pdf(path=str(EXPORTS / "deliveries-sample.pdf"),
                  **ek.pdf_options("Sample Distribution Pty Ltd", "Deliveries in and out · Sample data", "deliveries-sample.pdf", ds.as_at_text(), landscape=True))
         browser.close()
+
+
+def write_pptx(d):
+    """PowerPoint version of the deliveries PDF (map pictures, KPIs, where it's going wrong)."""
+    import pptkit
+    p = d["payload"]
+    deck = pptkit.Deck("Sample Distribution Pty Ltd", "Deliveries in and out", "deliveries-sample.pptx", ds.as_at_text())
+    deck.title_slide("Every delivery out to a customer and in from a supplier, for an invented distribution centre at Wacol, Brisbane.",
+                     [f"Today (6 Oct): incomplete, as at {ds.as_at_text()}.", f"1-5 October: provisional (October locks {ds.lock_date('2026-10').strftime('%-d %b')}).",
+                      "September and earlier: locked."])
+    for side, heading in (("out", "Deliveries out, to customers"), ("in", "Deliveries in, from suppliers")):
+        k = p[side]["30d"]["kpis"]
+        deck.kpi_slide(f"{heading} · last 30 days", [("Deliveries", f"{k['total']:,}", ""), ("On time", f"{k['on_time_pct']:.1f}%", ""),
+                                                     ("Late", str(k["late"]), ""), ("Overdue now", str(k["overdue"]), ""), ("In full", f"{k['in_full_pct']:.1f}%", "")])
+        png = EXPORTS / f".map-{side}.png"
+        if png.exists():
+            deck.image_slide(f"{heading} · map", png, "Green 95%+ on time · rose 80-95% · brick under 80% or overdue · grey-blue on its way. Dot size = number of deliveries.")
+        deck.table_slides(f"{heading} · where it's going wrong", ["", "Late", "Of", "% late"],
+                          [[h["label"], str(h["late"]), str(h["of"]), f"{h['pct']:.1f}%"] for h in p[side]["30d"]["hotspots"]])
+    deck.save(EXPORTS / "deliveries-sample.pptx")
+    for side in ("out", "in"):
+        (EXPORTS / f".map-{side}.png").unlink(missing_ok=True)
 
 
 def publish():
@@ -626,6 +650,7 @@ def publish():
     write_js(d)
     write_xlsx(d)
     write_pdf(d)
+    write_pptx(d)
     return d
 
 

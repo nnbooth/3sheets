@@ -420,9 +420,9 @@ def build(res):
             by_ml.setdefault(mo, {})
             by_ml[mo][lab] = by_ml[mo].get(lab, 0) + r_[3]
     lm = h["lines"] + history.nfp_line_month(by_ml, history.HIST + ["2026-08", "2026-09", "2026-10"])
-    tbl("fact_line_month", "Revenue, direct cost and margin by product or service line (trades, services) or income source (not-for-profit), by month, Oct 2024 to Sep 2026 plus October to date. Trades direct cost = materials, subcontractors and technician time at $68/h; services = contractors and consultant time at $60/h; not-for-profit = the cost of raising it. status = Locked / Provisional / Incomplete.",
+    tbl("fact_line_month", "Revenue, direct cost and gross margin (before overheads: not profit) by product or service line (trades, services) or income source (not-for-profit), by month, Oct 2024 to Sep 2026 plus October to date. Trades direct cost = materials, subcontractors and technician time at $68/h (wages and all on-costs); services = contractors and consultant time at $60/h (wages and all on-costs); not-for-profit = the cost of raising it. status = Locked / Provisional / Incomplete.",
         [("org_id", V(12) + " REFERENCES dim_org(org_id)"), ("month_key", V(7)), ("month_status", V(12)), ("line", V(40)), ("items", "INT"),
-         ("revenue", "INT"), ("direct_cost", "INT"), ("margin", "INT")], lm)
+         ("revenue", "INT"), ("direct_cost", "INT"), ("gross_margin", "INT")], lm)
     check_history(res, lm)
     build.line_month, build.nfp_by_month, build.gsm = lm, by_ml, gsm
     build.balance_daily = bal
