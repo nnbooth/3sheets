@@ -296,7 +296,8 @@ def xl_support(ws, r, sp):
         for k, L in enumerate(letters):
             if row_["calc"]:
                 import re
-                val = "=" + re.sub(r"r(\d+)", lambda m: f"{L}{rowmap[int(m.group(1))]}", row_["calc"])
+                val = re.sub(r"r(\d+)", lambda m: f"{L}{rowmap[int(m.group(1))]}", row_["calc"])
+                val = f'=IFERROR({val},"–")' if "/" in row_["calc"] and row_["values"][k] is None else "=" + val
             else:
                 val = row_["values"][k]
             cell = ws.cell(r, 2 + k, val)
@@ -521,7 +522,7 @@ def write_xlsx(org, v):
         w.cell(r, 1, "✓ " + line)
     print(f"  {filename}: " + " | ".join(review))
     EXPORTS.mkdir(parents=True, exist_ok=True)
-    wb.save(EXPORTS / filename)
+    ek.save_if_changed(wb.save, EXPORTS / filename)
 
 
 # =============================================================== PDF
@@ -631,7 +632,7 @@ def write_pptx(org, v):
     cellv = lambda c: fmt(c) if isinstance(c, int) else (f"{c:,.1f}" if isinstance(c, float) else c)
     d.table_slides(dtitle, dhead, [[cellv(c) for c in r_] for r_ in drows])
     d.table_slides("Assumptions", ["", ""], [[a_, b_] for g_, items in v["assumptions"] for a_, b_ in items])
-    d.save(EXPORTS / f"{org}-sample-statements.pptx")
+    ek.save_if_changed(d.save, EXPORTS / f"{org}-sample-statements.pptx")
 
 
 def write_pdfs(res):
@@ -646,7 +647,7 @@ def write_pdfs(res):
         for org in ORDER:
             page.set_content(html_report(org, res[org]), wait_until="networkidle")
             page.evaluate("document.fonts.ready")
-            page.pdf(path=str(EXPORTS / f"{org}-sample-statements.pdf"),
+            ek.pdf_if_changed(page, EXPORTS / f"{org}-sample-statements.pdf",
                      **ek.pdf_options(res[org]["model"]["long_name"], "Monthly report pack, September 2026 · Sample data",
                                       f"{org}-sample-statements.pdf", ds.as_at_text()))
         browser.close()

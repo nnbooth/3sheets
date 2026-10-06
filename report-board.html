@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-25" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-26" />
   </head>
 
   <!--
@@ -78,11 +78,14 @@
           <p class="eyebrow"><a href="not-for-profit.html">Not-for-profits</a> · Example report</p>
           <h1>What does the board need to see?</h1>
           <p class="lead">A one-page board summary for September 2026: the result, the money, the risks, and the decisions to make. The full statements are in the downloads.</p>
+          <div class="report-period"><label for="report-period">Period</label>
+            <select id="report-period"><option value="2026-10">October 2026 to date (incomplete)</option><option value="2026-09" selected>September 2026</option><option value="2026-08">August 2026</option></select>
+            <span class="report-period-note" id="report-period-note"></span></div>
           <p class="report-meta" id="report-meta"><span class="dash-sample">Sample data</span> Sample Community Services Ltd</p>
           <div id="report-root"><noscript><p>Turn on JavaScript to see this report, or download it:
-            <a href="media/exports/reports/board.pdf">PDF</a> · <a href="media/exports/reports/board.xlsx">Excel</a>.</p></noscript></div>
-          <div class="report-downloads"><span>Download this report:</span>
-            <span class="dash-actions"><a href="media/exports/reports/board.xlsx" download>Excel</a><a href="media/exports/reports/board.pdf" download>PDF</a><a href="media/exports/reports/board.pptx" download>PowerPoint</a></span>
+            <a href="media/exports/reports/2026-09/board.pdf">PDF</a> · <a href="media/exports/reports/2026-09/board.xlsx">Excel</a> · <a href="media/exports/reports/2026-09/board.pptx">PowerPoint</a>.</p></noscript></div>
+          <div class="report-downloads"><span>Download this report<span id="report-dl-period"> (September 2026)</span>:</span>
+            <span class="dash-actions" id="report-dl"><a href="media/exports/reports/2026-09/board.xlsx" download data-fmt="xlsx">Excel</a><a href="media/exports/reports/2026-09/board.pdf" download data-fmt="pdf">PDF</a><a href="media/exports/reports/2026-09/board.pptx" download data-fmt="pptx">PowerPoint</a></span>
             <a class="report-back" href="not-for-profit.html#reports">&larr; Back to Not-for-profits</a></div>
         </div>
       <dialog class="assumptions" id="support-dialog" aria-labelledby="support-title">
@@ -128,8 +131,8 @@
       </div>
     </footer>
 
-    <script src="data/reports-data.js?v=2026-10-25"></script>
-    <script src="data/reports-data.js?v=2026-10-25"></script>
-    <script src="script.js?v=2026-10-25"></script>
+    <script src="data/reports-data.js?v=2026-10-26"></script>
+    <script src="data/reports-data.js?v=2026-10-26"></script>
+    <script src="script.js?v=2026-10-26"></script>
   </body>
 </html>

@@ -646,11 +646,15 @@ def support(title, formula, rows, note=None, series=None, cols=("Sep 2026", "Aug
     """The workings behind a number. Calculated rows are worked out here (for the site and
     PDF) and written as formulas in Excel, from the same expressions."""
     import re
+    def ev(expr, c):
+        try:
+            return eval(re.sub(r"r(\d+)", lambda m: f"rows[{m.group(1)}]['values'][{c}]", expr), {}, {"rows": rows})
+        except (ZeroDivisionError, TypeError):
+            return None          # nothing to divide by (e.g. no revenue that month): shown as "–", and IFERROR in Excel
     for r_ in rows:
         if r_["calc"]:
-            r_["values"] = [eval(re.sub(r"r(\d+)", lambda m: f"rows[{m.group(1)}]['values'][{c}]", r_["calc"]), {}, {"rows": rows})
-                            for c in range(len(cols))]
-    shown = [[r_["label"], *[FMT[r_["kind"]](v) for v in r_["values"]]] + ([""] if len(cols) == 1 else []) for r_ in rows]
+            r_["values"] = [ev(r_["calc"], c) for c in range(len(cols))]
+    shown = [[r_["label"], *["–" if v is None else FMT[r_["kind"]](v) for v in r_["values"]]] + ([""] if len(cols) == 1 else []) for r_ in rows]
     return {"title": title, "formula": formula, "head": ["", *cols], "rows": shown, "note": note, "series": series,
             "xl": {"cols": list(cols), "rows": rows}}
 

@@ -753,14 +753,56 @@ function setupReport() {
   const all = window.FOURTH_SHEET_REPORTS;
   if (!all) return;
   wireSupportDialog();
-  // a report page
+  // a report page: the Period dropdown runs the report for another month (each period is built from the
+  // data by tools/fourthsheet; its file is loaded when picked). ?period=YYYY-MM links straight to one.
   const box = document.getElementById('report');
   if (box && all[box.dataset.report]) {
-    const r = all[box.dataset.report];
-    const st = r.status[0];
-    document.getElementById('report-meta').insertAdjacentHTML('beforeend',
-      ` · <span class="dash-status is-${st.status.toLowerCase()}" title="${esc(r.status.map((x) => x.note).join(' '))}">${esc(st.label.split(' ')[0])} ${esc(st.status.toLowerCase())}</span> · October is still in progress`);
-    mountReport(document.getElementById('report-root'), r);
+    const slug = box.dataset.report;
+    const base = all[slug];
+    const sel = document.getElementById('report-period');
+    const meta = document.getElementById('report-meta');
+    const metaStart = meta.innerHTML;
+    const ver = ((document.querySelector('script[src*="reports-data.js"]') || {}).src || '').split('?v=')[1] || '';
+    const cache = window.FOURTH_SHEET_PERIODS = window.FOURTH_SHEET_PERIODS || {};
+    cache[`${slug}|${base.period}`] = base;
+    const load = (p) => new Promise((ok, fail) => {
+      if (cache[`${slug}|${p}`]) { ok(cache[`${slug}|${p}`]); return; }
+      const s_ = document.createElement('script');
+      s_.src = `data/reports/${slug}/${p}.js${ver ? `?v=${ver}` : ''}`;
+      s_.onload = () => (cache[`${slug}|${p}`] ? ok(cache[`${slug}|${p}`]) : fail());
+      s_.onerror = fail;
+      document.head.appendChild(s_);
+    });
+    const show = (r) => {
+      const st = r.status[0];
+      const later = r.status.slice(1).map((x) => `${x.label} is still in progress`);
+      meta.innerHTML = `${metaStart} · <span class="dash-status is-${st.status.toLowerCase()}" title="${esc(r.status.map((x) => x.note).join(' '))}">${esc(r.period_label)}: ${esc(st.status.toLowerCase())}</span>${later.length ? ` · ${esc(later.join(' · '))}` : ''}`;
+      document.getElementById('report-period-note').textContent = r.part_note || '';
+      document.getElementById('report-dl-period').textContent = ` (${r.period_label})`;
+      document.querySelectorAll('#report-dl a[data-fmt]').forEach((a) => { a.href = r.exports[a.dataset.fmt]; });
+      const root = document.getElementById('report-root');
+      root.innerHTML = '';
+      const inner = document.createElement('div');
+      root.appendChild(inner);
+      mountReport(inner, r);
+    };
+    const go = (p, push) => {
+      sel.disabled = true;
+      load(p).then((r) => {
+        show(r);
+        sel.value = p;
+        const u = new URL(window.location.href);
+        if (p === base.default_period) u.searchParams.delete('period'); else u.searchParams.set('period', p);
+        if (push) history.replaceState(null, '', u);
+      }).catch(() => {
+        document.getElementById('report-period-note').textContent = 'That period could not load. Try again, or pick another.';
+        sel.value = base.period;
+      }).finally(() => { sel.disabled = false; });
+    };
+    const want = new URLSearchParams(window.location.search).get('period');
+    const valid = (p) => base.periods.some((o) => o.value === p);
+    if (want && valid(want) && want !== base.period) go(want, false); else show(base);
+    if (sel) sel.addEventListener('change', () => go(sel.value, true));
   }
   // the featured chart on the SME and not-for-profit pages
   document.querySelectorAll('[data-report-feature]').forEach((el) => {

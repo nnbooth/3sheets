@@ -63,4 +63,43 @@ for side in ("out", "in"):
         r += 1
     r += 4
 print("deliveries summary checked")
+
+# every report, every period: formulas calculate, and each headline number in Excel = the number on the site
+from fourthsheet.build import load_data, periods_for, run_report, out_dir
+from fourthsheet.catalogue import REPORTS
+D = load_data()
+nrep = nf = 0
+for slug in REPORTS:
+    for per in periods_for(slug, D):
+        r = run_report(slug, per, D)
+        path = str(out_dir(r) / f"{slug}.xlsx")
+        xc = ExcelCompiler(filename=path)
+        wb = openpyxl.load_workbook(path)
+        want = {}
+        for b in r["blocks"]:
+            for sec in b["sections"]:
+                secs = list(sec["by"].values()) if sec["type"] == "vary" else [sec]
+                for x in secs:
+                    if x["type"] == "kpis":
+                        for k in x["items"]:
+                            want.setdefault(k["label"], []).append(k["support"]["xl"]["rows"][-1]["values"][0])
+        ws = wb["Report"]
+        for row in ws.iter_rows(min_col=1, max_col=2):
+            lab, cell = row[0].value, row[1]
+            if lab in want and isinstance(cell.value, str) and cell.value.startswith("=Workings!"):
+                got = xc.evaluate(f"Report!{cell.coordinate}")
+                exp = want[lab].pop(0) if want[lab] else None
+                nf += 1
+                if exp is not None and (not isinstance(got, (int, float)) or abs(got - exp) > 1e-6):
+                    bad += 1; print("REPORT KPI", slug, per, lab, got, exp)
+        for w in wb.worksheets:
+            for row in w.iter_rows():
+                for cell in row:
+                    if isinstance(cell.value, str) and cell.value.startswith("="):
+                        v = xc.evaluate(f"'{w.title}'!{cell.coordinate}")
+                        nf += 1
+                        if v is None or (isinstance(v, str) and v.startswith("#")):
+                            bad += 1; print("REPORT ERR", slug, per, w.title, cell.coordinate, cell.value[:60], v)
+        nrep += 1
+print(f"reports: {nrep} workbooks, {nf} formulas and headline numbers checked")
 print("PROBLEMS:", bad)

@@ -18,6 +18,12 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 LOCAL = REPO / "media"
 
+# Files that have been retired: deleted on BOTH sides before syncing (otherwise "newer wins" would copy a
+# deleted file straight back). Patterns are relative to media/.
+RETIRED = [
+    "exports/reports/*.xlsx", "exports/reports/*.pdf", "exports/reports/*.pptx",   # replaced by exports/reports/<period>/ (6 Oct 2026)
+]
+
 
 def onedrive_root():
     if os.getenv("FOURTH_SHEET_DATA"):
@@ -31,6 +37,12 @@ def onedrive_root():
 
 def sync(quiet=False):
     remote = onedrive_root() / "Media" / "site media"
+    gone = 0
+    for pat in RETIRED:
+        for side in (LOCAL, remote):
+            for f in side.glob(pat):
+                f.unlink()
+                gone += 1
     up = down = 0
     names = {p.relative_to(LOCAL) for p in LOCAL.rglob("*") if p.is_file()} | \
             ({p.relative_to(remote) for p in remote.rglob("*") if p.is_file()} if remote.exists() else set())
@@ -47,7 +59,7 @@ def sync(quiet=False):
             shutil.copy2(b, a)
             down += 1
     if not quiet:
-        print(f"media/ and OneDrive in step: {up} copied up, {down} copied down ({remote})")
+        print(f"media/ and OneDrive in step: {up} copied up, {down} copied down" + (f", {gone} retired files removed" if gone else "") + f" ({remote})")
     return up, down
 
 
