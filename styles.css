@@ -358,8 +358,11 @@ body.dev-notes .devnote { display: flex; }
 .brand-mark {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 1.9rem; height: 1.9rem; padding: 0 0.3rem; border-radius: 0.45rem;
-  background: var(--accent); color: #fbfdf9; font-weight: 800; font-size: 0.9rem; letter-spacing: -0.03em; line-height: 1;
+  background: var(--accent); color: #fbfdf9; font-weight: 800; font-size: 1rem; line-height: 1;
 }
+
+.brand-mark sup { font-size: 0.55em; font-weight: 700; margin-left: 1px; }
+.brand sup { font-size: 0.6em; line-height: 0; }
 
 /* HERO extras — the "three sheets" lead line and the two audience links */
 .hero-lead { margin: 0 0 0.6rem; font-size: 1.25rem; font-weight: 600; color: var(--accent); line-height: 1.35; }
