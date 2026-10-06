@@ -6,7 +6,7 @@ a scaling practice.
 
 ## Repository Location
 
-This dataset is stored at `datasets/Health/data/` in the DataPortfolio repository.
+The data files live in OneDrive, not git: `Projects/The 4th Sheet/Data/Health/` (scripts find it on Mac or Windows; see the repo README). This README stays in the repository.
 
 ## Schema
 

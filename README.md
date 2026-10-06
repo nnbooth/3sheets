@@ -1,15 +1,24 @@
-# DataPortfolio
+# The Fourth Sheet
 
-Portfolio repository for multi-domain analytics assets, sample datasets, and a lightweight static site.
+Website and tooling for **The Fourth Sheet**, Nathan Booth's Brisbane consultancy for SMEs and not-for-profits:
+*"Your accountant gives you three sheets. I give you the fourth."* Live at https://nnbooth.github.io/thefourthsheet/.
+
+The site is plain HTML, CSS and JavaScript (no framework, no build step) on GitHub Pages. Python in `tools/` generates
+everything data-driven: the month-end sample model behind the home dashboard (checked to add up), the daily star schema
+for a cloud database, the deliveries map data, the Excel and PDF downloads, the mock-up images and the game video.
+Business decisions, placeholders and the go-live checklist are in `PLACEHOLDERS.md`.
+
+Ground rules: sample data is labelled and adds up; no client results claimed; copy is technology agnostic; every report
+gets Excel and PDF downloads; data lives in OneDrive, not git.
 
 ## Repository Layout
 
 Code and documentation live here, in git. **Data does not:** every dataset lives in OneDrive (see below).
 
 - `index.html`, `sme.html`, `not-for-profit.html`, `work.html`, `how-we-work.html`, `about.html`, `styles.css`, `script.js`: the website (GitHub Pages).
-- `dashboard-data.js`, `media/exports/`: the home-page sample dashboard and its Excel/PDF downloads (generated).
+- `dashboard-data.js`, `deliveries-data.js`, `media/exports/`: data for the home dashboard and the deliveries map, and their Excel/PDF downloads (generated).
 - `Assets/`, `media/`, `game/`, `versions/`: images, the game and the themed old versions.
-- `tools/`: Python that generates the sample model, daily star schema, CSVs, exports, mock-ups and old versions.
+- `tools/`: Python that generates the sample model (`financial_model.py`), daily star schema (`warehouse.py`), deliveries (`deliveries.py`), CSVs and exports (`sample_data.py`, `publish_dashboard.py`), mock-ups (`render_mockups.py`), the game video (`record_demo.py`) and old versions (`build_versions.py`).
 - `datasets/<domain>/`: scripts and documentation for the Health, Legal and Purchasing datasets (the data itself is in OneDrive).
 - `PLACEHOLDERS.md`: open decisions and the go-live checklist for the website.
 
