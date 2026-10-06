@@ -91,23 +91,23 @@ def detail_table(org, v):
     """The granular list behind the statements: (title, head, rows, money columns)."""
     o = v["out"]
     if org == "trades":
-        head = ["Month", "Job", "Type", "Description", "Invoiced", "Paid", "Revenue", "Materials", "Subcontractors",
+        head = ["Month", "Job", "Type", "Invoiced", "Paid", "Revenue", "Materials", "Subcontractors",
                 "Tech hours", "Labour cost", "Gross profit", "Margin %"]
-        rows = [[j["month"], j["job"], j["type"], j["description"], j["invoice_date"].isoformat(), j["paid_date"].isoformat(),
+        rows = [[j["month"], j["description"], j["type"], j["invoice_date"].isoformat(), j["paid_date"].isoformat(),
                  j["revenue"], j["materials"], j["subcontractors"], j["hours"], j["labour_cost"], j["gross_profit"],
                  round(100 * j["gross_profit"] / j["revenue"], 1)] for j in o["jobs"] if j["month"] in fm.PERIODS]
         rows.sort(key=lambda r: (r[0] != "2026-09", r[2], r[1]))
         return "Jobs, September and August 2026", head, rows
     if org == "services":
-        head = ["Month", "Engagement", "Type", "Description", "Hours", "Revenue", "Billed", "Contractors",
+        head = ["Month", "Engagement", "Type", "Hours", "Revenue", "Billed", "Contractors",
                 "Consultant time cost", "Contribution", "Margin %"]
-        rows = [[x["month"], x["code"], x["type"], x["description"], x["hours"], x["revenue"], x["billed"], x["contractors"],
+        rows = [[x["month"], x["description"], x["type"], x["hours"], x["revenue"], x["billed"], x["contractors"],
                  x["allocated_cost"], x["contribution"], round(100 * x["contribution"] / x["revenue"], 1)] for x in o["engagements"]]
         rows.sort(key=lambda r: (r[0] != "2026-09", r[1]))
         return "Client engagements, September and August 2026", head, rows
-    head = ["Grant", "Program", "Funder", "Total", "Start", "End", "Received to date", "Spent to date", "Spent Aug", "Spent Sep",
+    head = ["Program", "Funder", "Total", "Start", "End", "Received to date", "Spent to date", "Spent Aug", "Spent Sep",
             "Budget to date", "Spend vs budget %", "Still to spend", "Months left"]
-    rows = [[g["code"], g["program"], g["funder"], g["total"], g["start"], g["end"], g["received_to_date"], g["spent_to_date"],
+    rows = [[g["program"], g["funder"], g["total"], g["start"], g["end"], g["received_to_date"], g["spent_to_date"],
              g["spent_aug"], g["spent_sep"], g["budget_to_date"], g["spend_vs_budget_pct"], g["unspent"], g["months_left"]] for g in o["grants"]]
     return "Grants at 30 September 2026", head, rows
 
@@ -122,11 +122,11 @@ def pdf_detail_rows(org, v):
         calls = [r for r in sep if r[2] == "Call-out"]
         sep = [r for r in sep if r[2] != "Call-out"]
         tot = lambda i: sum(r[i] for r in calls)
-        sep.append(["2026-09", "C-09xx", "Call-out", f"{len(calls)} call-outs (each one is in the Excel and CSV)", "", "",
-                    tot(6), tot(7), tot(8), tot(9), tot(10), tot(11), round(100 * tot(11) / tot(6), 1)])
-        keep = [1, 2, 3, 6, 7, 8, 10, 11, 12]
+        sep.append(["2026-09", f"{len(calls)} call-outs (each one is in the Excel)", "Call-out", "", "",
+                    tot(5), tot(6), tot(7), tot(8), tot(9), tot(10), round(100 * tot(10) / tot(5), 1)])
+        keep = [1, 2, 5, 6, 7, 9, 10, 11]
     else:
-        keep = [1, 2, 3, 4, 5, 6, 7, 9, 10]
+        keep = [1, 2, 3, 4, 5, 6, 8, 9]
     return title.replace(", September and August", ", September"), [head[i] for i in keep], [[r[i] for i in keep] for r in sep]
 
 
@@ -252,7 +252,7 @@ def write_xlsx(org, v):
         cell.font = Font(bold=True, color="FFFFFF")
         cell.fill = PatternFill("solid", fgColor=GREEN)
         cell.alignment = Alignment(horizontal="left" if isinstance(rows[0][c - 1], str) else "right", wrap_text=True)
-        w.column_dimensions[get_column_letter(c)].width = 36 if h in ("Description", "Program", "Funder") else 13
+        w.column_dimensions[get_column_letter(c)].width = 36 if h in ("Job", "Engagement", "Program", "Funder") else 13
     for r, rw in enumerate(rows, 5):
         for c, val in enumerate(rw, 1):
             cell = w.cell(r, c, val)
@@ -312,8 +312,8 @@ def html_report(org, v):
     mx = max(ch["values"] + ([ch["target"]] if ch.get("target") else []))
     mx *= 1.15
     below = lambda x: ch.get("target") is not None and x < ch["target"]
-    bars = "".join(f"<div class=bar><i class='{'below' if below(x) else ''}' style='height:{100 * x / mx:.1f}%'><b>{x:.0f}%</b></i><span>{esc(l)}</span></div>" for l, x in zip(ch["labels"], ch["values"]))
-    target = f"<div class=target style='bottom:calc({100 * ch['target'] / mx:.1f}% * 0.8 + 18px)'></div>" if ch.get("target") else ""
+    bars = "".join(f"<div class=hrow><span class=hl>{esc(l)}</span><span class=htrack style='margin-right:30px'><i class='{'below' if below(x) else ''}' style='width:{100 * x / mx:.1f}%'></i><em>{x:.0f}%</em></span></div>" for l, x in zip(ch["labels"], ch["values"]))
+    target = f"<div class=htarget style='left:calc(150px + (100% - 150px - 30px) * {ch['target'] / mx:.4f})'></div>" if ch.get("target") else ""
     assum = "".join(f"<h3>{esc(g)}</h3><table class=assum>" + "".join(f"<tr><td>{esc(a)}</td><td>{esc(b)}</td></tr>" for a, b in items) + "</table>" for g, items in v["assumptions"])
     st = statements(org, v)
     return f"""<!doctype html><html><head><meta charset=utf-8>
@@ -334,15 +334,14 @@ tr.subtotal td, tr.total td {{ font-weight: 700; border-top: 1px solid #9db8a6; 
 tr.key td {{ font-weight: 800; background: #eaf6ee; border-top: 1px solid #25342a; border-bottom: 3px double #25342a; color: #1f5a43; }}
 .kpis {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }} .kpi {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 7px; }}
 .kpi span, .kpi em {{ display: block; font-size: 8.5pt; color: #5f6f63; font-style: normal; }} .kpi b {{ display: block; font-size: 15pt; color: #2f7a5d; }}
-.chart {{ position: relative; height: 150px; display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid #dce8dc; padding-bottom: 18px; }}
-.bar {{ flex: 1; height: 80%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }}
-.bar i {{ display: block; width: 70%; background: #2f7a5d; border-radius: 2px 2px 0 0; position: relative; }} .bar i.below {{ background: #d9922b; }}
-.bar i b {{ position: absolute; top: -14px; left: 0; right: 0; text-align: center; font-size: 8pt; color: #25342a; }}
+.chart {{ position: relative; margin: 4px 0; }} .hrow {{ display: flex; align-items: center; height: 15px; }}
+.hl {{ width: 150px; padding-right: 6px; text-align: right; font-size: 8pt; color: #5f6f63; box-sizing: border-box; white-space: nowrap; }}
+.htrack {{ flex: 1; display: flex; align-items: center; }} .htrack i {{ display: block; height: 9px; background: #5e8b76; border-radius: 1px; }} .htrack i.below {{ background: #c8a77e; }}
+.htrack em {{ font-style: normal; font-size: 7.5pt; color: #5f6f63; margin-left: 4px; }}
+.htarget {{ position: absolute; top: 0; bottom: 0; border-left: 1.5px dashed #2f2f2f; }}
 .detail-list {{ font-size: 8.5pt; }} .detail-list td {{ white-space: nowrap; }} .detail-list td.w {{ white-space: normal; min-width: 110px; }}
 @page wide {{ size: A4 landscape; margin: 14mm; }} .wide {{ page: wide; }}
-.legend .tl {{ display: inline-block; width: 16px; border-top: 2px dashed #d9922b; vertical-align: middle; margin-right: 4px; }} .legend {{ font-size: 8pt; color: #5f6f63; margin: 4px 0 0; }} .legend i {{ display: inline-block; width: 9px; height: 9px; background: #d9922b; margin-right: 4px; }}
-.bar span {{ position: absolute; bottom: -16px; font-size: 8pt; color: #5f6f63; }}
-.target {{ position: absolute; left: 0; right: 0; border-top: 2px dashed #d9922b; font-size: 8pt; color: #8a5410; text-align: right; }}
+.legend .tl {{ display: inline-block; width: 16px; border-top: 1.5px dashed #2f2f2f; vertical-align: middle; margin-right: 4px; }} .legend {{ font-size: 8pt; color: #5f6f63; margin: 4px 0 0; }} .legend i {{ display: inline-block; width: 9px; height: 9px; background: #c8a77e; margin-right: 4px; }}
 .two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }} .page {{ page-break-before: always; }}
 .assum td:first-child {{ width: 40%; color: #5f6f63; }} .checks li {{ margin: 2px 0; }}
 footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}

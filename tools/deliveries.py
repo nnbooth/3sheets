@@ -101,8 +101,8 @@ SUPPLIERS = [
     ("S14", "Supplier N", "Bundamba", "QLD", -27.610, 152.800, 1, "Supplier's own truck", 0.04),
 ]
 IN_REASONS = [("Line-haul delay", 4), ("Supplier stock shortage", 3), ("Booking slot missed", 2), ("Port / customs hold", 1)]
-COLOURS = {"On time": "#2f7a5d", "Late": "#d9922b", "Very late": "#c2412d", "Overdue": "#c2412d", "In transit": "#5b7a99",
-           "Due": "#5b7a99"}
+COLOURS = {"On time": "#5e8b76", "Late": "#c8a77e", "Very late": "#a8655a", "Overdue": "#a8655a", "In transit": "#8e9cab",
+           "Due": "#8e9cab"}
 
 
 def wdays_between(a, b):
@@ -427,7 +427,7 @@ def html_report(d):
 <div class=kpis><div><span>Deliveries</span><b>{k['total']:,}</b></div><div><span>On time</span><b>{k['on_time_pct']}%</b></div>
 <div><span>Late</span><b>{k['late']}</b></div><div><span>Overdue now</span><b>{k['overdue']}</b></div><div><span>In full</span><b>{k['in_full_pct']}%</b></div></div>
 <div class=row><div id=map-{s} class=map></div><div class=side><h3>Where it's going wrong</h3><ul>{hot}</ul>
-<p class=legend><i style="background:#2f7a5d"></i>95%+ on time <i style="background:#d9922b"></i>80–95% <i style="background:#c2412d"></i>under 80% or overdue</p>
+<p class=legend><i style="background:#5e8b76"></i>95%+ on time <i style="background:#c8a77e"></i>80–95% <i style="background:#a8655a"></i>under 80% or overdue</p>
 <p class=note>Dot size = number of deliveries. Every delivery is in the Excel download.</p></div></div></section>"""
 
     return f"""<!doctype html><html><head><meta charset=utf-8>
@@ -453,8 +453,8 @@ h1 {{ font-size: 15pt; margin: 4px 0; }} h2 {{ font-size: 12pt; color: #2f7a5d; 
 {side('in', 'Deliveries in, from suppliers')}
 <script>
 const D = {json.dumps(p)};
-function band(pt) {{ const done = pt.on_time + pt.late + pt.very_late; if (pt.overdue) return '#c2412d'; if (!done) return '#5b7a99';
-  const r = pt.on_time / done; return r >= 0.95 ? '#2f7a5d' : r >= 0.8 ? '#d9922b' : '#c2412d'; }}
+function band(pt) {{ const done = pt.on_time + pt.late + pt.very_late; if (pt.overdue) return '#a8655a'; if (!done) return '#8e9cab';
+  const r = pt.on_time / done; return r >= 0.95 ? '#5e8b76' : r >= 0.8 ? '#c8a77e' : '#a8655a'; }}
 window.tilesLoaded = 0;
 for (const s of ['out', 'in']) {{
   const m = L.map('map-' + s, {{ zoomControl: false, attributionControl: true }});

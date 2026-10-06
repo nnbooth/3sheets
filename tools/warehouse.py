@@ -161,7 +161,7 @@ def gl_daily(res, acct):
     # nfp: each grant's spend (= grant income) spread over the working days
     n = res["nfp"]["out"]
     for gr in fm.NFP["grants"]:
-        label = f"{gr[0]} {gr[2]} grant"
+        label = f"{gr[2]} grant"
         for mo, spend in [("2026-08", gr[9]), ("2026-09", gr[10])]:
             for d, amt in spread(spend, wdays(mo)):
                 post(d, "nfp", label, amt, grant=gr[0])
