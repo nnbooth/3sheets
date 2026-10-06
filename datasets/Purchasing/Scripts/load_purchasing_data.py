@@ -16,12 +16,15 @@ Run create_purchasing_schema.py first if the schema/tables don't exist yet.
 """
 
 import csv
+import os
 from pathlib import Path
 
 from azure_sql_connection import get_connection
 from purchasing_tables import SCHEMA_NAME, TABLES, Table
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "Data"
+# Data lives in OneDrive, not in git (set FOURTH_SHEET_DATA to use another folder).
+DATA_ROOT = Path(os.getenv("FOURTH_SHEET_DATA", Path.home() / "Library/CloudStorage/OneDrive-Personal/Projects/The 4th Sheet/Data")).expanduser()
+DATA_DIR = DATA_ROOT / "Purchasing"
 
 # Tables any foreign_keys entry points at - TRUNCATE is not allowed on these.
 FK_REFERENCED_TABLES = {fk.ref_table for table in TABLES for fk in table.foreign_keys}

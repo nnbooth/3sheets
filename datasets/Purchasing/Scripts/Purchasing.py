@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import random
@@ -687,7 +688,10 @@ df_gr = pd.DataFrame(receipt_rows, columns=[
     'Receipt_ID', 'Line_ID', 'Receipt_Date', 'Qty_Received'
 ])
 
-output_dir = Path(__file__).resolve().parent.parent / "Data"
+# Data lives in OneDrive, not in git (set FOURTH_SHEET_DATA to use another folder).
+DATA_ROOT = Path(os.getenv("FOURTH_SHEET_DATA", Path.home() / "Library/CloudStorage/OneDrive-Personal/Projects/The 4th Sheet/Data")).expanduser()
+output_dir = DATA_ROOT / "Purchasing"
+output_dir.mkdir(parents=True, exist_ok=True)
 
 def write_csv_with_fallback(df, filename):
     target = output_dir / filename

@@ -22,13 +22,16 @@ from __future__ import annotations
 import csv
 import hashlib
 import random
+import os
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 LEGAL_DIR = SCRIPT_DIR.parent
-DATA_DIR = LEGAL_DIR / "data"
+# Data lives in OneDrive, not in git (set FOURTH_SHEET_DATA to use another folder).
+DATA_ROOT = Path(os.getenv("FOURTH_SHEET_DATA", Path.home() / "Library/CloudStorage/OneDrive-Personal/Projects/The 4th Sheet/Data")).expanduser()
+DATA_DIR = Path(os.getenv("LEGAL_DATA_DIR", DATA_ROOT / "Legal"))
 
 CLIENT_PATH = DATA_DIR / "dim_client.csv"
 MATTER_PATH = DATA_DIR / "dim_matter.csv"
