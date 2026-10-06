@@ -33,9 +33,8 @@ from datetime import date, timedelta
 import data_status as ds
 import financial_model as fm
 
-FIRST, LAST = date(2026, 5, 1), date(2026, 10, 31)
-QLD_HOLIDAYS = {date(2026, 5, 4): "Labour Day", date(2026, 8, 12): "Royal Queensland Show (Ekka, Brisbane)",
-                date(2026, 10, 5): "King's Birthday"}
+FIRST, LAST = date(2024, 10, 1), date(2026, 12, 31)      # 24 months of history, the current quarter, and the forecast horizon
+QLD_HOLIDAYS = ds.QLD_HOLIDAYS
 GALA = date(2026, 9, 19)                      # NFP spring gala (Saturday)
 PAY_DAYS = [date(2026, 8, 6), date(2026, 8, 20), date(2026, 9, 3), date(2026, 9, 17)]   # fortnightly Thursdays
 ORG_SECTOR = {"trades": "SME", "services": "SME", "nfp": "Not-for-profit"}
@@ -120,7 +119,7 @@ def pattern(org, label, mo):
     if any(s in label for s in ("Rent", "Occupancy", "Insurance", "IT and software", "indemnity")):
         return [fm.month_start(mo)]
     if label in ("Depreciation", "Interest") or label.startswith("Income tax"):
-        return [fm.MONTH_END[mo]]
+        return [ds.month_end(mo)]
     if label in ("Fundraising events", "Event costs") and mo == "2026-09":
         return [GALA]
     if label == "Donations":
@@ -291,7 +290,26 @@ def build(res):
     gl = gl_daily(res, acct)
     ts = timesheets(res)
     cf, bal = cash_daily(res, acct)
-    check(res, acct, gl, ts, cf, bal)
+    check(res, acct, gl, ts, cf, bal)          # August and September, against the locked statements
+
+    # ---- 24 months of history and October to date (never touches August or September)
+    import history
+    h = history.build(res)
+    for org, label in h["extra_accounts"]:          # ledger lines that only exist in history (finished grants)
+        if (org, "pnl", label) not in acct:
+            nid = max(acct.values()) + 1
+            acct[(org, "pnl", label)] = nid
+            acct_rows.append([nid, org, "P&L", "Income", label, "detail", 0, 1])
+    for d, org, label, amt, job, eng, grant in h["gl"]:
+        if (org, "pnl", label) not in acct:
+            raise SystemExit(f"history posts to an unknown line: {org} {label}")
+        gl.append([key(d), org, acct[(org, "pnl", label)], amt, job, eng, grant])
+    ts += [[key(d), org, j, e, hrs] for d, org, j, e, hrs in h["ts"]]
+    cf += [[key(d), org, acct[(org, "cfr", label)], amt] for d, org, label, amt in h["cash"]]
+    bal += [[key(d), org, c, debt] for d, org, c, debt in h["bal"]]
+    if any(d.strftime("%Y-%m") in ("2026-08", "2026-09") for d, *_ in h["gl"]):
+        raise SystemExit("history tried to post into a locked month")
+    build.history = h
 
     t, s, n = res["trades"]["out"], res["services"]["out"], res["nfp"]["out"]
     seen, dim_job = set(), []
@@ -299,15 +317,31 @@ def build(res):
         if j["job"] not in seen:
             seen.add(j["job"])
             dim_job.append([j["job"], "trades", j["type"], j["description"]])
+    for j in h["jobs"]:
+        if j["job"] not in seen:
+            seen.add(j["job"])
+            dim_job.append([j["job"], "trades", j["type"], j["description"]])
     dim_eng = [[e[0], "services", e[1], e[2], e[3] if e[1] == "Project" else None, e[3] if e[1] != "Project" else None, e[4]]
                for e in fm.SERVICES["engagements"]]
+    have = {e[0] for e in dim_eng}
+    for x in h["eng"]:
+        if x["code"] not in have:
+            have.add(x["code"])
+            hs = next((e for e in history.SERVICES_HISTORY if e[0] == x["code"]), None)
+            rate = hs[3] if hs else x["revenue"]
+            dim_eng.append([x["code"], "services", x["type"], x["description"], rate if x["type"] == "Project" else None,
+                            rate if x["type"] != "Project" else None, 14 if x["type"] == "Retainer" else 30])
     dim_grant = [[g["code"], "nfp", g["program"], g["funder"], g["total"], g["start"], g["end"]] for g in n["grants"]]
+    dim_grant += [[g[0], "nfp", g[2], g[3], g[4], g[5].isoformat(), g[6].isoformat()] for g in h["past_grants"]]
     job_month = [[j["month"], j["job"], j["invoice_date"].isoformat(), j["revenue"], j["materials"], j["subcontractors"], j["hours"],
-                  j["labour_cost"], j["gross_profit"]] for j in t["jobs"]]
+                  j["labour_cost"], j["gross_profit"]] for j in t["jobs"] + h["jobs"]]
     eng_month = [[x["month"], x["code"], x["hours"], x["revenue"], x["billed"], x["contractors"], x["allocated_cost"], x["contribution"],
                   s["r"][x["month"]]["wip"].get(x["code"], 0) if x["type"] == "Project" else 0] for x in s["engagements"]]
+    eng_month += [[x["month"], x["code"], x["hours"], x["revenue"], x["billed"], x["contractors"], x["allocated_cost"], x["contribution"], None]
+                  for x in h["eng"]]
     invoices = [["trades", f"INV-{j['job']}-{j['month'][5:]}", j["job"], None, j["invoice_date"].isoformat(), j["paid_date"].isoformat(), j["amount"]]
-                for j in t["jobs"]]
+                for j in t["jobs"] + [j for j in h["jobs"] if j["month"] != "2026-10" or j["invoice_date"] <= history.AS_AT]]
+    invoices += [["services", i["invoice"], None, i["code"], i["invoice_date"].isoformat(), i["paid_date"].isoformat(), i["amount"]] for i in h["eng_inv"]]
     invoices += [["services", i["invoice"], None, None if i["code"] == "earlier" else i["code"], i["invoice_date"].isoformat(),
                   i["paid_date"].isoformat(), i["amount"]] for i in s["invoices"]]
     instal = [[gr[0], key(d), a] for gr in fm.NFP["grants"] for d, a in gr[7]]
@@ -316,12 +350,13 @@ def build(res):
     orgs = [[o, res[o]["model"]["name"], res[o]["model"]["long_name"], ORG_SECTOR[o], res[o]["model"]["about"]] for o in ["trades", "services", "nfp"]]
     orgs.append(["distribution", "Deliveries", "Sample Distribution Pty Ltd", "SME", "A distribution centre at Wacol, Brisbane: deliveries out to customers across south-east Queensland and in from suppliers (the map on Our work)."])
     build.account_ids = acct
+    acct_label = {v: k[2] for k, v in acct.items()}
 
     T = {}
     def tbl(name, desc, cols, rows):
         T[name] = (desc, [c[0] for c in cols], rows, cols)
     V = lambda n: f"VARCHAR({n})"
-    tbl("dim_date", "Calendar, 1 May to 31 Oct 2026: the drill-down path from financial year to quarter, month, week and day, with Brisbane working days and public holidays. date_key = yyyymmdd; weeks start Monday. Data status as at the run: day_status / month_status = Locked (month closed), Provisional (over but not locked), Incomplete (today / month to date) or Future; months lock on the 2nd working day of the next month.",
+    tbl("dim_date", "Calendar, 1 Oct 2024 to 31 Dec 2026: the drill-down path from financial year to quarter, month, week and day, with Brisbane working days and public holidays. date_key = yyyymmdd; weeks start Monday. Data status as at the run: day_status / month_status = Locked (month closed), Provisional (over but not locked), Incomplete (today / month to date) or Future; months lock on the 2nd working day of the next month.",
         [("date_key", "INT PRIMARY KEY"), ("calendar_date", "DATE NOT NULL"), ("day_of_month", "INT"), ("day_name", V(3)),
          ("day_of_week", "INT"), ("is_weekend", "INT"), ("is_working_day", "INT"), ("public_holiday", V(60)),
          ("week_start", "DATE"), ("iso_week", "INT"), ("month_key", V(7)), ("month_name", V(8)), ("calendar_quarter", V(7)),
@@ -340,36 +375,79 @@ def build(res):
     tbl("dim_grant", "Not-for-profit grants.",
         [("grant_id", V(10) + " PRIMARY KEY"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"), ("program", V(60)), ("funder", V(60)),
          ("grant_total", "INT"), ("start_date", "DATE"), ("end_date", "DATE")], dim_grant)
-    tbl("fact_gl_daily", "Daily P&L postings, Aug-Sep 2026 (income +, costs -). Grouped by month they equal every line of the P&L to the dollar. Tagged with the job, engagement or grant where there is one.",
+    tbl("fact_gl_daily", "Daily P&L postings, Oct 2024 to 6 Oct 2026 (income +, costs -). August and September equal the locked P&L to the dollar; October is incomplete. Tagged with the job, engagement or grant where there is one.",
         [("date_key", "INT REFERENCES dim_date(date_key)"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"),
          ("account_id", "INT REFERENCES dim_account(account_id)"), ("amount", "INT"), ("job_id", V(10)), ("engagement_id", V(10)), ("grant_id", V(10))], gl)
-    tbl("fact_cash_daily", "Daily cash movements by cash-flow line, Aug-Sep 2026 (in +, out -). Customer receipts are the actual invoice payment dates.",
+    tbl("fact_cash_daily", "Daily cash movements by cash-flow line, Aug 2026 to 6 Oct 2026 (in +, out -). Customer receipts are the actual invoice payment dates.",
         [("date_key", "INT REFERENCES dim_date(date_key)"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"),
          ("account_id", "INT REFERENCES dim_account(account_id)"), ("amount", "INT")], cf)
-    tbl("fact_balance_daily", "Closing cash at bank and unpaid customer invoices at the end of every day, Aug-Sep 2026. Month-end values equal the balance sheet.",
+    tbl("fact_balance_daily", "Closing cash at bank and unpaid customer invoices at the end of every day, Aug 2026 to 6 Oct 2026. Month-end values equal the balance sheet.",
         [("date_key", "INT REFERENCES dim_date(date_key)"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"), ("cash_at_bank", "INT"), ("unpaid_invoices", "INT")], bal)
-    tbl("fact_timesheet_daily", "Hours by day against each trades job or services engagement, Aug-Sep 2026 (half-hour units). Add up to the job and engagement hours.",
+    tbl("fact_timesheet_daily", "Hours by day against each trades job or services engagement, Oct 2024 to 6 Oct 2026 (half-hour units). Add up to the job and engagement hours.",
         [("date_key", "INT REFERENCES dim_date(date_key)"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"),
          ("job_id", V(10)), ("engagement_id", V(10)), ("hours", "DECIMAL(6,1)")], ts)
-    tbl("fact_job_month", "Each trades job by month, May-Sep 2026. Labour cost = hours x $68. Aug and Sep add up to the P&L.",
+    tbl("fact_job_month", "Each trades job by month, Oct 2024 to Sep 2026 plus October to date. Labour cost = hours x $68. Aug and Sep add up to the P&L.",
         [("month_key", V(7)), ("job_id", V(10) + " REFERENCES dim_job(job_id)"), ("invoice_date", "DATE"), ("revenue", "INT"), ("materials", "INT"),
          ("subcontractors", "INT"), ("tech_hours", "DECIMAL(6,1)"), ("labour_cost", "INT"), ("gross_profit", "INT")], job_month)
-    tbl("fact_engagement_month", "Each services engagement by month, Aug-Sep 2026. Consultant time costed at $60/hour; wip_closing = unbilled project time at month end.",
+    tbl("fact_engagement_month", "Each services engagement by month, Oct 2024 to Sep 2026 plus October to date. Consultant time costed at $60/hour; wip_closing = unbilled project time at month end.",
         [("month_key", V(7)), ("engagement_id", V(10) + " REFERENCES dim_engagement(engagement_id)"), ("hours", "DECIMAL(6,1)"), ("revenue", "INT"),
          ("billed", "INT"), ("contractors", "INT"), ("consultant_time_cost", "INT"), ("contribution", "INT"), ("wip_closing", "INT")], eng_month)
-    tbl("fact_invoice", "Every customer invoice, May-Sep 2026, with the date it was paid. Unpaid at a date = debtors at that date.",
+    tbl("fact_invoice", "Every customer invoice, Oct 2024 to 6 Oct 2026, with the date it was paid. Unpaid at a date = debtors at that date.",
         [("org_id", V(10) + " REFERENCES dim_org(org_id)"), ("invoice_id", V(20)), ("job_id", V(10)), ("engagement_id", V(10)),
          ("invoice_date", "DATE"), ("paid_date", "DATE"), ("amount", "INT")], invoices)
     tbl("fact_grant_instalment", "Grant payment schedule.",
         [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("date_key", "INT REFERENCES dim_date(date_key)"), ("amount", "INT")],
         [r for r in instal if FIRST <= date(r[1] // 10000, r[1] // 100 % 100, r[1] % 100) <= LAST])
-    tbl("fact_grant_spend_month", "Each grant's spend (= grant income) and budget by month, from the grant's start to Sep 2026. Spend adds up to spent_to_date; budget over the whole grant adds up to the grant total.",
-        [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("month_key", V(7)), ("spend", "INT"), ("budget", "INT")],
-        [[g["code"], x["month"], x["spend"], x["budget"]] for g in n["grants"] for x in g["monthly"]])
+    gsm = [[g["code"], x["month"], x["spend"], x["budget"]] for g in n["grants"] for x in g["monthly"]]
+    current = {g["code"] for g in n["grants"]}
+    past_budget = {g[0]: round(g[4] / len(history.grant_months(g[5], g[6]))) for g in h["past_grants"]}
+    oct_spend = {}
+    for code, mo, amt in h["grant_month"]:
+        if mo == "2026-10":
+            oct_spend[code] = oct_spend.get(code, 0) + amt
+        elif code not in current:
+            gsm.append([code, mo, amt, past_budget[code]])
+    gsm += [[code, "2026-10", amt, next((x["budget"] for g in n["grants"] if g["code"] == code for x in [{"budget": g["budget_by_month"].get("2026-10", 0)}]), 0)]
+            for code, amt in oct_spend.items()]
+    tbl("fact_grant_spend_month", "Each grant's spend (= grant income) and budget by month, Oct 2024 to Sep 2026 plus October 2026 to date (incomplete), including grants that have finished. Current grants: spend adds up to spent_to_date at 30 Sep.",
+        [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("month_key", V(7)), ("spend", "INT"), ("budget", "INT")], gsm)
+    # revenue, cost and margin by product / service line / income source, by month
+    by_ml = {}
+    for r_ in gl:
+        if r_[1] == "nfp":
+            mo = f"{str(r_[0])[:4]}-{str(r_[0])[4:6]}"
+            lab = acct_label[r_[2]]
+            by_ml.setdefault(mo, {})
+            by_ml[mo][lab] = by_ml[mo].get(lab, 0) + r_[3]
+    lm = h["lines"] + history.nfp_line_month(by_ml, history.HIST + ["2026-08", "2026-09", "2026-10"])
+    tbl("fact_line_month", "Revenue, direct cost and margin by product or service line (trades, services) or income source (not-for-profit), by month, Oct 2024 to Sep 2026 plus October to date. Trades direct cost = materials, subcontractors and technician time at $68/h; services = contractors and consultant time at $60/h; not-for-profit = the cost of raising it. status = Locked / Provisional / Incomplete.",
+        [("org_id", V(12) + " REFERENCES dim_org(org_id)"), ("month_key", V(7)), ("month_status", V(12)), ("line", V(40)), ("items", "INT"),
+         ("revenue", "INT"), ("direct_cost", "INT"), ("margin", "INT")], lm)
+    check_history(res, lm)
     tbl("fact_grant_position", "Each grant at 30 Sep 2026: received, spent, budget to date, still to spend. balance = received - spent (+ in advance, - receivable).",
         [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("date_key", "INT"), ("received_to_date", "INT"), ("spent_to_date", "INT"),
          ("budget_to_date", "INT"), ("spend_vs_budget_pct", "DECIMAL(6,1)"), ("still_to_spend", "INT"), ("balance", "INT"), ("months_left", "INT")], gpos)
     return T
+
+
+def check_history(res, lm):
+    """The line table agrees with the locked statements for August and September."""
+    problems = []
+    for org, labels in (("trades", ["Maintenance contracts", "Installations", "Call-outs and repairs"]), ("services", ["Projects", "Retainers", "Training"])):
+        rev_rows = [rw for rw in res[org]["out"]["pnl"][1:4]]
+        for i, mo in enumerate(fm.PERIODS):
+            got = sum(r[5] for r in lm if r[0] == org and r[1] == mo)
+            exp = sum(rw["values"][i] for rw in rev_rows)
+            if got != exp:
+                problems.append(f"line revenue {org} {mo}: {got} vs {exp}")
+    for i, mo in enumerate(fm.PERIODS):
+        got = sum(r[5] for r in lm if r[0] == "nfp" and r[1] == mo)
+        r_ = res["nfp"]["out"]["r"][mo]
+        exp = r_["grant_income"] + r_["other_income"]["Donations"] + r_["other_income"]["Fundraising events"] + r_["other_income"]["Program fees"]
+        if got != exp:
+            problems.append(f"line income nfp {mo}: {got} vs {exp}")
+    if problems:
+        raise SystemExit("History checks FAILED:\n  " + "\n  ".join(problems))
 
 
 def check(res, acct, gl, ts, cf, bal):

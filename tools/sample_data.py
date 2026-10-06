@@ -83,8 +83,9 @@ def table(name, description, columns, rows):
 # --- Home-page dashboard: generated from tools/financial_model.py (see main()),
 #     so the statements always add up. Tables: model_*.
 
-# --- Live display: warehouse floor (today = 14 Oct 2026)
-TODAY = date(2026, 10, 14)
+# Report mock-ups show SEPTEMBER 2026 (the last locked month). The live screens show TODAY, Tue 6 Oct 2026, as at 2pm.
+# --- Live display: warehouse floor (today = 6 Oct 2026)
+TODAY = date(2026, 10, 6)
 table("display_warehouse_kpis", "Warehouse screen: today's despatch KPIs.",
       ["kpi", "value", "target", "unit"],
       [["Orders picked", 142, 180, "lines"], ["On time, in full", 94, 95, "percent"], ["Late inbound deliveries", 3, 0, "deliveries"]])
@@ -96,44 +97,44 @@ table("display_warehouse_overdue_deliveries", "Warehouse screen: overdue inbound
       [["Supplier A", "Steel coil", 2], ["Supplier B", "Fasteners", 1], ["Supplier C", "Packaging", 1]])
 
 # --- Live display: reception
-table("display_reception_kpis", "Reception screen: headline numbers (October 2026).",
+table("display_reception_kpis", "Reception screen: headline numbers as at 6 Oct 2026.",
       ["kpi", "value", "of_total", "unit", "period"],
-      [["Orders shipped", 1248, None, "orders", "month to date"], ["Delivered on time", 96, None, "percent", "last 30 days"],
+      [["Orders shipped", 1248, None, "orders", "last 30 days"], ["Delivered on time", 96, None, "percent", "last 30 days"],
        ["Team in today", 24, 31, "people", "today"]])
 table("display_reception_orders_by_week", "Reception screen: orders shipped by week.",
       ["week_start", "week_label", "orders_shipped"],
-      [[w.isoformat(), f"W{i + 1}", v] for i, (w, v) in enumerate(zip(weeks(date(2026, 8, 31), 7), [168, 182, 175, 196, 188, 207, 214]))])
+      [[w.isoformat(), f"W{i + 1}", v] for i, (w, v) in enumerate(zip(weeks(date(2026, 8, 17), 7), [168, 182, 175, 196, 188, 207, 214]))])
 table("display_reception_today", "Reception screen: today's list.",
       ["item", "count"],
       [["Deliveries expected", 6], ["Visitors booked", 4], ["Open jobs on the floor", 37]])
 
-# --- Live display: boardroom management pack (October 2026)
+# --- Live display: boardroom management pack (September 2026, year to date)
 budget = [440, 448, 455, 460, 465, 470, 474, 478, 485, 495, 500, 505]
-actual = [438, 452, 470, 478, 476, 488, 492, 494, 502, 530, None, None]
-forecast = [None] * 9 + [530, 528, 541]
-table("display_boardroom_kpis", "Boardroom screen: management pack KPIs, year to date October 2026.",
+actual = [438, 452, 470, 478, 476, 488, 492, 494, 502, None, None, None]
+forecast = [None] * 8 + [502, 520, 528, 541]
+table("display_boardroom_kpis", "Boardroom screen: management pack KPIs, year to date September 2026.",
       ["kpi", "value", "unit", "comparison"],
-      [["Revenue vs budget", 3.2, "percent", "$4.82M actual vs $4.67M budget"],
+      [["Revenue vs budget", 2.8, "percent", "$4.29M actual vs $4.18M budget"],
        ["True gross margin", 31.4, "percent", "-2.1 pts after freight and wastage"],
        ["Customer churn", 4.1, "percent", "+0.6 pts on last quarter"],
        ["Forecast vs budget", 1.8, "percent", "rolling 12 months, driver-based"]])
-table("display_boardroom_revenue_monthly", "Boardroom screen: revenue by month, $k. Actual Jan-Oct (sums to 4,820), budget Jan-Dec (Jan-Oct sums to 4,670), forecast Oct-Dec.",
+table("display_boardroom_revenue_monthly", "Boardroom screen: revenue by month, $k. Actual Jan-Sep (sums to 4,290), budget Jan-Dec (Jan-Sep sums to 4,175), forecast Sep-Dec (from September's actual).",
       ["month", "actual_aud_k", "budget_aud_k", "forecast_aud_k"],
       [[m.isoformat(), a, b, f] for m, a, b, f in zip(MONTHS_2026, actual, budget, forecast)])
 table("display_boardroom_cost_of_sale", "Boardroom screen: what a sale really costs, as a share of revenue (sums to 100).",
       ["component", "pct_of_revenue"],
       [["Materials", 36.0], ["Labour", 20.6], ["Freight", 6.5], ["Wastage", 3.5], ["Returns", 2.0], ["Left as margin", 31.4]])
 
-# --- Report preview: sales (October 2026)
-sales_months = MONTHS_2026[4:10]
-table("report_sales_kpis", "Sales report: KPIs for October 2026.",
+# --- Report preview: sales (September 2026)
+sales_months = MONTHS_2026[3:9]
+table("report_sales_kpis", "Sales report: KPIs for September 2026.",
       ["kpi", "value", "unit", "comparison"],
       [["Revenue", 412300, "AUD", "+6.1% on last month"], ["Orders", 1248, "orders", "+3.4% on last month (1,207)"],
        ["Cancellation rate", 3.8, "percent", "+0.9 pts on last month"], ["Weighted pipeline", 1100000, "AUD", "next 90 days"]])
 table("report_sales_revenue_monthly", "Sales report: revenue by month (chart shows $k).",
       ["month", "revenue_aud"],
       [[m.isoformat(), v] for m, v in zip(sales_months, [348000, 362000, 371000, 355000, 388600, 412300])])
-table("report_sales_top_customers", "Sales report: top customers, October 2026.",
+table("report_sales_top_customers", "Sales report: top customers, September 2026.",
       ["customer", "revenue_aud", "change_vs_last_year_pct", "cancellation_pct"],
       [["Customer A", 68000, 12, 1.2], ["Customer B", 54000, 4, 2.0], ["Customer C", 41000, -9, 7.5], ["Customer D", 37000, 21, 0.8],
        ["Customer E", 29000, -3, 3.1], ["Customer F", 24000, 7, 1.9], ["Customer G", 19000, -14, 9.2]])
@@ -141,10 +142,10 @@ table("report_sales_cancellations_by_reason", "Sales report: cancelled orders by
       ["reason", "orders_cancelled"],
       [["Late delivery", 19], ["Price", 13], ["Out of stock", 9], ["Changed mind", 6]])
 
-# --- Report preview: purchasing (October 2026)
-table("report_purchasing_kpis", "Purchasing report: KPIs for October 2026.",
+# --- Report preview: purchasing (September 2026)
+table("report_purchasing_kpis", "Purchasing report: KPIs for September 2026.",
       ["kpi", "value", "unit", "comparison"],
-      [["Spend", 286000, "AUD", "month to date"], ["Delivered on time", 91, "percent", "-3 pts on last month"],
+      [["Spend", 286000, "AUD", "September"], ["Delivered on time", 91, "percent", "-3 pts on last month"],
        ["Late purchase orders", 14, "orders", "+5 on last month"], ["Price variance", 4.2, "percent", "paid vs purchase order price"]])
 table("report_purchasing_on_time_by_supplier", "Purchasing report: on-time delivery by supplier.",
       ["supplier", "on_time_pct"],
@@ -156,16 +157,16 @@ table("report_purchasing_late_orders", "Purchasing report: all 14 late purchase 
        ["PO-1075", "Supplier E", 1, 3300], ["PO-1076", "Supplier B", 1, 2100], ["PO-1078", "Supplier F", 1, 900],
        ["PO-1079", "Supplier A", 1, 5600], ["PO-1081", "Supplier D", 1, 1400], ["PO-1082", "Supplier C", 1, 3000],
        ["PO-1084", "Supplier E", 1, 2200], ["PO-1085", "Supplier A", 1, 4400]])
-table("report_purchasing_unit_cost_index", "Purchasing report: unit cost index by month (May = 100).",
+table("report_purchasing_unit_cost_index", "Purchasing report: unit cost index by month (April = 100).",
       ["month", "freight_index", "steel_index"],
       [[m.isoformat(), f, s] for m, f, s in zip(sales_months, [100, 101, 104, 107, 109, 115], [100, 99, 101, 100, 103, 104])])
 
-# --- Report preview: payroll and overtime (October 2026)
-table("report_payroll_kpis", "Payroll and overtime report: KPIs for October 2026.",
+# --- Report preview: payroll and overtime (September 2026)
+table("report_payroll_kpis", "Payroll and overtime report: KPIs for September 2026.",
       ["kpi", "value", "unit", "comparison"],
-      [["Labour cost", 198000, "AUD", "month to date"], ["Overtime hours", 412, "hours", "+18% on last month"],
+      [["Labour cost", 198000, "AUD", "September"], ["Overtime hours", 412, "hours", "+18% on last month"],
        ["Overtime share", 9.6, "percent", "of 4,292 hours worked"], ["Labour per job", 143, "AUD", "+$11 on last month (1,383 jobs)"]])
-pay_weeks = weeks(date(2026, 9, 7), 6)
+pay_weeks = weeks(date(2026, 8, 24), 6)
 table("report_payroll_overtime_by_week", "Payroll and overtime report: overtime hours by week (sums to 412).",
       ["week_start", "week_label", "overtime_hours"],
       [[w.isoformat(), f"W{i + 1}", v] for i, (w, v) in enumerate(zip(pay_weeks, [58, 61, 66, 72, 74, 81]))])
@@ -176,9 +177,9 @@ table("report_payroll_hours_vs_jobs", "Payroll and overtime report: hours worked
       ["week_start", "week_label", "hours_index", "jobs_index"],
       [[w.isoformat(), f"W{i + 1}", h, j] for i, (w, h, j) in enumerate(zip(pay_weeks, [100, 102, 105, 109, 111, 116], [100, 101, 101, 102, 101, 103]))])
 
-# --- Template: management pack, profit and loss (October 2026)
+# --- Template: management pack, profit and loss (September 2026)
 pnl = [["Revenue", 412300, 398000, "Two new customers; volume up 5%"],
-       ["Materials", 156700, 151200, "Steel price up 4% from 1 Oct"],
+       ["Materials", 156700, 151200, "Steel price up 4% from 1 Sep"],
        ["Freight", 28900, 23500, "Fuel levy; three urgent shipments"],
        ["Wastage", 16400, 12000, "Rework on one large job"],
        ["Gross margin", 210300, 211300, "Volume gains eaten by freight and wastage"],
@@ -188,9 +189,9 @@ pnl = [["Revenue", 412300, 398000, "Two new customers; volume up 5%"],
 INCOME = {"Revenue", "Gross margin", "Net profit"}
 def variance(line, a, b):  # positive = favourable
     return a - b if line in INCOME else b - a
-table("template_pnl", "Management pack template: profit and loss, actual against budget, October 2026. Variance is favourable when positive.",
+table("template_pnl", "Management pack template: profit and loss, actual against budget, September 2026. Variance is favourable when positive.",
       ["month", "line", "actual_aud", "budget_aud", "variance_aud", "variance_pct", "what_drove_it"],
-      [[date(2026, 10, 1).isoformat(), l, a, b, variance(l, a, b), round(100 * variance(l, a, b) / b, 1), n] for l, a, b, n in pnl])
+      [[date(2026, 9, 1).isoformat(), l, a, b, variance(l, a, b), round(100 * variance(l, a, b) / b, 1), n] for l, a, b, n in pnl])
 
 # ---------------------------------------------------------------- checks
 
@@ -198,8 +199,8 @@ def check_totals():
     """The numbers that are meant to add up, do."""
     t = {k: v[2] for k, v in TABLES.items()}
     assert sum(r[2] for r in t["display_warehouse_picks_by_hour"]) == 142
-    assert sum(r[1] for r in t["display_boardroom_revenue_monthly"][:10]) == 4820
-    assert sum(r[2] for r in t["display_boardroom_revenue_monthly"][:10]) == 4670
+    assert sum(r[1] for r in t["display_boardroom_revenue_monthly"][:9]) == 4290
+    assert sum(r[2] for r in t["display_boardroom_revenue_monthly"][:9]) == 4175
     assert round(sum(r[1] for r in t["display_boardroom_cost_of_sale"]), 1) == 100.0
     assert sum(r[1] for r in t["report_sales_cancellations_by_reason"]) == 47 and round(100 * 47 / 1248, 1) == 3.8
     assert sum(r[2] for r in t["report_payroll_overtime_by_week"]) == 412
@@ -214,11 +215,11 @@ def check_totals():
 MOCKUP_CHECKS = {
     "tools/mockups/warehouse.html": ["142", "180", "94", "steel coil"],
     "tools/mockups/reception.html": ["1,248", "96", "24", "31"],
-    "tools/mockups/boardroom.html": ["+3.2%", "31.4%", "4.1%", "+1.8%"],
-    "tools/mockups/report-sales.html": ["$412k", "1,248", "3.8%", "[19, 13, 9, 6]"],
+    "tools/mockups/boardroom.html": ["+2.8%", "$4.29M", "$4.18M", "31.4%", "4.1%", "+1.8%", "· September"],
+    "tools/mockups/report-sales.html": ["$412k", "1,248", "3.8%", "[19, 13, 9, 6]", "<b>September</b>", "['Apr','May','Jun','Jul','Aug','Sep']"],
     "tools/mockups/report-purchasing.html": ["$286k", "91%", "+4.2%", "PO-1042"],
     "tools/mockups/report-payroll.html": ["$198k", "412", "9.6%", "$143"],
-    "tools/mockups/template-excel.html": ["412,300", "210,300", "50,500"],
+    "tools/mockups/template-excel.html": ["412,300", "210,300", "50,500", "· September", "from 1 Sep"],
 }
 
 def check_mockups():
