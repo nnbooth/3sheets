@@ -1504,7 +1504,9 @@
       ctx.fillStyle = '#2f7a5d'; ctx.beginPath(); ctx.arc(W / 2, top + 18, 18, 0, Math.PI * 2); ctx.fill();
       ctx.font = '16px "Press Start 2P", monospace';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.white;
-      ctx.fillText('4', W / 2 + 1, top + 19);
+      ctx.fillText('4', W / 2 - 5, top + 19);
+      ctx.font = '8px "Press Start 2P", monospace';
+      ctx.fillText('TH', W / 2 + 9, top + 12);
     }
   }
 

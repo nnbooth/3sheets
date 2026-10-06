@@ -976,9 +976,11 @@
   function drawBrandBar() {
     rect(0, 0, W, HUD_H, PAL.paper);
     rect(0, HUD_H - 1, W, 1, PAL.sage);
-    box(6, 6, 24, 16, PAL.accent, PAL.accentDark);
-    text('4S', 18, 10, PAL.white, 8, 'center');
-    text('THE FOURTH SHEET', 36, 10, PAL.ink);
+    // "4th" mark: a 4 with a raised TH (the pixel font has no superscript)
+    box(6, 5, 30, 18, PAL.accent, PAL.accentDark);
+    text('4', 13, 10, PAL.white, 8);
+    text('TH', 21, 7, PAL.white, 8);
+    text('THE FOURTH SHEET', 42, 10, PAL.ink);
   }
 
   /* ---------------------------------------------------------------- banners */
@@ -1155,8 +1157,9 @@
   function drawEnd() {
     rect(0, 0, W, H, PAL.bg);
     // "4" mark, then the business name and the person
-    box(W / 2 - 20, 6, 40, 24, PAL.accent, PAL.accentDark);
-    text('4S', W / 2, 10, PAL.white, 16, 'center');
+    box(W / 2 - 22, 4, 44, 28, PAL.accent, PAL.accentDark);
+    text('4', W / 2 - 16, 10, PAL.white, 16);
+    text('TH', W / 2, 8, PAL.white, 8);
     text('THE FOURTH SHEET', W / 2, 34, PAL.accent, 8, 'center');
 
     const name = cfg('name', '');
