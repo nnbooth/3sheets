@@ -345,7 +345,8 @@ function renderStatement(o, st) {
     const change = r.values[0] - r.values[1];
     return `<tr class="st-${r.level}${r.level === 'detail' ? ' detail' : ''}"><td>${esc(r.label)}</td>${r.values.map((v) => `<td class="n">${acct(v)}</td>`).join('')}<td class="n st-change">${acct(change)}</td></tr>`;
   }).join('');
-  return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)}</p>
+  const sts = window.FOURTH_SHEET_DASHBOARD.status.slice(0, 2).map((m) => `${m.label}: ${m.status.toLowerCase()}`).join(' · ');
+  return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)}</p><p class="dash-status-line">${esc(sts)}</p>
     <div class="st-scroll"><table class="st-table"><thead><tr><th scope="col">$</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}<th scope="col" class="n st-change">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="dash-phone-note">Headline lines shown. Every line is on a larger screen, and in the Excel and PDF downloads.</p>`;
 }
@@ -365,8 +366,6 @@ function renderChart(ch) {
   const max = Math.max(...ch.values, ch.target || 0, ...(ch.marks || [0])) * 1.1;
   const x = (v) => left + (v / max) * (right - left);
   let g = `<line class="dash-grid" x1="${left}" x2="${left}" y1="${top - 2}" y2="${top + plotH}"/>`;
-  // target line first, so the bars and their value labels sit on top of it
-  if (ch.target != null) g += `<line class="dash-target" x1="${x(ch.target).toFixed(1)}" x2="${x(ch.target).toFixed(1)}" y1="${top - 2}" y2="${top + plotH}"/>`;
   ch.values.forEach((v, i) => {
     const y = top + i * row + (row - bh) / 2;
     g += `<g class="dash-row" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
@@ -374,9 +373,17 @@ function renderChart(ch) {
       + `<text class="dash-axis" x="${left - 5}" y="${(y + bh - 1.5).toFixed(1)}" text-anchor="end">${esc(ch.labels[i])}</text>`
       + `<rect class="dash-bar dash-bar--h${below(v) ? ' dash-bar--below' : ''}" x="${left}" y="${y.toFixed(1)}" width="${(x(v) - left).toFixed(1)}" height="${bh}" rx="1.5"/>`;
     if (ch.marks) g += `<line class="dash-mark" x1="${x(ch.marks[i]).toFixed(1)}" x2="${x(ch.marks[i]).toFixed(1)}" y1="${(y - 2).toFixed(1)}" y2="${(y + bh + 2).toFixed(1)}"/>`;
-    g += `<text class="dash-value" x="${(Math.max(x(v), ch.marks ? x(ch.marks[i]) : 0) + 3).toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${fmt(v)}</text></g>`;
+    // value label at the end of the bar; if it would sit on the target line, it steps past the line
+    const txt = fmt(v), tw = txt.length * 3.5;
+    let lx = Math.max(x(v), ch.marks ? x(ch.marks[i]) : 0) + 3;
+    if (ch.target != null && lx - 2 < x(ch.target) && x(ch.target) < lx + tw + 2) lx = x(ch.target) + 3;
+    g += `<text class="dash-value" x="${lx.toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${txt}</text></g>`;
   });
-  if (ch.target != null) g += `<text class="dash-target-label" x="${x(ch.target).toFixed(1)}" y="${top + plotH + 10}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
+  if (ch.target != null) {   // drawn after the bars, so the target sits on top
+    const tx = x(ch.target).toFixed(1);
+    g += `<line class="dash-target" x1="${tx}" x2="${tx}" y1="${top - 3}" y2="${top + plotH + 1}"/>`;
+    g += `<text class="dash-target-label" x="${tx}" y="${top + plotH + 10}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
+  }
   if (anyBelow) g += `<rect class="dash-bar--below" x="${left}" y="${H - 9}" width="7" height="7" rx="1"/><text class="dash-key" x="${left + 10}" y="${H - 3}">Below target</text>`;
   if (ch.marks) g += `<line class="dash-mark" x1="${left + 3}" x2="${left + 3}" y1="${H - 10}" y2="${H - 2}"/><text class="dash-key" x="${left + 9}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}.`;
@@ -438,6 +445,7 @@ function renderAssumptions(o) {
   document.getElementById('assumptions-body').innerHTML =
     `<p class="assumptions-intro">Sample data. Every figure on the dashboard is calculated from these assumptions by a driver-based model, then checked.</p>` +
     o.assumptions.map(([group, items]) => `<h3>${esc(group)}</h3><dl>${items.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`).join('') +
+    `<h3>How final is this data?</h3><dl>${window.FOURTH_SHEET_DASHBOARD.status.map((m) => `<div><dt>${esc(m.label)} · ${esc(m.status)}</dt><dd>${esc(m.note)}</dd></div>`).join('')}</dl>` +
     `<h3>Checks</h3><ul class="assumptions-checks">${o.checks.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>`;
 }
 
@@ -458,6 +466,12 @@ function renderDash() {
   check.className = `dash-check ${ok ? 'is-ok' : 'is-bad'}`;
   check.textContent = ok ? '✓ Balances' : '✗ Does not balance';
   check.title = ok ? o.checks.join(' · ') : 'A check failed: re-run tools/sample_data.py';
+  const rep = data.status[0];
+  const chip = document.getElementById('dash-status');
+  chip.hidden = false;
+  chip.className = `dash-status is-${rep.status.toLowerCase()}`;
+  chip.textContent = `${rep.label.split(' ')[0]} ${rep.status.toLowerCase()}`;
+  chip.title = data.status.map((m) => m.note).join(' ');
   document.getElementById('dash-xlsx').href = o.exports.xlsx;
   document.getElementById('dash-pdf').href = o.exports.pdf;
   renderAssumptions(o);
@@ -469,7 +483,7 @@ function renderDash() {
    tools/deliveries.py (don't type numbers in here). Map: Leaflet with
    OpenStreetMap tiles. Dot colour = share on time; red if anything overdue.
 --------------------------------------------------------------------------- */
-const DELIV_COL = { good: '#5e8b76', some: '#c8a77e', bad: '#a8655a', open: '#8e9cab' };
+const DELIV_COL = { good: '#5e8b76', some: '#c8a77e', bad: '#8f4a3e', open: '#8e9cab' };
 function delivBand(p) {
   const done = p.on_time + p.late + p.very_late;
   if (p.overdue) return 'bad';
@@ -497,6 +511,7 @@ function setupDeliveries() {
     const v = D[st.side][st.period], k = v.kpis, out = st.side === 'out';
     box.querySelectorAll('[data-side]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.side === st.side)));
     box.querySelectorAll('[data-period]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.period === st.period)));
+    document.getElementById('deliv-status').innerHTML = `<span class="dash-status is-${v.status.toLowerCase()}">${esc(v.status)}</span>${esc(v.status_note)}`;
     document.getElementById('deliv-period-label').textContent = `${out ? 'Deliveries out to customers' : 'Deliveries in from suppliers'} · ${D.periods.find((p) => p.id === st.period).long}`;
     document.getElementById('deliv-kpis').innerHTML = [
       [out ? 'Deliveries' : 'Deliveries due', k.total.toLocaleString('en-AU'), ''],
@@ -516,7 +531,7 @@ function setupDeliveries() {
       const done = p.on_time + p.late + p.very_late;
       const lines = [`<strong>${esc(p.name)}</strong>`, esc(p.sub), `${p.n} ${p.n === 1 ? 'delivery' : 'deliveries'}${done ? `, ${p.on_time} on time` : ''}`];
       if (p.late + p.very_late) lines.push(`${p.late + p.very_late} late${p.very_late ? ` (${p.very_late} by 2+ days)` : ''}`);
-      if (p.overdue) lines.push(`<b style="color:#a8655a">${p.overdue} overdue now</b>`);
+      if (p.overdue) lines.push(`<b style="color:#8f4a3e">${p.overdue} overdue now</b>`);
       if (p.open) lines.push(`${p.open} on the way`);
       L.circleMarker([p.lat, p.lon], { radius: 4 + Math.sqrt(p.n) * 1.4, color: '#ffffff', weight: 1.5, fillColor: DELIV_COL[delivBand(p)], fillOpacity: 0.9 })
         .bindPopup(lines.join('<br>')).addTo(layer);

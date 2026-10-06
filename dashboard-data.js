@@ -3,6 +3,27 @@
    All figures are invented sample data, in whole dollars: September 2026 vs August 2026. */
 window.FOURTH_SHEET_DASHBOARD = {
  "generated": "2026-10-06",
+ "as_at": "2pm, Tue 6 Oct 2026",
+ "status": [
+  {
+   "month": "2026-09",
+   "label": "Sep 2026",
+   "status": "Locked",
+   "note": "September 2026 is locked (closed 2 Oct 2026). These numbers won't change."
+  },
+  {
+   "month": "2026-08",
+   "label": "Aug 2026",
+   "status": "Locked",
+   "note": "August 2026 is locked (closed 2 Sep 2026). These numbers won't change."
+  },
+  {
+   "month": "2026-10",
+   "label": "Oct 2026",
+   "status": "Incomplete",
+   "note": "October 2026 is still in progress: figures to 6 Oct only."
+  }
+ ],
  "orgs": [
   {
    "id": "trades",
@@ -589,18 +610,18 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Materials",
-         "$-64,860",
-         "$-51,530"
+         "($64,860)",
+         "($51,530)"
         ],
         [
          "Subcontractors",
-         "$-13,200",
-         "$-9,300"
+         "($13,200)",
+         "($9,300)"
         ],
         [
          "Technician wages",
-         "$-54,600",
-         "$-54,600"
+         "($54,600)",
+         "($54,600)"
         ],
         [
          "Gross profit",
@@ -699,27 +720,27 @@ window.FOURTH_SHEET_DASHBOARD = {
     "chart": {
      "title": "Margin by installation job, September (%)",
      "labels": [
-      "Wacol warehouse switchboard",
-      "Milton office LED lighting",
-      "Carindale solar and battery",
-      "West End cafe air-con",
       "Bulimba EV chargers",
-      "Chermside clinic cabling"
+      "Milton office LED lighting",
+      "Chermside clinic cabling",
+      "West End cafe air-con",
+      "Carindale solar and battery",
+      "Wacol warehouse switchboard"
      ],
      "values": [
-      13.5,
-      39.5,
-      26.9,
-      33.5,
       45.2,
-      36.6
+      39.5,
+      36.6,
+      33.5,
+      26.9,
+      13.5
      ],
      "target": 35,
      "format": "pct0",
      "what": "job margin",
      "details": [
       {
-       "title": "Wacol warehouse switchboard",
+       "title": "Bulimba EV chargers",
        "formula": "Gross profit ÷ revenue for this job",
        "head": [
         "",
@@ -729,37 +750,37 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Invoiced",
-         "4 Sep",
+         "23 Sep",
          ""
         ],
         [
          "Revenue",
-         "$46,800",
+         "$9,800",
          ""
         ],
         [
          "Materials",
-         "$-22,900",
+         "($3,600)",
          ""
         ],
         [
          "Subcontractors",
-         "$-7,400",
+         "$0",
          ""
         ],
         [
          "Technician time",
-         "150 h × $68 = $-10,200",
+         "26 h × $68 = ($1,768)",
          ""
         ],
         [
          "Gross profit",
-         "$6,300",
+         "$4,432",
          ""
         ],
         [
          "Margin",
-         "13.5%",
+         "45.2%",
          ""
         ]
        ],
@@ -787,7 +808,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Materials",
-         "$-6,900",
+         "($6,900)",
          ""
         ],
         [
@@ -797,7 +818,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Technician time",
-         "64 h × $68 = $-4,352",
+         "64 h × $68 = ($4,352)",
          ""
         ],
         [
@@ -808,150 +829,6 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Margin",
          "39.5%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Carindale solar and battery",
-       "formula": "Gross profit ÷ revenue for this job",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Invoiced",
-         "15 Sep",
-         ""
-        ],
-        [
-         "Revenue",
-         "$27,400",
-         ""
-        ],
-        [
-         "Materials",
-         "$-13,800",
-         ""
-        ],
-        [
-         "Subcontractors",
-         "$-3,100",
-         ""
-        ],
-        [
-         "Technician time",
-         "46 h × $68 = $-3,128",
-         ""
-        ],
-        [
-         "Gross profit",
-         "$7,372",
-         ""
-        ],
-        [
-         "Margin",
-         "26.9%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "West End cafe air-con",
-       "formula": "Gross profit ÷ revenue for this job",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Invoiced",
-         "18 Sep",
-         ""
-        ],
-        [
-         "Revenue",
-         "$12,900",
-         ""
-        ],
-        [
-         "Materials",
-         "$-5,100",
-         ""
-        ],
-        [
-         "Subcontractors",
-         "$-900",
-         ""
-        ],
-        [
-         "Technician time",
-         "38 h × $68 = $-2,584",
-         ""
-        ],
-        [
-         "Gross profit",
-         "$4,316",
-         ""
-        ],
-        [
-         "Margin",
-         "33.5%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Bulimba EV chargers",
-       "formula": "Gross profit ÷ revenue for this job",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Invoiced",
-         "23 Sep",
-         ""
-        ],
-        [
-         "Revenue",
-         "$9,800",
-         ""
-        ],
-        [
-         "Materials",
-         "$-3,600",
-         ""
-        ],
-        [
-         "Subcontractors",
-         "$0",
-         ""
-        ],
-        [
-         "Technician time",
-         "26 h × $68 = $-1,768",
-         ""
-        ],
-        [
-         "Gross profit",
-         "$4,432",
-         ""
-        ],
-        [
-         "Margin",
-         "45.2%",
          ""
         ]
        ],
@@ -979,17 +856,17 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Materials",
-         "$-4,300",
+         "($4,300)",
          ""
         ],
         [
          "Subcontractors",
-         "$-1,800",
+         "($1,800)",
          ""
         ],
         [
          "Technician time",
-         "52 h × $68 = $-3,536",
+         "52 h × $68 = ($3,536)",
          ""
         ],
         [
@@ -1000,6 +877,150 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Margin",
          "36.6%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "West End cafe air-con",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "18 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$12,900",
+         ""
+        ],
+        [
+         "Materials",
+         "($5,100)",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "($900)",
+         ""
+        ],
+        [
+         "Technician time",
+         "38 h × $68 = ($2,584)",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$4,316",
+         ""
+        ],
+        [
+         "Margin",
+         "33.5%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Carindale solar and battery",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "15 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$27,400",
+         ""
+        ],
+        [
+         "Materials",
+         "($13,800)",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "($3,100)",
+         ""
+        ],
+        [
+         "Technician time",
+         "46 h × $68 = ($3,128)",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$7,372",
+         ""
+        ],
+        [
+         "Margin",
+         "26.9%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Wacol warehouse switchboard",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "4 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$46,800",
+         ""
+        ],
+        [
+         "Materials",
+         "($22,900)",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "($7,400)",
+         ""
+        ],
+        [
+         "Technician time",
+         "150 h × $68 = ($10,200)",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$6,300",
+         ""
+        ],
+        [
+         "Margin",
+         "13.5%",
          ""
         ]
        ],
@@ -1783,35 +1804,35 @@ window.FOURTH_SHEET_DASHBOARD = {
     "chart": {
      "title": "Margin by engagement, September (%)",
      "labels": [
-      "Logistics systems rollout",
+      "Power BI basics",
       "Retail pricing review",
-      "Health charity board pack",
-      "Manufacturer process mapping",
-      "Construction firm finance",
-      "Dental group reporting",
       "Agribusiness CFO support",
-      "Hospitality payroll",
+      "Health charity board pack",
+      "Construction firm finance",
       "Excel for managers",
-      "Power BI basics"
+      "Dental group reporting",
+      "Manufacturer process mapping",
+      "Logistics systems rollout",
+      "Hospitality payroll"
      ],
      "values": [
-      52.7,
+      81.7,
       68.4,
-      63.6,
-      53.9,
-      63.4,
-      61.2,
       65.0,
-      48.6,
+      63.6,
+      63.4,
       62.5,
-      81.7
+      61.2,
+      53.9,
+      52.7,
+      48.6
      ],
      "target": 40,
      "format": "pct0",
      "what": "engagement margin",
      "details": [
       {
-       "title": "Logistics systems rollout",
+       "title": "Power BI basics",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
@@ -1821,37 +1842,37 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Type",
-         "Project",
+         "Training",
          ""
         ],
         [
          "Hours",
-         "210 h",
+         "14 h",
          ""
         ],
         [
          "Revenue",
-         "$36,750",
+         "$4,600",
          ""
         ],
         [
          "Contractors",
-         "$-4,800",
+         "$0",
          ""
         ],
         [
          "Consultant time",
-         "210 h × $60 = $-12,600",
+         "14 h × $60 = ($840)",
          ""
         ],
         [
          "Contribution",
-         "$19,350",
+         "$3,760",
          ""
         ],
         [
          "Margin",
-         "52.7%",
+         "81.7%",
          ""
         ]
        ],
@@ -1889,7 +1910,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Consultant time",
-         "96 h × $60 = $-5,760",
+         "96 h × $60 = ($5,760)",
          ""
         ],
         [
@@ -1900,198 +1921,6 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Margin",
          "68.4%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Health charity board pack",
-       "formula": "Contribution ÷ revenue for this engagement",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Type",
-         "Project",
-         ""
-        ],
-        [
-         "Hours",
-         "64 h",
-         ""
-        ],
-        [
-         "Revenue",
-         "$10,560",
-         ""
-        ],
-        [
-         "Contractors",
-         "$0",
-         ""
-        ],
-        [
-         "Consultant time",
-         "64 h × $60 = $-3,840",
-         ""
-        ],
-        [
-         "Contribution",
-         "$6,720",
-         ""
-        ],
-        [
-         "Margin",
-         "63.6%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Manufacturer process mapping",
-       "formula": "Contribution ÷ revenue for this engagement",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Type",
-         "Project",
-         ""
-        ],
-        [
-         "Hours",
-         "120 h",
-         ""
-        ],
-        [
-         "Revenue",
-         "$20,400",
-         ""
-        ],
-        [
-         "Contractors",
-         "$-2,200",
-         ""
-        ],
-        [
-         "Consultant time",
-         "120 h × $60 = $-7,200",
-         ""
-        ],
-        [
-         "Contribution",
-         "$11,000",
-         ""
-        ],
-        [
-         "Margin",
-         "53.9%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Construction firm finance",
-       "formula": "Contribution ÷ revenue for this engagement",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Type",
-         "Retainer",
-         ""
-        ],
-        [
-         "Hours",
-         "58 h",
-         ""
-        ],
-        [
-         "Revenue",
-         "$9,500",
-         ""
-        ],
-        [
-         "Contractors",
-         "$0",
-         ""
-        ],
-        [
-         "Consultant time",
-         "58 h × $60 = $-3,480",
-         ""
-        ],
-        [
-         "Contribution",
-         "$6,020",
-         ""
-        ],
-        [
-         "Margin",
-         "63.4%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Dental group reporting",
-       "formula": "Contribution ÷ revenue for this engagement",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Type",
-         "Retainer",
-         ""
-        ],
-        [
-         "Hours",
-         "44 h",
-         ""
-        ],
-        [
-         "Revenue",
-         "$6,800",
-         ""
-        ],
-        [
-         "Contractors",
-         "$0",
-         ""
-        ],
-        [
-         "Consultant time",
-         "44 h × $60 = $-2,640",
-         ""
-        ],
-        [
-         "Contribution",
-         "$4,160",
-         ""
-        ],
-        [
-         "Margin",
-         "61.2%",
          ""
         ]
        ],
@@ -2129,7 +1958,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Consultant time",
-         "70 h × $60 = $-4,200",
+         "70 h × $60 = ($4,200)",
          ""
         ],
         [
@@ -2140,6 +1969,294 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Margin",
          "65.0%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Health charity board pack",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Project",
+         ""
+        ],
+        [
+         "Hours",
+         "64 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$10,560",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "64 h × $60 = ($3,840)",
+         ""
+        ],
+        [
+         "Contribution",
+         "$6,720",
+         ""
+        ],
+        [
+         "Margin",
+         "63.6%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Construction firm finance",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Retainer",
+         ""
+        ],
+        [
+         "Hours",
+         "58 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$9,500",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "58 h × $60 = ($3,480)",
+         ""
+        ],
+        [
+         "Contribution",
+         "$6,020",
+         ""
+        ],
+        [
+         "Margin",
+         "63.4%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Excel for managers",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Training",
+         ""
+        ],
+        [
+         "Hours",
+         "30 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$8,800",
+         ""
+        ],
+        [
+         "Contractors",
+         "($1,500)",
+         ""
+        ],
+        [
+         "Consultant time",
+         "30 h × $60 = ($1,800)",
+         ""
+        ],
+        [
+         "Contribution",
+         "$5,500",
+         ""
+        ],
+        [
+         "Margin",
+         "62.5%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Dental group reporting",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Retainer",
+         ""
+        ],
+        [
+         "Hours",
+         "44 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$6,800",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "44 h × $60 = ($2,640)",
+         ""
+        ],
+        [
+         "Contribution",
+         "$4,160",
+         ""
+        ],
+        [
+         "Margin",
+         "61.2%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Manufacturer process mapping",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Project",
+         ""
+        ],
+        [
+         "Hours",
+         "120 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$20,400",
+         ""
+        ],
+        [
+         "Contractors",
+         "($2,200)",
+         ""
+        ],
+        [
+         "Consultant time",
+         "120 h × $60 = ($7,200)",
+         ""
+        ],
+        [
+         "Contribution",
+         "$11,000",
+         ""
+        ],
+        [
+         "Margin",
+         "53.9%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Logistics systems rollout",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Project",
+         ""
+        ],
+        [
+         "Hours",
+         "210 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$36,750",
+         ""
+        ],
+        [
+         "Contractors",
+         "($4,800)",
+         ""
+        ],
+        [
+         "Consultant time",
+         "210 h × $60 = ($12,600)",
+         ""
+        ],
+        [
+         "Contribution",
+         "$19,350",
+         ""
+        ],
+        [
+         "Margin",
+         "52.7%",
          ""
         ]
        ],
@@ -2177,7 +2294,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Consultant time",
-         "36 h × $60 = $-2,160",
+         "36 h × $60 = ($2,160)",
          ""
         ],
         [
@@ -2188,102 +2305,6 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Margin",
          "48.6%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Excel for managers",
-       "formula": "Contribution ÷ revenue for this engagement",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Type",
-         "Training",
-         ""
-        ],
-        [
-         "Hours",
-         "30 h",
-         ""
-        ],
-        [
-         "Revenue",
-         "$8,800",
-         ""
-        ],
-        [
-         "Contractors",
-         "$-1,500",
-         ""
-        ],
-        [
-         "Consultant time",
-         "30 h × $60 = $-1,800",
-         ""
-        ],
-        [
-         "Contribution",
-         "$5,500",
-         ""
-        ],
-        [
-         "Margin",
-         "62.5%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null
-      },
-      {
-       "title": "Power BI basics",
-       "formula": "Contribution ÷ revenue for this engagement",
-       "head": [
-        "",
-        "Sep 2026",
-        "Aug 2026"
-       ],
-       "rows": [
-        [
-         "Type",
-         "Training",
-         ""
-        ],
-        [
-         "Hours",
-         "14 h",
-         ""
-        ],
-        [
-         "Revenue",
-         "$4,600",
-         ""
-        ],
-        [
-         "Contractors",
-         "$0",
-         ""
-        ],
-        [
-         "Consultant time",
-         "14 h × $60 = $-840",
-         ""
-        ],
-        [
-         "Contribution",
-         "$3,760",
-         ""
-        ],
-        [
-         "Margin",
-         "81.7%",
          ""
         ]
        ],
@@ -3024,8 +3045,8 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Less unspent grant money (belongs to funders' programs)",
-         "$-156,100",
-         "$-221,900"
+         "($156,100)",
+         "($221,900)"
         ],
         [
          "Unrestricted cash",
@@ -3087,17 +3108,17 @@ window.FOURTH_SHEET_DASHBOARD = {
      "labels": [
       "Youth outreach",
       "Housing support",
-      "Community meals",
-      "Digital literacy",
       "Mental health first aid",
+      "Digital literacy",
+      "Community meals",
       "Volunteer coordinator"
      ],
      "values": [
       102.1,
       95.4,
-      100.0,
-      99.3,
       95.3,
+      99.3,
+      100.0,
       100.0
      ],
      "target": 100,
@@ -3111,9 +3132,9 @@ window.FOURTH_SHEET_DASHBOARD = {
        "values": [
         102.1,
         95.4,
-        100.0,
-        99.3,
         95.3,
+        99.3,
+        100.0,
         100.0
        ],
        "format": "pct0",
@@ -3125,18 +3146,18 @@ window.FOURTH_SHEET_DASHBOARD = {
        "values": [
         306300,
         257700,
-        12000,
-        59600,
         57200,
+        59600,
+        12000,
         21000
        ],
        "format": "money_k",
        "marks": [
         300000,
         270000,
+        60000,
+        60000,
         12000,
-        60000,
-        60000,
         21000
        ],
        "mark_label": "Budget to date"
@@ -3320,8 +3341,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        }
       },
       {
-       "title": "Community meals",
-       "formula": "Local council community grant · $48,000 · Jul 2026 to Jun 2027",
+       "title": "Mental health first aid",
+       "formula": "Federal health program · $120,000 · Apr 2026 to Mar 2027",
        "head": [
         "",
         "Sep 2026",
@@ -3330,32 +3351,32 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Received from the funder",
-         "$48,000",
+         "$60,000",
          ""
         ],
         [
          "Still to spend",
-         "$36,000",
+         "$62,800",
          ""
         ],
         [
          "Months left",
-         "9",
+         "6",
          ""
         ],
         [
          "Spent to date",
-         "$12,000",
+         "$57,200",
          ""
         ],
         [
          "Budget to date",
-         "$12,000",
+         "$60,000",
          ""
         ],
         [
          "Spent against budget",
-         "100.0%",
+         "95.3%",
          ""
         ]
        ],
@@ -3363,19 +3384,28 @@ window.FOURTH_SHEET_DASHBOARD = {
        "series": {
         "title": "Spend by month against budget",
         "labels": [
+         "Apr 26",
+         "May 26",
+         "Jun 26",
          "Jul 26",
          "Aug 26",
          "Sep 26"
         ],
         "values": [
-         3600,
-         4100,
-         4300
+         9584,
+         8950,
+         9797,
+         8669,
+         9400,
+         10800
         ],
         "budget": [
-         4000,
-         4000,
-         4000
+         10000,
+         10000,
+         10000,
+         10000,
+         10000,
+         10000
         ],
         "format": "money0"
        }
@@ -3469,8 +3499,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        }
       },
       {
-       "title": "Mental health first aid",
-       "formula": "Federal health program · $120,000 · Apr 2026 to Mar 2027",
+       "title": "Community meals",
+       "formula": "Local council community grant · $48,000 · Jul 2026 to Jun 2027",
        "head": [
         "",
         "Sep 2026",
@@ -3479,32 +3509,32 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Received from the funder",
-         "$60,000",
+         "$48,000",
          ""
         ],
         [
          "Still to spend",
-         "$62,800",
+         "$36,000",
          ""
         ],
         [
          "Months left",
-         "6",
+         "9",
          ""
         ],
         [
          "Spent to date",
-         "$57,200",
+         "$12,000",
          ""
         ],
         [
          "Budget to date",
-         "$60,000",
+         "$12,000",
          ""
         ],
         [
          "Spent against budget",
-         "95.3%",
+         "100.0%",
          ""
         ]
        ],
@@ -3512,28 +3542,19 @@ window.FOURTH_SHEET_DASHBOARD = {
        "series": {
         "title": "Spend by month against budget",
         "labels": [
-         "Apr 26",
-         "May 26",
-         "Jun 26",
          "Jul 26",
          "Aug 26",
          "Sep 26"
         ],
         "values": [
-         9584,
-         8950,
-         9797,
-         8669,
-         9400,
-         10800
+         3600,
+         4100,
+         4300
         ],
         "budget": [
-         10000,
-         10000,
-         10000,
-         10000,
-         10000,
-         10000
+         4000,
+         4000,
+         4000
         ],
         "format": "money0"
        }

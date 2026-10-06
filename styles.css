@@ -692,13 +692,13 @@ body.dev-notes .devnote { display: flex; }
 .deliv-kpis div { padding: 0.45rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.6rem; }
 .deliv-kpis span { display: block; font-size: 0.72rem; color: var(--muted); }
 .deliv-kpis strong { font-size: 1.25rem; color: var(--ink, #25342a); font-variant-numeric: tabular-nums; }
-.deliv-kpis .bad strong { color: #a8655a; }
+.deliv-kpis .bad strong { color: #8f4a3e; }
 .deliv-body { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 0.9rem; padding: 0 0.9rem 0.9rem; }
 .deliv-map { height: 420px; border: 1px solid var(--border); border-radius: 0.6rem; background: #eef2ee; z-index: 0; }
 .deliv-side h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
 .deliv-side ol { margin: 0 0 0.8rem; padding-left: 1.1rem; font-size: 0.85rem; }
 .deliv-side ol li { margin: 0.3rem 0; }
-.deliv-side ol li b { color: #a8655a; }
+.deliv-side ol li b { color: #8f4a3e; }
 .deliv-legend { list-style: none; margin: 0; padding: 0; font-size: 0.8rem; color: var(--muted); }
 .deliv-legend li { margin: 0.2rem 0; }
 .deliv-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.4rem; border-radius: 50%; vertical-align: -1px; }
@@ -731,3 +731,12 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .support-table tbody tr:last-child th, .support-table tbody tr:last-child td { font-weight: 700; border-top: 1px solid var(--border); }
 .support-chart-title { margin: 1rem 0 0.3rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .support-foot { margin-top: 0.8rem; font-size: 0.75rem; color: var(--muted); }
+
+/* Data status: how final the numbers are (Locked / Provisional / Incomplete) */
+.dash-status { display: inline-block; padding: 0.05rem 0.5rem; font-size: 0.72rem; font-weight: 700; border: 1px solid currentColor; border-radius: 999px; cursor: help; }
+.dash-status.is-locked { color: #2f5d4a; }
+.dash-status.is-provisional { color: #8a6d3b; }
+.dash-status.is-incomplete { color: #8f4a3e; }
+.dash-status-line { margin: -0.3rem 0 0.4rem; font-size: 0.72rem; color: var(--muted); }
+.deliv-status { margin: 0.2rem 0.9rem 0; font-size: 0.78rem; color: var(--muted); }
+.deliv-status .dash-status { margin-right: 0.4rem; cursor: default; }

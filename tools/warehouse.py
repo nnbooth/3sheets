@@ -30,6 +30,7 @@ Used by tools/sample_data.py, which writes the CSVs and schema.sql.
 
 from datetime import date, timedelta
 
+import data_status as ds
 import financial_model as fm
 
 FIRST, LAST = date(2026, 5, 1), date(2026, 10, 31)
@@ -85,7 +86,9 @@ def dim_date():
         rows.append([key(d), d.isoformat(), d.day, d.strftime("%a"), d.weekday() + 1, 1 if d.weekday() >= 5 else 0, 1 if working(d) else 0,
                      QLD_HOLIDAYS.get(d), (d - timedelta(days=d.weekday())).isoformat(), d.isocalendar()[1],
                      d.strftime("%Y-%m"), d.strftime("%b %Y"), f"Q{(d.month - 1) // 3 + 1} {d.year}",
-                     f"FY{fy}", fy_m, f"FY{fy} Q{(fy_m - 1) // 3 + 1}"])
+                     f"FY{fy}", fy_m, f"FY{fy} Q{(fy_m - 1) // 3 + 1}",
+                     ds.day_status(d), ds.month_status(d.strftime("%Y-%m"))[0], ds.lock_date(d.strftime("%Y-%m")).isoformat(),
+                     ds.AS_AT.strftime("%Y-%m-%d %H:%M")])
         d += timedelta(days=1)
     return rows
 
@@ -316,11 +319,12 @@ def build(res):
     def tbl(name, desc, cols, rows):
         T[name] = (desc, [c[0] for c in cols], rows, cols)
     V = lambda n: f"VARCHAR({n})"
-    tbl("dim_date", "Calendar, 1 May to 31 Oct 2026: the drill-down path from financial year to quarter, month, week and day, with Brisbane working days and public holidays. date_key = yyyymmdd; weeks start Monday.",
+    tbl("dim_date", "Calendar, 1 May to 31 Oct 2026: the drill-down path from financial year to quarter, month, week and day, with Brisbane working days and public holidays. date_key = yyyymmdd; weeks start Monday. Data status as at the run: day_status / month_status = Locked (month closed), Provisional (over but not locked), Incomplete (today / month to date) or Future; months lock on the 2nd working day of the next month.",
         [("date_key", "INT PRIMARY KEY"), ("calendar_date", "DATE NOT NULL"), ("day_of_month", "INT"), ("day_name", V(3)),
          ("day_of_week", "INT"), ("is_weekend", "INT"), ("is_working_day", "INT"), ("public_holiday", V(60)),
          ("week_start", "DATE"), ("iso_week", "INT"), ("month_key", V(7)), ("month_name", V(8)), ("calendar_quarter", V(7)),
-         ("financial_year", V(6)), ("fy_month_no", "INT"), ("fy_quarter", V(10))], dim_date())
+         ("financial_year", V(6)), ("fy_month_no", "INT"), ("fy_quarter", V(10)),
+         ("day_status", V(12)), ("month_status", V(12)), ("month_locked_on", "DATE"), ("status_as_at", V(16))], dim_date())
     tbl("dim_org", "The three sample organisations.",
         [("org_id", V(10) + " PRIMARY KEY"), ("toggle_name", V(30)), ("legal_name", V(60)), ("sector", V(20)), ("about", V(300))], orgs)
     tbl("dim_account", "Every statement line for each organisation (P&L, balance sheet, cash flow). is_postable = daily facts post to it; the rest are subtotals and totals.",
