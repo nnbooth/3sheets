@@ -35,7 +35,11 @@ Everything private is in OneDrive (`Projects/The 4th Sheet/`), backed up to the 
 
 ```
 Business/           Project notes.md (decisions, to-do, go-live checklist), business and project plans
-Data/               Website sample data/ (generated CSVs + schema.sql), Health/ Legal/ Purchasing/ Retail/
+Data/               data only (CSV, Excel), one folder per task:
+                      Common/  Month-end dashboard/{SME trades, SME services, Not-for-profit}/
+                      Deliveries map/  Live displays/  Reports/  Management pack template/
+                      Health/  Legal/  Purchasing/  Retail/   (the dataset projects)
+Data documentation/ schema.sql and what each table holds (generated), dataset READMEs
 Dataset projects/   the Health, Legal and Purchasing scripts and docs (a separate project from the website)
 Brand/  Media/  Archive/
 ```
