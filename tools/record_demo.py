@@ -43,6 +43,8 @@ import sys
 import tempfile
 import threading
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 from playwright.sync_api import sync_playwright
 

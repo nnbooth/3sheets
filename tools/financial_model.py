@@ -29,6 +29,7 @@ Used by tools/publish_dashboard.py (via tools/sample_data.py).
 """
 
 import random
+import data_status as ds
 from datetime import date, timedelta
 
 PERIODS = ["2026-09", "2026-08"]           # display order: this month, prior month
@@ -781,7 +782,7 @@ def fourth_nfp(m, out):
         calc("Runway", "months", "r2/r3")], f"Reserves target: {m['reserves_target_months']}.0 months.")
     ending = [gr for gr in out["grants"] if gr["months_left"] < m["ending_within_months"]]
     s_end = support(f"Grants ending in the next {m['ending_within_months']} months", "Grant total − spent to date, for each grant ending soon",
-                    [inp(f"{gr['program']} (ends {date.fromisoformat(gr['end']).strftime('%-d %b %Y')})", "money", [gr["unspent"]]) for gr in ending]
+                    [inp(f"{gr['program']} (ends {ds.strf(date.fromisoformat(gr['end']), '%-d %b %Y')})", "money", [gr["unspent"]]) for gr in ending]
                     + [calc("Total still to spend", "money", "+".join(f"r{i}" for i in range(len(ending))))],
                     "Unspent money usually has to be returned, or an extension negotiated, so plan the spending now.", cols=("Still to spend",))
     ctr, run = s_ctr["xl"]["rows"][-1]["values"], s_run["xl"]["rows"][-1]["values"]

@@ -9,6 +9,8 @@ See tools/fourthsheet/cli.py for every option.
 
 import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 

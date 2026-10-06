@@ -22,6 +22,8 @@ import subprocess
 import sys
 import venv
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 REPO = Path(__file__).resolve().parent.parent
 TOOLS = REPO / "tools"
@@ -51,6 +53,9 @@ def python_packages():
     if sys.version_info < (3, 10):
         print(f"{FAIL}Python {platform.python_version()}: 3.10 or newer is needed (python.org/downloads).")
         sys.exit(1)
+    if WIN and os.environ.get("PYTHONUTF8") != "1":
+        run(["setx", "PYTHONUTF8", "1"])       # Windows: Python reads and writes files as UTF-8 from now on
+        print(OK + "Python UTF-8 mode switched on for good (takes effect in new terminals; the tools cope meanwhile)")
     p = run([sys.executable, "-m", "pip", "install", "--quiet", "-r", str(REPO / "requirements.txt")])
     print((OK + "requirements.txt installed") if p.returncode == 0 else (FAIL + "pip failed:\n" + p.stderr[-800:]))
     has_chrome = any(Path(x).exists() for x in ("/Applications/Google Chrome.app", r"C:\Program Files\Google\Chrome\Application\chrome.exe",

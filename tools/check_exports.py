@@ -2,6 +2,7 @@
 Run after tools/sample_data.py:  pip install pycel; python3 tools/check_exports.py"""
 import sys, json, re
 sys.path.insert(0, "tools")
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 from pycel import ExcelCompiler
 import openpyxl
 import financial_model as fm, deliveries as dl

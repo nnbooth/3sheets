@@ -784,20 +784,20 @@ def runway(D, P):
     return report("runway", "nfp", "How many months of runway do we have?", "nfp", D, P,
                   "How long the organisation could keep going on its own money: cash at bank, less unspent grant money (which belongs to the funders' programs), divided by a month's spending.",
                   [{"label": None, "sections": [
-                      kpis([kpi("Runway now", FMT["months"](run), f"{mdate(P.mo).strftime('%-d %b') if False else P.label}", s_now),
+                      kpis([kpi("Runway now", FMT["months"](run), f"{ds.strf(mdate(P.mo), '%-d %b') if False else P.label}", s_now),
                             kpi("Target", FMT["months"](float(tgt)), "reserves target", sp3),
                             kpi("Gap" if gap > 0 else "Above target by", money(abs(gap)), "to reach the target" if gap > 0 else "unrestricted cash over the target", sp3),
                             kpi(f"Runway in {P.prev_month}", FMT["months"](v(s_prev, 4)), f"at {mdate(runway_numbers(D, P, P.prev)[3]).strftime('%B')}'s rate of spending", s_prev)]),
                       text(shows, action),
-                      {"type": "series", "title": f"Cash at bank, every day ({lab[0].strftime('%-d %b')} to {lab[-1].strftime('%-d %b')})", "labels": [d.strftime("%-d %b") for d in lab],
+                      {"type": "series", "title": f"Cash at bank, every day ({ds.strf(lab[0], '%-d %b')} to {ds.strf(lab[-1], '%-d %b')})", "labels": [ds.strf(d, "%-d %b") for d in lab],
                        "months": [d.isoformat() for d in lab], "status": stat,
                        "views": {"All|cash": {"label": "Cash at bank $", "values": cashes, "format": "money0",
-                                              "supports": [support(f"Cash at bank, {d.strftime('%-d %b %Y')}", "Yesterday's closing cash + the day's money in less money out",
+                                              "supports": [support(f"Cash at bank, {ds.strf(d, '%-d %b %Y')}", "Yesterday's closing cash + the day's money in less money out",
                                                                    [inp("Cash at bank, end of the day before", "money", [prev]), inp("Net money in (out) on the day", "money", [cur - prev]),
-                                                                    calc("Cash at bank, end of the day", "money", "r0+r1")], cols=(d.strftime("%-d %b"),))
+                                                                    calc("Cash at bank, end of the day", "money", "r0+r1")], cols=(ds.strf(d, "%-d %b"),))
                                                            for d, prev, cur in zip(lab, [opening] + cashes[:-1], cashes)]}},
                        "dims": {"line": ["All"], "measure": [("cash", "Cash at bank $")]},
-                       "note": f"Cash at bank includes unspent grant money. The daily cash data starts {lab[0].strftime('%-d %B %Y')} (after the opening balance)."}]}],
+                       "note": f"Cash at bank includes unspent grant money. The daily cash data starts {ds.strf(lab[0], '%-d %B %Y')} (after the opening balance)."}]}],
                   {"head": ["Date", "Status", "Cash at bank"], "kinds": ["text", "text", "money"],
                    "rows": [[d.isoformat(), s_, c] for d, s_, c in zip(lab, stat, cashes)]})
 

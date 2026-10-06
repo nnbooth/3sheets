@@ -4,6 +4,7 @@ always shows the current files.   python3 tools/serve.py   ->  http://127.0.0.1:
 import functools
 import http.server
 from pathlib import Path
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 
 class NoCache(http.server.SimpleHTTPRequestHandler):
