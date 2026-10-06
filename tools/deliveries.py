@@ -28,7 +28,27 @@ import random
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+import data_status as ds
+import exportkit as ek
 from warehouse import QLD_HOLIDAYS, key, working
+
+
+def period_status(d_from, d_to):
+    """How final a date range is: the least final day decides the badge."""
+    days_, d = [], d_from
+    while d <= d_to:
+        days_.append(ds.day_status(d))
+        d += timedelta(days=1)
+    notes = []
+    if "Incomplete" in days_:
+        notes.append(f"today is incomplete (as at {ds.as_at_text().split(',')[0]}; deliveries still on the road)")
+    if "Provisional" in days_:
+        notes.append(f"October's earlier days are provisional until it locks on {ds.lock_date('2026-10').strftime('%-d %b')} (late proofs of delivery can still change them)")
+    if "Locked" in days_ and notes:
+        notes.append("earlier days are locked")
+    badge = "Incomplete" if "Incomplete" in days_ else "Provisional" if "Provisional" in days_ else "Locked"
+    text = "; ".join(notes) if notes else "every day in this period is locked"
+    return badge, text[0].upper() + text[1:] + "."
 
 REPO = Path(__file__).resolve().parent.parent
 EXPORTS = REPO / "media" / "exports"
@@ -101,7 +121,7 @@ SUPPLIERS = [
     ("S14", "Supplier N", "Bundamba", "QLD", -27.610, 152.800, 1, "Supplier's own truck", 0.04),
 ]
 IN_REASONS = [("Line-haul delay", 4), ("Supplier stock shortage", 3), ("Booking slot missed", 2), ("Port / customs hold", 1)]
-COLOURS = {"On time": "#5e8b76", "Late": "#c8a77e", "Very late": "#a8655a", "Overdue": "#a8655a", "In transit": "#8e9cab",
+COLOURS = {"On time": "#5e8b76", "Late": "#c8a77e", "Very late": "#8f4a3e", "Overdue": "#8f4a3e", "In transit": "#8e9cab",
            "Due": "#8e9cab"}
 
 
@@ -256,7 +276,9 @@ def summarise(rows, date_field, place_field, places, group_label):
             a[0] += 1
             a[1] += r["status"] in ("Late", "Very late", "Overdue")
         hot = sorted([[g, a[1], a[0]] for g, a in groups.items() if a[0] >= 6 and a[1]], key=lambda x: (-x[1] / x[2], -x[2]))[:3]
+        badge, note = period_status(p["from"], p["to"])
         out[p["id"]] = {
+            "status": badge, "status_note": note,
             "kpis": {"total": len(sel), "on_time_pct": round(100 * ontime / len(done), 1) if done else None,
                      "late": sum(r["status"] in ("Late", "Very late") for r in sel),
                      "overdue": sum(r["status"] == "Overdue" for r in sel),
@@ -411,6 +433,13 @@ def write_xlsx(d):
             ws.conditional_formatting.add(rng_, CellIsRule(operator="equal", formula=['"Very late"'], fill=red))
             ws.conditional_formatting.add(rng_, CellIsRule(operator="equal", formula=['"Overdue"'], fill=red))
     EXPORTS.mkdir(parents=True, exist_ok=True)
+    footer = f"Today incomplete · 1–5 Oct provisional · Sep locked · as at {ds.as_at_text()}"
+    for ws_ in wb.worksheets:
+        if not ws_["A3"].value:
+            ws_["A3"] = f"Data status: as at {ds.as_at_text()}. Today's deliveries are incomplete; 1–5 October is provisional (October locks {ds.lock_date('2026-10').strftime('%-d %b')}); September and earlier are locked."
+            ws_["A3"].font = Font(italic=True, size=9, color=MUTED)
+        table = ws_.title not in ("Summary",)
+        ek.xl_print(ws_, footer, landscape=table, header_row=4 if table else None)
     wb.save(EXPORTS / "deliveries-sample.xlsx")
 
 
@@ -427,7 +456,7 @@ def html_report(d):
 <div class=kpis><div><span>Deliveries</span><b>{k['total']:,}</b></div><div><span>On time</span><b>{k['on_time_pct']}%</b></div>
 <div><span>Late</span><b>{k['late']}</b></div><div><span>Overdue now</span><b>{k['overdue']}</b></div><div><span>In full</span><b>{k['in_full_pct']}%</b></div></div>
 <div class=row><div id=map-{s} class=map></div><div class=side><h3>Where it's going wrong</h3><ul>{hot}</ul>
-<p class=legend><i style="background:#5e8b76"></i>95%+ on time <i style="background:#c8a77e"></i>80–95% <i style="background:#a8655a"></i>under 80% or overdue</p>
+<p class=legend><i style="background:#5e8b76"></i>95%+ on time <i style="background:#c8a77e"></i>80–95% <i style="background:#8f4a3e"></i>under 80% or overdue</p>
 <p class=note>Dot size = number of deliveries. Every delivery is in the Excel download.</p></div></div></section>"""
 
     return f"""<!doctype html><html><head><meta charset=utf-8>
@@ -438,23 +467,26 @@ def html_report(d):
 header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #2f7a5d; padding-bottom: 6px; margin-bottom: 8px; }}
 .mark {{ min-width: 28px; height: 28px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }}
 sup {{ font-size: .55em; }} header small {{ margin-left: auto; color: #5f6f63; }}
-.sample {{ display: inline-block; background: #fff4dc; border: 1px solid #d9922b; color: #8a5410; border-radius: 4px; padding: 1px 7px; font-size: 8pt; font-weight: 700; }}
+.sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #c8a77e; color: #6b5532; border-radius: 4px; padding: 1px 7px; font-size: 8pt; font-weight: 700; }}
 h1 {{ font-size: 15pt; margin: 4px 0; }} h2 {{ font-size: 12pt; color: #2f7a5d; margin: 6px 0; }} h3 {{ font-size: 10.5pt; margin: 0 0 4px; }}
 .pg + .pg {{ page-break-before: always; }} .kpis {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 8px; }}
 .kpis div {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 5px 8px; }} .kpis span {{ display: block; font-size: 8pt; color: #5f6f63; }} .kpis b {{ font-size: 14pt; color: #2f7a5d; }}
-.row {{ display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }} .map {{ height: 118mm; border: 1px solid #dce8dc; border-radius: 6px; }}
+.row {{ display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }} .map {{ height: 96mm; border: 1px solid #dce8dc; border-radius: 6px; }}
 .side ul {{ padding-left: 16px; }} .side li {{ margin: 4px 0; }} .legend i {{ display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 3px 0 8px; }}
 .note {{ color: #5f6f63; font-size: 8.5pt; }} .leaflet-control-attribution {{ font-size: 7px; }}
-</style></head><body>
+""" + ek.STATUS_CSS + f"""</style></head><body>
 <header><div class=mark>4<sup>th</sup></div><b>The 4<sup>th</sup> Sheet</b><small>Deliveries in and out · as at {TODAY.strftime('%-d %b %Y')}, 2pm</small></header>
 <span class=sample>SAMPLE DATA · invented figures for demonstration</span>
 <h1>Sample Distribution: Wacol DC</h1>
+{ek.status_box_html([("Today (6 Oct)", "Incomplete", f"As at {ds.as_at_text()}: deliveries still on the road are shown as on their way."),
+                     ("1–5 October", "Provisional", f"October is not locked until {ds.lock_date('2026-10').strftime('%-d %b')}: late proofs of delivery can still change it."),
+                     ("September 2026 and earlier", "Locked", "Closed. These numbers won't change.")])}
 {side('out', 'Deliveries out, to customers')}
 {side('in', 'Deliveries in, from suppliers')}
 <script>
 const D = {json.dumps(p)};
-function band(pt) {{ const done = pt.on_time + pt.late + pt.very_late; if (pt.overdue) return '#a8655a'; if (!done) return '#8e9cab';
-  const r = pt.on_time / done; return r >= 0.95 ? '#5e8b76' : r >= 0.8 ? '#c8a77e' : '#a8655a'; }}
+function band(pt) {{ const done = pt.on_time + pt.late + pt.very_late; if (pt.overdue) return '#8f4a3e'; if (!done) return '#8e9cab';
+  const r = pt.on_time / done; return r >= 0.95 ? '#5e8b76' : r >= 0.8 ? '#c8a77e' : '#8f4a3e'; }}
 window.tilesLoaded = 0;
 for (const s of ['out', 'in']) {{
   const m = L.map('map-' + s, {{ zoomControl: false, attributionControl: true }});
@@ -481,7 +513,8 @@ def write_pdf(d):
         page.set_content(html_report(d), wait_until="networkidle")
         page.wait_for_function("window.tilesLoaded >= 2", timeout=30000)
         page.evaluate("document.fonts.ready")
-        page.pdf(path=str(EXPORTS / "deliveries-sample.pdf"), format="A4", landscape=True, print_background=True)
+        page.pdf(path=str(EXPORTS / "deliveries-sample.pdf"),
+                 **ek.pdf_options("The 4th Sheet · Sample Distribution deliveries · Sample data", f"Today incomplete · 1–5 Oct provisional · Sep locked · as at {ds.as_at_text()}", landscape=True))
         browser.close()
 
 

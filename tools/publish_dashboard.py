@@ -20,7 +20,11 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
+import data_status as ds
+import exportkit as ek
 import financial_model as fm
+
+STATUS_MONTHS = ["2026-09", "2026-08", "2026-10"]   # the reported month, the comparison, and the month now running
 
 REPO = Path(__file__).resolve().parent.parent
 EXPORTS = REPO / "media" / "exports"
@@ -73,7 +77,9 @@ def dashboard_payload(res):
             "fourth": {"kpis": f4["kpis"], "chart": f4["chart"]},
             "checks": checks(org), "assumptions": v["assumptions"], "exports": export_paths(org),
         })
-    return {"generated": date.today().isoformat(), "orgs": orgs}
+    status = [{"month": m, "label": date.fromisoformat(m + "-01").strftime("%b %Y"), "status": ds.month_status(m)[0],
+               "note": ds.month_status(m)[1]} for m in STATUS_MONTHS]
+    return {"generated": date.today().isoformat(), "as_at": ds.as_at_text(), "status": status, "orgs": orgs}
 
 
 def write_dashboard_js(res):
@@ -326,6 +332,13 @@ def write_xlsx(org, v):
     w.column_dimensions["B"].width = 70
 
     EXPORTS.mkdir(parents=True, exist_ok=True)
+    footer = ds.footer_text(["2026-09", "2026-10"])
+    for ws_ in wb.worksheets:
+        if not ws_["A3"].value:
+            ws_["A3"] = "Data status: " + " · ".join(f"{date.fromisoformat(m + '-01').strftime('%b %Y')} {ds.month_status(m)[0].lower()}" for m in STATUS_MONTHS) + f" (as at {ds.as_at_text()})"
+            ws_["A3"].font = Font(italic=True, size=9, color=MUTED)
+        table = ws_.title in ("Jobs", "Engagements", "Grants")
+        ek.xl_print(ws_, footer, landscape=table, header_row=4 if (table or ws_.title in ("PandL", "Balance sheet", "Cash flow")) else None)
     wb.save(EXPORTS / f"{org}-sample-statements.xlsx")
 
 
@@ -336,7 +349,8 @@ def html_report(org, v):
     fmt = lambda n: f"({abs(n):,})" if n < 0 else (f"{n:,}" if n else "-")
 
     def stmt(s):
-        out = [f"<h2>{esc(s['title'])}</h2><table><tr><th>$</th>" + "".join(f"<th class=n>{c}</th>" for c in fm.COLUMNS + ["Change"]) + "</tr>"]
+        stl = " · ".join(f"{date.fromisoformat(m + '-01').strftime('%b %Y')}: {ds.month_status(m)[0].lower()}" for m in fm.PERIODS)
+        out = [f"<h2>{esc(s['title'])}</h2><p class=stline>{esc(stl)}</p><table><tr><th>$</th>" + "".join(f"<th class=n>{c}</th>" for c in fm.COLUMNS + ["Change"]) + "</tr>"]
         for rw in s["rows"]:
             if rw["values"] is None:
                 out.append(f"<tr class=heading><td colspan=4>{esc(rw['label'])}</td></tr>")
@@ -352,11 +366,7 @@ def html_report(org, v):
     tbl = "<table class=detail-list><tr>" + "".join(f"<th{' class=n' if num(drows[0][i]) else ''}>{esc(h)}</th>" for i, h in enumerate(dhead)) + "</tr>" + \
           "".join("<tr>" + "".join(f"<td{' class=n' if num(c) else (' class=w' if len(str(c)) > 14 else '')}>{esc(cellv(c))}</td>" for c in rw) + "</tr>" for rw in drows) + "</table>"
     ch = f4["chart"]
-    mx = max(ch["values"] + ([ch["target"]] if ch.get("target") else []))
-    mx *= 1.15
-    below = lambda x: ch.get("target") is not None and x < ch["target"]
-    bars = "".join(f"<div class=hrow><span class=hl>{esc(l)}</span><span class=htrack style='margin-right:30px'><i class='{'below' if below(x) else ''}' style='width:{100 * x / mx:.1f}%'></i><em>{x:.0f}%</em></span></div>" for l, x in zip(ch["labels"], ch["values"]))
-    target = f"<div class=htarget style='left:calc(150px + (100% - 150px - 30px) * {ch['target'] / mx:.4f})'></div>" if ch.get("target") else ""
+    chart_svg = ek.hbar_svg(ch)
     def wk(sp):
         two = all(not r_[2] for r_ in sp["rows"])
         head = "" if two else "<tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sp["head"])) + "</tr>"
@@ -374,7 +384,7 @@ header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px soli
 .mark {{ min-width: 30px; height: 30px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 15px; }} .mark sup, header b sup {{ font-size: 0.55em; }}
 header b {{ font-size: 13pt; }} header small {{ margin-left: auto; color: #5f6f63; }}
 h1 {{ font-size: 17pt; margin: 6px 0 2px; }} .about {{ color: #5f6f63; margin: 0 0 10px; }}
-.sample {{ display: inline-block; background: #fff4dc; border: 1px solid #d9922b; color: #8a5410; border-radius: 4px; padding: 2px 8px; font-size: 8.5pt; font-weight: 700; }}
+.sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #c8a77e; color: #6b5532; border-radius: 4px; padding: 2px 8px; font-size: 8.5pt; font-weight: 700; }}
 h2 {{ font-size: 12.5pt; color: #2f7a5d; margin: 16px 0 6px; }} h3 {{ font-size: 10.5pt; margin: 10px 0 4px; color: #2f7a5d; }}
 table {{ width: 100%; border-collapse: collapse; page-break-inside: avoid; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 4px 6px; font-size: 9pt; }}
 td {{ padding: 3px 6px; border-bottom: 1px solid #eef2ee; }} .n {{ text-align: right; font-variant-numeric: tabular-nums; }}
@@ -383,15 +393,11 @@ tr.subtotal td, tr.total td {{ font-weight: 700; border-top: 1px solid #9db8a6; 
 tr.key td {{ font-weight: 800; background: #eaf6ee; border-top: 1px solid #25342a; border-bottom: 3px double #25342a; color: #1f5a43; }}
 .kpis {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }} .kpi {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 7px; }}
 .kpi span, .kpi em {{ display: block; font-size: 8.5pt; color: #5f6f63; font-style: normal; }} .kpi b {{ display: block; font-size: 15pt; color: #2f7a5d; }}
-.chart {{ position: relative; margin: 4px 0; }} .hrow {{ display: flex; align-items: center; height: 15px; }}
-.hl {{ width: 150px; padding-right: 6px; text-align: right; font-size: 8pt; color: #5f6f63; box-sizing: border-box; white-space: nowrap; }}
-.htrack {{ flex: 1; display: flex; align-items: center; }} .htrack i {{ display: block; height: 9px; background: #5e8b76; border-radius: 1px; }} .htrack i.below {{ background: #c8a77e; }}
-.htrack em {{ font-style: normal; font-size: 7.5pt; color: #5f6f63; margin-left: 4px; }}
-.htarget {{ position: absolute; top: 0; bottom: 0; border-left: 1.5px dashed #2f2f2f; }}
 .detail-list {{ font-size: 8.5pt; }} .detail-list td {{ white-space: nowrap; }} .detail-list td.w {{ white-space: normal; min-width: 110px; }}
 @page wide {{ size: A4 landscape; margin: 14mm; }} .wide {{ page: wide; }}
-.legend .tl {{ display: inline-block; width: 16px; border-top: 1.5px dashed #2f2f2f; vertical-align: middle; margin-right: 4px; }} .legend {{ font-size: 8pt; color: #5f6f63; margin: 4px 0 0; }} .legend i {{ display: inline-block; width: 9px; height: 9px; background: #c8a77e; margin-right: 4px; }}
 .formula {{ margin: 0 0 4px; font-style: italic; color: #5f6f63; }} .wk {{ margin-bottom: 10px; }} .wk tr:last-child td {{ font-weight: 700; border-top: 1px solid #9db8a6; }} .note {{ font-size: 8.5pt; color: #5f6f63; margin: 2px 0 8px; }}
+.stline {{ margin: -4px 0 6px; font-size: 8pt; color: #5f6f63; }} .chart {{ margin: 4px 0 10px; page-break-inside: avoid; }}
+""" + ek.STATUS_CSS + f"""
 .two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }} .page {{ page-break-before: always; }}
 .assum td:first-child {{ width: 40%; color: #5f6f63; }} .checks li {{ margin: 2px 0; }}
 footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
@@ -399,8 +405,9 @@ footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
 <header><div class=mark>4<sup>th</sup></div><b>The 4<sup>th</sup> Sheet</b><small>Your accountant gives you three sheets. I give you the fourth.</small></header>
 <span class=sample>SAMPLE DATA · invented figures for demonstration</span>
 <h1>{esc(v['model']['long_name'])}</h1><p class=about>{esc(v['model']['about'])}</p>
+{ek.status_box_html([(date.fromisoformat(m + "-01").strftime("%B %Y"), *ds.month_status(m)) for m in STATUS_MONTHS])}
 <h2>The fourth sheet: September 2026 vs August 2026</h2><div class=kpis>{kpis}</div>
-<h3>{esc(ch['title'])}</h3><div class=chart>{bars}{target}</div><p class=legend><i></i>Below target &nbsp; <span class=tl></span>Target {ch.get('target')}%</p>
+<h3>{esc(ch['title'])}</h3><div class=chart>{chart_svg}</div>
 <div class=page><h2>How each number is worked out</h2>{workings}</div>
 <div class="page wide"><h2>{esc(dtitle)}</h2>{tbl}</div>
 <div class=page>{stmt(st['pnl'])}</div>
@@ -423,7 +430,8 @@ def write_pdfs(res):
         for org in ORDER:
             page.set_content(html_report(org, res[org]), wait_until="networkidle")
             page.evaluate("document.fonts.ready")
-            page.pdf(path=str(EXPORTS / f"{org}-sample-statements.pdf"), format="A4", print_background=True)
+            page.pdf(path=str(EXPORTS / f"{org}-sample-statements.pdf"),
+                     **ek.pdf_options(f"The 4th Sheet · {res[org]['model']['long_name']} · Sample data", ds.footer_text(STATUS_MONTHS[:2] + STATUS_MONTHS[2:])))
         browser.close()
 
 

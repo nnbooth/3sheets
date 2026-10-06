@@ -612,7 +612,9 @@ def chg(cur, prev, fmt, better="up"):
 
 
 def money(v):
-    return f"${half_up(v):,}"
+    """$1,234, with negatives in accounting brackets: ($1,234)."""
+    v = half_up(v)
+    return f"(${-v:,})" if v < 0 else f"${v:,}"
 
 
 def support(title, formula, rows, note=None, series=None):
@@ -633,7 +635,8 @@ def fourth_trades(m, out):
     gm = {mo: 100 * r[mo]["gp"] / r[mo]["revenue"] for mo in PERIODS}
     cac = {mo: m["opex"]["Marketing"][mo] / m["new_customers"][mo] for mo in PERIODS}
     util = {mo: 100 * r[mo]["hours"] / r[mo]["available"] for mo in PERIODS}
-    installs = [j for j in out["jobs"] if j["month"] == "2026-09" and j["type"] == "Installation"]
+    installs = sorted([j for j in out["jobs"] if j["month"] == "2026-09" and j["type"] == "Installation"],
+                      key=lambda j: -j["gross_profit"] / j["revenue"])     # bars sorted by value
     k1, c1 = chg(gm["2026-09"], gm["2026-08"], pct)
     k2, c2 = chg(cac["2026-09"], cac["2026-08"], money, "down")
     k3, c3 = chg(util["2026-09"], util["2026-08"], lambda v: pct(v, 0))
@@ -678,7 +681,7 @@ def fourth_services(m, out):
     util = {mo: 100 * r[mo]["hours"] / r[mo]["available"] for mo in PERIODS}
     rate = {mo: r[mo]["revenue"] / r[mo]["hours"] for mo in PERIODS}
     lock = {mo: out["bs"][mo]["debtors"] + out["bs"][mo]["stock"] for mo in PERIODS}
-    sep = [x for x in out["engagements"] if x["month"] == "2026-09"]
+    sep = sorted([x for x in out["engagements"] if x["month"] == "2026-09"], key=lambda x: -x["contribution"] / x["revenue"])
     k1, c1 = chg(util["2026-09"], util["2026-08"], lambda v: pct(v, 0))
     k2, c2 = chg(rate["2026-09"], rate["2026-08"], money)
     k3, c3 = chg(lock["2026-09"], lock["2026-08"], money, "down")
@@ -727,7 +730,7 @@ def fourth_nfp(m, out):
     k1, c1 = chg(ctr["2026-09"], ctr["2026-08"], cents, "down")
     k2, c2 = chg(runway["2026-09"], runway["2026-08"], lambda v: f"{v:.1f} months")
     P = lambda f: [f(mo) for mo in PERIODS]
-    G = out["grants"]
+    G = sorted(out["grants"], key=lambda gr: -gr["total"])     # biggest grants first, same order in both views
     mname = lambda mo: date(int(mo[:4]), int(mo[5:]), 1).strftime("%b %y")
     return {
         "kpis": [
