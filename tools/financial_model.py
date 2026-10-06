@@ -930,6 +930,169 @@ def run_checks(org, model, out):
     return problems
 
 
+# ============================================================ worked examples
+# For the SME and not-for-profit pages: a question, the report that answers it,
+# what it shows and what you'd do about it. Every number comes from the model
+# above, and every example carries its workings.
+
+def ex(org, question, visual, shows, action, sp):
+    return {"org": org, "question": question, "visual": visual, "shows": shows, "action": action, "support": sp}
+
+
+def examples_trades(m, out, f4):
+    r, bs = out["r"], out["bs"]
+    ch = f4["chart"]
+    det = {d["title"]: d for d in ch["details"]}
+    worst = min(range(len(ch["values"])), key=lambda i: ch["values"][i])
+    wname = ch["labels"][worst]
+    wj = next(j for j in out["jobs"] if j["month"] == "2026-09" and j["description"] == wname)
+    below = sum(v < ch["target"] for v in ch["values"])
+    e1 = ex("trades", "Which jobs actually make money?",
+            {"type": "bars", "chart": {k: ch[k] for k in ("title", "labels", "values", "target", "format")}},
+            f"{below} of the {len(ch['values'])} installation jobs invoiced in September made less than the {ch['target']:.1f}% target. "
+            f"The {wname} made {ch['values'][worst]:.1f}%: {FMT['hours'](wj['hours'])} of technician time ({money(wj['labour_cost'])}) "
+            f"and {money(wj['subcontractors'])} of subcontractors on a {money(wj['revenue'])} job.",
+            "Before quoting the next switchboard upgrade, price it from this job's actual hours, and check any job running over its quoted hours before it's invoiced, not after.",
+            det[wname])
+    kc = f4["kpis"][1]
+    cr = kc["support"]["xl"]["rows"]
+    e2 = ex("trades", "What does it cost to win a customer?",
+            {"type": "kpis", "kpis": [{"label": "September", "value": FMT["money"](cr[2]["values"][0])},
+                                      {"label": "August", "value": FMT["money"](cr[2]["values"][1])}]},
+            f"{int(cr[1]['values'][0])} new customers came from {money(cr[0]['values'][0])} of marketing in September, "
+            f"against {int(cr[1]['values'][1])} from {money(cr[0]['values'][1])} in August: {money(cr[2]['values'][0])} each, down from {money(cr[2]['values'][1])}.",
+            "Keep September's marketing mix, and record where each new customer came from, so next month's report shows the cost per channel.",
+            kc["support"])
+    # cash against the next pay run and supplier bills: unpaid invoices by age at 30 September
+    end = MONTH_END["2026-09"]
+    unpaid = [j for j in out["jobs"] if j["invoice_date"] <= end and j["paid_date"] > end]
+    buckets = [("Invoiced 0-30 days ago", 0, 30), ("Invoiced 31-60 days ago", 31, 60), ("Invoiced more than 60 days ago", 61, 9999)]
+    aged = [sum(j["amount"] for j in unpaid if lo <= (end - j["invoice_date"]).days <= hi) for _, lo, hi in buckets]
+    if sum(aged) != bs["2026-09"]["debtors"]:
+        raise SystemExit("aged debtors don't add up to trade debtors")
+    sp3 = support("Will cash cover payroll and the bills in October?", "Cash at bank − next pay run − supplier bills due, before any collections", [
+        inp("Cash at bank, 30 September", "money", [bs["2026-09"]["cash"]]),
+        inp("Monthly wages incl. super (technicians + office)", "money", [m["tech_wages"]["2026-09"] + m["opex"]["Office and admin wages"]["2026-09"]]),
+        calc("Next fortnightly pay run (half the month)", "money", "r1/2"),
+        inp("Supplier bills due in October (September's purchases)", "money", [bs["2026-09"]["creditors"]]),
+        calc("Cash left before collections", "money", "r0-r2-r3"),
+        *[inp(f"Unpaid invoices: {b[0].lower()}", "money", [a_]) for b, a_ in zip(buckets, aged)],
+        calc("Unpaid invoices, total", "money", "r5+r6+r7")],
+        "Customers pay on their own dates; every unpaid invoice is in the jobs list in the Excel download.", cols=("30 Sep 2026",))
+    x3 = sp3["xl"]["rows"]
+    over30 = aged[1] + aged[2]
+    top3 = sorted(unpaid, key=lambda j: -j["amount"])[:3]
+    if over30:
+        tail = f"{money(over30)} of it invoiced more than 30 days ago."
+        act = "Chase the invoices more than 30 days old this week, largest first, and time the supplier payment run for after the first collections land."
+    else:
+        tail = "none of it more than 30 days old, so this is about timing, not bad debts."
+        act = (f"Ask the three largest customers ({money(sum(j['amount'] for j in top3))} between them) for their payment dates this week, "
+               "and time the supplier payment run for after the first collections land.")
+    e3 = ex("trades", "Will cash cover payroll next month?",
+            {"type": "bars", "chart": {"title": "Unpaid invoices at 30 September, by age", "labels": [b[0] for b in buckets],
+                                       "values": aged, "format": "money0", "plain": True}},
+            f"Cash at bank is {money(x3[0]['values'][0])}. The next pay run ({money(x3[2]['values'][0])}) and September's supplier bills "
+            f"({money(x3[3]['values'][0])}) come to {money(x3[2]['values'][0] + x3[3]['values'][0])}, so October depends on collecting some of the "
+            f"{money(sum(aged))} customers owe, " + tail,
+            act, sp3)
+    return [e1, e2, e3]
+
+
+def examples_services(m, out, f4):
+    sep = [x for x in out["engagements"] if x["month"] == "2026-09"]
+    types = ["Project", "Retainer", "Training"]
+    plural = {"Project": "projects", "Retainer": "retainers", "Training": "training"}
+    rows = []
+    for t in types:
+        xs = [x for x in sep if x["type"] == t]
+        P = plural[t].capitalize()
+        rows += [inp(f"{P}: revenue", "money", [sum(x["revenue"] for x in xs)]),
+                 inp(f"{P}: contribution (after contractors and consultant time)", "money", [sum(x["contribution"] for x in xs)]),
+                 inp(f"{P}: hours", "hours", [sum(x["hours"] for x in xs)])]
+    rows += [calc(f"{plural[t].capitalize()}: margin", "pct", f"r{3 * i + 1}/r{3 * i}") for i, t in enumerate(types)]
+    rows += [calc(f"{plural[t].capitalize()}: contribution per hour", "money", f"r{3 * i + 1}/r{3 * i + 2}") for i, t in enumerate(types)]
+    sp = support("Margin by type of work, September", "Contribution ÷ revenue, and contribution ÷ hours, for each type of work", rows,
+                 f"Contribution = revenue less contractors and consultant time at ${m['cost_rate']}/hour.", cols=("Sep 2026",))
+    xr = sp["xl"]["rows"]
+    margin = [xr[9 + i]["values"][0] * 100 for i in range(3)]
+    perh = [xr[12 + i]["values"][0] for i in range(3)]
+    low = min(sep, key=lambda x: x["contribution"] / x["revenue"])
+    lowm = 100 * low["contribution"] / low["revenue"]
+    best = max(range(3), key=lambda i: perh[i])
+    all_above = all(v >= m["target_margin"] for v in margin)
+    return [ex("services", "Which services should we drop?",
+               {"type": "bars", "chart": {"title": "Margin by type of work, September", "labels": [plural[t].capitalize() for t in types],
+                                          "values": [round(v, 1) for v in margin], "target": float(m["target_margin"]), "format": "pct1"}},
+               ("Every type of work made more than the " if all_above else "Not every type of work made the ") + f"{m['target_margin']:.1f}% target in September: "
+               + ", ".join(f"{plural[t]} {margin[i]:.1f}% ({money(perh[i])} an hour)" for i, t in enumerate(types))
+               + f". The lowest single engagement was {low['description']} at {lowm:.1f}%.",
+               ("Nothing needs dropping this month. " if all_above else "Review the work under target first. ")
+               + f"Reprice {low['description']} at its next renewal, and grow {plural[types[best]]} work, which makes the most per hour.",
+               sp)]
+
+
+def examples_nfp(m, out, f4):
+    r, bs = out["r"]["2026-09"], out["bs"]["2026-09"]
+    src = [("Grants", "Grant writing and reporting", r["grant_income"]),
+           ("Donations", "Donor campaigns", r["other_income"]["Donations"]),
+           ("Fundraising events", "Event costs", r["other_income"]["Fundraising events"])]
+    rows = []
+    for name, cost, raised in src:
+        rows += [inp(f"{name}: cost ({cost.lower()})", "money", [r["fund"][cost]]), inp(f"{name}: raised", "money", [raised])]
+    rows += [calc(f"{name}: cost per dollar raised", "cents", f"r{2 * i}/r{2 * i + 1}*100") for i, (name, _, _) in enumerate(src)]
+    sp1 = support("Cost to raise a dollar, by source, September", "Fundraising cost ÷ money raised, for each source, in cents", rows, cols=("Sep 2026",))
+    cents = [sp1["xl"]["rows"][6 + i]["values"][0] for i in range(3)]
+    e1 = ex("nfp", "Which funding is worth chasing?",
+            {"type": "bars", "chart": {"title": "Cost to raise a dollar, by source, September (cents)", "labels": [x[0] for x in src],
+                                       "values": [half_up(c) for c in cents], "format": "cents_int", "plain": True}},
+            f"Grants cost {half_up(cents[0])}¢ to raise each dollar, donations {half_up(cents[1])}¢ and the September gala {half_up(cents[2])}¢ "
+            f"({money(r['fund']['Event costs'])} to raise {money(r['other_income']['Fundraising events'])}).",
+            "Put the next spare hours into grant writing. Keep the gala only if it also brings in new regular donors, and track that from this year's guest list.",
+            sp1)
+    ending = sorted([gr for gr in out["grants"] if gr["months_left"] < m["ending_within_months"]], key=lambda g: g["months_left"])
+    rows = []
+    for gr in ending:
+        rows += [inp(f"{gr['program']}: still to spend", "money", [gr["unspent"]]), inp(f"{gr['program']}: months left", "int", [gr["months_left"]]),
+                 inp(f"{gr['program']}: spent in September", "money", [gr["spent_sep"]])]
+    rows += [calc(f"{gr['program']}: needed each month to finish on time", "money", f"r{3 * i}/r{3 * i + 1}") for i, gr in enumerate(ending)]
+    sp2 = support("Grants ending in the next 6 months", "Still to spend ÷ months left, against what was spent in September", rows, cols=("30 Sep 2026",))
+    need = [sp2["xl"]["rows"][3 * len(ending) + i]["values"][0] for i in range(len(ending))]
+    g0, n0 = ending[0], need[0]
+    e2 = ex("nfp", "Will each grant be spent before it ends?",
+            {"type": "kpis", "kpis": [{"label": f"{gr['program']}: still to spend", "value": money(gr["unspent"]),
+                                       "sub": f"{gr['months_left']} months left · {money(nd)} a month needed"} for gr, nd in zip(ending, need)]},
+            f"{g0['program']} has {money(g0['unspent'])} left to spend in {g0['months_left']} months: {money(n0)} a month, "
+            f"against {money(g0['spent_sep'])} spent in September.",
+            f"Lift {g0['program']} spending by {money(n0 - g0['spent_sep'])} a month from October, or ask the {g0['funder'].replace('State ', 'state ', 1) if False else g0['funder']} now about carrying the balance over.",
+            sp2)
+    kr = f4["kpis"][1]["support"]
+    xr = kr["xl"]["rows"]
+    sp3 = support("Reserves: how far short of 3.0 months?", "Target months × monthly cash spending − unrestricted cash", [
+        inp("Unrestricted cash, 30 September", "money", [xr[2]["values"][0]]), inp("Cash spending in September", "money", [xr[3]["values"][0]]),
+        calc("Runway", "months", "r0/r1"), inp("Reserves target", "months", [float(m["reserves_target_months"])]),
+        calc("Cash needed for the target", "money", "r3*r1"), calc("Gap to the target", "money", "r4-r0")], cols=("30 Sep 2026",))
+    y = sp3["xl"]["rows"]
+    e3 = ex("nfp", "How many months could we run on our own money?",
+            {"type": "kpis", "kpis": [{"label": "Runway now", "value": FMT["months"](y[2]["values"][0])},
+                                      {"label": "Target", "value": FMT["months"](y[3]["values"][0])},
+                                      {"label": "Gap", "value": money(y[5]["values"][0])}]},
+            f"Unrestricted cash ({money(y[0]['values'][0])}, after setting aside unspent grant money) would cover {FMT['months'](y[2]['values'][0])} "
+            f"of spending at September's rate, short of the {FMT['months'](y[3]['values'][0])} target by {money(y[5]['values'][0])}.",
+            "Take a reserves plan to the board: how much of each month's surplus goes to reserves, and by when the gap is closed.",
+            sp3)
+    hs = next(d for d in f4["chart"]["details"] if d["title"] == g0["program"])
+    se = hs["series"]
+    under = sum(v < b for v, b in zip(se["values"], se["budget"]))
+    e4 = ex("nfp", f"How has {g0['program']} spent over time?",
+            {"type": "series", "series": se},
+            f"{g0['program']} spent less than its {money(se['budget'][0])} monthly budget in {under} of its {len(se['values'])} months so far, "
+            f"which is why {money(g0['unspent'])} is left with {g0['months_left']} months to go.",
+            "Find out what held the under-budget months back (staffing, referrals, timing) and fix it before the last quarter, not in it.",
+            hs)
+    return [e1, e2, e3, e4]
+
+
 def build():
     """Run every model and check it. Returns {org: {...}} ready to publish."""
     result, problems = {}, []
@@ -938,7 +1101,9 @@ def build():
                                       ("nfp", NFP, nfp, fourth_nfp, nfp_assumptions)]:
         out = fn(m)
         problems += run_checks(org, m, out)
-        result[org] = dict(model=m, out=out, fourth=fourth(m, out), assumptions=assum(m, out))
+        f4 = fourth(m, out)
+        exf = {"trades": examples_trades, "services": examples_services, "nfp": examples_nfp}[org]
+        result[org] = dict(model=m, out=out, fourth=f4, assumptions=assum(m, out), examples=exf(m, out, f4))
     if problems:
         raise SystemExit("Financial model checks FAILED:\n  " + "\n  ".join(problems))
     return result

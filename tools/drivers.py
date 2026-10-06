@@ -78,7 +78,9 @@ def build(res, account_ids):
     cac_rows = res["trades"]["fourth"]["kpis"][1]["support"]["xl"]["rows"]
     if [r[3] for r in rows if r[0] == "trades" and r[2].startswith("New customers")] != cac_rows[1]["values"]:
         problems.append("driver_month new customers")
-    tbl("driver_month", "Supporting drivers by organisation and month: headcount, wages, new customers, working days and other inputs that aren't transactions.",
+    import warehouse
+    rows += [r_ for r_ in warehouse.build.history["drivers"] if r_[3] is not None]     # Oct 2024 to Jul 2026, and October to date
+    tbl("driver_month", "Supporting drivers by organisation and month, Oct 2024 to October 2026: headcount, wages, new customers, marketing, working days and other inputs that aren't transactions.",
         org + [("month_key", V(7)), ("driver", V(60)), ("value", "DECIMAL(14,2)"), ("unit", V(12))], rows)
 
     # ---- cost_rate
