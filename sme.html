@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-20" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-21" />
   </head>
 
   <!--
@@ -101,16 +101,24 @@
             <p class="lead">Built on sample data for invented businesses, with every number's workings, 24 months of history, and Excel and PDF downloads.</p>
           </div>
           <!-- REPORT CARDS:START -->
+          <div class="report-feature"><p class="eyebrow">Featured: <a href="report-growth.html">Which products and services are growing?</a></p><div data-report-feature="growth" data-only="series,kpis"><noscript><p>Turn on JavaScript to see the chart, or <a href="report-growth.html">open the report</a>.</p></noscript></div></div>
           <ul class="report-cards">
-            <li><h3><a href="report-cost-to-win.html">What does it cost to win a customer?</a></h3><p>47 new customers came from $7,600 of marketing in September, against 41 from $8,400 in August: $162 each, down from $205.</p><a class="report-open" href="report-cost-to-win.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-job-margins.html">Which jobs actually make money?</a></h3><p>3 of the 6 installation jobs invoiced in September made less than the 35.0% target.</p><a class="report-open" href="report-job-margins.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-growth.html">Which products and services are growing?</a></h3><p>Revenue grew 14.6% on the year before ($2,066,117 against $1,803,386).</p><a class="report-open" href="report-growth.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-cost-to-win.html">What does it cost to win a customer?</a></h3><div class="card-chart" data-report-card="cost-to-win" aria-hidden="true"></div><p>47 new customers came from $7,600 of marketing in September, against 41 from $8,400 in August: $162 each, down from $205.</p><a class="report-open" href="report-cost-to-win.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-job-margins.html">Which jobs actually make money?</a></h3><div class="card-chart" data-report-card="job-margins" aria-hidden="true"></div><p>3 of the 6 installation jobs invoiced in September made less than the 35.0% target.</p><a class="report-open" href="report-job-margins.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-growth.html">Which products and services are growing?</a></h3><div class="card-chart" data-report-card="growth" aria-hidden="true"></div><p>Revenue grew 14.6% on the year before ($2,066,117 against $1,803,386).</p><a class="report-open" href="report-growth.html">Open the report &rarr;</a></li>
             <li class="report-later"><h3>Will cash cover payroll next month?</h3><p>A 13-week cash forecast built from your bank and accounting system, with room for what you expect that the systems don't know yet. Coming soon.</p></li>
           </ul>
           <!-- REPORT CARDS:END -->
           <p class="more-link"><a href="how-we-work.html">How we work together &rarr;</a></p>
         </div>
       </section>
+      <dialog class="assumptions" id="support-dialog" aria-labelledby="support-title">
+        <div class="assumptions-head">
+          <h2 id="support-title">How it's worked out</h2>
+          <button type="button" class="assumptions-close" id="support-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="assumptions-body" id="support-body"></div>
+      </dialog>
       <!-- CONTACT -->
       <section id="contact" class="section">
         <div class="container contact-box">
@@ -146,6 +154,7 @@
       </div>
     </footer>
 
-    <script src="script.js?v=2026-10-20"></script>
+    <script src="data/reports-data.js?v=2026-10-21"></script>
+    <script src="script.js?v=2026-10-21"></script>
   </body>
 </html>
