@@ -25,7 +25,7 @@ All data files (CSV, Excel) are kept in OneDrive so they're backed up to cloud s
   Owner documents/  Other assets/  Plans/   business documents
 ```
 
-Scripts find this folder automatically. To use another location, set `FOURTH_SHEET_DATA` (in `.env` or the shell) to the `Data` folder.
+Scripts find this folder automatically on the Mac (`~/Library/CloudStorage/OneDrive-Personal/...`) and on a Windows PC (`%OneDrive%\\Projects\\The 4th Sheet`). To use another location, set `FOURTH_SHEET_DATA` to the `Data` folder.
 The only spreadsheets kept in git are the website's own downloads in `media/exports/`.
 
 ## Quick Start
