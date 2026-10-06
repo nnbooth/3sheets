@@ -35,7 +35,11 @@ def fmt_value(v, f):
     if f == "money_k":
         return f"${round(v / 1000):,}k" if abs(v) >= 1000 else f"${v}"
     if f == "money0":
-        return f"${round(v):,}"
+        return f"(${-round(v):,})" if v < 0 else f"${round(v):,}"
+    if f == "cents_int":
+        return f"{round(v)}¢"
+    if f == "int":
+        return f"{round(v):,}"
     return str(v)
 
 
@@ -81,6 +85,40 @@ def hbar_svg(ch, width=640):
         g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{SOME}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Below target</text>')
     if marks:
         g.append(f'<line x1="{left + 4}" x2="{left + 4}" y1="{ky - 11}" y2="{ky + 1}" stroke="{INK}" stroke-width="2"/><text x="{left + 12}" y="{ky}" font-size="10" fill="{MUTED}">{esc(ch.get("mark_label", ""))}</text>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%" '
+            f'style="font-family:Inter,Arial,sans-serif" role="img">{"".join(g)}</svg>')
+
+
+def col_svg(labels, values, status, f, width=700, height=230, target=None):
+    """Month-by-month columns (time series). Incomplete or provisional periods are lighter and marked;
+    every column carries a small value; quarter labels along the bottom."""
+    vals = [v for v in values if v is not None]
+    mx = max(vals + ([target] if target is not None else []) + [0]) * 1.12 or 1
+    mn = min(vals + [0])
+    left, right, top, base = 8, width - 8, 30, height - 36
+    span = mx - mn
+    y = lambda v: base - (v - mn) / span * (base - top)
+    slot = (right - left) / len(values)
+    bw = slot * 0.66
+    zero = y(0)
+    g = [f'<line x1="{left}" x2="{right}" y1="{zero:.1f}" y2="{zero:.1f}" stroke="{LINE}" stroke-width="1.5"/>']
+    for i, (lab, v, st) in enumerate(zip(labels, values, status)):
+        x0 = left + i * slot + (slot - bw) / 2
+        cx = x0 + bw / 2
+        if v is not None:
+            yy = y(v)
+            top_, h_ = min(yy, zero), abs(zero - yy)
+            light = st in ("Incomplete", "Provisional")
+            extra = f' fill-opacity="0.35" stroke="{GOOD}" stroke-dasharray="3 2"' if light else ""
+            g.append(f'<rect x="{x0:.1f}" y="{top_:.1f}" width="{bw:.1f}" height="{h_:.1f}" rx="1.5" fill="{GOOD}"{extra}/>')
+            g.append(f'<text transform="translate({cx + 3:.1f},{top_ - 3:.1f}) rotate(-90)" font-size="8" fill="{INK}">{esc(fmt_value(v, f))}</text>')
+        if i % 3 == 0 or i == len(labels) - 1:
+            g.append(f'<text x="{cx:.1f}" y="{base + 14}" text-anchor="middle" font-size="9" fill="{MUTED}">{esc(lab)}</text>')
+        if st == "Incomplete":
+            g.append(f'<text x="{cx:.1f}" y="{base + 26}" text-anchor="middle" font-size="8" fill="{BAD}">to date</text>')
+    if target is not None:
+        ty = y(target)
+        g.append(f'<line x1="{left}" x2="{right}" y1="{ty:.1f}" y2="{ty:.1f}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%" '
             f'style="font-family:Inter,Arial,sans-serif" role="img">{"".join(g)}</svg>')
 

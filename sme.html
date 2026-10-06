@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-19" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-20" />
   </head>
 
   <!--
@@ -81,21 +81,7 @@
             <h1>What's really making you money?</h1>
             <p class="lead">You already know your business. The fourth sheet answers the questions underneath it, whichever ones matter to you.</p>
             <p class="q-intro">Questions like:</p>
-            <ul class="q-chips q-chips--page" aria-label="Example questions"><li>What does it cost to win a customer?</li><li>Which jobs actually make money?</li><li>Will cash cover payroll next month?</li><li>Which products or services should we drop?</li><li>Is the overtime worth it?</li><li class="q-own">…or bring your own</li></ul>
-          </div>
-
-          <div class="audience-grid">
-            <div class="spine">
-              <span class="spine-label">For example</span>
-              <strong>Cost to win a customer</strong>
-              <p>What you spend on marketing, sales time and discounts, against the customers it actually brought in.</p>
-            </div>
-            <ul class="next-layer">
-              <li><strong>Leads.</strong> Where they come from, and how many become customers.</li>
-              <li><strong>Profit per customer.</strong> What each customer is worth after the cost of serving them.</li>
-              <li><strong>True job costs.</strong> Labour, materials, freight and rework on every job, not just the quote.</li>
-              <li><strong>Cash.</strong> The bank balance today, and what's due in and out.</li>
-            </ul>
+            <ul class="q-chips q-chips--page" aria-label="Example questions"><li><a href="report-cost-to-win.html">What does it cost to win a customer?</a></li><li><a href="report-job-margins.html">Which jobs actually make money?</a></li><li class="q-later" title="Coming soon: built from your bank and accounting system">Will cash cover payroll next month?</li><li><a href="report-growth.html">Which products and services are growing?</a></li><li class="q-own">…or bring your own</li></ul>
           </div>
 
           <p class="no-data-line"><strong>No data to hand over yet?</strong> I'll help you set up the processes and frameworks to start capturing it, then build the reporting on top.</p>
@@ -106,27 +92,25 @@
         </div>
       </section>
 
-      <!-- SME: related work -->
-      <section id="sb-work" class="section section-alt">
+      <!-- EXAMPLE REPORTS: cards written by tools/build_reports.py between the markers -->
+      <section id="reports" class="section section-alt">
         <div class="container">
           <div class="section-heading">
-            <p class="eyebrow">Work for organisations your size</p>
-            <h2>Built for businesses like yours.</h2>
+            <p class="eyebrow">Example reports</p>
+            <h2>What each question looks like, answered.</h2>
+            <p class="lead">Built on sample data for invented businesses, with every number's workings, 24 months of history, and Excel and PDF downloads.</p>
           </div>
-          <div class="card-grid card-grid--two">
-            <article class="info-card">
-              <h3>A manufacturer</h3>
-              <p>Live warehouse-floor screens, job costing, time and attendance reporting, and an ERP rollout. <a href="work.html#displays">See the kind of screen</a></p>
-            </article>
-            <article class="info-card">
-              <h3>A sole-trader fitness business</h3>
-              <p>Leads and the cost to win a customer.</p>
-            </article>
-          </div>
+          <!-- REPORT CARDS:START -->
+          <ul class="report-cards">
+            <li><h3><a href="report-cost-to-win.html">What does it cost to win a customer?</a></h3><p>47 new customers came from $7,600 of marketing in September, against 41 from $8,400 in August: $162 each, down from $205.</p><a class="report-open" href="report-cost-to-win.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-job-margins.html">Which jobs actually make money?</a></h3><p>3 of the 6 installation jobs invoiced in September made less than the 35.0% target.</p><a class="report-open" href="report-job-margins.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-growth.html">Which products and services are growing?</a></h3><p>Revenue grew 14.6% on the year before ($2,066,117 against $1,803,386).</p><a class="report-open" href="report-growth.html">Open the report &rarr;</a></li>
+            <li class="report-later"><h3>Will cash cover payroll next month?</h3><p>A 13-week cash forecast built from your bank and accounting system, with room for what you expect that the systems don't know yet. Coming soon.</p></li>
+          </ul>
+          <!-- REPORT CARDS:END -->
           <p class="more-link"><a href="how-we-work.html">How we work together &rarr;</a></p>
         </div>
       </section>
-
       <!-- CONTACT -->
       <section id="contact" class="section">
         <div class="container contact-box">
@@ -162,6 +146,6 @@
       </div>
     </footer>
 
-    <script src="script.js?v=2026-10-19"></script>
+    <script src="script.js?v=2026-10-20"></script>
   </body>
 </html>
