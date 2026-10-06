@@ -384,6 +384,8 @@ def nfp(model):
 
 
 # =============================================================== the fourth sheet
+# The FIRST THREE KPIs in each list are the ones shown on the home page;
+# the rest appear in the Excel and PDF downloads.
 
 def pct(n, d, places=1):
     return round(100 * n / d, places)
@@ -405,7 +407,7 @@ def fourth_trades(m, out):
             {"label": "Cost to win a customer", "value": f"${half_up(cac['FY2026'])}", "sub": f"FY2025: ${half_up(cac['FY2025'])}", "cls": "good", "spine": True},
             {"label": "Gross margin", "value": f"{gm['FY2026']}%", "sub": f"FY2025: {gm['FY2025']}%", "cls": "good"},
             {"label": "Debtor days", "value": str(ddays["FY2026"]), "sub": f"FY2025: {ddays['FY2025']}", "cls": "good"},
-            {"label": "Break-even revenue", "value": f"${breakeven['FY2026'] / 1000:.2f}M", "sub": f"{pct(breakeven['FY2026'], r['FY2026']['rev'], 0):.0f}% of revenue", "cls": ""},
+            {"label": "Break-even revenue", "value": f"${breakeven['FY2026'] / 1000:.2f}M", "sub": f"{pct(breakeven['FY2026'], r['FY2026']['rev'], 0):.0f}% of revenue", "cls": ""},  # downloads only
         ],
         "chart": {"title": "Cost to win a customer, by month (FY2026)", "labels": MONTHS,
                   "values": [round(mk[i] / cu[i], 2) for i in range(12)], "target": m["cac_target"], "format": "money0",
@@ -465,8 +467,8 @@ def fourth_nfp(m, out):
         "kpis": [
             {"label": "Cost to raise a dollar", "value": f"${ctr['FY2026']:.2f}", "sub": f"FY2025: ${ctr['FY2025']:.2f}", "cls": "good", "spine": True},
             {"label": "Spent on programs", "value": f"{cents[0]}c in $1", "sub": "of every dollar spent", "cls": ""},
-            {"label": "Cost per program hour", "value": f"${half_up(cph['FY2026'])}", "sub": f"FY2025: ${half_up(cph['FY2025'])}", "cls": ""},
             {"label": "Cash runway (unrestricted)", "value": f"{runway['FY2026']:.1f} months", "sub": f"Target {m['reserves_target_months']} months", "cls": "good"},
+            {"label": "Cost per program hour", "value": f"${half_up(cph['FY2026'])}", "sub": f"FY2025: ${half_up(cph['FY2025'])}", "cls": ""},  # downloads only
         ],
         "chart": {"title": "Where each dollar goes (FY2026, cents)", "labels": ["Programs", "Fundraising", "Admin", "Occupancy"],
                   "values": cents, "target": None, "format": "cents_int", "what": "spending per dollar"},

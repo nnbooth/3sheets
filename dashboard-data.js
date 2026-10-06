@@ -661,51 +661,13 @@ window.FOURTH_SHEET_DASHBOARD = {
       920,
       "37.7%"
      ]
-    },
-    "bridge": {
-     "title": "Profit to cash, FY2026 ($'000)",
-     "rows": [
-      [
-       "Net profit after tax",
-       85
-      ],
-      [
-       "Add back depreciation",
-       52
-      ],
-      [
-       "Working capital (debtors, stock, creditors)",
-       10
-      ],
-      [
-       "Tax owed but not yet paid",
-       23
-      ],
-      [
-       "Vehicles and equipment bought",
-       -40
-      ],
-      [
-       "Finance repaid",
-       -60
-      ],
-      [
-       "Dividends paid",
-       -40
-      ]
-     ],
-     "total": [
-      "Change in cash",
-      30
-     ]
     }
    },
    "checks": [
     "Every subtotal and total adds up",
     "Balance sheet balances: assets = liabilities + equity",
     "Cash flow ends at the cash in the bank",
-    "Profit ties to retained earnings, after dividends",
-    "Profit-to-cash bridge ends at the change in cash"
+    "Profit ties to retained earnings, after dividends"
    ],
    "assumptions": [
     [
@@ -1458,51 +1420,13 @@ window.FOURTH_SHEET_DASHBOARD = {
       840,
       "46.7%"
      ]
-    },
-    "bridge": {
-     "title": "Profit to cash, FY2026 ($'000)",
-     "rows": [
-      [
-       "Net profit after tax",
-       153
-      ],
-      [
-       "Add back depreciation",
-       24
-      ],
-      [
-       "Working capital (debtors, stock, creditors)",
-       22
-      ],
-      [
-       "Tax owed but not yet paid",
-       36
-      ],
-      [
-       "Vehicles and equipment bought",
-       -30
-      ],
-      [
-       "Finance repaid",
-       -20
-      ],
-      [
-       "Dividends paid",
-       -80
-      ]
-     ],
-     "total": [
-      "Change in cash",
-      105
-     ]
     }
    },
    "checks": [
     "Every subtotal and total adds up",
     "Balance sheet balances: assets = liabilities + equity",
     "Cash flow ends at the cash in the bank",
-    "Profit ties to retained earnings, after dividends",
-    "Profit-to-cash bridge ends at the change in cash"
+    "Profit ties to retained earnings, after dividends"
    ],
    "assumptions": [
     [
@@ -2111,16 +2035,16 @@ window.FOURTH_SHEET_DASHBOARD = {
       "cls": ""
      },
      {
-      "label": "Cost per program hour",
-      "value": "$62",
-      "sub": "FY2025: $60",
-      "cls": ""
-     },
-     {
       "label": "Cash runway (unrestricted)",
       "value": "4.6 months",
       "sub": "Target 3 months",
       "cls": "good"
+     },
+     {
+      "label": "Cost per program hour",
+      "value": "$62",
+      "sub": "FY2025: $60",
+      "cls": ""
      }
     ],
     "chart": {
@@ -2175,43 +2099,13 @@ window.FOURTH_SHEET_DASHBOARD = {
       "100%",
       "$0.12"
      ]
-    },
-    "bridge": {
-     "title": "Surplus to cash, FY2026 ($'000)",
-     "rows": [
-      [
-       "Surplus for the year",
-       214
-      ],
-      [
-       "Add back depreciation",
-       34
-      ],
-      [
-       "Grants received in advance (unspent)",
-       40
-      ],
-      [
-       "Working capital (receivables, payables)",
-       7
-      ],
-      [
-       "Vehicles and equipment bought",
-       -60
-      ]
-     ],
-     "total": [
-      "Change in cash",
-      235
-     ]
     }
    },
    "checks": [
     "Every subtotal and total adds up",
     "Balance sheet balances: assets = liabilities + accumulated funds",
     "Cash flow ends at the cash in the bank",
-    "Surplus ties to the movement in accumulated funds",
-    "Profit-to-cash bridge ends at the change in cash"
+    "Surplus ties to the movement in accumulated funds"
    ],
    "assumptions": [
     [

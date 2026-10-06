@@ -194,13 +194,6 @@ CREATE TABLE model_monthly (
     value INT
 );
 
--- Home-page dashboard: profit (surplus) to cash bridge, FY2026, $'000.
-CREATE TABLE model_bridge (
-    org VARCHAR(28),
-    line VARCHAR(63),
-    amount_aud_k INT
-);
-
 -- Home-page dashboard: the assumptions each sample organisation's statements are built from.
 CREATE TABLE model_assumptions (
     org VARCHAR(28),
