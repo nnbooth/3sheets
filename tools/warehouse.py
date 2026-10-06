@@ -140,10 +140,14 @@ def gl_daily(res, acct):
                 "Installation": "Installations (jobs)", "Call-out": "Call-outs and repairs"}
     for j in t["jobs"]:
         if j["month"] in fm.PERIODS:
-            post(j["invoice_date"], "trades", rev_line[j["type"]], j["revenue"], job=j["job"])
+            if j["type"] == "Call-out":
+                post(j["invoice_date"], "trades", "Call-outs: technician time", j["labour_revenue"], job=j["job"])
+                post(j["invoice_date"], "trades", "Call-outs: materials charged", j["materials_revenue"], job=j["job"])
+            else:
+                post(j["invoice_date"], "trades", rev_line[j["type"]], j["revenue"], job=j["job"])
             post(j["invoice_date"], "trades", "Materials", -j["materials"], job=j["job"])
             post(j["invoice_date"], "trades", "Subcontractors", -j["subcontractors"], job=j["job"])
-    done = {("trades", l) for l in list(rev_line.values()) + ["Materials", "Subcontractors"]}
+    done = {("trades", l) for l in list(rev_line.values()) + ["Call-outs: technician time", "Call-outs: materials charged", "Materials", "Subcontractors"]}
 
     # services: project revenue follows the hours worked each day; retainers on the 1st; training on the day
     s = res["services"]["out"]
@@ -333,7 +337,7 @@ def build(res):
                             rate if x["type"] != "Project" else None, 14 if x["type"] == "Retainer" else 30])
     dim_grant = [[g["code"], "nfp", g["program"], g["funder"], g["total"], g["start"], g["end"]] for g in n["grants"]]
     dim_grant += [[g[0], "nfp", g[2], g[3], g[4], g[5].isoformat(), g[6].isoformat()] for g in h["past_grants"]]
-    job_month = [[j["month"], j["job"], j["invoice_date"].isoformat(), j["revenue"], j["materials"], j["subcontractors"], j["hours"],
+    job_month = [[j["month"], j["job"], j["invoice_date"].isoformat(), j["revenue"], j["labour_revenue"], j["materials_revenue"], j["materials"], j["subcontractors"], j["hours"],
                   j["labour_cost"], j["gross_profit"]] for j in t["jobs"] + h["jobs"]]
     eng_month = [[x["month"], x["code"], x["hours"], x["revenue"], x["billed"], x["contractors"], x["allocated_cost"], x["contribution"],
                   s["r"][x["month"]]["wip"].get(x["code"], 0) if x["type"] == "Project" else 0] for x in s["engagements"]]
@@ -386,8 +390,10 @@ def build(res):
     tbl("fact_timesheet_daily", "Hours by day against each trades job or services engagement, Oct 2024 to 6 Oct 2026 (half-hour units). Add up to the job and engagement hours.",
         [("date_key", "INT REFERENCES dim_date(date_key)"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"),
          ("job_id", V(10)), ("engagement_id", V(10)), ("hours", "DECIMAL(6,1)")], ts)
-    tbl("fact_job_month", "Each trades job by month, Oct 2024 to Sep 2026 plus October to date. Labour cost = hours x $68. Aug and Sep add up to the P&L.",
-        [("month_key", V(7)), ("job_id", V(10) + " REFERENCES dim_job(job_id)"), ("invoice_date", "DATE"), ("revenue", "INT"), ("materials", "INT"),
+    tbl("fact_job_month", "Each trades job by month, Oct 2024 to Sep 2026 plus October to date. Labour cost = hours x $68. Aug and Sep add up to the P&L. "
+        "Call-outs bill technician time ($145/hour) and materials (cost x 1.3) separately: labour_revenue + materials_revenue = revenue; blank for other jobs (one price).",
+        [("month_key", V(7)), ("job_id", V(10) + " REFERENCES dim_job(job_id)"), ("invoice_date", "DATE"), ("revenue", "INT"),
+         ("labour_revenue", "INT"), ("materials_revenue", "INT"), ("materials", "INT"),
          ("subcontractors", "INT"), ("tech_hours", "DECIMAL(6,1)"), ("labour_cost", "INT"), ("gross_profit", "INT")], job_month)
     tbl("fact_engagement_month", "Each services engagement by month, Oct 2024 to Sep 2026 plus October to date. Consultant time costed at $60/hour; wip_closing = unbilled project time at month end.",
         [("month_key", V(7)), ("engagement_id", V(10) + " REFERENCES dim_engagement(engagement_id)"), ("hours", "DECIMAL(6,1)"), ("revenue", "INT"),
@@ -436,7 +442,8 @@ def check_history(res, lm):
     """The line table agrees with the locked statements for August and September."""
     problems = []
     for org, labels in (("trades", ["Maintenance contracts", "Installations", "Call-outs and repairs"]), ("services", ["Projects", "Retainers", "Training"])):
-        rev_rows = [rw for rw in res[org]["out"]["pnl"][1:4]]
+        pnl_ = res[org]["out"]["pnl"]
+        rev_rows = pnl_[1:next(i for i, rw in enumerate(pnl_) if rw["label"] == "Total revenue")]
         for i, mo in enumerate(fm.PERIODS):
             got = sum(r[5] for r in lm if r[0] == org and r[1] == mo)
             exp = sum(rw["values"][i] for rw in rev_rows)

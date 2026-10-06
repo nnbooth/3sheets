@@ -70,7 +70,8 @@ def growth_text(a, b):
 def jobs(src):
     dim = {j["job_id"]: j for j in src.table("trades", "dim_job")}
     return [dict(month=r["month_key"], id=r["job_id"], type=dim[r["job_id"]]["job_type"], description=dim[r["job_id"]]["description"],
-                 revenue=r["revenue"], materials=r["materials"], subcontractors=r["subcontractors"], hours=r["tech_hours"],
+                 revenue=r["revenue"], labour_revenue=r["labour_revenue"], materials_revenue=r["materials_revenue"],
+                 materials=r["materials"], subcontractors=r["subcontractors"], hours=r["tech_hours"],
                  labour_cost=r["labour_cost"], gross_profit=r["gross_profit"]) for r in src.table("trades", "fact_job_month")]
 
 
@@ -431,17 +432,31 @@ def job_margins(D, P):
         labs = [f"{h_:g}-hour call-outs ({len(grp[h_])})" for h_ in hrs_]
         rev_ = [sum(j["revenue"] for j in grp[h_]) for h_ in hrs_]
         gp_ = [sum(j["gross_profit"] for j in grp[h_]) for h_ in hrs_]
+        crate, mk = o.rates["Call-out charge rate"], o.rates["Materials mark-up on call-outs"]
         det = [support(lab, f"Call-outs of this length in {P.when}, added together", [
-            inp("Call-outs", "int", [len(grp[h_])]), inp("Revenue", "money", [r_]), inp("Materials", "money", [-sum(j["materials"] for j in grp[h_])]),
-            inp("Technician time at cost", "money", [-sum(j["labour_cost"] for j in grp[h_])]), calc("Job gross margin", "money", "r1+r2+r3"),
-            calc("Job gross margin %", "pct", "r4/r1")], cols=(P.short,)) for lab, h_, r_ in zip(labs, hrs_, rev_)]
+            inp("Call-outs", "int", [len(grp[h_])]),
+            inp(f"Technician time charged (${crate}/hour)", "money", [sum(j["labour_revenue"] for j in grp[h_])]),
+            inp(f"Materials charged (cost × {mk})", "money", [sum(j["materials_revenue"] for j in grp[h_])]),
+            calc("Revenue", "money", "r1+r2"), inp("Materials at cost", "money", [-sum(j["materials"] for j in grp[h_])]),
+            inp("Technician time at cost", "money", [-sum(j["labour_cost"] for j in grp[h_])]), calc("Job gross margin", "money", "r3+r4+r5"),
+            calc("Job gross margin %", "pct", "r6/r3")], cols=(P.short,)) for lab, h_, r_ in zip(labs, hrs_, rev_)]
+        lab_rev, mat_rev, mat_cost = (sum(j[k] for j in co) for k in ("labour_revenue", "materials_revenue", "materials"))
+        rev_split = support(f"Call-out revenue, {P.when}", f"Technician time charged at ${crate}/hour + materials charged at cost × {mk}", [
+            inp(f"Technician time charged (${crate}/hour)", "money", [lab_rev]), inp("Materials at cost", "money", [mat_cost]),
+            inp("Mark-up on materials", "pct", [mk - 1]), calc(f"Materials charged (cost × {mk})", "money", "r1*(1+r2)"),
+            inp("Materials charged (as invoiced, rounded per call-out)", "money", [mat_rev]), calc("Call-out revenue", "money", "r0+r4"),
+            calc("Technician time, % of call-out revenue", "pct", "r0/r5")], cols=(P.short,))
+        by["kpis"]["Call-outs and repairs"]["items"] += [
+            kpi(f"Technician time charged, {P.when}", money(lab_rev), f"{pct(lab_rev / (lab_rev + mat_rev))} of call-out revenue", rev_split),
+            kpi(f"Materials charged, {P.when}", money(mat_rev), f"{money(mat_cost)} at cost, plus {round(100 * (mk - 1))}%", rev_split)]
         by["bars"]["Call-outs and repairs"] = {"type": "bars", "chart": margin_chart(
             f"Job gross margin on call-outs by length, {P.label}",
             f"Charged at ${o.rates['Call-out charge rate']}/hour plus materials at cost × {o.rates['Materials mark-up on call-outs']}; technician time at ${rate}/hour.",
             labs, rev_, gp_, tgt, det)}
         mg = [g / r for g, r in zip(gp_, rev_)]
         by["text"]["Call-outs and repairs"] = text(
-            f"{len(co)} call-outs in {P.when} made a {pct(sum(gp_) / sum(rev_))} job gross margin between them. Gross margins run from {pct(min(mg))} to {pct(max(mg))} "
+            f"{len(co)} call-outs in {P.when} billed {money(lab_rev)} of technician time and {money(mat_rev)} of materials ({money(mat_cost)} at cost plus {round(100 * (mk - 1))}%), "
+            f"and made a {pct(sum(gp_) / sum(rev_))} job gross margin between them. Gross margins run from {pct(min(mg))} to {pct(max(mg))} "
             "by length: the hourly rate covers technician time comfortably, so the gross margin mostly moves with how much material goes on the van.",
             margin_action("Call-outs", sum(gp_) / sum(rev_), be))
     return report("job-margins", "sme", "Which jobs actually make money?", "trades", D, P,

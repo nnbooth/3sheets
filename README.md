@@ -80,6 +80,26 @@ Brand/  Archive/
 Scripts find the Data folder automatically on the Mac (`~/Library/CloudStorage/OneDrive-Personal/...`) and on a Windows PC
 (`%OneDrive%\Projects\The 4th Sheet`). To use another location, set `FOURTH_SHEET_DATA` to the `Data` folder.
 
+## Getting a machine ready (Mac or Windows)
+
+```
+python3 tools/setup_machine.py        # Windows: py tools\setup_machine.py
+```
+
+One script, safe to re-run. It installs everything and switches on the git leak guard, which stops any commit with a password, key, data file or
+personal detail. It also finds OneDrive and syncs `media/`, signs you in to Azure, lets the machine through the database firewall, and tests
+the connection.
+
+## The cloud database (`tools/database/`)
+
+Azure SQL with **no password anywhere**: Microsoft sign-in only, a per-machine firewall, TLS 1.2, least-privilege roles, and staged all-or-nothing
+loads with a load log. See [tools/database/README.md](tools/database/README.md).
+
+- `azure_setup.py` creates and locks down the server and database.
+- `load.py` loads the CSVs.
+- `document.py` writes the table-by-table guide and star-schema plan, with Claude prompts, to OneDrive.
+- The report builder reads the database with `--source db`, and `python3 tools/report.py --compare-sources` proves it gives the same reports as the CSVs.
+
 ## Quick Start
 
 Run from the repository root (`dataPortfolio`):

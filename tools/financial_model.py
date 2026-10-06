@@ -156,10 +156,13 @@ def trades_jobs(m):
             hrs = rng.choice([1, 1.5, 2, 2, 2.5, 3, 3, 4])
             mat = rng.randrange(20, 240, 10)
             rev = half_up(hrs * m["callout_rate"] + mat * m["materials_markup"])
+            mat_rev = half_up(mat * m["materials_markup"])          # materials charged: cost + the mark-up
             jobs.append({"month": month, "job": f"C-{month[5:]}{k + 1:02d}", "type": "Call-out", "description": f"Call-out {k + 1}, {month_start(month).strftime('%B')}",
-                         "revenue": rev, "materials": mat, "subcontractors": 0, "hours": hrs,
+                         "revenue": rev, "labour_revenue": rev - mat_rev, "materials_revenue": mat_rev, "materials": mat, "subcontractors": 0, "hours": hrs,
                          "invoice_date": start + timedelta(days=rng.randrange(0, 28)), "days_to_pay": rng.choice([0, 0, 0, 2, 7, 7, 14, 30])})
     for j in jobs:
+        j.setdefault("labour_revenue", None)      # only call-outs bill time and materials separately
+        j.setdefault("materials_revenue", None)
         j["paid_date"] = j["invoice_date"] + timedelta(days=j["days_to_pay"])
         j["labour_cost"] = half_up(j["hours"] * m["tech_cost_rate"])
         j["gross_profit"] = j["revenue"] - j["materials"] - j["subcontractors"] - j["labour_cost"]
@@ -180,7 +183,9 @@ def trades(m):
         mj = [j for j in jobs if j["month"] == mo]
         by = lambda t, k: sum(j[k] for j in mj if j["type"] == t)
         rev = {t: by(t, "revenue") for t in ["Maintenance contract", "Installation", "Call-out"]}
-        revenue = sum(rev.values())
+        rev["Call-out time"] = sum(j["labour_revenue"] for j in mj if j["type"] == "Call-out")
+        rev["Call-out materials"] = sum(j["materials_revenue"] for j in mj if j["type"] == "Call-out")
+        revenue = sum(rev[t] for t in ["Maintenance contract", "Installation", "Call-out"])
         mat, sub = sum(j["materials"] for j in mj), sum(j["subcontractors"] for j in mj)
         techw = m["tech_wages"][mo]
         cos = mat + sub + techw
@@ -214,7 +219,8 @@ def trades(m):
     pnl = [row("Revenue", "heading", None),
            row(f"Maintenance contracts ({len(m['contracts'])})", "detail", per(lambda mo: r[mo]["rev"]["Maintenance contract"])),
            row("Installations (jobs)", "detail", per(lambda mo: r[mo]["rev"]["Installation"])),
-           row("Call-outs and repairs", "detail", per(lambda mo: r[mo]["rev"]["Call-out"])),
+           row("Call-outs: technician time", "detail", per(lambda mo: r[mo]["rev"]["Call-out time"])),
+           row("Call-outs: materials charged", "detail", per(lambda mo: r[mo]["rev"]["Call-out materials"])),
            row("Total revenue", "subtotal", per(lambda mo: r[mo]["revenue"])),
            row("Cost of sales", "heading", None),
            row("Materials", "detail", per(lambda mo: -r[mo]["mat"])),
