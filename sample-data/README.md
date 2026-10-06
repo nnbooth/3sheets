@@ -8,6 +8,21 @@ The invented "Sample Co" numbers behind every mock-up dashboard and report on th
 - All money is AUD. Columns ending `_aud_k` are thousands of dollars.
 - `schema.sql` has a `CREATE TABLE` for every CSV (Azure SQL / SQL Server and PostgreSQL).
 
+## Built for a cloud database, and for drilling down
+
+Everything here is meant to live in a cloud database and be rebuilt in Power BI or any other reporting tool.
+The home-page dashboard's numbers are stored as a **star schema at daily grain** (`dim_` and `fact_` tables):
+
+- `fact_gl_daily` holds every P&L posting by day, tagged with its job, engagement or grant. Summed by month it equals
+  the P&L on the website to the dollar (checked every time the data is generated).
+- `fact_cash_daily` and `fact_balance_daily` give cash movements and closing cash / unpaid invoices for every day; the
+  month-end values equal the balance sheet.
+- `fact_timesheet_daily` gives hours by day against each job or engagement.
+- `dim_date` carries the whole drill path: financial year > quarter > month > week (`week_start`, Monday) > day, plus
+  working days and Brisbane public holidays. Join any fact on `date_key` and drill from the year to a single day.
+
+Status: the Azure SQL database (`3sheets.db.sql`) is currently deleted and needs to be recreated before loading.
+
 ## Loading into a database
 
 1. Run `schema.sql` to create the tables.
@@ -18,17 +33,35 @@ The invented "Sample Co" numbers behind every mock-up dashboard and report on th
 
 ## Tables
 
+### Cloud database: daily star schema behind the home-page dashboard
+
+| Table | What it is | Columns |
+| --- | --- | --- |
+| `dim_date` | Calendar, 1 May to 31 Oct 2026: the drill-down path from financial year to quarter, month, week and day, with Brisbane working days and public holidays. date_key = yyyymmdd; weeks start Monday. | `date_key`, `calendar_date`, `day_of_month`, `day_name`, `day_of_week`, `is_weekend`, `is_working_day`, `public_holiday`, `week_start`, `iso_week`, `month_key`, `month_name`, `calendar_quarter`, `financial_year`, `fy_month_no`, `fy_quarter` |
+| `dim_org` | The three sample organisations. | `org_id`, `toggle_name`, `legal_name`, `sector`, `about` |
+| `dim_account` | Every statement line for each organisation (P&L, balance sheet, cash flow). is_postable = daily facts post to it; the rest are subtotals and totals. | `account_id`, `org_id`, `statement`, `section`, `line`, `line_level`, `line_order`, `is_postable` |
+| `dim_job` | Trades jobs: maintenance contracts (one id per customer, billed monthly), installations and call-outs. | `job_id`, `org_id`, `job_type`, `description` |
+| `dim_engagement` | Services client engagements. rate_or_fee: hourly rate for projects, fixed fee for retainers (monthly) and training. | `engagement_id`, `org_id`, `engagement_type`, `description`, `hourly_rate`, `fixed_fee`, `payment_days` |
+| `dim_grant` | Not-for-profit grants. | `grant_id`, `org_id`, `program`, `funder`, `grant_total`, `start_date`, `end_date` |
+
+| Table | What it is | Columns |
+| --- | --- | --- |
+| `fact_gl_daily` | Daily P&L postings, Aug-Sep 2026 (income +, costs -). Grouped by month they equal every line of the P&L to the dollar. Tagged with the job, engagement or grant where there is one. | `date_key`, `org_id`, `account_id`, `amount`, `job_id`, `engagement_id`, `grant_id` |
+| `fact_cash_daily` | Daily cash movements by cash-flow line, Aug-Sep 2026 (in +, out -). Customer receipts are the actual invoice payment dates. | `date_key`, `org_id`, `account_id`, `amount` |
+| `fact_balance_daily` | Closing cash at bank and unpaid customer invoices at the end of every day, Aug-Sep 2026. Month-end values equal the balance sheet. | `date_key`, `org_id`, `cash_at_bank`, `unpaid_invoices` |
+| `fact_timesheet_daily` | Hours by day against each trades job or services engagement, Aug-Sep 2026 (half-hour units). Add up to the job and engagement hours. | `date_key`, `org_id`, `job_id`, `engagement_id`, `hours` |
+| `fact_job_month` | Each trades job by month, May-Sep 2026. Labour cost = hours x $68. Aug and Sep add up to the P&L. | `month_key`, `job_id`, `invoice_date`, `revenue`, `materials`, `subcontractors`, `tech_hours`, `labour_cost`, `gross_profit` |
+| `fact_engagement_month` | Each services engagement by month, Aug-Sep 2026. Consultant time costed at $60/hour; wip_closing = unbilled project time at month end. | `month_key`, `engagement_id`, `hours`, `revenue`, `billed`, `contractors`, `consultant_time_cost`, `contribution`, `wip_closing` |
+| `fact_invoice` | Every customer invoice, May-Sep 2026, with the date it was paid. Unpaid at a date = debtors at that date. | `org_id`, `invoice_id`, `job_id`, `engagement_id`, `invoice_date`, `paid_date`, `amount` |
+| `fact_grant_instalment` | Grant payment schedule. | `grant_id`, `date_key`, `amount` |
+| `fact_grant_position` | Each grant at 30 Sep 2026: received, spent, budget to date, still to spend. balance = received - spent (+ in advance, - receivable). | `grant_id`, `date_key`, `received_to_date`, `spent_to_date`, `budget_to_date`, `spend_vs_budget_pct`, `still_to_spend`, `balance`, `months_left` |
+
 ### Home-page dashboard model (index.html, dashboard-data.js, media/exports/)
 
 | Table | What it is | Columns |
 | --- | --- | --- |
 | `model_statements` | Home-page dashboard: month-end P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, September 2026 and August 2026, whole dollars. Costs and outflows are negative. level = detail/subtotal/total/key. | `org`, `statement_key`, `statement`, `line_order`, `line`, `level`, `period`, `amount_aud` |
 | `model_fourth_sheet_kpis` | Home-page dashboard: the fourth-sheet KPI tiles for September 2026, as displayed. | `org`, `kpi`, `value`, `comparison` |
-| `model_jobs` | SME trades sample: every job May-September 2026 (maintenance contracts, installations, call-outs). Sep and Aug jobs add up to the P&L; unpaid invoices at month end = trade debtors. Labour cost = hours x $68. | `month`, `job`, `job_type`, `description`, `invoice_date`, `paid_date`, `revenue`, `materials`, `subcontractors`, `tech_hours`, `labour_cost`, `gross_profit` |
-| `model_engagements` | SME services sample: every client engagement worked in August and September 2026. Revenue adds up to the P&L; consultant time costed at $60/hour. | `month`, `engagement`, `engagement_type`, `description`, `hours`, `revenue`, `billed`, `contractors`, `consultant_time_cost`, `contribution` |
-| `model_invoices` | SME services sample: client invoices May-September 2026 with payment dates. Unpaid at month end = trade debtors. | `invoice`, `engagement`, `amount`, `invoice_date`, `paid_date` |
-| `model_grants` | Not-for-profit sample: each grant at 30 September 2026. Spend = grant income recognised; received less spent = grants in advance (or receivable). | `grant`, `program`, `funder`, `total`, `start_date`, `end_date`, `received_to_date`, `spent_to_date`, `spent_aug`, `spent_sep`, `budget_to_date`, `spend_vs_budget_pct`, `still_to_spend`, `balance_30_sep`, `months_left` |
-| `model_grant_instalments` | Not-for-profit sample: grant instalment schedule (dates and amounts). | `grant`, `instalment_date`, `amount` |
 | `model_assumptions` | Home-page dashboard: the assumptions each sample organisation's statements are built from. | `org`, `assumption_group`, `assumption`, `value` |
 
 ### Live-display screens (media/display-*.png)
