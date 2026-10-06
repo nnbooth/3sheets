@@ -260,12 +260,6 @@ def main():
     for name, (desc, cols, rows, ddl) in drivers.build(publish_dashboard.publish.res, warehouse.build.account_ids).items():
         table(name, desc, cols, rows)
         DDL[name] = ddl
-    import reports, build_reports   # a report page for every question on the SME and not-for-profit pages
-    W = warehouse.build
-    built = reports.build(publish_dashboard.publish.res, W.history, W.line_month, W.nfp_by_month, W.gsm, W.balance_daily)
-    build_reports.publish(built)
-    import powerbi_notes        # how to build each report in Power BI (OneDrive, Data documentation/Power BI)
-    powerbi_notes.write(built)
     import deliveries           # deliveries in and out, for the map on examples.html
     for name, (desc, cols, rows, ddl) in deliveries.tables(deliveries.publish()).items():
         table(name, desc, cols, rows)
@@ -309,6 +303,11 @@ def main():
         schema.append(f"CREATE TABLE {name} (\n" + ",\n".join(f"    {c} {t}" for c, t in zip(cols, types)) + "\n);\n")
     (DOCS / "schema.sql").write_text("\n".join(schema))
     write_readme()
+    # the reports read the data just written (as they will read the database), for every period
+    from fourthsheet.build import build_all
+    built = build_all()
+    import powerbi_notes        # how to build each report in Power BI (OneDrive, Data documentation/Power BI)
+    powerbi_notes.write(built)
     counts = {f: sum(folder_for(n) == f for n in TABLES) for f, _ in FOLDERS}
     print(f"Wrote {len(TABLES)} tables as {files} CSVs to {DATA_ROOT}/ (" + ", ".join(f"{f}: {c}" for f, c in counts.items()) + f"); schema.sql and README to {DOCS}/")
 

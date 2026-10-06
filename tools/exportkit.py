@@ -343,3 +343,69 @@ def xl_print(ws, business, filename, retrieved, landscape=True, header_row=None,
                        (ws.oddFooter.right, "Page &P of &N")]:
         part.text = text
         part.size = 8
+
+
+def same_office_file(a, b):
+    """True if two .xlsx/.pptx files differ only in their saved-at timestamps (docProps/core.xml), including
+    the small workbooks embedded behind PowerPoint charts."""
+    import io
+    import zipfile
+    from pathlib import Path
+
+    def parts(z):
+        out = {}
+        for n in z.namelist():
+            if n.endswith("docProps/core.xml"):
+                continue
+            data = z.read(n)
+            if n.endswith(".xlsx"):
+                with zipfile.ZipFile(io.BytesIO(data)) as inner:
+                    for k, v in parts(inner).items():
+                        out[f"{n}/{k}"] = v
+            else:
+                out[n] = data
+        return out
+    if not (Path(a).exists() and Path(b).exists()):
+        return False
+    try:
+        with zipfile.ZipFile(a) as za, zipfile.ZipFile(b) as zb:
+            return parts(za) == parts(zb)
+    except zipfile.BadZipFile:
+        return False
+
+
+def save_if_changed(save, dest):
+    """Save via save(path) to a temporary file, and only replace dest if the content changed (keeps git quiet)."""
+    import shutil
+    import tempfile
+    from pathlib import Path
+    dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as t:
+        tmp = Path(t) / dest.name
+        save(str(tmp))
+        if not same_office_file(tmp, dest):
+            shutil.copy(tmp, dest)
+
+
+def same_pdf(a, b):
+    """True if two PDFs differ only in their creation/modification dates."""
+    import re
+    from pathlib import Path
+    if not (Path(a).exists() and Path(b).exists()):
+        return False
+    norm = lambda p: re.sub(rb"/(CreationDate|ModDate) \(D:[^)]*\)", b"", Path(p).read_bytes())
+    return norm(a) == norm(b)
+
+
+def pdf_if_changed(page, dest, **options):
+    """Print the page to dest only if the PDF's content changed (keeps git quiet)."""
+    import shutil
+    import tempfile
+    from pathlib import Path
+    dest = Path(dest)
+    with tempfile.TemporaryDirectory() as t:
+        tmp = Path(t) / dest.name
+        page.pdf(path=str(tmp), **options)
+        if not same_pdf(tmp, dest):
+            shutil.copy(tmp, dest)

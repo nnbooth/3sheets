@@ -11,6 +11,11 @@
 *.pptx
 *.pdf
 *.pbix
+# ...except the website's own sample downloads, so every Excel/PDF/PowerPoint button works on the live site.
+# Temporary (decided 6 Oct 2026): these will be built on request from the database / Power BI instead.
+!media/exports/**/*.xlsx
+!media/exports/**/*.pptx
+!media/exports/**/*.pdf
 
 # Secrets: copy .env.example to .env and fill it in; never commit .env
 **/.env

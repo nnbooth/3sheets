@@ -543,7 +543,7 @@ def write_xlsx(d):
         w.cell(r, 1, "✓ " + line)
     print(f"  {filename}: " + " | ".join(review))
     EXPORTS.mkdir(parents=True, exist_ok=True)
-    wb.save(EXPORTS / filename)
+    ek.save_if_changed(wb.save, EXPORTS / filename)
 
 
 # -------------------------------------------------------------------- PDF
@@ -618,7 +618,7 @@ def write_pdf(d):
         page.evaluate("document.fonts.ready")
         for side in ("out", "in"):      # map pictures for the PowerPoint version
             page.locator(f"#map-{side}").screenshot(path=str(EXPORTS / f".map-{side}.png"))
-        page.pdf(path=str(EXPORTS / "deliveries-sample.pdf"),
+        ek.pdf_if_changed(page, EXPORTS / "deliveries-sample.pdf",
                  **ek.pdf_options("Sample Distribution Pty Ltd", "Deliveries in and out · Sample data", "deliveries-sample.pdf", ds.as_at_text(), landscape=True))
         browser.close()
 
@@ -640,7 +640,7 @@ def write_pptx(d):
             deck.image_slide(f"{heading} · map", png, "Green 95%+ on time · rose 80-95% · brick under 80% or overdue · grey-blue on its way. Dot size = number of deliveries.")
         deck.table_slides(f"{heading} · where it's going wrong", ["", "Late", "Of", "% late"],
                           [[h["label"], str(h["late"]), str(h["of"]), f"{h['pct']:.1f}%"] for h in p[side]["30d"]["hotspots"]])
-    deck.save(EXPORTS / "deliveries-sample.pptx")
+    ek.save_if_changed(deck.save, EXPORTS / "deliveries-sample.pptx")
     for side in ("out", "in"):
         (EXPORTS / f".map-{side}.png").unlink(missing_ok=True)
 
