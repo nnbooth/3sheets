@@ -428,14 +428,16 @@ body.dev-notes .devnote { display: flex; }
 .dash-chart-title { margin: 0.6rem 0 0.25rem; font-size: 0.74rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .dash-svg { display: block; width: 100%; height: auto; }
 .dash-svg .dash-grid { stroke: var(--border); stroke-width: 1.5; }
-.dash-svg .dash-bar { fill: var(--accent); transform-box: fill-box; transform-origin: bottom; animation: dash-rise 600ms ease-out both; }
-.dash-svg .dash-bar--below { fill: #d9922b; }
-.dash-svg .dash-value { font-size: 8.5px; font-weight: 700; fill: var(--ink, #25342a); font-variant-numeric: tabular-nums; animation: dash-fade 300ms 450ms ease-out both; }
+.dash-svg .dash-bar { fill: #5e8b76; transform-box: fill-box; transform-origin: bottom; animation: dash-rise 600ms ease-out both; }
+.dash-svg .dash-bar--below { fill: #c8a77e; }
+.dash-svg .dash-value { font-size: 6.5px; font-weight: 500; fill: var(--muted); paint-order: stroke; stroke: #ffffff; stroke-width: 2px; stroke-linejoin: round; font-variant-numeric: tabular-nums; animation: dash-fade 300ms 450ms ease-out both; }
 @keyframes dash-fade { from { opacity: 0; } }
-.dash-svg .dash-small { font-size: 7px; }
-.dash-svg .dash-axis { font-size: 8.5px; fill: var(--muted); }
-.dash-svg .dash-target { stroke: #d9922b; stroke-width: 1.5; stroke-dasharray: 4 3; }
-.dash-svg .dash-target-label { font-size: 9px; font-weight: 700; fill: #9a5d12; }
+.dash-svg .dash-bar--h { transform-origin: left; animation-name: dash-grow; }
+@keyframes dash-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.dash-svg .dash-key { font-size: 6.5px; fill: var(--muted); }
+.dash-svg .dash-axis { font-size: 7px; fill: var(--muted); }
+.dash-svg .dash-target { stroke: #2f2f2f; stroke-width: 1; stroke-dasharray: 3 2; }
+.dash-svg .dash-target-label { font-size: 6.5px; font-weight: 600; fill: #2f2f2f; }
 @keyframes dash-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .dash-svg .dash-bar, .dash-svg .dash-value { animation: none; } }
 .dash-table, .st-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
@@ -690,13 +692,13 @@ body.dev-notes .devnote { display: flex; }
 .deliv-kpis div { padding: 0.45rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.6rem; }
 .deliv-kpis span { display: block; font-size: 0.72rem; color: var(--muted); }
 .deliv-kpis strong { font-size: 1.25rem; color: var(--ink, #25342a); font-variant-numeric: tabular-nums; }
-.deliv-kpis .bad strong { color: #c2412d; }
+.deliv-kpis .bad strong { color: #a8655a; }
 .deliv-body { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 0.9rem; padding: 0 0.9rem 0.9rem; }
 .deliv-map { height: 420px; border: 1px solid var(--border); border-radius: 0.6rem; background: #eef2ee; z-index: 0; }
 .deliv-side h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
 .deliv-side ol { margin: 0 0 0.8rem; padding-left: 1.1rem; font-size: 0.85rem; }
 .deliv-side ol li { margin: 0.3rem 0; }
-.deliv-side ol li b { color: #c2412d; }
+.deliv-side ol li b { color: #a8655a; }
 .deliv-legend { list-style: none; margin: 0; padding: 0; font-size: 0.8rem; color: var(--muted); }
 .deliv-legend li { margin: 0.2rem 0; }
 .deliv-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.4rem; border-radius: 50%; vertical-align: -1px; }

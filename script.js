@@ -350,28 +350,31 @@ function renderStatement(o, st) {
 }
 
 function renderChart(ch) {
-  // Every bar carries its value. Bars below the target are amber (that's the
-  // only meaning of the colour), with a key underneath when any are.
-  const W = 300, H = 132, top = 18, base = 100, left = 6, right = 294;
+  // Categorical data -> horizontal bars (labels down the left), the default.
+  // Time series (ch.kind === 'time') would use columns; none on the page yet.
+  // Every bar carries a small value label. Amber = below target, the only
+  // meaning of the colour, with a key underneath when any bar is amber.
   const fmt = CHART_FORMATS[ch.format] || String;
-  const max = Math.max(...ch.values, ch.target || 0) * 1.15;
-  const slot = (right - left) / ch.values.length, bw = slot * 0.62;
-  const y = (v) => base - (v / max) * (base - top);
+  const W = 300, right = 274, top = 6, row = 15, bh = 9;
+  const left = Math.min(140, 8 + Math.max(...ch.labels.map((l) => String(l).length)) * 3.9); // room for the longest name
+  const n = ch.values.length, plotH = n * row;
+  const H = top + plotH + (ch.values.some((v) => ch.target != null && v < ch.target) ? 24 : 14);
+  const max = Math.max(...ch.values, ch.target || 0) * 1.08;
+  const x = (v) => left + (v / max) * (right - left);
   const below = (v) => ch.target != null && v < ch.target;
-  const small = ch.values.length > 7 ? ' dash-small' : '';
-  let g = `<line class="dash-grid" x1="${left}" x2="${right}" y1="${base}" y2="${base}"/>`;
-  if (ch.target) {
-    const ty = y(ch.target);
-    g += `<line class="dash-target" x1="${left}" x2="${right}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`;
-  }
+  let g = `<line class="dash-grid" x1="${left}" x2="${left}" y1="${top - 2}" y2="${top + plotH}"/>`;
   ch.values.forEach((v, i) => {
-    const x = left + i * slot + (slot - bw) / 2, yy = y(v), cx = (x + bw / 2).toFixed(1);
-    g += `<rect class="dash-bar${below(v) ? ' dash-bar--below' : ''}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - yy).toFixed(1)}" rx="2"><title>${esc(ch.labels[i])}: ${fmt(v)}</title></rect>`;
-    g += `<text class="dash-value${small}" x="${cx}" y="${(yy - 3).toFixed(1)}" text-anchor="middle">${fmt(v)}</text>`;
-    g += `<text class="dash-axis${small}" x="${cx}" y="${base + 12}" text-anchor="middle">${esc(ch.labels[i])}</text>`;
+    const y = top + i * row + (row - bh) / 2, w = x(v) - left;
+    g += `<text class="dash-axis" x="${left - 5}" y="${(y + bh - 1.5).toFixed(1)}" text-anchor="end">${esc(ch.labels[i])}</text>`;
+    g += `<rect class="dash-bar dash-bar--h${below(v) ? ' dash-bar--below' : ''}" x="${left}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${bh}" rx="1.5"><title>${esc(ch.labels[i])}: ${fmt(v)}</title></rect>`;
+    g += `<text class="dash-value" x="${(x(v) + 3).toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${fmt(v)}</text>`;
   });
-  if (ch.target) g += `<text class="dash-target-label" x="${right}" y="${H - 4}" text-anchor="end">- - Target ${fmt(ch.target)}</text>`;
-  if (ch.values.some(below)) g += `<rect class="dash-bar--below" x="${left}" y="${H - 11}" width="8" height="8" rx="1"/><text class="dash-target-label" x="${left + 12}" y="${H - 4}">Below target</text>`;
+  if (ch.target) {
+    const tx = x(ch.target).toFixed(1);
+    g += `<line class="dash-target" x1="${tx}" x2="${tx}" y1="${top - 2}" y2="${top + plotH}"/>`;
+    g += `<text class="dash-target-label" x="${tx}" y="${top + plotH + 10}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
+  }
+  if (ch.values.some(below)) g += `<rect class="dash-bar--below" x="${left}" y="${H - 9}" width="7" height="7" rx="1"/><text class="dash-key" x="${left + 10}" y="${H - 3}">Below target</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target ? `; target ${fmt(ch.target)}` : ''}.`;
   return `<svg class="dash-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
 }
@@ -421,7 +424,7 @@ function renderDash() {
    tools/deliveries.py (don't type numbers in here). Map: Leaflet with
    OpenStreetMap tiles. Dot colour = share on time; red if anything overdue.
 --------------------------------------------------------------------------- */
-const DELIV_COL = { good: '#2f7a5d', some: '#d9922b', bad: '#c2412d', open: '#5b7a99' };
+const DELIV_COL = { good: '#5e8b76', some: '#c8a77e', bad: '#a8655a', open: '#8e9cab' };
 function delivBand(p) {
   const done = p.on_time + p.late + p.very_late;
   if (p.overdue) return 'bad';
@@ -468,7 +471,7 @@ function setupDeliveries() {
       const done = p.on_time + p.late + p.very_late;
       const lines = [`<strong>${esc(p.name)}</strong>`, esc(p.sub), `${p.n} ${p.n === 1 ? 'delivery' : 'deliveries'}${done ? `, ${p.on_time} on time` : ''}`];
       if (p.late + p.very_late) lines.push(`${p.late + p.very_late} late${p.very_late ? ` (${p.very_late} by 2+ days)` : ''}`);
-      if (p.overdue) lines.push(`<b style="color:#c2412d">${p.overdue} overdue now</b>`);
+      if (p.overdue) lines.push(`<b style="color:#a8655a">${p.overdue} overdue now</b>`);
       if (p.open) lines.push(`${p.open} on the way`);
       L.circleMarker([p.lat, p.lon], { radius: 4 + Math.sqrt(p.n) * 1.4, color: '#ffffff', weight: 1.5, fillColor: DELIV_COL[delivBand(p)], fillOpacity: 0.9 })
         .bindPopup(lines.join('<br>')).addTo(layer);

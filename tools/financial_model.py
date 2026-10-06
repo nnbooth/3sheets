@@ -90,18 +90,18 @@ TRADES = {
         ["Carindale vet clinic", 1700, 9, 30], ["Wacol logistics depot", 3000, 17, 70],
     ],
     "contract_pay_days": 30,
-    "installs": {  # [job, description, completion day, revenue, materials, subcontractors, tech hours, days to pay]
-        "2026-08": [["J-2588", "Switchboard upgrade, Rocklea factory", 7, 38500, 15600, 4800, 92, 30],
-                    ["J-2591", "LED retrofit, Ashgrove school hall", 14, 21300, 8100, 0, 70, 30],
-                    ["J-2594", "Air-con install, Newstead gym", 19, 16800, 6700, 1200, 44, 21],
-                    ["J-2597", "Solar install, Wynnum residence", 24, 19600, 9400, 2200, 36, 14],
-                    ["J-2599", "Data cabling, Fortitude Valley office", 28, 13400, 3900, 1100, 48, 30]],
-        "2026-09": [["J-2604", "Switchboard upgrade, Wacol warehouse", 4, 46800, 22900, 7400, 150, 45],
-                    ["J-2607", "LED lighting retrofit, Milton office", 9, 18600, 6900, 0, 64, 30],
-                    ["J-2611", "Solar and battery, Carindale residence", 15, 27400, 13800, 3100, 46, 14],
-                    ["J-2615", "Air-con install, West End café", 18, 12900, 5100, 900, 38, 21],
-                    ["J-2618", "EV chargers, Bulimba townhouses", 23, 9800, 3600, 0, 26, 30],
-                    ["J-2620", "Data cabling, Chermside medical clinic", 29, 15200, 4300, 1800, 52, 30]],
+    "installs": {  # [job id, job name, completion day, revenue, materials, subcontractors, tech hours, days to pay]
+        "2026-08": [["J-2588", "Rocklea factory switchboard", 7, 38500, 15600, 4800, 92, 30],
+                    ["J-2591", "Ashgrove hall LED lighting", 14, 21300, 8100, 0, 70, 30],
+                    ["J-2594", "Newstead gym air-con", 19, 16800, 6700, 1200, 44, 21],
+                    ["J-2597", "Wynnum house solar", 24, 19600, 9400, 2200, 36, 14],
+                    ["J-2599", "Valley office cabling", 28, 13400, 3900, 1100, 48, 30]],
+        "2026-09": [["J-2604", "Wacol warehouse switchboard", 4, 46800, 22900, 7400, 150, 45],
+                    ["J-2607", "Milton office LED lighting", 9, 18600, 6900, 0, 64, 30],
+                    ["J-2611", "Carindale solar and battery", 15, 27400, 13800, 3100, 46, 14],
+                    ["J-2615", "West End café air-con", 18, 12900, 5100, 900, 38, 21],
+                    ["J-2618", "Bulimba EV chargers", 23, 9800, 3600, 0, 26, 30],
+                    ["J-2620", "Chermside clinic cabling", 29, 15200, 4300, 1800, 52, 30]],
     },
     "callouts": {"2026-05": 55, "2026-06": 57, "2026-07": 54, "2026-08": 58, "2026-09": 64},
     "history_installs": {"2026-05": 4, "2026-06": 5, "2026-07": 4},
@@ -139,14 +139,14 @@ def trades_jobs(m):
             for k in range(m["history_installs"][month]):
                 rev = rng.randrange(9000, 42000, 100)
                 jobs.append({"month": month, "job": f"J-{2500 + ALL_MONTHS.index(month) * 20 + k}", "type": "Installation",
-                             "description": "Installation (earlier month)", "revenue": rev, "materials": int(rev * 0.38) // 100 * 100,
+                             "description": f"Installation {k + 1}, {month_start(month).strftime('%B')}", "revenue": rev, "materials": int(rev * 0.38) // 100 * 100,
                              "subcontractors": int(rev * 0.08) // 100 * 100, "hours": rev // 260,
                              "invoice_date": start + timedelta(days=rng.randrange(0, 27)), "days_to_pay": rng.choice([14, 21, 30, 30, 45])})
         for k in range(m["callouts"][month]):
             hrs = rng.choice([1, 1.5, 2, 2, 2.5, 3, 3, 4])
             mat = rng.randrange(20, 240, 10)
             rev = half_up(hrs * m["callout_rate"] + mat * m["materials_markup"])
-            jobs.append({"month": month, "job": f"C-{month[5:]}{k + 1:02d}", "type": "Call-out", "description": "Call-out and repair",
+            jobs.append({"month": month, "job": f"C-{month[5:]}{k + 1:02d}", "type": "Call-out", "description": f"Call-out {k + 1}, {month_start(month).strftime('%B')}",
                          "revenue": rev, "materials": mat, "subcontractors": 0, "hours": hrs,
                          "invoice_date": start + timedelta(days=rng.randrange(0, 28)), "days_to_pay": rng.choice([0, 0, 0, 2, 7, 7, 14, 30])})
     for j in jobs:
@@ -277,18 +277,18 @@ SERVICES = {
     "consultants": 6, "salaries": {"2026-08": 46500, "2026-09": 46500}, "cost_rate": 60, "target_margin": 40,
     # [code, type, client / description, rate or fee, days to pay]
     "engagements": [
-        ["E-311", "Project", "Systems implementation, logistics client", 175, 30],
-        ["E-314", "Project", "Pricing review, retail group", 190, 30],
-        ["E-316", "Project", "Cost-to-serve analysis, distributor", 180, 45],
-        ["E-318", "Project", "Board reporting pack, health not-for-profit", 165, 30],
-        ["E-320", "Project", "Process mapping, manufacturer", 170, 45],
-        ["R-102", "Retainer", "Monthly finance, construction firm", 9500, 14],
-        ["R-105", "Retainer", "Monthly reporting, dental group", 6800, 14],
-        ["R-108", "Retainer", "CFO support, agribusiness", 12000, 30],
-        ["R-110", "Retainer", "Payroll and compliance, hospitality group", 4200, 14],
-        ["T-205", "Training", "Budgeting workshop (1 day)", 6400, 30],
-        ["T-207", "Training", "Excel for managers (2 days)", 8800, 30],
-        ["T-209", "Training", "Power BI basics (1 day)", 4600, 30],
+        ["E-311", "Project", "Logistics systems rollout", 175, 30],
+        ["E-314", "Project", "Retail pricing review", 190, 30],
+        ["E-316", "Project", "Distributor cost-to-serve", 180, 45],
+        ["E-318", "Project", "Health charity board pack", 165, 30],
+        ["E-320", "Project", "Manufacturer process mapping", 170, 45],
+        ["R-102", "Retainer", "Construction firm finance", 9500, 14],
+        ["R-105", "Retainer", "Dental group reporting", 6800, 14],
+        ["R-108", "Retainer", "Agribusiness CFO support", 12000, 30],
+        ["R-110", "Retainer", "Hospitality payroll", 4200, 14],
+        ["T-205", "Training", "Budgeting workshop", 6400, 30],
+        ["T-207", "Training", "Excel for managers", 8800, 30],
+        ["T-209", "Training", "Power BI basics", 4600, 30],
     ],
     # month -> code -> [hours, amount billed (projects only), contractors]
     "activity": {
@@ -512,7 +512,7 @@ def nfp(m):
                      operating=operating, cash_expenses=expenses - a["depreciation"][mo])
     pnl = [row("Income", "heading", None)]
     for gr in g:
-        pnl.append(row(f"{gr[0]} {gr[2]} grant", "detail", per(lambda mo, c=gr[0]: r[mo]["gspend"][c])))
+        pnl.append(row(f"{gr[2]} grant", "detail", per(lambda mo, c=gr[0]: r[mo]["gspend"][c])))
     for kk in a["income"]:
         pnl.append(row(kk, "detail", per(lambda mo, kk=kk: r[mo]["other_income"][kk])))
     pnl += [row("Total income", "subtotal", per(lambda mo: r[mo]["income"])),
@@ -608,7 +608,7 @@ def fourth_trades(m, out):
         "kpis": [{"label": "Gross margin, September", "value": p(gm["2026-09"]), "sub": k1, "cls": c1, "spine": True},
                  {"label": "Cost to win a customer", "value": money(cac["2026-09"]), "sub": k2, "cls": c2},
                  {"label": "Technician time on jobs", "value": f"{util['2026-09']:.0f}%", "sub": k3, "cls": c3}],
-        "chart": {"title": "Margin by installation job, September (%)", "labels": [j["job"] for j in installs],
+        "chart": {"title": "Margin by installation job, September (%)", "labels": [j["description"] for j in installs],
                   "values": [round(100 * j["gross_profit"] / j["revenue"], 1) for j in installs],
                   "target": m["target_margin"], "format": "pct0", "what": "job margin"},
         "facts": dict(gm=gm, cac=cac, util=util),
@@ -629,7 +629,7 @@ def fourth_services(m, out):
         "kpis": [{"label": "Consultant utilisation, September", "value": p(util["2026-09"]), "sub": k1, "cls": c1, "spine": True},
                  {"label": "Revenue per billable hour", "value": money(rate["2026-09"]), "sub": k2, "cls": c2},
                  {"label": "Unbilled work + unpaid invoices", "value": money(lock["2026-09"]), "sub": k3, "cls": c3}],
-        "chart": {"title": "Margin by engagement, September (%)", "labels": [x["code"] for x in sep],
+        "chart": {"title": "Margin by engagement, September (%)", "labels": [x["description"] for x in sep],
                   "values": [round(100 * x["contribution"] / x["revenue"], 1) for x in sep],
                   "target": m["target_margin"], "format": "pct0", "what": "engagement margin"},
         "facts": dict(util=util, rate=rate, lock=lock),
@@ -650,7 +650,7 @@ def fourth_nfp(m, out):
                  {"label": "Unrestricted cash runway", "value": f"{runway['2026-09']:.1f} months", "sub": k2, "cls": c2},
                  {"label": f"Grants ending in {m['ending_within_months']} months", "value": f"{len(ending)} · {money(sum(gr['unspent'] for gr in ending))}",
                   "sub": "still to spend before they end", "cls": "bad" if ending else ""}],
-        "chart": {"title": "Grant spend vs budget to date (%)", "labels": [gr["short"] for gr in out["grants"]],
+        "chart": {"title": "Grant spend vs budget to date (%)", "labels": [gr["program"] for gr in out["grants"]],
                   "values": [gr["spend_vs_budget_pct"] for gr in out["grants"]], "target": 100, "format": "pct0",
                   "what": "grant spend against budget"},
         "facts": dict(ctr=ctr, runway=runway, unrestricted=unrestricted, ending=ending),
@@ -701,7 +701,7 @@ def nfp_assumptions(m, out):
     return [
         ["The organisation", [["What it is", m["about"]], ["Reporting month", "September 2026, compared with August 2026"],
                               ["Financial year", "FY2027: 1 July 2026 to 30 June 2027"]]],
-        ["Grants", [[f"{gr['code']} {gr['program']}", f"{gr['funder']}: ${gr['total']:,}, {gr['start'][:7]} to {gr['end'][:7]}"] for gr in out["grants"]]
+        ["Grants", [[gr['program'], f"{gr['funder']}: ${gr['total']:,}, {gr['start'][:7]} to {gr['end'][:7]}"] for gr in out["grants"]]
                    + [["Grant income", "recognised as the money is spent on the program"],
                       ["Unspent grants", "instalments received but not yet spent are a liability (grants received in advance)"]]],
         ["Other income and costs", [["Donations", "including the spring appeal in September"],
@@ -745,7 +745,8 @@ def run_checks(org, model, out):
             if v("bsr", "Net assets")[i] != v("bsr", "Accumulated funds")[i]: problems.append(f"nfp balance {mo}")
             if bs["accumulated"] - prev["accumulated"] != out["r"][mo]["surplus"]: problems.append(f"nfp surplus roll {mo}")
             if v("pnl", "Total income")[i] + v("pnl", "Total expenses")[i] != v("pnl", "Surplus for the month")[i]: problems.append("nfp surplus")
-            grant_lines = sum(rw["values"][i] for rw in out["pnl"] if rw["label"].startswith("G-1"))
+            grant_labels = {f"{gr[2]} grant" for gr in model["grants"]}
+            grant_lines = sum(rw["values"][i] for rw in out["pnl"] if rw["label"] in grant_labels)
             if grant_lines != sum(out["r"][mo]["gspend"].values()): problems.append(f"nfp grant income {mo}")
             bal = out["grant_bal"](mo)
             if bs["grants_in_advance"] - bs["grants_receivable"] != sum(bal.values()): problems.append(f"nfp grants in advance {mo}")

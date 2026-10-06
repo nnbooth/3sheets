@@ -590,12 +590,12 @@ window.FOURTH_SHEET_DASHBOARD = {
     "chart": {
      "title": "Margin by installation job, September (%)",
      "labels": [
-      "J-2604",
-      "J-2607",
-      "J-2611",
-      "J-2615",
-      "J-2618",
-      "J-2620"
+      "Wacol warehouse switchboard",
+      "Milton office LED lighting",
+      "Carindale solar and battery",
+      "West End café air-con",
+      "Bulimba EV chargers",
+      "Chermside clinic cabling"
      ],
      "values": [
       13.5,
@@ -1290,16 +1290,16 @@ window.FOURTH_SHEET_DASHBOARD = {
     "chart": {
      "title": "Margin by engagement, September (%)",
      "labels": [
-      "E-311",
-      "E-314",
-      "E-318",
-      "E-320",
-      "R-102",
-      "R-105",
-      "R-108",
-      "R-110",
-      "T-207",
-      "T-209"
+      "Logistics systems rollout",
+      "Retail pricing review",
+      "Health charity board pack",
+      "Manufacturer process mapping",
+      "Construction firm finance",
+      "Dental group reporting",
+      "Agribusiness CFO support",
+      "Hospitality payroll",
+      "Excel for managers",
+      "Power BI basics"
      ],
      "values": [
       52.7,
@@ -1431,7 +1431,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "G-101 Youth outreach grant",
+       "label": "Youth outreach grant",
        "level": "detail",
        "values": [
         22800,
@@ -1440,7 +1440,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "G-102 Housing support grant",
+       "label": "Housing support grant",
        "level": "detail",
        "values": [
         31200,
@@ -1449,7 +1449,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "G-103 Community meals grant",
+       "label": "Community meals grant",
        "level": "detail",
        "values": [
         4300,
@@ -1458,7 +1458,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "G-104 Digital literacy grant",
+       "label": "Digital literacy grant",
        "level": "detail",
        "values": [
         4900,
@@ -1467,7 +1467,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "G-105 Mental health first aid grant",
+       "label": "Mental health first aid grant",
        "level": "detail",
        "values": [
         10800,
@@ -1476,7 +1476,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "G-106 Volunteer coordinator grant",
+       "label": "Volunteer coordinator grant",
        "level": "detail",
        "values": [
         3000,
@@ -1986,12 +1986,12 @@ window.FOURTH_SHEET_DASHBOARD = {
     "chart": {
      "title": "Grant spend vs budget to date (%)",
      "labels": [
-      "Youth",
-      "Housing",
-      "Meals",
-      "Digital",
-      "Mind",
-      "Volunteer"
+      "Youth outreach",
+      "Housing support",
+      "Community meals",
+      "Digital literacy",
+      "Mental health first aid",
+      "Volunteer coordinator"
      ],
      "values": [
       102.1,
@@ -2036,27 +2036,27 @@ window.FOURTH_SHEET_DASHBOARD = {
      "Grants",
      [
       [
-       "G-101 Youth outreach",
+       "Youth outreach",
        "State Department of Families: $480,000, 2025-07 to 2027-06"
       ],
       [
-       "G-102 Housing support",
+       "Housing support",
        "State Housing Program: $360,000, 2026-01 to 2026-12"
       ],
       [
-       "G-103 Community meals",
+       "Community meals",
        "Local council community grant: $48,000, 2026-07 to 2027-06"
       ],
       [
-       "G-104 Digital literacy",
+       "Digital literacy",
        "Philanthropic foundation: $90,000, 2025-10 to 2027-03"
       ],
       [
-       "G-105 Mental health first aid",
+       "Mental health first aid",
        "Federal health program: $120,000, 2026-04 to 2027-03"
       ],
       [
-       "G-106 Volunteer coordinator",
+       "Volunteer coordinator",
        "State volunteering grant: $36,000, 2026-03 to 2027-02"
       ],
       [
