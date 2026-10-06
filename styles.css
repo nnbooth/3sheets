@@ -428,8 +428,8 @@ body.dev-notes .devnote { display: flex; }
 .dash-chart-title { margin: 0.6rem 0 0.25rem; font-size: 0.74rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .dash-svg { display: block; width: 100%; height: auto; }
 .dash-svg .dash-grid { stroke: var(--border); stroke-width: 1.5; }
-.dash-svg .dash-bar { fill: #5e8b76; transform-box: fill-box; transform-origin: bottom; animation: dash-rise 600ms ease-out both; }
-.dash-svg .dash-bar--below { fill: #c8a77e; }
+.dash-svg .dash-bar { fill: #0E9F6E; transform-box: fill-box; transform-origin: bottom; animation: dash-rise 600ms ease-out both; }
+.dash-svg .dash-bar--below { fill: #A7B0B8; }
 .dash-svg .dash-value { font-size: 6.5px; font-weight: 500; fill: var(--muted); paint-order: stroke; stroke: #ffffff; stroke-width: 2px; stroke-linejoin: round; font-variant-numeric: tabular-nums; animation: dash-fade 300ms 450ms ease-out both; }
 @keyframes dash-fade { from { opacity: 0; } }
 .dash-svg .dash-bar--h { transform-origin: left; animation-name: dash-grow; }
@@ -753,8 +753,8 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .report-toggles { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; }
 .report-scroll { overflow-x: auto; }
 .report-cols { display: block; width: 100%; height: auto; }
-.dash-svg .dash-col { fill: #5e8b76; }
-.dash-svg .dash-col--light { fill: #5e8b76; fill-opacity: 0.35; stroke: #5e8b76; stroke-dasharray: 3 2; }
+.dash-svg .dash-col { fill: #0E9F6E; }
+.dash-svg .dash-col--light { fill: #0E9F6E; fill-opacity: 0.35; stroke: #0E9F6E; stroke-dasharray: 3 2; }
 .dash-svg .dash-value--v { font-size: 6px; }
 .dash-svg .dash-key--warn { fill: #8f4a3e; font-size: 6px; }
 .report-text { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 0 0 1rem; }
@@ -798,14 +798,69 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .card-kpi span { font-size: 0.8rem; color: var(--muted); }
 .card-chart-title { margin: 0 0 0.1rem !important; font-size: 0.7rem !important; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
 .card-chart .dash-hint { display: none; }
-.report-card > .dash-svg:not(.report-cols) { max-width: 760px; }
+.report-card > .dash-svg:not(.report-cols):not(.report-area) { max-width: 760px; }
 .card-chart .dash-value, .card-chart .dash-key--warn { display: none; }
 .mini-bars { list-style: none; margin: 0.3rem 0 0; padding: 0; }
 .mini-bars li { display: grid; grid-template-columns: 42% 1fr auto; align-items: center; gap: 0.4rem; margin: 0.25rem 0; font-size: 0.75rem; }
 .mini-bars .mb-l { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--muted); }
 .mini-bars .mb-t { height: 0.55rem; background: #eef2ee; border-radius: 2px; }
-.mini-bars .mb-t i { display: block; height: 100%; background: #5e8b76; border-radius: 2px; }
-.mini-bars .mb-t i.below { background: #c8a77e; }
+.mini-bars .mb-t i { display: block; height: 100%; background: #0E9F6E; border-radius: 2px; }
+.mini-bars .mb-t i.below { background: #A7B0B8; }
 .mini-bars .mb-v { font-variant-numeric: tabular-nums; color: var(--text); }
 .report-cards .mini-bars li { display: grid; grid-template-columns: 48% 1fr auto; padding: 0; background: none; border: 0; border-radius: 0; }
 .mini-bars .mb-l { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }
+.dash-svg .dash-value--top { font-size: 7px; }
+.report-feature-line { margin: 0 0 0.4rem; color: var(--text); }
+.dash-chart-head .dash-toggle { flex-wrap: wrap; max-width: 100%; }
+
+/* Area charts (report pages): labelled y-axis, light gridlines */
+.dash-svg .dash-line { fill: none; stroke: #0E9F6E; stroke-width: 3; stroke-linejoin: round; }
+.dash-svg .dash-line--light { stroke-dasharray: 4 3; stroke-opacity: 0.6; }
+.dash-svg .dash-dot { fill: #ffffff; stroke: #0E9F6E; stroke-width: 1.6; }
+.dash-svg .dash-dot--light { stroke-opacity: 0.55; }
+.dash-svg .dash-row:hover .dash-dot, .dash-svg .dash-row:focus-visible .dash-dot { fill: #0E9F6E; }
+.dash-svg .dash-gridline { stroke: #e3ebe4; stroke-width: 1; }
+.dash-svg .dash-ytick { font-size: 9px; fill: var(--muted); }
+.report-area { display: block; width: 100%; height: auto; }
+.report-area .dash-value--top { font-size: 9px; }
+.report-area .dash-axis { font-size: 9px; }
+.report-area--mini .dash-value--top, .report-area--mini .dash-axis { font-size: 8px; }
+.dash-svg .dash-row--dim .dash-bar { fill-opacity: 0.3; }
+.dash-svg .dash-row--dim .dash-axis, .dash-svg .dash-row--dim .dash-value { fill-opacity: 0.55; }
+.report-table tr.st-hl td { background: #eef5f0; font-weight: 700; }
+.report-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: 0 0 1rem; padding: 0.6rem 0.8rem; background: #ffffff; border: 1px solid var(--border); border-radius: 0.9rem; }
+.report-filter > span { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.report-filter .dash-toggle { margin: 0; flex-wrap: wrap; max-width: 100%; }
+.no-anim .dash-bar { animation: none !important; }
+.card-chart .dash-value { display: inline; }
+.no-anim .dash-bar, .no-anim * { animation: none !important; }
+
+/* Definition box and the gross-margin-to-profit insight (report pages) */
+.report-def { margin: 0 0 1rem; padding: 0.8rem 1rem; background: #fbfaf6; border: 1px solid #e6dfcf; border-left: 4px solid #8a7a52; border-radius: 0.6rem; }
+.report-def strong { display: block; margin-bottom: 0.2rem; }
+.report-def p { margin: 0 0 0.3rem; font-size: 0.9rem; color: var(--text); }
+.report-def a { font-size: 0.85rem; font-weight: 600; color: var(--accent); }
+.report-insight { display: block; width: 100%; margin: 0 0 1rem; padding: 0.9rem 1rem; font: inherit; text-align: left; color: inherit; background: #eef5f0; border: 1px solid #cfe2d6; border-radius: 0.9rem; cursor: pointer; }
+.report-insight strong { display: block; margin-bottom: 0.2rem; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.report-insight span { display: block; font-size: 1rem; }
+.report-insight:hover { border-color: var(--accent); }
+.dash-svg .dash-gridline { stroke: #e6eae7; }
+.report-area .dash-dot { r: 0; }
+.report-area .dash-row:hover .dash-dot, .report-area .dash-row:focus-visible .dash-dot { r: 3.2px; }
+
+/* The numbers, explained */
+.container.narrow { max-width: 46rem; }
+.explain-list { margin: 1.4rem 0 0; }
+.explain { padding: 0.9rem 0; border-top: 1px solid var(--border); scroll-margin-top: 5rem; }
+.explain dt { font-weight: 700; font-size: 1.05rem; margin-bottom: 0.25rem; }
+.explain dd { margin: 0; color: var(--text); }
+.explain:target { background: #eef5f0; padding-left: 0.8rem; border-radius: 0.5rem; }
+.dash-svg .dash-marker { fill: #0E9F6E; stroke: #ffffff; stroke-width: 1.5; }
+/* area charts: a hairline guide and the point's marker on hover, not a grey band */
+.report-area .dash-row:hover .dash-hit, .report-area .dash-row:focus-visible .dash-hit { fill: transparent; }
+.dash-svg .dash-guide { stroke: #8a959c; stroke-width: 1; stroke-dasharray: 2 2; opacity: 0; }
+.report-area .dash-row:hover .dash-guide, .report-area .dash-row:focus-visible .dash-guide { opacity: 1; }
+/* Negative numbers: always red, in brackets */
+.neg, td.neg, strong.neg { color: #B42318 !important; }
+.dash-svg text.neg { fill: #B42318 !important; }
+.no-explain .report-def { display: none; }

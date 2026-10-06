@@ -56,13 +56,13 @@ def build(res, account_ids):
     for mo in fm.PERIODS:
         t, s = fm.TRADES, fm.SERVICES
         rows += [["trades", mo, "Technicians", t["technicians"], "people"],
-                 ["trades", mo, "Technician wages incl. super", t["tech_wages"][mo], "$"],
+                 ["trades", mo, "Technician wages incl. on-costs", t["tech_wages"][mo], "$"],
                  ["trades", mo, "New customers (first job ever)", t["new_customers"][mo], "customers"],
                  ["trades", mo, "Call-outs", t["callouts"][mo], "jobs"],
                  ["trades", mo, "Working days", fm.WORKING_DAYS[mo], "days"],
                  ["trades", mo, "Hours per working day", fm.HOURS_PER_DAY, "hours"],
                  ["services", mo, "Consultants", s["consultants"], "people"],
-                 ["services", mo, "Consultant salaries incl. super", s["salaries"][mo], "$"],
+                 ["services", mo, "Consultant salaries incl. on-costs", s["salaries"][mo], "$"],
                  ["services", mo, "New clients", s["new_clients"][mo], "clients"],
                  ["services", mo, "Working days", fm.WORKING_DAYS[mo], "days"],
                  ["services", mo, "Hours per working day", fm.HOURS_PER_DAY, "hours"]]

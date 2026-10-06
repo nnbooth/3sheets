@@ -13,13 +13,23 @@ properly and look the same.
                            repeated header rows, footer, no gridlines
 
 Palette (muted, and still distinct when printed in black and white):
-  sage #5e8b76 on target · sand #c8a77e below target · brick #8f4a3e very
+  sage #0E9F6E on target · sand #b28a92 below target · brick #8f4a3e very
   late / overdue · slate #8e9cab on its way · near-black #2f2f2f targets.
 """
 
 from datetime import date
 
-GOOD, SOME, BAD, OPEN, INK, MUTED, LINE = "#5e8b76", "#c8a77e", "#8f4a3e", "#8e9cab", "#2f2f2f", "#5f6f63", "#dce8dc"
+GOOD, SOME, BAD, OPEN, INK, MUTED, LINE = "#0E9F6E", "#A7B0B8", "#8f4a3e", "#8e9cab", "#2f2f2f", "#5f6f63", "#dce8dc"
+NEG = "#B42318"     # negative numbers: always red, in brackets
+NEG_CSS = ".neg {{ color: #B42318; }}"
+
+
+def neg_html(text):
+    """Wrap a formatted number in a red span if it's negative (brackets or a minus sign)."""
+    t = str(text).strip()
+    return f'<span class="neg">{esc(t)}</span>' if (t.startswith("(") or t.startswith("-")) and any(ch.isdigit() for ch in t) else esc(t)
+
+
 STATUS_COLOUR = {"Locked": "#2f5d4a", "Provisional": "#8a6d3b", "Incomplete": "#8f4a3e", "Future": MUTED}
 
 
@@ -29,7 +39,7 @@ def esc(s):
 
 def fmt_value(v, f):
     if f == "pct1":
-        return f"{v:.1f}%"
+        return f"({-v:.1f}%)" if v < 0 else f"{v:.1f}%"
     if f == "pct0":
         return f"{round(v)}%"
     if f == "money_k":
@@ -61,7 +71,8 @@ def hbar_svg(ch, width=640):
     x = lambda v: left + v / mx * (right - left)
     tx = x(target) if target is not None else None
     g = [f'<line x1="{left}" x2="{left}" y1="{top - 3}" y2="{top + plot_h}" stroke="{LINE}" stroke-width="1.5"/>']
-    order = sorted(range(len(values)), key=lambda i: -values[i])     # largest first, in every view
+    by = ch.get("order_by") or values
+    order = sorted(range(len(values)), key=lambda i: -by[i])     # order set by the first view, same in every view
     for pos, i in enumerate(order):
         lab, v = labels[i], values[i]
         y = top + pos * row + (row - bh) / 2
@@ -76,7 +87,7 @@ def hbar_svg(ch, width=640):
                 lx = mxp + 5
         if tx is not None and lx - 4 < tx < lx + len(text) * char + 4:   # the label would sit on the target line
             lx = tx + 5
-        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{INK}">{esc(text)}</text>')
+        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{NEG if v < 0 else INK}">{esc(text)}</text>')
     if target is not None:
         g.append(f'<line x1="{tx:.1f}" x2="{tx:.1f}" y1="{top - 4}" y2="{top + plot_h + 2}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
         g.append(f'<text x="{tx:.1f}" y="{top + plot_h + 15}" text-anchor="middle" font-size="10" font-weight="600" fill="{INK}">Target {fmt_value(target, f)}</text>')
@@ -101,6 +112,9 @@ def col_svg(labels, values, status, f, width=700, height=230, target=None):
     slot = (right - left) / len(values)
     bw = slot * 0.66
     zero = y(0)
+    idx = [i for i, v in enumerate(values) if v is not None]
+    done = [i for i in idx if status[i] != "Incomplete"]
+    keep = {max(idx, key=lambda i: values[i]), min(idx, key=lambda i: values[i]), idx[-1]} | ({done[-1]} if done else set())
     g = [f'<line x1="{left}" x2="{right}" y1="{zero:.1f}" y2="{zero:.1f}" stroke="{LINE}" stroke-width="1.5"/>']
     for i, (lab, v, st) in enumerate(zip(labels, values, status)):
         x0 = left + i * slot + (slot - bw) / 2
@@ -111,7 +125,9 @@ def col_svg(labels, values, status, f, width=700, height=230, target=None):
             light = st in ("Incomplete", "Provisional")
             extra = f' fill-opacity="0.35" stroke="{GOOD}" stroke-dasharray="3 2"' if light else ""
             g.append(f'<rect x="{x0:.1f}" y="{top_:.1f}" width="{bw:.1f}" height="{h_:.1f}" rx="1.5" fill="{GOOD}"{extra}/>')
-            g.append(f'<text transform="translate({cx + 3:.1f},{top_ - 3:.1f}) rotate(-90)" font-size="8" fill="{INK}">{esc(fmt_value(v, f))}</text>')
+            if i in keep:      # latest, highest and lowest only; every month is in the Excel download
+                anchor, lx = ("end", x0 + bw) if i == len(values) - 1 else ("start", x0) if i == 0 else ("middle", cx)
+                g.append(f'<text x="{lx:.1f}" y="{top_ - 4:.1f}" text-anchor="{anchor}" font-size="8" fill="{INK}">{esc(fmt_value(v, f))}</text>')
         if i % 3 == 0 or i == len(labels) - 1:
             g.append(f'<text x="{cx:.1f}" y="{base + 14}" text-anchor="middle" font-size="9" fill="{MUTED}">{esc(lab)}</text>')
         if st == "Incomplete":
@@ -119,6 +135,59 @@ def col_svg(labels, values, status, f, width=700, height=230, target=None):
     if target is not None:
         ty = y(target)
         g.append(f'<line x1="{left}" x2="{right}" y1="{ty:.1f}" y2="{ty:.1f}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%" '
+            f'style="font-family:Inter,Arial,sans-serif" role="img">{"".join(g)}</svg>')
+
+
+def area_svg(labels, values, status, f, width=700, height=240):
+    """Time series as an area (Google Sheets style fade), labelled y-axis with light gridlines, latest / highest /
+    lowest labelled, incomplete or provisional months dashed. Mirrors renderArea() on the website."""
+    import math
+    idx = [i for i, v in enumerate(values) if v is not None]
+    vals = [values[i] for i in idx]
+    lo_, hi_ = min(vals + [0]), max(vals + [0])
+    span = hi_ - lo_ or abs(hi_) or 1
+    step0 = span / 4
+    mag = 10 ** math.floor(math.log10(step0))
+    step = next(m * mag for m in (1, 2, 2.5, 5, 10) if m * mag >= step0)
+    t0, t1 = math.floor(lo_ / step) * step, math.ceil(hi_ / step) * step
+    ticks = [t0 + k * step for k in range(int(round((t1 - t0) / step)) + 1)]
+    left, right, top, base = 64, width - 16, 18, height - 34
+    n = len(values)
+    x = lambda i: left + i * (right - left) / max(1, n - 1)
+    y = lambda v: base - (v - t0) / (t1 - t0 or 1) * (base - top)
+    done = lambda i: status[i] not in ("Incomplete", "Provisional")
+    g = ['<defs><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E9F6E" stop-opacity="0.30"/>'
+         '<stop offset="1" stop-color="#0E9F6E" stop-opacity="0.03"/></linearGradient></defs>']
+    for t in ticks:
+        g.append(f'<line x1="{left}" x2="{right}" y1="{y(t):.1f}" y2="{y(t):.1f}" stroke="#e3ebe4"/>'
+                 f'<text x="{left - 6}" y="{y(t) + 3:.1f}" text-anchor="end" font-size="9" fill="{MUTED}">{esc(fmt_value(t, f))}</text>')
+    zero = y(max(t0, min(0, t1)))
+    firm = [i for i in idx if done(i)]
+    def pth(ii):   # straight segments between months (no rounding)
+        return " ".join(f"{'M' if k == 0 else 'L'}{x(i):.1f},{y(values[i]):.1f}" for k, i in enumerate(ii))
+    if firm:
+        g.append(f'<path d="{pth(firm)} L{x(firm[-1]):.1f},{zero:.1f} L{x(firm[0]):.1f},{zero:.1f} Z" fill="url(#fade)"/>')
+        g.append(f'<path d="{pth(firm)}" fill="none" stroke="{GOOD}" stroke-width="2"/>')
+    tail = [i for i in idx if firm and i >= firm[-1]]
+    if len(tail) > 1:
+        g.append(f'<path d="{pth(tail)}" fill="none" stroke="{GOOD}" stroke-width="2" stroke-dasharray="4 3" stroke-opacity="0.6"/>')
+    hi_i, lo_i = max(idx, key=lambda i: values[i]), min(idx, key=lambda i: values[i])
+    keep = {hi_i, lo_i}          # the y-axis carries the rest: mark only the highest and lowest
+    for i in idx:
+        faint = "" if done(i) else ' stroke-opacity="0.5"'
+        g.append(f'<circle cx="{x(i):.1f}" cy="{y(values[i]):.1f}" r="2.4" fill="#fff" stroke="{GOOD}" stroke-width="1.3"{faint}/>')
+        if i in keep:
+            anchor = "end" if i == n - 1 else "start" if i == 0 else "middle"
+            ty = y(values[i]) + 15 if (i == lo_i and i != hi_i) else y(values[i]) - 8
+            g.append(f'<circle cx="{x(i):.1f}" cy="{y(values[i]):.1f}" r="4.2" fill="{GOOD}" stroke="#fff" stroke-width="1.4"/>'
+                     f'<text x="{x(i):.1f}" y="{ty:.1f}" text-anchor="{anchor}" font-size="9" fill="{NEG if values[i] < 0 else INK}">{esc(fmt_value(values[i], f))}</text>')
+    for i in range(n):
+        if i % 3 == 0 or i == n - 1:
+            anchor = "start" if i == 0 else "end" if i == n - 1 else "middle"
+            g.append(f'<text x="{x(i):.1f}" y="{base + 14}" text-anchor="{anchor}" font-size="9" fill="{MUTED}">{esc(labels[i])}</text>')
+        if status[i] == "Incomplete":
+            g.append(f'<text x="{x(i):.1f}" y="{base + 25}" text-anchor="end" font-size="8" fill="{BAD}">to date</text>')
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%" '
             f'style="font-family:Inter,Arial,sans-serif" role="img">{"".join(g)}</svg>')
 

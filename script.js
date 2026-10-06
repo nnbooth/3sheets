@@ -312,11 +312,20 @@ const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const CHART_FORMATS = {
   money0: (v) => (v < 0 ? `($${Math.round(-v).toLocaleString('en-AU')})` : `$${Math.round(v).toLocaleString('en-AU')}`),
   pct0: (v) => `${Math.round(v)}%`,
-  pct1: (v) => `${Number(v).toFixed(1)}%`,
+  pct1: (v) => (v < 0 ? `(${Math.abs(Number(v)).toFixed(1)}%)` : `${Number(v).toFixed(1)}%`),
   cents_int: (v) => `${v}¢`,
   int: (v) => Math.round(v).toLocaleString('en-AU'),
   money_k: (v) => (Math.abs(v) >= 1000 ? `$${Math.round(v / 1000).toLocaleString('en-AU')}k` : `$${v}`),
 };
+
+// EXPLANATIONS: the "gross margin, not profit" boxes on the report pages. Hide them for an audience that
+// doesn't need them: set SHOW_EXPLANATIONS = false (whole site), or add ?explain=off to any link you send.
+const SHOW_EXPLANATIONS = true;
+if (!SHOW_EXPLANATIONS || new URLSearchParams(location.search).get('explain') === 'off') document.documentElement.classList.add('no-explain');
+
+// Negative numbers are always red (and in brackets)
+const isNeg = (t) => /^\(?-?\$?\(|^-\d|^-\$|^\(\$?\d/.test(String(t).trim());
+const negCls = (t) => (isNeg(t) ? ' neg' : '');
 
 // Re-check a statement: every subtotal equals the detail lines above it
 function statementAddsUp(rows) {
@@ -345,7 +354,7 @@ function renderStatement(o, st) {
   const rows = st.rows.map((r) => {
     if (r.level === 'heading') return `<tr class="st-heading"><th colspan="4" scope="rowgroup">${esc(r.label)}</th></tr>`;
     const change = r.values[0] - r.values[1];
-    return `<tr class="st-${r.level}${r.level === 'detail' ? ' detail' : ''}"><td>${esc(r.label)}</td>${r.values.map((v) => `<td class="n">${acct(v)}</td>`).join('')}<td class="n st-change">${acct(change)}</td></tr>`;
+    return `<tr class="st-${r.level}${r.level === 'detail' ? ' detail' : ''}"><td>${esc(r.label)}</td>${r.values.map((v) => `<td class="n${v < 0 ? ' neg' : ''}">${acct(v)}</td>`).join('')}<td class="n st-change${change < 0 ? ' neg' : ''}">${acct(change)}</td></tr>`;
   }).join('');
   const sts = window.FOURTH_SHEET_DASHBOARD.status.slice(0, 2).map((m) => `${m.label}: ${m.status.toLowerCase()}`).join(' · ');
   return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)}</p><p class="dash-status-line">${esc(sts)}</p>
@@ -369,11 +378,13 @@ function renderChart(ch) {
   const x = (v) => left + (v / max) * (right - left);
   let g = `<line class="dash-grid" x1="${left}" x2="${left}" y1="${top - 2}" y2="${top + plotH}"/>`;
   // bars sorted by value, largest first, whichever view is showing; i stays the bar's own index (for its workings)
-  const order = ch.values.map((v, i) => i).sort((p, q) => ch.values[q] - ch.values[p]);
+  const by = ch.orderBy || ch.values;            // order is set once (by the first view) and doesn't move when the view changes
+  const order = ch.values.map((v, i) => i).sort((p, q) => by[q] - by[p]);
   order.forEach((i, pos) => {
     const v = ch.values[i];
     const y = top + pos * row + (row - bh) / 2;
-    g += `<g class="dash-row" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
+    const dim = ch.highlight && ch.labels[i] !== ch.highlight ? ' dash-row--dim' : '';
+    g += `<g class="dash-row${dim}" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
       + `<rect class="dash-hit" x="0" y="${(top + pos * row).toFixed(1)}" width="${W}" height="${row}"/>`
       + `<text class="dash-axis" x="${left - 5}" y="${(y + bh - 1.5).toFixed(1)}" text-anchor="end">${esc(ch.labels[i])}</text>`
       + `<rect class="dash-bar dash-bar--h${below(v, i) ? ' dash-bar--below' : ''}" x="${left}" y="${y.toFixed(1)}" width="${(x(v) - left).toFixed(1)}" height="${bh}" rx="1.5"/>`;
@@ -384,7 +395,7 @@ function renderChart(ch) {
     let lx = x(v) + 3;
     if (ch.marks) { const mx = x(ch.marks[i]); if (mx >= x(v) - 1 && mx < lx + tw + 2) lx = mx + 3; }
     if (ch.target != null && lx - 2 < x(ch.target) && x(ch.target) < lx + tw + 2) lx = x(ch.target) + 3;
-    g += `<text class="dash-value" x="${lx.toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${txt}</text></g>`;
+    g += `<text class="dash-value${v < 0 ? ' neg' : ''}" x="${lx.toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${txt}</text></g>`;
   });
   if (ch.target != null) {   // drawn after the bars, so the target sits on top
     const tx = x(ch.target).toFixed(1);
@@ -418,7 +429,7 @@ function renderSeries(se) {
 function openSupport(sp) {
   if (!sp) return;
   document.getElementById('support-title').textContent = sp.title;
-  const rows = sp.rows.map((r) => `<tr><th scope="row">${esc(r[0])}</th>${r.slice(1).map((c) => `<td class="n">${esc(c)}</td>`).join('')}</tr>`).join('');
+  const rows = sp.rows.map((r) => `<tr><th scope="row">${esc(r[0])}</th>${r.slice(1).map((c) => `<td class="n${negCls(c)}">${esc(c)}</td>`).join('')}</tr>`).join('');
   const twoCol = sp.rows.every((r) => !r[2]);
   const head = twoCol ? '' : `<thead><tr>${sp.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead>`;
   document.getElementById('support-body').innerHTML =
@@ -435,7 +446,7 @@ function renderFourth(o) {
   // Kept deliberately simple: three headline numbers and one chart. Every
   // number opens its workings; the full lists are in the Excel and PDF.
   const f = o.fourth;
-  const kpis = f.kpis.slice(0, 3).map((k, i) => `<button type="button" class="dash-kpi${k.spine ? ' dash-kpi--spine' : ''}" data-kpi="${i}"><span>${esc(k.label)}</span><strong>${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em><small class="dash-how">How it's worked out</small></button>`).join('');
+  const kpis = f.kpis.slice(0, 3).map((k, i) => `<button type="button" class="dash-kpi${k.spine ? ' dash-kpi--spine' : ''}" data-kpi="${i}"><span>${esc(k.label)}</span><strong class="${negCls(k.value).trim()}">${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em><small class="dash-how">How it's worked out</small></button>`).join('');
   let ch = f.chart;
   let toggle = '';
   if (ch.views) {
@@ -481,16 +492,17 @@ function renderDash() {
   chip.title = data.status.map((m) => m.note).join(' ');
   document.getElementById('dash-xlsx').href = o.exports.xlsx;
   document.getElementById('dash-pdf').href = o.exports.pdf;
+  if (document.getElementById('dash-pptx')) document.getElementById('dash-pptx').href = o.exports.pptx;
   renderAssumptions(o);
 }
 
 /* ---------------------------------------------------------------------------
-   DELIVERIES MAP (work.html) — deliveries in and out of an invented Brisbane
+   DELIVERIES MAP (examples.html) — deliveries in and out of an invented Brisbane
    distribution centre. Data: deliveries-data.js, GENERATED by
    tools/deliveries.py (don't type numbers in here). Map: Leaflet with
    OpenStreetMap tiles. Dot colour = share on time; red if anything overdue.
 --------------------------------------------------------------------------- */
-const DELIV_COL = { good: '#5e8b76', some: '#c8a77e', bad: '#8f4a3e', open: '#8e9cab' };
+const DELIV_COL = { good: '#0E9F6E', some: '#b28a92', bad: '#8f4a3e', open: '#8e9cab' };
 function delivBand(p) {
   const done = p.on_time + p.late + p.very_late;
   if (p.overdue) return 'bad';
@@ -562,90 +574,162 @@ function setupDeliveries() {
    charts (months: incomplete months lighter, marked "to date"), tables,
    "what it shows / what you'd do". Every number opens its workings.
 --------------------------------------------------------------------------- */
-function renderColumns(labels, values, status, format, ids) {
-  // Time series: columns, every one labelled (small, vertical), quarter ticks, incomplete months lighter.
-  const fmt = CHART_FORMATS[format] || String;
-  const n = values.length, W = Math.max(300, n * 22), H = 150, top = 34, base = 118, left = 4, right = W - 4;
-  const vals = values.filter((v) => v != null);
-  const max = Math.max(0, ...vals) * 1.08 || 1, min = Math.min(0, ...vals);
-  const y = (v) => base - ((v - min) / (max - min)) * (base - top);
-  const slot = (right - left) / n, bw = slot * 0.66, zero = y(0);
-  let g = `<line class="dash-grid" x1="${left}" x2="${right}" y1="${zero.toFixed(1)}" y2="${zero.toFixed(1)}"/>`;
-  values.forEach((v, i) => {
-    const x0 = left + i * slot + (slot - bw) / 2, cx = (x0 + bw / 2).toFixed(1);
-    const light = status && (status[i] === 'Incomplete' || status[i] === 'Provisional');
-    g += `<g class="dash-row" data-point="${i}" tabindex="0" role="button" aria-label="${esc(labels[i])}: ${v == null ? 'no figure' : fmt(v)}${light ? ` (${status[i].toLowerCase()})` : ''}. Show the workings.">`
-      + `<rect class="dash-hit" x="${(left + i * slot).toFixed(1)}" y="0" width="${slot.toFixed(1)}" height="${H}"/>`;
-    if (v != null) {
-      const yy = y(v), t = Math.min(yy, zero), h = Math.abs(zero - yy);
-      g += `<rect class="dash-col${light ? ' dash-col--light' : ''}" x="${x0.toFixed(1)}" y="${t.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h, 0.5).toFixed(1)}" rx="1.5"/>`;
-      g += `<text class="dash-value dash-value--v" transform="translate(${(+cx + 2.5).toFixed(1)},${(t - 3).toFixed(1)}) rotate(-90)">${fmt(v)}</text>`;
-    }
-    if (i % 3 === 0 || i === n - 1) g += `<text class="dash-axis" x="${cx}" y="${base + 11}" text-anchor="middle">${esc(labels[i])}</text>`;
-    if (status && status[i] === 'Incomplete') g += `<text class="dash-key dash-key--warn" x="${cx}" y="${base + 21}" text-anchor="middle">to date</text>`;
-    g += '</g>';
-  });
-  return `<div class="report-scroll"><svg class="dash-svg report-cols" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 640)}px" role="img">${g}</svg></div>`;
+function niceTicks(min, max, n) {
+  const span = max - min || Math.abs(max) || 1, step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((x) => x >= step0);
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, out = [];
+  for (let v = lo; v <= hi + step / 2; v += step) out.push(+v.toFixed(10));
+  return out;
 }
 
-function mountReport(root, r, only) {
-  // Draws a report (or only some of its section types) into root. Used by the report pages,
-  // the featured chart on the SME and not-for-profit pages, and nowhere else.
-  const state = { block: 0, views: {} };
-  const supports = [];                 // every clickable number -> its workings
+function renderArea(labels, values, status, format, mini) {
+  // Time series as an area: labelled y-axis with light gridlines, a dot per month (tap for the workings),
+  // the latest, highest and lowest values labelled, incomplete or provisional months dashed and lighter.
+  const fmt = CHART_FORMATS[format] || String;
+  const n = values.length, W = mini ? 300 : 900, H = mini ? 110 : 260;
+  const vals = values.filter((v) => v != null);
+  const ticks = niceTicks(Math.min(0, ...vals), Math.max(0, ...vals), mini ? 2 : 4);
+  const yMin = ticks[0], yMax = ticks[ticks.length - 1];
+  const left = mini ? 6 : 58, right = W - (mini ? 6 : 14), top = mini ? 14 : 18, base = H - (mini ? 16 : 30);
+  const x = (i) => left + (n === 1 ? (right - left) / 2 : (i * (right - left)) / (n - 1));
+  const y = (v) => base - ((v - yMin) / (yMax - yMin || 1)) * (base - top);
+  const done = (i) => !status || (status[i] !== 'Incomplete' && status[i] !== 'Provisional');
+  const gid = `ag${renderArea.n = (renderArea.n || 0) + 1}`;          // Google Sheets style: colour under the line fading to nothing
+  let g = `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E9F6E" stop-opacity="0.30"/><stop offset="1" stop-color="#0E9F6E" stop-opacity="0.03"/></linearGradient>`
+    + `<linearGradient id="${gid}l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E9F6E" stop-opacity="0.16"/><stop offset="1" stop-color="#0E9F6E" stop-opacity="0.03"/></linearGradient></defs>`;
+  if (!mini) ticks.forEach((t) => { g += `<line class="dash-gridline" x1="${left}" x2="${right}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text class="dash-ytick" x="${left - 6}" y="${(y(t) + 3).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`; });
+  const pts = values.map((v, i) => (v == null ? null : [x(i), y(v)]));
+  const zeroY = y(Math.max(yMin, Math.min(0, yMax)));
+  const firm = pts.map((p, i) => (p && done(i) ? p : null));
+  const lastFirm = firm.reduce((a, p, i) => (p ? i : a), -1);
+  const path = (arr) => arr.filter(Boolean).map((p, k) => `${k ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('');   // straight segments, no rounding
+  const firmPts = firm.filter(Boolean);
+  if (firmPts.length) {
+    g += `<path class="dash-area" fill="url(#${gid})" d="${path(firmPts)}L${firmPts[firmPts.length - 1][0].toFixed(1)},${zeroY.toFixed(1)}L${firmPts[0][0].toFixed(1)},${zeroY.toFixed(1)}Z"/>`;
+    g += `<path class="dash-line" d="${path(firmPts)}"/>`;
+  }
+  const tail = pts.map((p, i) => (p && i >= lastFirm && lastFirm >= 0 ? p : null)).filter(Boolean);
+  if (tail.length > 1) {
+    g += `<path class="dash-area dash-area--light" fill="url(#${gid}l)" d="${path(tail)}L${tail[tail.length - 1][0].toFixed(1)},${zeroY.toFixed(1)}L${tail[0][0].toFixed(1)},${zeroY.toFixed(1)}Z"/>`;
+    g += `<path class="dash-line dash-line--light" d="${path(tail)}"/>`;
+  }
+  if (yMin < 0) g += `<line class="dash-grid" x1="${left}" x2="${right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/>`;
+  const idx = values.map((v, i) => (v == null ? null : i)).filter((i) => i != null);
+  const hi = idx.reduce((a, i) => (values[i] > values[a] ? i : a), idx[0]);
+  const lo = idx.reduce((a, i) => (values[i] < values[a] ? i : a), idx[0]);
+  const labelled = mini ? new Set([idx[idx.length - 1]]) : new Set([hi, lo]);   // the y-axis carries the rest: mark only the highest and lowest
+  const slot = (right - left) / Math.max(1, n - 1);
+  values.forEach((v, i) => {
+    const cx = x(i);
+    g += `<g class="dash-row" data-point="${i}" tabindex="0" role="button" aria-label="${esc(labels[i])}: ${v == null ? 'no figure' : fmt(v)}${done(i) ? '' : ` (${status[i].toLowerCase()})`}. Show the workings.">`
+      + `<rect class="dash-hit" x="${(cx - slot / 2).toFixed(1)}" y="0" width="${slot.toFixed(1)}" height="${H}"/>`
+      + `<line class="dash-guide" x1="${cx.toFixed(1)}" x2="${cx.toFixed(1)}" y1="${top}" y2="${base}"/>`;
+    if (v != null) {
+      g += `<circle class="dash-dot${done(i) ? '' : ' dash-dot--light'}" cx="${cx.toFixed(1)}" cy="${y(v).toFixed(1)}" r="${mini ? 1.6 : 2.6}"><title>${esc(labels[i])}: ${fmt(v)}</title></circle>`;
+      if (labelled.has(i)) {
+        const anchor = i === n - 1 ? 'end' : i === 0 ? 'start' : 'middle';
+        const below = !mini && i === lo && i !== hi;               // the lowest point's value sits under its marker
+        g += `<circle class="dash-marker" cx="${cx.toFixed(1)}" cy="${y(v).toFixed(1)}" r="${mini ? 2.4 : 4.5}"/>`
+          + `<text class="dash-value dash-value--top${v < 0 ? ' neg' : ''}" x="${cx.toFixed(1)}" y="${(below ? y(v) + 16 : y(v) - 9).toFixed(1)}" text-anchor="${anchor}">${fmt(v)}</text>`;
+      }
+    }
+    const every = mini ? Math.ceil(n / 4) : 3;
+    if (i % every === 0 || i === n - 1) g += `<text class="dash-axis" x="${cx.toFixed(1)}" y="${(base + (mini ? 11 : 14)).toFixed(1)}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${esc(labels[i])}</text>`;
+    if (!mini && status && status[i] === 'Incomplete') g += `<text class="dash-key dash-key--warn" x="${cx.toFixed(1)}" y="${base + 25}" text-anchor="end">to date</text>`;
+    g += '</g>';
+  });
+  return `<svg class="dash-svg report-area${mini ? ' report-area--mini' : ''}" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`;
+}
+
+function renderColumns(labels, values, status, format) { return renderArea(labels, values, status, format, true); }
+
+function mountReport(root, r, only, simple) {
+  // Draws a report into root. One filter per block drives every section ("vary" sections have a version
+  // for each filter value; bars and tables highlight it; series follow it). Only sections whose content
+  // changed are redrawn, so charts don't re-animate when nothing about them changed.
+  const state = { block: 0, filter: {}, views: {} };
+  const supports = [];
   const sup = (sp) => { supports.push(sp); return supports.length - 1; };
+  const fval = () => { const b = r.blocks[state.block]; return b.filter ? (state.filter[state.block] ?? b.filter.options[0][0]) : 'All'; };
 
   function kpiHtml(sec) {
-    return `<div class="dash-kpis report-kpis">${sec.items.map((k) => `<button type="button" class="dash-kpi" data-sup="${sup(k.support)}"><span>${esc(k.label)}</span><strong>${esc(k.value)}</strong><em class="${k.cls || ''}">${esc(k.sub || '')}</em><small class="dash-how">How it's worked out</small></button>`).join('')}</div>`;
+    return `<div class="dash-kpis report-kpis">${sec.items.map((k) => `<button type="button" class="dash-kpi" data-sup="${sup(k.support)}"><span>${esc(k.label)}</span><strong class="${negCls(k.value).trim()}">${esc(k.value)}</strong><em class="${k.cls || ''}">${esc(k.sub || '')}</em><small class="dash-how">How it's worked out</small></button>`).join('')}</div>`;
   }
   function barsHtml(sec, key) {
     let ch = sec.chart, toggle = '';
     if (ch.views) {
       const cur = state.views[key] || ch.views[0].id;
       const v = ch.views.find((x) => x.id === cur) || ch.views[0];
-      ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks };
+      ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, orderBy: sec.chart.views[0].values };
       toggle = `<div class="dash-toggle dash-toggle--small" role="group" aria-label="Show as">${sec.chart.views.map((x) => `<button type="button" data-view="${key}" data-id="${x.id}" aria-pressed="${x.id === v.id}">${esc(x.label)}</button>`).join('')}</div>`;
     }
+    if (sec.highlight_filter && ch.labels.includes(fval())) ch = { ...ch, highlight: fval() };
     const det = (sec.chart.details || []).map((d) => sup(d));
     const one = sec.support ? sup(sec.support) : null;
     const svg = renderChart(ch).replace(/data-detail="(\d+)"/g, (m, i) => `data-sup="${det.length ? det[+i] : one}"`);
     return `<div class="report-card"><div class="dash-chart-head"><h2 class="report-h">${esc(ch.title)}</h2>${toggle}</div>${ch.subtitle ? `<p class="dash-chart-sub">${esc(ch.subtitle)}</p>` : ''}${svg}</div>`;
   }
-  function seriesHtml(sec, key) {
+  function seriesHtml(sec, key, hasFilter) {
     const dims = sec.dims || { line: ['All'], measure: [[Object.keys(sec.views)[0].split('|')[1], '']] };
     const cur = state.views[key] || { line: dims.line[0], measure: dims.measure[0][0] };
     state.views[key] = cur;
-    const view = sec.views[`${cur.line}|${cur.measure}`];
+    const line = hasFilter && dims.line.includes(fval()) ? fval() : cur.line;
+    const view = sec.views[`${line}|${cur.measure}`] || sec.views[`All|${cur.measure}`];
     const grp = (name, items, val) => (items.length > 1 ? `<div class="dash-toggle dash-toggle--small" role="group" aria-label="${name}">${items.map(([id, lab]) => `<button type="button" data-series="${key}" data-dim="${name}" data-id="${esc(id)}" aria-pressed="${id === val}">${esc(lab)}</button>`).join('')}</div>` : '');
-    const ids = ((sec.supports || {})[cur.line] || []).map((p) => sup(p));
-    const cols = renderColumns(sec.labels, view.values, sec.status, view.format).replace(/data-point="(\d+)"/g, (m, i) => (ids.length ? `data-sup="${ids[+i]}"` : ''));
-    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="report-toggles">${grp('line', dims.line.map((l) => [l, l]), cur.line)}${grp('measure', dims.measure, cur.measure)}</div>${cols}${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
+    const ids = ((sec.supports || {})[line] || []).map((p) => sup(p));
+    const s0 = Math.max(0, view.values.findIndex((v) => v != null));
+    const chart = renderArea(sec.labels.slice(s0), view.values.slice(s0), sec.status.slice(s0), view.format).replace(/data-point="(\d+)"/g, (m, i) => (ids.length ? `data-sup="${ids[+i + s0]}"` : ''));
+    const measures = simple ? dims.measure.filter(([id]) => id !== 'margin') : dims.measure;
+    const lineToggle = hasFilter || simple ? '' : grp('line', dims.line.map((l) => [l, l]), cur.line);
+    const title = simple ? sec.title.replace(' by line', '').replace(' by type of work', '') : sec.title;
+    const gmNote = simple && measures.some(([id]) => id.startsWith('margin')) ? '<p class="dash-chart-sub">Gross margin is before overheads, so it is not profit. <a href="numbers-explained.html#gross-margin">What that means</a>.</p>' : '';
+    return `<div class="report-card"><div class="dash-chart-head"><h2 class="report-h">${esc(title)}${hasFilter && line !== 'All' ? ` · ${esc(line)}` : ''}</h2><div class="report-toggles">${lineToggle}${grp('measure', measures, cur.measure)}</div></div>${chart}${sec.note && !simple ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}${gmNote}</div>`;
   }
   function tableHtml(sec) {
-    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row) => `<tr${row[0] === 'Total' ? ' class="st-total"' : ''}>${row.map((c, i) => `<td${i ? ' class="n"' : ''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+    const hl = sec.highlight_filter ? fval() : null;
+    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row) => `<tr class="${row[0] === 'Total' ? 'st-total' : ''}${hl && hl !== 'All' && row[0] === hl ? ' st-hl' : ''}">${row.map((c, i) => `<td${i ? ` class="n${negCls(c)}"` : ''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
   }
+  function sectionHtml(sec, key, hasFilter) {
+    if (sec.type === 'vary') sec = sec.by[fval()] || sec.by.All || Object.values(sec.by)[0];
+    if (only && !only.includes(sec.type)) return '';
+    if (sec.type === 'kpis') return kpiHtml(sec);
+    if (sec.type === 'bars') return barsHtml(sec, key);
+    if (sec.type === 'series') return seriesHtml(sec, key, hasFilter);
+    if (sec.type === 'table') return tableHtml(sec);
+    if (sec.type === 'text') return simple ? `<p class="report-feature-line">${esc(sec.shows)}</p>` : `<div class="report-text"><div><h2 class="report-h">What it shows</h2><p>${esc(sec.shows)}</p></div><div class="report-act"><h2 class="report-h">What you'd do about it</h2><p>${esc(sec.action)}</p></div></div>`;
+    if (sec.type === 'list') return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><ul class="report-list">${sec.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    if (sec.type === 'definition') return `<aside class="report-def"><strong>${esc(sec.title)}</strong><p>${esc(sec.text)}</p>${sec.link ? `<a href="${esc(sec.link)}">The numbers, explained &rarr;</a>` : ''}</aside>`;
+    if (sec.type === 'insight') return `<button type="button" class="report-insight" data-sup="${sup(sec.support)}"><strong>${esc(sec.title)}</strong><span>${esc(sec.text)}</span><small class="dash-how">How it's worked out</small></button>`;
+    return '';
+  }
+  const slots = [];
   function render() {
     supports.length = 0;
     const b = r.blocks[state.block];
-    let html = '';
-    if (r.blocks.length > 1) html += `<div class="dash-toggle report-blocks" role="group" aria-label="Business">${r.blocks.map((x, i) => `<button type="button" data-block="${i}" aria-pressed="${i === state.block}">${esc(x.label)}</button>`).join('')}</div>`;
-    b.sections.forEach((sec, i) => {
-      if (only && !only.includes(sec.type)) return;
-      const key = `${state.block}-${i}`;
-      if (sec.type === 'kpis') html += kpiHtml(sec);
-      else if (sec.type === 'bars') html += barsHtml(sec, key);
-      else if (sec.type === 'series') html += seriesHtml(sec, key);
-      else if (sec.type === 'table') html += tableHtml(sec);
-      else if (sec.type === 'text') html += `<div class="report-text"><div><h2 class="report-h">What it shows</h2><p>${esc(sec.shows)}</p></div><div class="report-act"><h2 class="report-h">What you'd do about it</h2><p>${esc(sec.action)}</p></div></div>`;
-      else if (sec.type === 'list') html += `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><ul class="report-list">${sec.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    const parts = [];
+    if (r.blocks.length > 1 && !simple) parts.push(`<div class="dash-toggle report-blocks" role="group" aria-label="Business">${r.blocks.map((x, i) => `<button type="button" data-block="${i}" aria-pressed="${i === state.block}">${esc(x.label)}</button>`).join('')}</div>`);
+    if (b.filter && !simple) parts.push(`<div class="report-filter"><span>${esc(b.filter.label)}</span><div class="dash-toggle" role="group" aria-label="${esc(b.filter.label)}">${b.filter.options.map(([v, l]) => `<button type="button" data-filter="${esc(v)}" aria-pressed="${v === fval()}">${esc(l)}</button>`).join('')}</div></div>`);
+    b.sections.forEach((sec, i) => parts.push(sectionHtml(sec, `${state.block}-${i}`, !!b.filter)));
+    parts.push(`<p class="dash-hint">Tap any ${simple ? 'point or bar' : 'number, bar or month'} to see how it's worked out.</p>`);
+    // only redraw (and so re-animate) sections whose content changed; others just get fresh workings links
+    const norm = (h) => h.replace(/data-sup="\d+"/g, '').replace(/ag\d+/g, '');
+    parts.forEach((h, i) => {
+      if (!slots[i]) { slots[i] = document.createElement('div'); slots[i].className = 'report-slot'; root.appendChild(slots[i]); }
+      const el = slots[i];
+      if (el.dataset.h === h) return;
+      const same = el.dataset.h !== undefined && norm(el.dataset.h) === norm(h);
+      el.classList.toggle('no-anim', same);
+      el.innerHTML = h;
+      el.dataset.h = h;
     });
-    html += '<p class="dash-hint">Tap any number, bar or month to see how it\'s worked out.</p>';
-    root.innerHTML = html;
+    while (slots.length > parts.length) slots.pop().remove();
   }
+  root.innerHTML = '';
   root.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-sup],[data-view],[data-series],[data-block]');
+    const t = e.target.closest('[data-sup],[data-view],[data-series],[data-block],[data-filter]');
     if (!t) return;
     if (t.dataset.block) { state.block = +t.dataset.block; render(); }
+    else if (t.dataset.filter !== undefined) { state.filter[state.block] = t.dataset.filter; render(); }
     else if (t.dataset.view) { state.views[t.dataset.view] = t.dataset.id; render(); }
     else if (t.dataset.series) { state.views[t.dataset.series][t.dataset.dim] = t.dataset.id; render(); }
     else if (t.dataset.sup !== undefined && t.dataset.sup !== 'null') openSupport(supports[+t.dataset.sup]);
@@ -681,13 +765,13 @@ function setupReport() {
   // the featured chart on the SME and not-for-profit pages
   document.querySelectorAll('[data-report-feature]').forEach((el) => {
     const r = all[el.dataset.reportFeature];
-    if (r) mountReport(el, r, el.dataset.only ? el.dataset.only.split(',') : null);
+    if (r) mountReport(el, r, el.dataset.only ? el.dataset.only.split(',') : null, true);
   });
   // a small live chart on every example report card
   document.querySelectorAll('[data-report-card]').forEach((el) => {
     const r = all[el.dataset.reportCard];
     if (!r) return;
-    const secs = r.blocks[0].sections;
+    const secs = r.blocks[0].sections.map((x) => (x.type === 'vary' ? (x.by.All || Object.values(x.by)[0]) : x));
     const k = secs.find((x) => x.type === 'kpis');
     const first = secs.find((x) => x.type === 'bars' || x.type === 'series');   // the report's main chart
     const bars = first && first.type === 'bars' ? first : null;
@@ -698,7 +782,7 @@ function setupReport() {
       const dims = ser.dims || { line: ['All'], measure: [[Object.keys(ser.views)[0].split('|')[1], '']] };
       const v = ser.views[`${dims.line[0]}|${dims.measure[0][0]}`];
       const n = 12;
-      html += `<p class="card-chart-title">${esc(ser.title)} · latest ${n}</p>` + renderColumns(ser.labels.slice(-n), v.values.slice(-n), ser.status.slice(-n), v.format).replace(/ data-point="\d+" tabindex="0" role="button"/g, '');
+      html += renderColumns(ser.labels.slice(-n), v.values.slice(-n), ser.status.slice(-n), v.format).replace(/ data-point="\d+" tabindex="0" role="button"/g, '');
     } else if (bars) {
       // a readable mini bar list (label, bar, value) for the biggest few, largest first
       const ch = bars.chart, v0 = ch.views ? ch.views[0] : ch;
@@ -706,7 +790,7 @@ function setupReport() {
       const items = ch.labels.map((l, i) => [l, v0.values[i]]).sort((p, q) => q[1] - p[1]).slice(0, 5);
       const max = Math.max(...items.map((x) => x[1]), v0.target || 0) || 1;
       const below = (v) => !ch.plain && v0.target != null && v < v0.target;
-      html += `<p class="card-chart-title">${esc(ch.title)}</p><ul class="mini-bars">${items.map(([l, v]) => `<li><span class="mb-l">${esc(l)}</span><span class="mb-t"><i class="${below(v) ? 'below' : ''}" style="width:${(100 * v / max).toFixed(1)}%"></i></span><span class="mb-v">${fmt(v)}</span></li>`).join('')}</ul>`;
+      html += `<ul class="mini-bars">${items.map(([l, v]) => `<li><span class="mb-l">${esc(l)}</span><span class="mb-t"><i class="${below(v) ? 'below' : ''}" style="width:${(100 * v / max).toFixed(1)}%"></i></span><span class="mb-v${v < 0 ? ' neg' : ''}">${fmt(v)}</span></li>`).join('')}</ul>`;
     }
     el.innerHTML = html;
   });

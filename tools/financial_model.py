@@ -219,7 +219,7 @@ def trades(m):
            row("Cost of sales", "heading", None),
            row("Materials", "detail", per(lambda mo: -r[mo]["mat"])),
            row("Subcontractors", "detail", per(lambda mo: -r[mo]["sub"])),
-           row("Technician wages (incl. super)", "detail", per(lambda mo: -r[mo]["techw"])),
+           row("Technician wages (incl. on-costs)", "detail", per(lambda mo: -r[mo]["techw"])),
            row("Total cost of sales", "subtotal", per(lambda mo: -r[mo]["cos"])),
            row("Gross profit", "total", per(lambda mo: r[mo]["gp"])),
            row("Operating expenses", "heading", None)]
@@ -407,7 +407,7 @@ def services(m):
            row("Training", "detail", per(lambda mo: r[mo]["rev"]["Training"])),
            row("Total revenue", "subtotal", per(lambda mo: r[mo]["revenue"])),
            row("Cost of sales", "heading", None),
-           row("Consultant salaries (incl. super)", "detail", per(lambda mo: -r[mo]["sal"])),
+           row("Consultant salaries (incl. on-costs)", "detail", per(lambda mo: -r[mo]["sal"])),
            row("Contractors", "detail", per(lambda mo: -r[mo]["contractors"])),
            row("Total cost of sales", "subtotal", per(lambda mo: -r[mo]["cos"])),
            row("Gross profit", "total", per(lambda mo: r[mo]["gp"])),
@@ -622,11 +622,11 @@ def money(v):
 # fraction) · hours: 1 dp · int: whole · months: 1 dp · cents: whole cents
 FMT = {
     "money": lambda v: money(v),
-    "pct": lambda v: f"{v * 100:.1f}%",
-    "hours": lambda v: f"{v:,.1f} h",
+    "pct": lambda v: f"({-v * 100:.1f}%)" if v < 0 else f"{v * 100:.1f}%",
+    "hours": lambda v: f"({-v:,.1f} h)" if v < 0 else f"{v:,.1f} h",
     "int": lambda v: f"{v:,.0f}",
-    "months": lambda v: f"{v:.1f} months",
-    "cents": lambda v: f"{half_up(v)}¢",
+    "months": lambda v: f"({-v:.1f} months)" if v < 0 else f"{v:.1f} months",
+    "cents": lambda v: f"({-half_up(v)}¢)" if v < 0 else f"{half_up(v)}¢",
     "date": lambda v: v,
     "text": lambda v: v,
 }
@@ -660,12 +660,12 @@ def fourth_trades(m, out):
     S = lambda f: [f(mo) for mo in PERIODS]
     installs = sorted([j for j in out["jobs"] if j["month"] == "2026-09" and j["type"] == "Installation"],
                       key=lambda j: -j["gross_profit"] / j["revenue"])     # bars sorted by value
-    s_gm = support("Gross margin", "Gross profit ÷ revenue", [
+    s_gm = support("Gross margin (P&L)", "Gross profit ÷ revenue. All technician wages and on-costs included; overheads are not.", [
         inp("Revenue (every job invoiced in the month)", "money", S(lambda mo: r[mo]["revenue"])),
         inp("Materials", "money", S(lambda mo: -r[mo]["mat"])), inp("Subcontractors", "money", S(lambda mo: -r[mo]["sub"])),
         inp("Technician wages", "money", S(lambda mo: -r[mo]["techw"])),
-        calc("Gross profit", "money", "r0+r1+r2+r3"), calc("Gross margin", "pct", "r4/r0")],
-        "Technicians are on salary, so a quiet month for jobs lowers the margin even if every job is priced well.")
+        calc("Gross profit", "money", "r0+r1+r2+r3"), calc("Gross margin (P&L)", "pct", "r4/r0")],
+        "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include all on-costs (super, payroll tax, workers' compensation, leave). Technicians are on salary, so a quiet month for jobs lowers gross margin even if every job is priced well.")
     s_cac = support("Cost to win a customer", "Marketing spend ÷ new customers", [
         inp("Marketing spend", "money", S(lambda mo: m["opex"]["Marketing"][mo])),
         inp("New customers (first job ever)", "int", S(lambda mo: m["new_customers"][mo])),
@@ -681,25 +681,25 @@ def fourth_trades(m, out):
     k1, c1 = chg(gm[0], gm[1], FMT["pct"])
     k2, c2 = chg(cac[0], cac[1], FMT["money"], "down")
     k3, c3 = chg(util[0], util[1], FMT["pct"])
-    details = [support(j["description"], "Gross profit ÷ revenue for this job", [
+    details = [support(j["description"], "Job gross margin ÷ revenue for this job (before overheads)", [
         inp("Revenue", "money", [j["revenue"]]), inp("Materials", "money", [-j["materials"]]),
         inp("Subcontractors", "money", [-j["subcontractors"]]), inp("Technician hours", "hours", [j["hours"]]),
-        inp("Technician cost rate ($/hour)", "money", [m["tech_cost_rate"]]), calc("Technician time", "money", "-r3*r4"),
-        calc("Gross profit", "money", "r0+r1+r2+r5"), calc("Margin", "pct", "r6/r0")], cols=("This job",)) for j in installs]
+        inp("Technician cost rate ($/hour, wages and all on-costs)", "money", [m["tech_cost_rate"]]), calc("Technician time", "money", "-r3*r4"),
+        calc("Job gross margin", "money", "r0+r1+r2+r5"), calc("Job gross margin %", "pct", "r6/r0")], cols=("This job",)) for j in installs]
     return {
-        "kpis": [{"label": "Gross margin, September", "value": FMT["pct"](gm[0]), "sub": k1, "cls": c1, "spine": True, "support": s_gm},
+        "kpis": [{"label": "Gross margin (P&L), September", "value": FMT["pct"](gm[0]), "sub": k1, "cls": c1, "spine": True, "support": s_gm},
                  {"label": "Cost to win a customer", "value": FMT["money"](cac[0]), "sub": k2, "cls": c2, "support": s_cac},
                  {"label": "Technician time on jobs", "value": FMT["pct"](util[0]), "sub": k3, "cls": c3, "support": s_ut}],
-        "chart": {"title": "Margin on each installation job invoiced in September 2026",
-                  "subtitle": f"Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at ${m['tech_cost_rate']}/hour. One {m['target_margin']}.0% target for every job for now.",
+        "chart": {"title": "Job gross margin on each installation invoiced in September 2026",
+                  "subtitle": f"Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at ${m['tech_cost_rate']}/hour. Before overheads: not profit. One {m['target_margin']}.0% target for every job for now.",
                   "labels": [j["description"] for j in installs],
                   "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
                   "target": float(m["target_margin"]), "format": "pct1", "what": "job margin", "details": details,
-                  "views": [{"id": "pct", "label": "Margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                  "views": [{"id": "pct", "label": "Gross margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
                              "format": "pct1", "target": float(m["target_margin"])},
-                            {"id": "dollars", "label": "Gross profit $", "values": [j["gross_profit"] for j in installs], "format": "money0",
+                            {"id": "dollars", "label": "Gross margin $", "values": [j["gross_profit"] for j in installs], "format": "money0",
                              "marks": [half_up(j["revenue"] * m["target_margin"] / 100) for j in installs],
-                             "mark_label": f"Target profit ({m['target_margin']}.0% of the job's revenue)", "below_marks": True}]},
+                             "mark_label": f"Target gross margin ({m['target_margin']}.0% of the job's revenue)", "below_marks": True}]},
         "facts": dict(gm=gm, cac=cac, util=util),
     }
 
@@ -727,25 +727,25 @@ def fourth_services(m, out):
     k1, c1 = chg(util[0], util[1], FMT["pct"])
     k2, c2 = chg(rate[0], rate[1], FMT["money"])
     k3, c3 = chg(lock[0], lock[1], FMT["money"], "down")
-    details = [support(x["description"], "Contribution ÷ revenue for this engagement", [
+    details = [support(x["description"], "Gross margin ÷ revenue for this engagement (before overheads)", [
         inp("Revenue", "money", [x["revenue"]]), inp("Contractors", "money", [-x["contractors"]]),
-        inp("Consultant hours", "hours", [x["hours"]]), inp("Consultant cost rate ($/hour)", "money", [m["cost_rate"]]),
-        calc("Consultant time", "money", "-r2*r3"), calc("Contribution", "money", "r0+r1+r4"), calc("Margin", "pct", "r5/r0")],
+        inp("Consultant hours", "hours", [x["hours"]]), inp("Consultant cost rate ($/hour, wages and all on-costs)", "money", [m["cost_rate"]]),
+        calc("Consultant time", "money", "-r2*r3"), calc("Gross margin", "money", "r0+r1+r4"), calc("Gross margin %", "pct", "r5/r0")],
         cols=("This engagement",)) for x in sep]
     return {
         "kpis": [{"label": "Consultant utilisation, September", "value": FMT["pct"](util[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ut},
                  {"label": "Revenue per billable hour", "value": FMT["money"](rate[0]), "sub": k2, "cls": c2, "support": s_rate},
                  {"label": "Unbilled work + unpaid invoices", "value": FMT["money"](lock[0]), "sub": k3, "cls": c3, "support": s_lock}],
-        "chart": {"title": "Margin on each client engagement, September 2026 work only",
-                  "subtitle": f"September's revenue less contractors and consultant time at ${m['cost_rate']}/hour. Not the whole engagement to date. One {m['target_margin']}.0% target for every engagement for now.",
+        "chart": {"title": "Gross margin on each client engagement, September 2026 work only",
+                  "subtitle": f"September's revenue less contractors and consultant time at ${m['cost_rate']}/hour. Before overheads: not profit. Not the whole engagement to date. One {m['target_margin']}.0% target for every engagement for now.",
                   "labels": [x["description"] for x in sep],
                   "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
                   "target": float(m["target_margin"]), "format": "pct1", "what": "engagement margin", "details": details,
-                  "views": [{"id": "pct", "label": "Margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                  "views": [{"id": "pct", "label": "Gross margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
                              "format": "pct1", "target": float(m["target_margin"])},
-                            {"id": "dollars", "label": "Contribution $", "values": [x["contribution"] for x in sep], "format": "money0",
+                            {"id": "dollars", "label": "Gross margin $", "values": [x["contribution"] for x in sep], "format": "money0",
                              "marks": [half_up(x["revenue"] * m["target_margin"] / 100) for x in sep],
-                             "mark_label": f"Target contribution ({m['target_margin']}.0% of revenue)", "below_marks": True}]},
+                             "mark_label": f"Target gross margin ({m['target_margin']}.0% of revenue)", "below_marks": True}]},
         "facts": dict(util=util, rate=rate, lock=lock),
     }
 
@@ -816,7 +816,7 @@ def trades_assumptions(m, out):
                               ["Installations", f"{len(m['installs']['2026-09'])} named jobs, each with its own quote, materials, subcontractors and hours"],
                               ["Call-outs", f"{m['callouts']['2026-09']} jobs at ${m['callout_rate']}/hour plus materials marked up {round((m['materials_markup'] - 1) * 100)}%"],
                               ["Jobs in September", f"{len(sep)} in total (every one is in the Excel download and CSV)"]]],
-        ["Costs", [["Technicians", f"{m['technicians']} on salary: ${m['tech_wages']['2026-09']:,} a month incl. super"],
+        ["Costs", [["Technicians", f"{m['technicians']} on salary: ${m['tech_wages']['2026-09']:,} a month incl. on-costs"],
                    ["Job costing rate", f"${m['tech_cost_rate']}/hour for technician time charged to a job"],
                    ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
                    ["Overheads", "set month by month, as shown in the P&L"],
@@ -836,7 +836,7 @@ def services_assumptions(m, out):
         ["Engagements (September)", [["Projects", "hours worked at each project's rate; billed on milestones (unbilled time = work in progress)"],
                                      ["Retainers", "fixed monthly fee, billed monthly"], ["Training", "fixed fee, billed on delivery"],
                                      ["Engagements in September", f"{len(m['activity']['2026-09'])} (every one is in the Excel download and CSV)"]]],
-        ["Costs", [["Consultants", f"{m['consultants']} on salary: ${m['salaries']['2026-09']:,} a month incl. super"],
+        ["Costs", [["Consultants", f"{m['consultants']} on salary: ${m['salaries']['2026-09']:,} a month incl. on-costs"],
                    ["Engagement costing rate", f"${m['cost_rate']}/hour for consultant time"],
                    ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
                    ["Income tax", f"{m['tax_rate']}% of profit, provided monthly"]]],
@@ -949,10 +949,10 @@ def examples_trades(m, out, f4):
     below = sum(v < ch["target"] for v in ch["values"])
     e1 = ex("trades", "Which jobs actually make money?",
             {"type": "bars", "chart": {k: ch[k] for k in ("title", "labels", "values", "target", "format")}},
-            f"{below} of the {len(ch['values'])} installation jobs invoiced in September made less than the {ch['target']:.1f}% target. "
-            f"The {wname} made {ch['values'][worst]:.1f}%: {FMT['hours'](wj['hours'])} of technician time ({money(wj['labour_cost'])}) "
+            f"{below} of the {len(ch['values'])} installation jobs invoiced in September made less than the {ch['target']:.1f}% job gross margin target. "
+            f"The {wname} made a {ch['values'][worst]:.1f}% job gross margin: {FMT['hours'](wj['hours'])} of technician time ({money(wj['labour_cost'])}) "
             f"and {money(wj['subcontractors'])} of subcontractors on a {money(wj['revenue'])} job.",
-            "Before quoting the next switchboard upgrade, price it from this job's actual hours, and check any job running over its quoted hours before it's invoiced, not after.",
+            "Worth knowing what made this job different (hours, subcontractors, the customer) before quoting the next one.",
             det[wname])
     kc = f4["kpis"][1]
     cr = kc["support"]["xl"]["rows"]
@@ -972,7 +972,7 @@ def examples_trades(m, out, f4):
         raise SystemExit("aged debtors don't add up to trade debtors")
     sp3 = support("Will cash cover payroll and the bills in October?", "Cash at bank − next pay run − supplier bills due, before any collections", [
         inp("Cash at bank, 30 September", "money", [bs["2026-09"]["cash"]]),
-        inp("Monthly wages incl. super (technicians + office)", "money", [m["tech_wages"]["2026-09"] + m["opex"]["Office and admin wages"]["2026-09"]]),
+        inp("Monthly wages incl. on-costs (technicians + office)", "money", [m["tech_wages"]["2026-09"] + m["opex"]["Office and admin wages"]["2026-09"]]),
         calc("Next fortnightly pay run (half the month)", "money", "r1/2"),
         inp("Supplier bills due in October (September's purchases)", "money", [bs["2026-09"]["creditors"]]),
         calc("Cash left before collections", "money", "r0-r2-r3"),
@@ -1012,8 +1012,8 @@ def examples_services(m, out, f4):
                  inp(f"{P}: hours", "hours", [sum(x["hours"] for x in xs)])]
     rows += [calc(f"{plural[t].capitalize()}: margin", "pct", f"r{3 * i + 1}/r{3 * i}") for i, t in enumerate(types)]
     rows += [calc(f"{plural[t].capitalize()}: contribution per hour", "money", f"r{3 * i + 1}/r{3 * i + 2}") for i, t in enumerate(types)]
-    sp = support("Margin by type of work, September", "Contribution ÷ revenue, and contribution ÷ hours, for each type of work", rows,
-                 f"Contribution = revenue less contractors and consultant time at ${m['cost_rate']}/hour.", cols=("Sep 2026",))
+    sp = support("Gross margin by type of work, September", "Gross margin ÷ revenue, and gross margin ÷ hours, for each type of work", rows,
+                 f"Gross margin = revenue less contractors and consultant time at ${m['cost_rate']}/hour (wages and all on-costs). Before overheads: not profit.", cols=("Sep 2026",))
     xr = sp["xl"]["rows"]
     margin = [xr[9 + i]["values"][0] * 100 for i in range(3)]
     perh = [xr[12 + i]["values"][0] for i in range(3)]
@@ -1022,13 +1022,13 @@ def examples_services(m, out, f4):
     best = max(range(3), key=lambda i: perh[i])
     all_above = all(v >= m["target_margin"] for v in margin)
     return [ex("services", "Which services should we drop?",
-               {"type": "bars", "chart": {"title": "Margin by type of work, September", "labels": [plural[t].capitalize() for t in types],
+               {"type": "bars", "chart": {"title": "Gross margin by type of work, September", "labels": [plural[t].capitalize() for t in types],
                                           "values": [round(v, 1) for v in margin], "target": float(m["target_margin"]), "format": "pct1"}},
                ("Every type of work made more than the " if all_above else "Not every type of work made the ") + f"{m['target_margin']:.1f}% target in September: "
                + ", ".join(f"{plural[t]} {margin[i]:.1f}% ({money(perh[i])} an hour)" for i, t in enumerate(types))
                + f". The lowest single engagement was {low['description']} at {lowm:.1f}%.",
                ("Nothing needs dropping this month. " if all_above else "Review the work under target first. ")
-               + f"Reprice {low['description']} at its next renewal, and grow {plural[types[best]]} work, which makes the most per hour.",
+               + f"Worth a look: {low['description']} has the lowest gross margin; {plural[types[best]]} makes the most per hour.",
                sp)]
 
 
@@ -1088,7 +1088,7 @@ def examples_nfp(m, out, f4):
             {"type": "series", "series": se},
             f"{g0['program']} spent less than its {money(se['budget'][0])} monthly budget in {under} of its {len(se['values'])} months so far, "
             f"which is why {money(g0['unspent'])} is left with {g0['months_left']} months to go.",
-            "Find out what held the under-budget months back (staffing, referrals, timing) and fix it before the last quarter, not in it.",
+            "Worth knowing what held the under-budget months back (staffing, referrals, timing) while there's still time to catch up.",
             hs)
     return [e1, e2, e3, e4]
 

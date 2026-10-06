@@ -262,8 +262,11 @@ def main():
         DDL[name] = ddl
     import reports, build_reports   # a report page for every question on the SME and not-for-profit pages
     W = warehouse.build
-    build_reports.publish(reports.build(publish_dashboard.publish.res, W.history, W.line_month, W.nfp_by_month, W.gsm, W.balance_daily))
-    import deliveries           # deliveries in and out, for the map on work.html
+    built = reports.build(publish_dashboard.publish.res, W.history, W.line_month, W.nfp_by_month, W.gsm, W.balance_daily)
+    build_reports.publish(built)
+    import powerbi_notes        # how to build each report in Power BI (OneDrive, Data documentation/Power BI)
+    powerbi_notes.write(built)
+    import deliveries           # deliveries in and out, for the map on examples.html
     for name, (desc, cols, rows, ddl) in deliveries.tables(deliveries.publish()).items():
         table(name, desc, cols, rows)
         DDL[name] = ddl
@@ -373,3 +376,5 @@ def write_readme():
 
 if __name__ == "__main__":
     main()
+    import sync_media   # media/ (Excel, PDF, images) kept identical with OneDrive
+    sync_media.sync()

@@ -110,7 +110,7 @@ def write_pages(reports):
           <div id="report-root"><noscript><p>Turn on JavaScript to see this report, or download it:
             <a href="media/exports/reports/{r['slug']}.pdf">PDF</a> · <a href="media/exports/reports/{r['slug']}.xlsx">Excel</a>.</p></noscript></div>
           <div class="report-downloads"><span>Download this report:</span>
-            <span class="dash-actions"><a href="media/exports/reports/{r['slug']}.xlsx" download>Excel</a><a href="media/exports/reports/{r['slug']}.pdf" download>PDF</a></span>
+            <span class="dash-actions"><a href="media/exports/reports/{r['slug']}.xlsx" download>Excel</a><a href="media/exports/reports/{r['slug']}.pdf" download>PDF</a><a href="media/exports/reports/{r['slug']}.pptx" download>PowerPoint</a></span>
             <a class="report-back" href="{page}#reports">&larr; Back to {label}</a></div>
         </div>
 {dialog}      </section>
@@ -118,6 +118,30 @@ def write_pages(reports):
         t = tail.replace(f'<script src="script.js?v={v}"></script>',
                          f'<script src="data/reports-data.js?v={v}"></script>\n    <script src="script.js?v={v}"></script>')
         (REPO / f"report-{r['slug']}.html").write_text(h + body + t)
+
+
+# ------------------------------------------------------------- filters in exports
+
+SHOW_DEFINITIONS = True    # False = leave the "gross margin, not profit" boxes out of the Excel, PDF and PowerPoint versions
+
+
+def flat_sections(b):
+    """A printout can't be filtered: give each filter value its own run of sections (headline numbers,
+    chart, notes), then the sections that show every value at once (month charts, tables)."""
+    secs = [x for x in b["sections"] if SHOW_DEFINITIONS or x["type"] != "definition"]
+    if not b.get("filter"):
+        return secs
+    out = [sec for sec in secs if sec["type"] in ("definition", "insight")]     # what the numbers mean, first
+    for opt, lab in b["filter"]["options"]:
+        out.append({"type": "heading", "text": f"{b['filter']['label']}: {lab}"})
+        for sec in secs:
+            if sec["type"] == "vary" and opt in sec["by"]:
+                out.append(sec["by"][opt])
+            elif sec["type"] == "bars" and sec.get("highlight_filter") and opt == b["filter"]["options"][0][0]:
+                out.append(sec)
+    out.append({"type": "heading", "text": "Every " + b["filter"]["label"].lower() + " at once"})
+    out += [sec for sec in secs if sec["type"] not in ("vary", "definition", "insight") and not (sec["type"] == "bars" and sec.get("highlight_filter"))]
+    return out
 
 
 # ---------------------------------------------------------------------- Excel
@@ -146,9 +170,13 @@ def write_xlsx(r):
             starts.append(rr)
             ws.cell(rr, 1, b["label"]).font = Font(bold=True, size=13, color=pd.GREEN)
             rr += 1
-        for sec in b["sections"]:
+        for sec in flat_sections(b):
             t = sec["type"]
-            if t == "kpis":
+            if t == "heading":
+                starts.append(rr)
+                ws.cell(rr, 1, sec["text"]).font = Font(bold=True, size=12, color=pd.GREEN)
+                rr += 1
+            elif t == "kpis":
                 starts.append(rr)
                 pd.head_cells(ws, rr, ["Headline number", "Value", "Compared with"])
                 for it in sec["items"]:
@@ -191,9 +219,14 @@ def write_xlsx(r):
                     wr, rowmap, st = pd.xl_support(wk, wr, sec["support"])
                     wstarts.append(st)
                 rr += 2
-            elif t in ("text", "list"):
+            elif t in ("text", "list", "definition", "insight"):
                 starts.append(rr)
-                items = [("What it shows", sec["shows"]), ("What you'd do about it", sec["action"])] if t == "text" else [(sec["title"], "\n".join("• " + x for x in sec["items"]))]
+                if t == "insight":
+                    wr, rowmap, st = pd.xl_support(wk, wr, sec["support"])
+                    wstarts.append(st)
+                items = ([("What it shows", sec["shows"]), ("What you'd do about it", sec["action"])] if t == "text" else
+                         [(sec["title"], "\n".join("• " + x for x in sec["items"]))] if t == "list" else
+                         [(sec["title"], sec["text"] + (" (Workings sheet: \"From gross margin to profit\".)" if t == "insight" else ""))])
                 for head, body in items:
                     ws.cell(rr, 1, head).font = Font(bold=True, color=pd.GREEN)
                     c = ws.cell(rr + 1, 1, body)
@@ -282,10 +315,12 @@ def html_report(r):
     for b in r["blocks"]:
         if b.get("label"):
             parts.append(f"<h2 class=block>{esc(b['label'])}</h2>")
-        for sec in b["sections"]:
+        for sec in flat_sections(b):
             t = sec["type"]
-            if t == "kpis":
-                parts.append("<div class=kpis>" + "".join(f"<div class=kpi><span>{esc(i['label'])}</span><b>{esc(i['value'])}</b><em>{esc(i.get('sub', ''))}</em></div>" for i in sec["items"]) + "</div>")
+            if t == "heading":
+                parts.append(f"<h2 class=sub>{esc(sec['text'])}</h2>")
+            elif t == "kpis":
+                parts.append("<div class=kpis>" + "".join(f"<div class=kpi><span>{esc(i['label'])}</span><b>{ek.neg_html(i['value'])}</b><em>{esc(i.get('sub', ''))}</em></div>" for i in sec["items"]) + "</div>")
             elif t == "bars":
                 ch = sec["chart"]
                 views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
@@ -293,7 +328,7 @@ def html_report(r):
                 for vw in views:
                     if len(views) > 1:
                         parts.append(f"<p class=viewlabel>{esc(vw['label'])}</p>")
-                    parts.append("<div class=chart>" + ek.hbar_svg({**ch, **{k: vw.get(k) for k in ("values", "format", "target", "marks", "mark_label", "below_marks")}}) + "</div>")
+                    parts.append("<div class=chart>" + ek.hbar_svg({**ch, **{k: vw.get(k) for k in ("values", "format", "target", "marks", "mark_label", "below_marks")}, "order_by": views[0]["values"]}) + "</div>")
             elif t == "series":
                 dims = sec.get("dims") or {}
                 line = (dims.get("line") or ["All"])[0]
@@ -303,18 +338,24 @@ def html_report(r):
                     if not vw:
                         continue
                     parts.append(f"<p class=viewlabel>{esc(line if line != 'All' else 'All')} · {esc(mlab)}</p>")
-                    vals = [v if v is not None else None for v in vw["values"]]
+                    s0 = next(i for i, v in enumerate(vw["values"]) if v is not None)      # growth starts once there's a year to compare
                     f = {"money0": "money0", "pct1": "pct1", "cents_int": "cents_int", "int": "int"}.get(vw["format"], "money0")
-                    parts.append("<div class=chart>" + ek.col_svg(sec["labels"], vals, sec["status"], f) + "</div>")
+                    parts.append("<div class=chart>" + ek.area_svg(sec["labels"][s0:], vw["values"][s0:], sec["status"][s0:], f) + "</div>")
                 if sec.get("note"):
                     parts.append(f"<p class=note>{esc(sec['note'].replace(' Tap a month for its workings.', ''))} Every month, by line, is in the Excel download.</p>")
             elif t == "table":
                 parts.append(f"<h3>{esc(sec['title'])}</h3><table><tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sec["head"])) + "</tr>"
-                             + "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{esc(c)}</td>" for i, c in enumerate(row_)) + "</tr>" for row_ in sec["rows"]) + "</table>")
+                             + "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{ek.neg_html(c) if i else esc(c)}</td>" for i, c in enumerate(row_)) + "</tr>" for row_ in sec["rows"]) + "</table>")
             elif t == "text":
                 parts.append(f"<div class=two><div class=box><h4>What it shows</h4><p>{esc(sec['shows'])}</p></div><div class='box act'><h4>What you'd do about it</h4><p>{esc(sec['action'])}</p></div></div>")
             elif t == "list":
                 parts.append(f"<h3>{esc(sec['title'])}</h3><ul>" + "".join(f"<li>{esc(x)}</li>" for x in sec["items"]) + "</ul>")
+            elif t == "definition":
+                parts.append(f"<div class=def><b>{esc(sec['title'])}</b><p>{esc(sec['text'])}</p></div>")
+            elif t == "insight":
+                xr = sec["support"]["rows"]
+                parts.append(f"<div class=insight><b>{esc(sec['title'])}</b><p>{esc(sec['text'])}</p><table class=bridge>"
+                             + "".join(f"<tr><td>{esc(r_[0])}</td><td class=n>{ek.neg_html(r_[1])}</td></tr>" for r_ in xr) + "</table></div>")
     status = ek.status_box_html([(date.fromisoformat(m + "-01").strftime("%B %Y"), *ds.month_status(m)) for m in ("2026-08", "2026-09", "2026-10")])
     return f"""<!doctype html><html><head><meta charset=utf-8>
 <link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
@@ -325,12 +366,13 @@ header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px soli
 sup {{ font-size: .55em; }} header small {{ margin-left: auto; color: #5f6f63; }}
 .sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #c8a77e; color: #6b5532; border-radius: 4px; padding: 1px 7px; font-size: 8pt; font-weight: 700; }}
 h1 {{ font-size: 16pt; margin: 6px 0 2px; }} .intro {{ color: #5f6f63; margin: 0 0 6px; }} h2.block {{ font-size: 13pt; color: #2f7a5d; margin: 14px 0 4px; page-break-before: always; }}
-h3 {{ font-size: 10.5pt; margin: 12px 0 4px; }} .viewlabel {{ margin: 4px 0 0; font-size: 8.5pt; font-weight: 700; color: #5f6f63; }}
+h3 {{ font-size: 10.5pt; margin: 12px 0 4px; }} h2.sub {{ font-size: 11.5pt; color: #2f7a5d; margin: 16px 0 2px; border-top: 1px solid #dce8dc; padding-top: 8px; }} .viewlabel {{ margin: 4px 0 0; font-size: 8.5pt; font-weight: 700; color: #5f6f63; }}
 .kpis {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin: 6px 0; }} .kpi {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 6px 8px; page-break-inside: avoid; }}
 .kpi span, .kpi em {{ display: block; font-size: 8pt; color: #5f6f63; font-style: normal; }} .kpi b {{ font-size: 14pt; color: #2f7a5d; }}
 .chart {{ page-break-inside: avoid; margin: 2px 0 6px; }} .note {{ font-size: 8pt; color: #5f6f63; }}
 .two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; page-break-inside: avoid; margin: 8px 0; }} .box {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 6px 10px; }}
-.box.act {{ background: #eef5f0; }} .box h4 {{ margin: 0 0 3px; font-size: 9.5pt; color: #2f7a5d; }} .box p {{ margin: 0; }}
+.neg {{ color: #B42318; }} .box.act {{ background: #eef5f0; }} .def {{ border-left: 4px solid #8a7a52; background: #fbfaf6; padding: 6px 10px; margin: 8px 0; page-break-inside: avoid; }} .def p, .insight p {{ margin: 2px 0 0; }}
+.insight {{ background: #eef5f0; border: 1px solid #cfe2d6; border-radius: 6px; padding: 6px 10px; margin: 8px 0; page-break-inside: avoid; }} .bridge {{ margin-top: 6px; font-size: 8.5pt; }} .bridge tr:last-child td {{ font-weight: 700; }} .box h4 {{ margin: 0 0 3px; font-size: 9.5pt; color: #2f7a5d; }} .box p {{ margin: 0; }}
 table {{ width: 100%; border-collapse: collapse; page-break-inside: avoid; font-size: 9pt; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 3px 6px; }}
 td {{ padding: 3px 6px; border-bottom: 1px solid #eef2ee; }} .n {{ text-align: right; font-variant-numeric: tabular-nums; }} ul {{ margin: 4px 0 8px; padding-left: 18px; }} li {{ margin: 3px 0; }}
 """ + ek.STATUS_CSS + f"""</style></head><body>
@@ -340,6 +382,53 @@ td {{ padding: 3px 6px; border-bottom: 1px solid #eef2ee; }} .n {{ text-align: r
 {status}
 {''.join(parts)}
 </body></html>"""
+
+
+def write_pptx(r):
+    """PowerPoint version of the report PDF: same sections, native charts, red negatives."""
+    import pptkit
+    status = [f"{date.fromisoformat(m + '-01').strftime('%B %Y')}: {ds.month_status(m)[0]}. {ds.month_status(m)[1]}" for m in ("2026-08", "2026-09", "2026-10")]
+    d = pptkit.Deck(r["business"], r["question"], f"{r['slug']}.pptx", ds.as_at_text())
+    d.title_slide(r["intro"], status)
+    for b in r["blocks"]:
+        ctx = ""
+        for sec in flat_sections(b):
+            t = sec["type"]
+            pre = " · ".join(x for x in (b.get("label"), ctx) if x)
+            name = lambda h: f"{h} · {pre}" if pre else h
+            if t == "heading":
+                ctx = sec["text"]
+            elif t == "kpis":
+                d.kpi_slide(name("Headline numbers"), [(k["label"], k["value"], k.get("sub", "")) for k in sec["items"]])
+            elif t == "bars":
+                ch = sec["chart"]
+                views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
+                for vw in views:
+                    tgt = vw.get("target")
+                    below = [(tgt is not None and v < tgt) or (vw.get("below_marks") and vw.get("marks") and v < vw["marks"][i]) for i, v in enumerate(vw["values"])]
+                    if ch.get("plain"):
+                        below = None
+                    d.bar_slide(name(ch["title"] + (f" · {vw['label']}" if len(views) > 1 else "")), ch["labels"], vw["values"], vw["format"],
+                                (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"),
+                                order_by=views[0]["values"])
+            elif t == "series":
+                dims = sec.get("dims") or {}
+                line = (dims.get("line") or ["All"])[0]
+                for mid, mlab in (dims.get("measure") or [])[:2]:
+                    vw = sec["views"].get(f"{line}|{mid}")
+                    if vw:
+                        d.area_slide(name(f"{sec['title']} · {mlab}"), sec["labels"], vw["values"], vw["format"], (sec.get("note") or "").replace(" Tap a month for its workings.", ""))
+            elif t == "table":
+                d.table_slides(name(sec["title"]), sec["head"], sec["rows"])
+            elif t == "text":
+                d.text_slide(name("What it shows"), [("What it shows", sec["shows"]), ("What you'd do about it", sec["action"])])
+            elif t == "list":
+                d.text_slide(name(sec["title"]), [(sec["title"], "\n".join("• " + x for x in sec["items"]))])
+            elif t == "definition":
+                d.text_slide(sec["title"], [(sec["title"], sec["text"])])
+            elif t == "insight":
+                d.table_slides(name(sec["title"]), ["", "September 2026"], [[r_[0], r_[1]] for r_ in sec["support"]["rows"]], sub=sec["text"])
+    d.save(OUT / f"{r['slug']}.pptx")
 
 
 def write_pdfs(reports):
@@ -375,8 +464,8 @@ def write_cards(reports):
         f = REPO / page
         s_ = f.read_text()
         a_, b_ = s_.index("<!-- REPORT CARDS:START -->"), s_.index("<!-- REPORT CARDS:END -->")
-        feature = {"sme": ("growth", "Which products and services are growing?", "series,kpis"),
-                   "nfp": ("program-cost", "What does each program really cost?", "bars,text")}[aud]
+        feature = {"sme": ("growth", "Which products and services are growing?", "series"),
+                   "nfp": ("program-cost", "What does each program really cost?", "bars")}[aud]
         feat = (f'<div class="report-feature"><p class="eyebrow">Featured: <a href="report-{feature[0]}.html">{H.escape(feature[1])}</a></p>'
                 f'<div data-report-feature="{feature[0]}" data-only="{feature[2]}"><noscript><p>Turn on JavaScript to see the chart, or '
                 f'<a href="report-{feature[0]}.html">open the report</a>.</p></noscript></div></div>\n          ')
@@ -384,12 +473,78 @@ def write_cards(reports):
         f.write_text(s_)
 
 
+EXPLAINED = [
+    ("accrual", "Accrual accounting (what these reports assume)", "Income is counted when it's earned (the work is done and invoiced) and costs when they're incurred, "
+     "whether or not the money has moved yet. Cash accounting counts income only when it's received and costs only when they're paid. Every report here uses accrual "
+     "accounting, which is why profit and cash tell different stories. Many small businesses keep their books on a cash basis for tax (BAS); the numbers here won't match "
+     "those, and that's expected."),
+    ("revenue", "Revenue", "Everything you invoiced for the work you did in the period, before any costs. Not the same as cash received: you may still be waiting for your customers to pay."),
+    ("direct-costs", "Direct costs", "What it cost to do the work itself: materials, subcontractors, and the time of the people doing the job, at a fully loaded hourly cost (wages plus all on-costs)."),
+    ("gross-margin", "Gross margin (not profit)", "Revenue less direct costs. Example: a $10,000 job with $6,500 of direct costs makes $3,500 gross margin, or 35%. "
+     "It is before overheads, so it is not profit. A business can have a healthy-looking gross margin and still lose money once overheads are paid."),
+    ("markup", "Gross margin is not markup", "Markup is profit over cost; gross margin is profit over price. Adding 35% to a $6,500 cost gives a $8,775 price, "
+     "which is only a 25.9% gross margin. Pricing with markup when you meant margin is one of the most common ways businesses undercharge."),
+    ("wages", "Wages (the full cost of a person)", "In these reports, wages means everything a person costs you, not just their pay: base wage or salary, overtime, penalty "
+     "rates and allowances, bonuses and commissions, plus all the on-costs below. Leave them out and every job looks cheaper than it is."),
+    ("on-costs", "On-costs", "The costs on top of pay that come with employing someone: superannuation, payroll tax (above the state threshold), workers' compensation "
+     "insurance, leave (annual leave, leave loading, personal leave, long service leave) and any other employment costs such as training or uniforms. "
+     "A $40 an hour wage can easily cost $50 or more an hour once on-costs are added."),
+    ("overheads", "Overheads", "Costs that don't belong to any one job: office and admin wages, rent, vehicles, marketing, insurance, IT, depreciation and interest. "
+     "They are paid whether you do ten jobs or a hundred, and they come out of gross margin."),
+    ("break-even", "The gross margin you need", "Divide your overheads (and any paid time not charged to jobs) by revenue. That is the gross margin your work needs on average just to "
+     "break even. Work below it makes the business smaller in profit as it grows; work above it is what pays for everything else."),
+    ("profit", "Profit", "What is left after direct costs and overheads. Profit before tax is what the business earned in the period; net profit is after income tax."),
+    ("profit-vs-cash", "Profit is not cash", "Profit counts work when it's invoiced; cash counts money when it lands. Unpaid invoices, stock, loan repayments, tax and equipment "
+     "purchases all make cash differ from profit, which is why a profitable business can still run short of cash."),
+    ("debtors", "Unpaid invoices (debtors)", "Money customers owe you for work already invoiced. It is yours, but you can't spend it until it's paid."),
+    ("wip", "Work in progress", "Work done but not yet invoiced, valued at what you'll bill for it. It turns into an invoice, then into cash, later."),
+    ("unrestricted-cash", "Unrestricted cash", "For a not-for-profit: cash at bank less grant money received but not yet spent. The unspent grant money belongs to the funder's program, "
+     "so it can't pay general bills."),
+    ("runway", "Runway", "How many months the organisation could keep going on its unrestricted cash at the current rate of spending, with no new money coming in."),
+    ("cost-to-raise", "Cost to raise a dollar", "Fundraising costs (grant writing, donor campaigns, events) divided by the money they bring in, in cents. 20¢ means every dollar raised cost 20 cents to raise, "
+     "on average. It is an average, not a marginal cost: the next dollar can cost more or less to raise than the last. To judge one more campaign or event, compare its own extra cost with the extra money it brings in."),
+    ("year-on-year", "Growth, year on year", "This month against the same month a year earlier, so seasonal ups and downs don't look like growth or decline."),
+    ("status", "Locked, provisional, incomplete", "Locked: the month is closed and won't change. Provisional: the month is over but not closed, so late invoices and adjustments can still change it. "
+     "Incomplete: still happening, like today or the month so far."),
+]
+
+
+def write_explainer():
+    """numbers-explained.html: plain-English definitions, linked from every report's definition box."""
+    import html as H
+    sme = (REPO / "sme.html").read_text()
+    head, rest = sme.split('<main id="main">', 1)
+    main, tail = rest.split("</main>", 1)
+    contact = main[main.index("      <!-- CONTACT -->"):]
+    h = head.replace("<title>SMEs | The Fourth Sheet</title>", "<title>The numbers, explained | The Fourth Sheet</title>")
+    h = re.sub(r'(<meta name="description" content=")[^"]*', lambda m: m.group(1) + "Plain-English definitions of the numbers in the reports: gross margin, overheads, profit, cash, runway and more.", h, count=1)
+    h = h.replace("/sme.html", "/numbers-explained.html").replace("SMEs | The Fourth Sheet", "The numbers, explained | The Fourth Sheet")
+    h = h.replace('<a href="sme.html" aria-current="page">SME</a>', '<a href="sme.html">SME</a>')
+    items = "\n".join(f'            <div class="explain" id="{i}"><dt>{H.escape(t)}</dt><dd>{H.escape(d)}</dd></div>' for i, t, d in EXPLAINED)
+    body = f'''<main id="main">
+      <!-- THE NUMBERS, EXPLAINED: generated by tools/build_reports.py (EXPLAINED). Linked from every report's definition box. -->
+      <section class="section page-top">
+        <div class="container narrow">
+          <p class="eyebrow">Accounting 101</p>
+          <h1>The numbers, explained.</h1>
+          <p class="lead">The words in the reports, in plain English. The three that catch most businesses out: gross margin is not profit, wages always include on-costs, and profit is not cash. Everything here assumes accrual accounting (explained first).</p>
+          <dl class="explain-list">
+{items}
+          </dl>
+        </div>
+      </section>
+{contact}    </main>'''
+    (REPO / "numbers-explained.html").write_text(h + body + tail)
+
+
 def publish(reports):
     size = write_js(reports)
     write_pages(reports)
     write_cards(reports)
+    write_explainer()
     for r in reports:
         review = write_xlsx(r)
+        write_pptx(r)
         print(f"  {r['slug']}.xlsx: " + " | ".join(review))
     write_pdfs(reports)
     print(f"  {len(reports)} report pages, data/reports-data.js {size // 1024} KB")

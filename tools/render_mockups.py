@@ -30,3 +30,5 @@ with sync_playwright() as p:
         page.screenshot(path=str(OUT / out))
         print("wrote", (OUT / out).relative_to(REPO))
     browser.close()
+    import sync_media   # media/ kept identical with OneDrive
+    sync_media.sync()

@@ -107,7 +107,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "Technician wages (incl. super)",
+       "label": "Technician wages (incl. on-costs)",
        "level": "detail",
        "values": [
         -54600,
@@ -589,14 +589,14 @@ window.FOURTH_SHEET_DASHBOARD = {
    "fourth": {
     "kpis": [
      {
-      "label": "Gross margin, September",
+      "label": "Gross margin (P&L), September",
       "value": "34.4%",
       "sub": "▼ from 35.5% in Aug",
       "cls": "bad",
       "spine": true,
       "support": {
-       "title": "Gross margin",
-       "formula": "Gross profit ÷ revenue",
+       "title": "Gross margin (P&L)",
+       "formula": "Gross profit ÷ revenue. All technician wages and on-costs included; overheads are not.",
        "head": [
         "",
         "Sep 2026",
@@ -629,12 +629,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          "$63,577"
         ],
         [
-         "Gross margin",
+         "Gross margin (P&L)",
          "34.4%",
          "35.5%"
         ]
        ],
-       "note": "Technicians are on salary, so a quiet month for jobs lowers the margin even if every job is priced well.",
+       "note": "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include all on-costs (super, payroll tax, workers' compensation, leave). Technicians are on salary, so a quiet month for jobs lowers gross margin even if every job is priced well.",
        "series": null,
        "xl": {
         "cols": [
@@ -688,7 +688,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r2+r3"
          },
          {
-          "label": "Gross margin",
+          "label": "Gross margin (P&L)",
           "kind": "pct",
           "values": [
            0.3443611400781864,
@@ -882,8 +882,8 @@ window.FOURTH_SHEET_DASHBOARD = {
      }
     ],
     "chart": {
-     "title": "Margin on each installation job invoiced in September 2026",
-     "subtitle": "Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at $68/hour. One 35.0% target for every job for now.",
+     "title": "Job gross margin on each installation invoiced in September 2026",
+     "subtitle": "Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at $68/hour. Before overheads: not profit. One 35.0% target for every job for now.",
      "labels": [
       "Bulimba EV chargers",
       "Milton office LED lighting",
@@ -906,7 +906,7 @@ window.FOURTH_SHEET_DASHBOARD = {
      "details": [
       {
        "title": "Bulimba EV chargers",
-       "formula": "Gross profit ÷ revenue for this job",
+       "formula": "Job gross margin ÷ revenue for this job (before overheads)",
        "head": [
         "",
         "This job"
@@ -933,7 +933,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Technician cost rate ($/hour)",
+         "Technician cost rate ($/hour, wages and all on-costs)",
          "$68",
          ""
         ],
@@ -943,12 +943,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Gross profit",
+         "Job gross margin",
          "$4,432",
          ""
         ],
         [
-         "Margin",
+         "Job gross margin %",
          "45.2%",
          ""
         ]
@@ -993,7 +993,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Technician cost rate ($/hour)",
+          "label": "Technician cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            68
@@ -1009,7 +1009,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r3*r4"
          },
          {
-          "label": "Gross profit",
+          "label": "Job gross margin",
           "kind": "money",
           "values": [
            4432
@@ -1017,7 +1017,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r2+r5"
          },
          {
-          "label": "Margin",
+          "label": "Job gross margin %",
           "kind": "pct",
           "values": [
            0.45224489795918366
@@ -1029,7 +1029,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Milton office LED lighting",
-       "formula": "Gross profit ÷ revenue for this job",
+       "formula": "Job gross margin ÷ revenue for this job (before overheads)",
        "head": [
         "",
         "This job"
@@ -1056,7 +1056,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Technician cost rate ($/hour)",
+         "Technician cost rate ($/hour, wages and all on-costs)",
          "$68",
          ""
         ],
@@ -1066,12 +1066,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Gross profit",
+         "Job gross margin",
          "$7,348",
          ""
         ],
         [
-         "Margin",
+         "Job gross margin %",
          "39.5%",
          ""
         ]
@@ -1116,7 +1116,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Technician cost rate ($/hour)",
+          "label": "Technician cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            68
@@ -1132,7 +1132,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r3*r4"
          },
          {
-          "label": "Gross profit",
+          "label": "Job gross margin",
           "kind": "money",
           "values": [
            7348
@@ -1140,7 +1140,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r2+r5"
          },
          {
-          "label": "Margin",
+          "label": "Job gross margin %",
           "kind": "pct",
           "values": [
            0.39505376344086024
@@ -1152,7 +1152,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Chermside clinic cabling",
-       "formula": "Gross profit ÷ revenue for this job",
+       "formula": "Job gross margin ÷ revenue for this job (before overheads)",
        "head": [
         "",
         "This job"
@@ -1179,7 +1179,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Technician cost rate ($/hour)",
+         "Technician cost rate ($/hour, wages and all on-costs)",
          "$68",
          ""
         ],
@@ -1189,12 +1189,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Gross profit",
+         "Job gross margin",
          "$5,564",
          ""
         ],
         [
-         "Margin",
+         "Job gross margin %",
          "36.6%",
          ""
         ]
@@ -1239,7 +1239,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Technician cost rate ($/hour)",
+          "label": "Technician cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            68
@@ -1255,7 +1255,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r3*r4"
          },
          {
-          "label": "Gross profit",
+          "label": "Job gross margin",
           "kind": "money",
           "values": [
            5564
@@ -1263,7 +1263,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r2+r5"
          },
          {
-          "label": "Margin",
+          "label": "Job gross margin %",
           "kind": "pct",
           "values": [
            0.36605263157894735
@@ -1275,7 +1275,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "West End cafe air-con",
-       "formula": "Gross profit ÷ revenue for this job",
+       "formula": "Job gross margin ÷ revenue for this job (before overheads)",
        "head": [
         "",
         "This job"
@@ -1302,7 +1302,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Technician cost rate ($/hour)",
+         "Technician cost rate ($/hour, wages and all on-costs)",
          "$68",
          ""
         ],
@@ -1312,12 +1312,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Gross profit",
+         "Job gross margin",
          "$4,316",
          ""
         ],
         [
-         "Margin",
+         "Job gross margin %",
          "33.5%",
          ""
         ]
@@ -1362,7 +1362,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Technician cost rate ($/hour)",
+          "label": "Technician cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            68
@@ -1378,7 +1378,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r3*r4"
          },
          {
-          "label": "Gross profit",
+          "label": "Job gross margin",
           "kind": "money",
           "values": [
            4316
@@ -1386,7 +1386,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r2+r5"
          },
          {
-          "label": "Margin",
+          "label": "Job gross margin %",
           "kind": "pct",
           "values": [
            0.3345736434108527
@@ -1398,7 +1398,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Carindale solar and battery",
-       "formula": "Gross profit ÷ revenue for this job",
+       "formula": "Job gross margin ÷ revenue for this job (before overheads)",
        "head": [
         "",
         "This job"
@@ -1425,7 +1425,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Technician cost rate ($/hour)",
+         "Technician cost rate ($/hour, wages and all on-costs)",
          "$68",
          ""
         ],
@@ -1435,12 +1435,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Gross profit",
+         "Job gross margin",
          "$7,372",
          ""
         ],
         [
-         "Margin",
+         "Job gross margin %",
          "26.9%",
          ""
         ]
@@ -1485,7 +1485,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Technician cost rate ($/hour)",
+          "label": "Technician cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            68
@@ -1501,7 +1501,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r3*r4"
          },
          {
-          "label": "Gross profit",
+          "label": "Job gross margin",
           "kind": "money",
           "values": [
            7372
@@ -1509,7 +1509,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r2+r5"
          },
          {
-          "label": "Margin",
+          "label": "Job gross margin %",
           "kind": "pct",
           "values": [
            0.26905109489051093
@@ -1521,7 +1521,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Wacol warehouse switchboard",
-       "formula": "Gross profit ÷ revenue for this job",
+       "formula": "Job gross margin ÷ revenue for this job (before overheads)",
        "head": [
         "",
         "This job"
@@ -1548,7 +1548,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Technician cost rate ($/hour)",
+         "Technician cost rate ($/hour, wages and all on-costs)",
          "$68",
          ""
         ],
@@ -1558,12 +1558,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Gross profit",
+         "Job gross margin",
          "$6,300",
          ""
         ],
         [
-         "Margin",
+         "Job gross margin %",
          "13.5%",
          ""
         ]
@@ -1608,7 +1608,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Technician cost rate ($/hour)",
+          "label": "Technician cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            68
@@ -1624,7 +1624,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r3*r4"
          },
          {
-          "label": "Gross profit",
+          "label": "Job gross margin",
           "kind": "money",
           "values": [
            6300
@@ -1632,7 +1632,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r2+r5"
          },
          {
-          "label": "Margin",
+          "label": "Job gross margin %",
           "kind": "pct",
           "values": [
            0.1346153846153846
@@ -1646,7 +1646,7 @@ window.FOURTH_SHEET_DASHBOARD = {
      "views": [
       {
        "id": "pct",
-       "label": "Margin %",
+       "label": "Gross margin %",
        "values": [
         45.2,
         39.5,
@@ -1660,7 +1660,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "id": "dollars",
-       "label": "Gross profit $",
+       "label": "Gross margin $",
        "values": [
         4432,
         7348,
@@ -1678,7 +1678,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         9590,
         16380
        ],
-       "mark_label": "Target profit (35.0% of the job's revenue)",
+       "mark_label": "Target gross margin (35.0% of the job's revenue)",
        "below_marks": true
       }
      ]
@@ -1736,7 +1736,7 @@ window.FOURTH_SHEET_DASHBOARD = {
      [
       [
        "Technicians",
-       "7 on salary: $54,600 a month incl. super"
+       "7 on salary: $54,600 a month incl. on-costs"
       ],
       [
        "Job costing rate",
@@ -1784,7 +1784,8 @@ window.FOURTH_SHEET_DASHBOARD = {
    ],
    "exports": {
     "xlsx": "media/exports/trades-sample-statements.xlsx",
-    "pdf": "media/exports/trades-sample-statements.pdf"
+    "pdf": "media/exports/trades-sample-statements.pdf",
+    "pptx": "media/exports/trades-sample-statements.pptx"
    }
   },
   {
@@ -1851,7 +1852,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "Consultant salaries (incl. super)",
+       "label": "Consultant salaries (incl. on-costs)",
        "level": "detail",
        "values": [
         -46500,
@@ -2593,8 +2594,8 @@ window.FOURTH_SHEET_DASHBOARD = {
      }
     ],
     "chart": {
-     "title": "Margin on each client engagement, September 2026 work only",
-     "subtitle": "September's revenue less contractors and consultant time at $60/hour. Not the whole engagement to date. One 40.0% target for every engagement for now.",
+     "title": "Gross margin on each client engagement, September 2026 work only",
+     "subtitle": "September's revenue less contractors and consultant time at $60/hour. Before overheads: not profit. Not the whole engagement to date. One 40.0% target for every engagement for now.",
      "labels": [
       "Power BI basics",
       "Retail pricing review",
@@ -2625,7 +2626,7 @@ window.FOURTH_SHEET_DASHBOARD = {
      "details": [
       {
        "title": "Power BI basics",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -2647,7 +2648,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -2657,12 +2658,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$3,760",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "81.7%",
          ""
         ]
@@ -2699,7 +2700,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -2715,7 +2716,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            3760
@@ -2723,7 +2724,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.8173913043478261
@@ -2735,7 +2736,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Retail pricing review",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -2757,7 +2758,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -2767,12 +2768,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$12,480",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "68.4%",
          ""
         ]
@@ -2809,7 +2810,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -2825,7 +2826,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            12480
@@ -2833,7 +2834,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.6842105263157895
@@ -2845,7 +2846,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Agribusiness CFO support",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -2867,7 +2868,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -2877,12 +2878,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$7,800",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "65.0%",
          ""
         ]
@@ -2919,7 +2920,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -2935,7 +2936,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            7800
@@ -2943,7 +2944,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.65
@@ -2955,7 +2956,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Health charity board pack",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -2977,7 +2978,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -2987,12 +2988,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$6,720",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "63.6%",
          ""
         ]
@@ -3029,7 +3030,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -3045,7 +3046,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            6720
@@ -3053,7 +3054,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.6363636363636364
@@ -3065,7 +3066,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Construction firm finance",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -3087,7 +3088,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -3097,12 +3098,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$6,020",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "63.4%",
          ""
         ]
@@ -3139,7 +3140,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -3155,7 +3156,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            6020
@@ -3163,7 +3164,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.6336842105263157
@@ -3175,7 +3176,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Excel for managers",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -3197,7 +3198,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -3207,12 +3208,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$5,500",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "62.5%",
          ""
         ]
@@ -3249,7 +3250,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -3265,7 +3266,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            5500
@@ -3273,7 +3274,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.625
@@ -3285,7 +3286,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Dental group reporting",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -3307,7 +3308,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -3317,12 +3318,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$4,160",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "61.2%",
          ""
         ]
@@ -3359,7 +3360,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -3375,7 +3376,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            4160
@@ -3383,7 +3384,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.611764705882353
@@ -3395,7 +3396,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Manufacturer process mapping",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -3417,7 +3418,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -3427,12 +3428,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$11,000",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "53.9%",
          ""
         ]
@@ -3469,7 +3470,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -3485,7 +3486,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            11000
@@ -3493,7 +3494,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.5392156862745098
@@ -3505,7 +3506,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Logistics systems rollout",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -3527,7 +3528,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -3537,12 +3538,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$19,350",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "52.7%",
          ""
         ]
@@ -3579,7 +3580,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -3595,7 +3596,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            19350
@@ -3603,7 +3604,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.5265306122448979
@@ -3615,7 +3616,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "title": "Hospitality payroll",
-       "formula": "Contribution ÷ revenue for this engagement",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
         "This engagement"
@@ -3637,7 +3638,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Consultant cost rate ($/hour)",
+         "Consultant cost rate ($/hour, wages and all on-costs)",
          "$60",
          ""
         ],
@@ -3647,12 +3648,12 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Contribution",
+         "Gross margin",
          "$2,040",
          ""
         ],
         [
-         "Margin",
+         "Gross margin %",
          "48.6%",
          ""
         ]
@@ -3689,7 +3690,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
-          "label": "Consultant cost rate ($/hour)",
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
           "kind": "money",
           "values": [
            60
@@ -3705,7 +3706,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "-r2*r3"
          },
          {
-          "label": "Contribution",
+          "label": "Gross margin",
           "kind": "money",
           "values": [
            2040
@@ -3713,7 +3714,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0+r1+r4"
          },
          {
-          "label": "Margin",
+          "label": "Gross margin %",
           "kind": "pct",
           "values": [
            0.4857142857142857
@@ -3727,7 +3728,7 @@ window.FOURTH_SHEET_DASHBOARD = {
      "views": [
       {
        "id": "pct",
-       "label": "Margin %",
+       "label": "Gross margin %",
        "values": [
         81.7,
         68.4,
@@ -3745,7 +3746,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       },
       {
        "id": "dollars",
-       "label": "Contribution $",
+       "label": "Gross margin $",
        "values": [
         3760,
         12480,
@@ -3771,7 +3772,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         14700,
         1680
        ],
-       "mark_label": "Target contribution (40.0% of revenue)",
+       "mark_label": "Target gross margin (40.0% of revenue)",
        "below_marks": true
       }
      ]
@@ -3829,7 +3830,7 @@ window.FOURTH_SHEET_DASHBOARD = {
      [
       [
        "Consultants",
-       "6 on salary: $46,500 a month incl. super"
+       "6 on salary: $46,500 a month incl. on-costs"
       ],
       [
        "Engagement costing rate",
@@ -3865,7 +3866,8 @@ window.FOURTH_SHEET_DASHBOARD = {
    ],
    "exports": {
     "xlsx": "media/exports/services-sample-statements.xlsx",
-    "pdf": "media/exports/services-sample-statements.pdf"
+    "pdf": "media/exports/services-sample-statements.pdf",
+    "pptx": "media/exports/services-sample-statements.pptx"
    }
   },
   {
@@ -5785,7 +5787,8 @@ window.FOURTH_SHEET_DASHBOARD = {
    ],
    "exports": {
     "xlsx": "media/exports/nfp-sample-statements.xlsx",
-    "pdf": "media/exports/nfp-sample-statements.pdf"
+    "pdf": "media/exports/nfp-sample-statements.pdf",
+    "pptx": "media/exports/nfp-sample-statements.pptx"
    }
   }
  ]
