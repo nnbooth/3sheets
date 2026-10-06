@@ -366,17 +366,12 @@ function renderChart(ch) {
 }
 
 function renderFourth(o) {
+  // Kept deliberately simple: three headline numbers and one chart.
+  // The fuller fourth sheet (tables etc.) is in the Excel and PDF downloads.
   const f = o.fourth;
-  const kpis = f.kpis.map((k) => `<div class="dash-kpi${k.spine ? ' dash-kpi--spine' : ''}"><span>${esc(k.label)}</span><strong>${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em></div>`).join('');
-  const cell = (c, i) => `<td${i ? ' class="n"' : ''}>${esc(typeof c === 'number' ? acct(c) : c)}</td>`;
-  const table = `<table class="dash-table"><thead><tr>${f.table.head.map((h, i) => `<th${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead>
-    <tbody>${f.table.rows.map((r) => `<tr>${r.map(cell).join('')}</tr>`).join('')}<tr class="dash-total">${f.table.total.map(cell).join('')}</tr></tbody></table>`;
-  const bridge = `<div class="dash-bridge dash-full"><p class="dash-chart-title">${esc(f.bridge.title)}</p><table class="dash-table"><tbody>
-    ${f.bridge.rows.map(([l, v]) => `<tr><td>${esc(l)}</td><td class="n">${acct(v)}</td></tr>`).join('')}
-    <tr class="dash-total"><td>${esc(f.bridge.total[0])}</td><td class="n">${acct(f.bridge.total[1])}</td></tr></tbody></table></div>`;
+  const kpis = f.kpis.slice(0, 3).map((k) => `<div class="dash-kpi${k.spine ? ' dash-kpi--spine' : ''}"><span>${esc(k.label)}</span><strong>${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em></div>`).join('');
   return `<div class="dash-kpis">${kpis}</div>
-    <div class="dash-chart"><p class="dash-chart-title">${esc(f.chart.title)}</p>${renderChart(f.chart)}</div>
-    <p class="dash-chart-title">${esc(f.table.title)}</p>${table}${bridge}`;
+    <div class="dash-chart"><p class="dash-chart-title">${esc(f.chart.title)}</p>${renderChart(f.chart)}</div>`;
 }
 
 function renderAssumptions(o) {

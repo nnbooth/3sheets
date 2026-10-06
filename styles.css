@@ -413,7 +413,7 @@ body.dev-notes .devnote { display: flex; }
 .dash-toggle button { padding: 0.32rem 0.75rem; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--muted); background: transparent; border: 0; border-radius: 999px; cursor: pointer; }
 .dash-toggle button[aria-pressed="true"] { background: #ffffff; color: var(--accent); box-shadow: 0 1px 3px rgba(37, 52, 42, 0.15); }
 .dash-toggle button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
-.dash-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.dash-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
 .dash-kpi { padding: 0.5rem 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.6rem; min-width: 0; }
 .dash-kpi span { display: block; font-size: 0.72rem; color: var(--muted); line-height: 1.3; }
 .dash-kpi strong { display: block; font-size: 1.25rem; line-height: 1.2; margin: 0.1rem 0; color: var(--text); }
@@ -437,7 +437,6 @@ body.dev-notes .devnote { display: flex; }
 .dash-table td, .st-table td { padding: 0.28rem 0.2rem; border-bottom: 1px solid #eef2ee; }
 .dash-table .n, .st-table .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dash-total td { font-weight: 700; border-top: 1px solid var(--text); border-bottom: 3px double var(--text); }
-.dash-bridge { margin-top: 0.4rem; }
 /* statements: the line types */
 .st-scroll { max-height: 26rem; overflow-y: auto; }
 .st-table thead th { position: sticky; top: 0; background: #ffffff; }
@@ -659,7 +658,11 @@ body.dev-notes .devnote { display: flex; }
   .section-heading { margin-bottom: 1.1rem; }
 }
 @media (max-width: 720px) {
-  .st-table .detail, .dash-full { display: none; }
+  .st-table .detail { display: none; }
+  .dash-kpis { grid-template-columns: 1fr 1fr; }
+  .dash-toggle { flex-wrap: nowrap; }
+  .dash-toggle button { padding: 0.3rem 0.5rem; font-size: 0.72rem; white-space: nowrap; }
+  .dash-kpi--spine { grid-column: 1 / -1; }
   .dash-phone-note { display: block; }
   .st-scroll { max-height: none; }
   .dash-tabs [role="tab"] { padding: 0.4rem 0.45rem; font-size: 0.72rem; }

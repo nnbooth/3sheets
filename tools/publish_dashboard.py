@@ -46,7 +46,6 @@ def checks(org):
         "Balance sheet balances: assets = liabilities + " + ("accumulated funds" if nfp else "equity"),
         "Cash flow ends at the cash in the bank",
         ("Surplus ties to the movement in accumulated funds" if nfp else "Profit ties to retained earnings, after dividends"),
-        "Profit-to-cash bridge ends at the change in cash",
     ]
 
 
@@ -59,14 +58,11 @@ def dashboard_payload(res):
     for org in ORDER:
         v = res[org]
         f4 = v["fourth"]
-        bridge = v["out"]["bridge"]
         orgs.append({
             "id": org, "toggle": TOGGLE[org], "name": v["model"]["long_name"], "about": v["model"]["about"],
             "columns": fm.FY, "unit": "$'000",
             "statements": statements(org, v),
-            "fourth": {"kpis": f4["kpis"], "chart": f4["chart"], "table": f4["table"],
-                       "bridge": {"title": ("Surplus" if org == "nfp" else "Profit") + " to cash, FY2026 ($'000)",
-                                  "rows": bridge, "total": ["Change in cash", v["out"]["change"]]}},
+            "fourth": {"kpis": f4["kpis"], "chart": f4["chart"], "table": f4["table"]},
             "checks": checks(org), "assumptions": v["assumptions"], "exports": export_paths(org),
         })
     return {"generated": date.today().isoformat(), "orgs": orgs}
@@ -84,7 +80,7 @@ def write_dashboard_js(res):
 # =============================================================== CSV rows
 
 def csv_tables(res):
-    st, kp, mo, asm, br = [], [], [], [], []
+    st, kp, mo, asm = [], [], [], []
     for org in ORDER:
         v = res[org]
         for skey, s in statements(org, v).items():
@@ -101,16 +97,12 @@ def csv_tables(res):
         for group, items in v["assumptions"]:
             for item, val in items:
                 asm.append([org, group, item, val])
-        for line, val in v["out"]["bridge"]:
-            br.append([org, line, val])
-        br.append([org, "Change in cash", v["out"]["change"]])
     return {
         "model_statements": ("Home-page dashboard: P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, FY2026 and FY2025, $'000. Costs and outflows are negative. level = detail/subtotal/total/key.",
                              ["org", "statement", "line_order", "line", "level", "financial_year", "amount_aud_k"], st),
         "model_fourth_sheet_kpis": ("Home-page dashboard: the fourth-sheet KPI tiles, as displayed.", ["org", "kpi", "value", "comparison"], kp),
         "model_monthly": ("Home-page dashboard: monthly drivers behind the fourth-sheet charts, FY2026 (sum to the annual figures).",
                           ["org", "financial_year", "month", "measure", "value"], mo),
-        "model_bridge": ("Home-page dashboard: profit (surplus) to cash bridge, FY2026, $'000.", ["org", "line", "amount_aud_k"], br),
         "model_assumptions": ("Home-page dashboard: the assumptions each sample organisation's statements are built from.", ["org", "assumption_group", "assumption", "value"], asm),
     }
 
@@ -202,15 +194,6 @@ def write_xlsx(org, v):
         r += 1
         ws.cell(r, 1, "Target").font = Font(italic=True, color=MUTED)
         ws.cell(r, 2, ch["target"])
-    r += 2
-    ws.cell(r, 1, ("Surplus" if org == "nfp" else "Profit") + " to cash, FY2026 ($'000)").font = Font(bold=True, color=INK)
-    for line, val in v["out"]["bridge"] + [["Change in cash", v["out"]["change"]]]:
-        r += 1
-        ws.cell(r, 1, line)
-        ws.cell(r, 2, val).number_format = NUM
-        if line == "Change in cash":
-            ws.cell(r, 1).font = ws.cell(r, 2).font = Font(bold=True)
-            ws.cell(r, 1).border = ws.cell(r, 2).border = Border(top=THIN, bottom=DOUBLE)
     ws.column_dimensions["A"].width = 44
     for col in "BCD":
         ws.column_dimensions[col].width = 16
@@ -271,8 +254,6 @@ def html_report(org, v):
     tbl = "<table><tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(t["head"])) + "</tr>" + \
           "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{esc(fmt(c) if isinstance(c, int) else c)}</td>" for i, c in enumerate(rw)) + "</tr>" for rw in t["rows"]) + \
           "<tr class=total>" + "".join(f"<td{' class=n' if i else ''}>{esc(fmt(c) if isinstance(c, int) else c)}</td>" for i, c in enumerate(t["total"])) + "</tr></table>"
-    bridge = "<table>" + "".join(f"<tr><td>{esc(l)}</td><td class=n>{fmt(x)}</td></tr>" for l, x in v["out"]["bridge"]) + \
-             f"<tr class=key><td>Change in cash</td><td class=n>{fmt(v['out']['change'])}</td></tr></table>"
     ch = f4["chart"]
     mx = max(ch["values"] + ([ch["target"]] if ch.get("target") else []))
     bars = "".join(f"<div class=bar><i style='height:{100 * x / mx:.1f}%'></i><span>{esc(l)}</span></div>" for l, x in zip(ch["labels"], ch["values"]))
@@ -311,7 +292,7 @@ footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
 <h1>{esc(v['model']['long_name'])}</h1><p class=about>{esc(v['model']['about'])}</p>
 <h2>The fourth sheet: the numbers underneath (FY2026)</h2><div class=kpis>{kpis}</div>
 <h3>{esc(ch['title'])}</h3><div class=chart>{bars}{target}</div>
-<div class=two><div><h3>{esc(t['title'])}</h3>{tbl}</div><div><h3>{"Surplus" if org == "nfp" else "Profit"} to cash, FY2026 ($'000)</h3>{bridge}</div></div>
+<h3>{esc(t['title'])}</h3>{tbl}
 <div class=page>{stmt(st['pnl'])}</div>
 <div class=page>{stmt(st['bs'])}</div>
 <div class=page>{stmt(st['cf'])}</div>

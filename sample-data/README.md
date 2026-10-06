@@ -25,7 +25,6 @@ The invented "Sample Co" numbers behind every mock-up dashboard and report on th
 | `model_statements` | Home-page dashboard: P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, FY2026 and FY2025, $'000. Costs and outflows are negative. level = detail/subtotal/total/key. | `org`, `statement`, `line_order`, `line`, `level`, `financial_year`, `amount_aud_k` |
 | `model_fourth_sheet_kpis` | Home-page dashboard: the fourth-sheet KPI tiles, as displayed. | `org`, `kpi`, `value`, `comparison` |
 | `model_monthly` | Home-page dashboard: monthly drivers behind the fourth-sheet charts, FY2026 (sum to the annual figures). | `org`, `financial_year`, `month`, `measure`, `value` |
-| `model_bridge` | Home-page dashboard: profit (surplus) to cash bridge, FY2026, $'000. | `org`, `line`, `amount_aud_k` |
 | `model_assumptions` | Home-page dashboard: the assumptions each sample organisation's statements are built from. | `org`, `assumption_group`, `assumption`, `value` |
 
 ### Live-display screens (media/display-*.png)
