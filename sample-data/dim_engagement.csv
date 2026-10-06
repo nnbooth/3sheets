@@ -1,0 +1,13 @@
+engagement_id,org_id,engagement_type,description,hourly_rate,fixed_fee,payment_days
+E-311,services,Project,"Systems implementation, logistics client",175,,30
+E-314,services,Project,"Pricing review, retail group",190,,30
+E-316,services,Project,"Cost-to-serve analysis, distributor",180,,45
+E-318,services,Project,"Board reporting pack, health not-for-profit",165,,30
+E-320,services,Project,"Process mapping, manufacturer",170,,45
+R-102,services,Retainer,"Monthly finance, construction firm",,9500,14
+R-105,services,Retainer,"Monthly reporting, dental group",,6800,14
+R-108,services,Retainer,"CFO support, agribusiness",,12000,30
+R-110,services,Retainer,"Payroll and compliance, hospitality group",,4200,14
+T-205,services,Training,Budgeting workshop (1 day),,6400,30
+T-207,services,Training,Excel for managers (2 days),,8800,30
+T-209,services,Training,Power BI basics (1 day),,4600,30

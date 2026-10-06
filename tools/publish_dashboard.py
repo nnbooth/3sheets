@@ -147,33 +147,10 @@ def csv_tables(res):
         for group, items in v["assumptions"]:
             for item, val in items:
                 asm.append([org, group, item, val])
-    o = res["trades"]["out"]
-    jobs = [[j["month"], j["job"], j["type"], j["description"], j["invoice_date"].isoformat(), j["paid_date"].isoformat(),
-             j["revenue"], j["materials"], j["subcontractors"], j["hours"], j["labour_cost"], j["gross_profit"]] for j in o["jobs"]]
-    o = res["services"]["out"]
-    eng = [[x["month"], x["code"], x["type"], x["description"], x["hours"], x["revenue"], x["billed"], x["contractors"],
-            x["allocated_cost"], x["contribution"]] for x in o["engagements"]]
-    inv = sorted([[i["invoice"], i["code"], i["amount"], i["invoice_date"].isoformat(), i["paid_date"].isoformat()] for i in o["invoices"]], key=lambda r: r[3])
-    grants = [[g["code"], g["program"], g["funder"], g["total"], g["start"], g["end"], g["received_to_date"], g["spent_to_date"], g["spent_aug"],
-               g["spent_sep"], g["budget_to_date"], g["spend_vs_budget_pct"], g["unspent"], g["balance_30_sep"], g["months_left"]] for g in res["nfp"]["out"]["grants"]]
-    inst = [[gr[0], d.isoformat(), a] for gr in fm.NFP["grants"] for d, a in gr[7]]
     return {
         "model_statements": ("Home-page dashboard: month-end P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, September 2026 and August 2026, whole dollars. Costs and outflows are negative. level = detail/subtotal/total/key.",
                              ["org", "statement_key", "statement", "line_order", "line", "level", "period", "amount_aud"], st),
         "model_fourth_sheet_kpis": ("Home-page dashboard: the fourth-sheet KPI tiles for September 2026, as displayed.", ["org", "kpi", "value", "comparison"], kp),
-        "model_jobs": ("SME trades sample: every job May-September 2026 (maintenance contracts, installations, call-outs). Sep and Aug jobs add up to the P&L; unpaid invoices at month end = trade debtors. Labour cost = hours x $68.",
-                       ["month", "job", "job_type", "description", "invoice_date", "paid_date", "revenue", "materials", "subcontractors",
-                        "tech_hours", "labour_cost", "gross_profit"], jobs),
-        "model_engagements": ("SME services sample: every client engagement worked in August and September 2026. Revenue adds up to the P&L; consultant time costed at $60/hour.",
-                              ["month", "engagement", "engagement_type", "description", "hours", "revenue", "billed", "contractors",
-                               "consultant_time_cost", "contribution"], eng),
-        "model_invoices": ("SME services sample: client invoices May-September 2026 with payment dates. Unpaid at month end = trade debtors.",
-                           ["invoice", "engagement", "amount", "invoice_date", "paid_date"], inv),
-        "model_grants": ("Not-for-profit sample: each grant at 30 September 2026. Spend = grant income recognised; received less spent = grants in advance (or receivable).",
-                         ["grant", "program", "funder", "total", "start_date", "end_date", "received_to_date", "spent_to_date", "spent_aug",
-                          "spent_sep", "budget_to_date", "spend_vs_budget_pct", "still_to_spend", "balance_30_sep", "months_left"], grants),
-        "model_grant_instalments": ("Not-for-profit sample: grant instalment schedule (dates and amounts).",
-                                    ["grant", "instalment_date", "amount"], inst),
         "model_assumptions": ("Home-page dashboard: the assumptions each sample organisation's statements are built from.", ["org", "assumption_group", "assumption", "value"], asm),
     }
 
@@ -402,6 +379,7 @@ def write_pdfs(res):
 
 def publish():
     res = fm.build()  # runs every check; stops here if anything doesn't add up
+    publish.res = res
     write_dashboard_js(res)
     for org in ORDER:
         write_xlsx(org, res[org])
