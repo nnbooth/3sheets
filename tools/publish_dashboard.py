@@ -241,6 +241,49 @@ def write_xlsx(org, v):
         w.page_setup.fitToWidth = 1
         w.sheet_properties.pageSetUpPr.fitToPage = True
 
+    w = wb.create_sheet("Workings")
+    w["A1"] = "How each number is worked out"
+    w["A1"].font = Font(bold=True, size=14, color=INK)
+    w["A2"] = sub
+    w["A2"].font = Font(italic=True, size=9, color=MUTED)
+    r = 4
+    supports = [k["support"] for k in f4["kpis"]] + f4["chart"].get("details", [])
+    for sp in supports:
+        w.cell(r, 1, sp["title"]).font = Font(bold=True, color=GREEN, size=12)
+        w.cell(r + 1, 1, sp["formula"]).font = Font(italic=True, color=MUTED)
+        r += 2
+        two = all(not row_[2] for row_ in sp["rows"])
+        heads = sp["head"][:2] if two else sp["head"]
+        for c, h in enumerate(heads, 1):
+            cell = w.cell(r, c, h or "")
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill("solid", fgColor=GREEN)
+        for row_ in sp["rows"]:
+            r += 1
+            for c, val in enumerate(row_[:2] if two else row_, 1):
+                w.cell(r, c, val).alignment = Alignment(horizontal="left" if c == 1 else "right")
+        if sp.get("note"):
+            r += 1
+            w.cell(r, 1, sp["note"]).font = Font(italic=True, size=9, color=MUTED)
+        if sp.get("series"):
+            se = sp["series"]
+            r += 2
+            w.cell(r, 1, se["title"]).font = Font(bold=True, color=INK)
+            for c, h in enumerate(["Month", "Spend", "Budget"], 1):
+                cell = w.cell(r + 1, c, h)
+                cell.font = Font(bold=True, color="FFFFFF")
+                cell.fill = PatternFill("solid", fgColor=GREEN)
+            r += 1
+            for lab, val, bud in zip(se["labels"], se["values"], se["budget"]):
+                r += 1
+                w.cell(r, 1, lab)
+                w.cell(r, 2, val).number_format = NUM
+                w.cell(r, 3, bud).number_format = NUM
+        r += 3
+    w.column_dimensions["A"].width = 52
+    for col in "BC":
+        w.column_dimensions[col].width = 26
+
     title, head, rows = detail_table(org, v)
     w = wb.create_sheet({"trades": "Jobs", "services": "Engagements", "nfp": "Grants"}[org])
     w["A1"] = title
@@ -314,6 +357,12 @@ def html_report(org, v):
     below = lambda x: ch.get("target") is not None and x < ch["target"]
     bars = "".join(f"<div class=hrow><span class=hl>{esc(l)}</span><span class=htrack style='margin-right:30px'><i class='{'below' if below(x) else ''}' style='width:{100 * x / mx:.1f}%'></i><em>{x:.0f}%</em></span></div>" for l, x in zip(ch["labels"], ch["values"]))
     target = f"<div class=htarget style='left:calc(150px + (100% - 150px - 30px) * {ch['target'] / mx:.4f})'></div>" if ch.get("target") else ""
+    def wk(sp):
+        two = all(not r_[2] for r_ in sp["rows"])
+        head = "" if two else "<tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sp["head"])) + "</tr>"
+        body = "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{esc(c)}</td>" for i, c in enumerate(r_[:2] if two else r_)) + "</tr>" for r_ in sp["rows"])
+        return f"<h3>{esc(sp['title'])}</h3><p class=formula>{esc(sp['formula'])}</p><table class=wk>{head}{body}</table>" + (f"<p class=note>{esc(sp['note'])}</p>" if sp.get("note") else "")
+    workings = "".join(wk(k["support"]) for k in f4["kpis"])
     assum = "".join(f"<h3>{esc(g)}</h3><table class=assum>" + "".join(f"<tr><td>{esc(a)}</td><td>{esc(b)}</td></tr>" for a, b in items) + "</table>" for g, items in v["assumptions"])
     st = statements(org, v)
     return f"""<!doctype html><html><head><meta charset=utf-8>
@@ -342,6 +391,7 @@ tr.key td {{ font-weight: 800; background: #eaf6ee; border-top: 1px solid #25342
 .detail-list {{ font-size: 8.5pt; }} .detail-list td {{ white-space: nowrap; }} .detail-list td.w {{ white-space: normal; min-width: 110px; }}
 @page wide {{ size: A4 landscape; margin: 14mm; }} .wide {{ page: wide; }}
 .legend .tl {{ display: inline-block; width: 16px; border-top: 1.5px dashed #2f2f2f; vertical-align: middle; margin-right: 4px; }} .legend {{ font-size: 8pt; color: #5f6f63; margin: 4px 0 0; }} .legend i {{ display: inline-block; width: 9px; height: 9px; background: #c8a77e; margin-right: 4px; }}
+.formula {{ margin: 0 0 4px; font-style: italic; color: #5f6f63; }} .wk {{ margin-bottom: 10px; }} .wk tr:last-child td {{ font-weight: 700; border-top: 1px solid #9db8a6; }} .note {{ font-size: 8.5pt; color: #5f6f63; margin: 2px 0 8px; }}
 .two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }} .page {{ page-break-before: always; }}
 .assum td:first-child {{ width: 40%; color: #5f6f63; }} .checks li {{ margin: 2px 0; }}
 footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
@@ -351,6 +401,7 @@ footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
 <h1>{esc(v['model']['long_name'])}</h1><p class=about>{esc(v['model']['about'])}</p>
 <h2>The fourth sheet: September 2026 vs August 2026</h2><div class=kpis>{kpis}</div>
 <h3>{esc(ch['title'])}</h3><div class=chart>{bars}{target}</div><p class=legend><i></i>Below target &nbsp; <span class=tl></span>Target {ch.get('target')}%</p>
+<div class=page><h2>How each number is worked out</h2>{workings}</div>
 <div class="page wide"><h2>{esc(dtitle)}</h2>{tbl}</div>
 <div class=page>{stmt(st['pnl'])}</div>
 <div class=page>{stmt(st['bs'])}</div>

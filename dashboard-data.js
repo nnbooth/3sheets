@@ -572,19 +572,128 @@ window.FOURTH_SHEET_DASHBOARD = {
       "value": "34.4%",
       "sub": "▼ from 35.5% in Aug",
       "cls": "bad",
-      "spine": true
+      "spine": true,
+      "support": {
+       "title": "Gross margin",
+       "formula": "Gross profit ÷ revenue",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Revenue (every job invoiced in the month)",
+         "$202,337",
+         "$179,007"
+        ],
+        [
+         "Materials",
+         "$-64,860",
+         "$-51,530"
+        ],
+        [
+         "Subcontractors",
+         "$-13,200",
+         "$-9,300"
+        ],
+        [
+         "Technician wages",
+         "$-54,600",
+         "$-54,600"
+        ],
+        [
+         "Gross profit",
+         "$69,677",
+         "$63,577"
+        ],
+        [
+         "Gross margin",
+         "34.4%",
+         "35.5%"
+        ]
+       ],
+       "note": "Technicians are on salary, so a quiet month for jobs lowers the margin even if every job is priced well.",
+       "series": null
+      }
      },
      {
       "label": "Cost to win a customer",
       "value": "$162",
       "sub": "▼ from $205 in Aug",
-      "cls": "good"
+      "cls": "good",
+      "support": {
+       "title": "Cost to win a customer",
+       "formula": "Marketing spend ÷ new customers",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Marketing spend",
+         "$7,600",
+         "$8,400"
+        ],
+        [
+         "New customers (first job ever)",
+         "47",
+         "41"
+        ],
+        [
+         "Cost per new customer",
+         "$162",
+         "$205"
+        ]
+       ],
+       "note": null,
+       "series": null
+      }
      },
      {
       "label": "Technician time on jobs",
       "value": "64%",
       "sub": "▲ from 62% in Aug",
-      "cls": "good"
+      "cls": "good",
+      "support": {
+       "title": "Technician time on jobs",
+       "formula": "Hours charged to jobs ÷ hours available",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Hours charged to jobs (timesheets)",
+         "752.5 h",
+         "655 h"
+        ],
+        [
+         "Technicians",
+         "7",
+         "7"
+        ],
+        [
+         "Working days",
+         "22",
+         "20"
+        ],
+        [
+         "Hours available (technicians × days × 7.6)",
+         "1,170.4 h",
+         "1,064 h"
+        ],
+        [
+         "Time on jobs",
+         "64%",
+         "62%"
+        ]
+       ],
+       "note": "August had one fewer working day for the Ekka show holiday. The rest is travel, training, quoting and waiting time.",
+       "series": null
+      }
      }
     ],
     "chart": {
@@ -593,7 +702,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       "Wacol warehouse switchboard",
       "Milton office LED lighting",
       "Carindale solar and battery",
-      "West End café air-con",
+      "West End cafe air-con",
       "Bulimba EV chargers",
       "Chermside clinic cabling"
      ],
@@ -607,7 +716,297 @@ window.FOURTH_SHEET_DASHBOARD = {
      ],
      "target": 35,
      "format": "pct0",
-     "what": "job margin"
+     "what": "job margin",
+     "details": [
+      {
+       "title": "Wacol warehouse switchboard",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "4 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$46,800",
+         ""
+        ],
+        [
+         "Materials",
+         "$-22,900",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "$-7,400",
+         ""
+        ],
+        [
+         "Technician time",
+         "150 h × $68 = $-10,200",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$6,300",
+         ""
+        ],
+        [
+         "Margin",
+         "13.5%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Milton office LED lighting",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "9 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$18,600",
+         ""
+        ],
+        [
+         "Materials",
+         "$-6,900",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "$0",
+         ""
+        ],
+        [
+         "Technician time",
+         "64 h × $68 = $-4,352",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$7,348",
+         ""
+        ],
+        [
+         "Margin",
+         "39.5%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Carindale solar and battery",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "15 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$27,400",
+         ""
+        ],
+        [
+         "Materials",
+         "$-13,800",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "$-3,100",
+         ""
+        ],
+        [
+         "Technician time",
+         "46 h × $68 = $-3,128",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$7,372",
+         ""
+        ],
+        [
+         "Margin",
+         "26.9%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "West End cafe air-con",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "18 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$12,900",
+         ""
+        ],
+        [
+         "Materials",
+         "$-5,100",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "$-900",
+         ""
+        ],
+        [
+         "Technician time",
+         "38 h × $68 = $-2,584",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$4,316",
+         ""
+        ],
+        [
+         "Margin",
+         "33.5%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Bulimba EV chargers",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "23 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$9,800",
+         ""
+        ],
+        [
+         "Materials",
+         "$-3,600",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "$0",
+         ""
+        ],
+        [
+         "Technician time",
+         "26 h × $68 = $-1,768",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$4,432",
+         ""
+        ],
+        [
+         "Margin",
+         "45.2%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Chermside clinic cabling",
+       "formula": "Gross profit ÷ revenue for this job",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Invoiced",
+         "29 Sep",
+         ""
+        ],
+        [
+         "Revenue",
+         "$15,200",
+         ""
+        ],
+        [
+         "Materials",
+         "$-4,300",
+         ""
+        ],
+        [
+         "Subcontractors",
+         "$-1,800",
+         ""
+        ],
+        [
+         "Technician time",
+         "52 h × $68 = $-3,536",
+         ""
+        ],
+        [
+         "Gross profit",
+         "$5,564",
+         ""
+        ],
+        [
+         "Margin",
+         "36.6%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      }
+     ]
     }
    },
    "checks": [
@@ -1272,19 +1671,113 @@ window.FOURTH_SHEET_DASHBOARD = {
       "value": "74%",
       "sub": "▲ from 71% in Aug",
       "cls": "good",
-      "spine": true
+      "spine": true,
+      "support": {
+       "title": "Consultant utilisation",
+       "formula": "Billable hours ÷ hours available",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Billable hours (timesheets)",
+         "742 h",
+         "648 h"
+        ],
+        [
+         "Consultants",
+         "6",
+         "6"
+        ],
+        [
+         "Working days",
+         "22",
+         "20"
+        ],
+        [
+         "Hours available (consultants × days × 7.6)",
+         "1,003.2 h",
+         "912 h"
+        ],
+        [
+         "Utilisation",
+         "74%",
+         "71%"
+        ]
+       ],
+       "note": null,
+       "series": null
+      }
      },
      {
       "label": "Revenue per billable hour",
       "value": "$178",
       "sub": "▲ from $177 in Aug",
-      "cls": "good"
+      "cls": "good",
+      "support": {
+       "title": "Revenue per billable hour",
+       "formula": "Revenue ÷ billable hours",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Revenue",
+         "$131,850",
+         "$114,640"
+        ],
+        [
+         "Billable hours",
+         "742 h",
+         "648 h"
+        ],
+        [
+         "Revenue per hour",
+         "$178",
+         "$177"
+        ]
+       ],
+       "note": "Retainers and training are fixed fees, so fewer hours on them raises the hourly figure.",
+       "series": null
+      }
      },
      {
       "label": "Unbilled work + unpaid invoices",
       "value": "$216,090",
       "sub": "▲ from $149,190 in Aug",
-      "cls": "bad"
+      "cls": "bad",
+      "support": {
+       "title": "Cash tied up in work",
+       "formula": "Work in progress + unpaid invoices at month end",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Work in progress (project time not yet billed)",
+         "$99,290",
+         "$77,900"
+        ],
+        [
+         "Unpaid client invoices",
+         "$116,800",
+         "$71,290"
+        ],
+        [
+         "Total tied up",
+         "$216,090",
+         "$149,190"
+        ]
+       ],
+       "note": "Milestone billing on the logistics and manufacturer projects landed at the end of September, so it moved from unbilled to unpaid.",
+       "series": null
+      }
      }
     ],
     "chart": {
@@ -1315,7 +1808,489 @@ window.FOURTH_SHEET_DASHBOARD = {
      ],
      "target": 40,
      "format": "pct0",
-     "what": "engagement margin"
+     "what": "engagement margin",
+     "details": [
+      {
+       "title": "Logistics systems rollout",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Project",
+         ""
+        ],
+        [
+         "Hours",
+         "210 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$36,750",
+         ""
+        ],
+        [
+         "Contractors",
+         "$-4,800",
+         ""
+        ],
+        [
+         "Consultant time",
+         "210 h × $60 = $-12,600",
+         ""
+        ],
+        [
+         "Contribution",
+         "$19,350",
+         ""
+        ],
+        [
+         "Margin",
+         "52.7%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Retail pricing review",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Project",
+         ""
+        ],
+        [
+         "Hours",
+         "96 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$18,240",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "96 h × $60 = $-5,760",
+         ""
+        ],
+        [
+         "Contribution",
+         "$12,480",
+         ""
+        ],
+        [
+         "Margin",
+         "68.4%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Health charity board pack",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Project",
+         ""
+        ],
+        [
+         "Hours",
+         "64 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$10,560",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "64 h × $60 = $-3,840",
+         ""
+        ],
+        [
+         "Contribution",
+         "$6,720",
+         ""
+        ],
+        [
+         "Margin",
+         "63.6%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Manufacturer process mapping",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Project",
+         ""
+        ],
+        [
+         "Hours",
+         "120 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$20,400",
+         ""
+        ],
+        [
+         "Contractors",
+         "$-2,200",
+         ""
+        ],
+        [
+         "Consultant time",
+         "120 h × $60 = $-7,200",
+         ""
+        ],
+        [
+         "Contribution",
+         "$11,000",
+         ""
+        ],
+        [
+         "Margin",
+         "53.9%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Construction firm finance",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Retainer",
+         ""
+        ],
+        [
+         "Hours",
+         "58 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$9,500",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "58 h × $60 = $-3,480",
+         ""
+        ],
+        [
+         "Contribution",
+         "$6,020",
+         ""
+        ],
+        [
+         "Margin",
+         "63.4%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Dental group reporting",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Retainer",
+         ""
+        ],
+        [
+         "Hours",
+         "44 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$6,800",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "44 h × $60 = $-2,640",
+         ""
+        ],
+        [
+         "Contribution",
+         "$4,160",
+         ""
+        ],
+        [
+         "Margin",
+         "61.2%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Agribusiness CFO support",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Retainer",
+         ""
+        ],
+        [
+         "Hours",
+         "70 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$12,000",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "70 h × $60 = $-4,200",
+         ""
+        ],
+        [
+         "Contribution",
+         "$7,800",
+         ""
+        ],
+        [
+         "Margin",
+         "65.0%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Hospitality payroll",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Retainer",
+         ""
+        ],
+        [
+         "Hours",
+         "36 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$4,200",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "36 h × $60 = $-2,160",
+         ""
+        ],
+        [
+         "Contribution",
+         "$2,040",
+         ""
+        ],
+        [
+         "Margin",
+         "48.6%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Excel for managers",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Training",
+         ""
+        ],
+        [
+         "Hours",
+         "30 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$8,800",
+         ""
+        ],
+        [
+         "Contractors",
+         "$-1,500",
+         ""
+        ],
+        [
+         "Consultant time",
+         "30 h × $60 = $-1,800",
+         ""
+        ],
+        [
+         "Contribution",
+         "$5,500",
+         ""
+        ],
+        [
+         "Margin",
+         "62.5%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      },
+      {
+       "title": "Power BI basics",
+       "formula": "Contribution ÷ revenue for this engagement",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Type",
+         "Training",
+         ""
+        ],
+        [
+         "Hours",
+         "14 h",
+         ""
+        ],
+        [
+         "Revenue",
+         "$4,600",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant time",
+         "14 h × $60 = $-840",
+         ""
+        ],
+        [
+         "Contribution",
+         "$3,760",
+         ""
+        ],
+        [
+         "Margin",
+         "81.7%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null
+      }
+     ]
     }
    },
    "checks": [
@@ -1968,23 +2943,147 @@ window.FOURTH_SHEET_DASHBOARD = {
       "value": "20¢",
       "sub": "▲ from 13¢ in Aug",
       "cls": "bad",
-      "spine": true
+      "spine": true,
+      "support": {
+       "title": "Cost to raise a dollar",
+       "formula": "Fundraising costs ÷ money raised (grants, donations, events)",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Grant writing and reporting",
+         "$7,100",
+         "$7,100"
+        ],
+        [
+         "Donor campaigns",
+         "$5,400",
+         "$2,200"
+        ],
+        [
+         "Event costs",
+         "$16,900",
+         "$2,400"
+        ],
+        [
+         "Fundraising costs",
+         "$29,400",
+         "$11,700"
+        ],
+        [
+         "Grant income",
+         "$77,000",
+         "$73,700"
+        ],
+        [
+         "Donations",
+         "$27,900",
+         "$18,400"
+        ],
+        [
+         "Fundraising events",
+         "$41,600",
+         "$0"
+        ],
+        [
+         "Money raised",
+         "$146,500",
+         "$92,100"
+        ],
+        [
+         "Cost per dollar raised",
+         "20¢",
+         "13¢"
+        ]
+       ],
+       "note": "September's gala raised $41,600 but cost $16,900 to run, which lifts the month's figure.",
+       "series": null
+      }
      },
      {
       "label": "Unrestricted cash runway",
       "value": "2.0 months",
       "sub": "▼ from 2.2 months in Aug",
-      "cls": "bad"
+      "cls": "bad",
+      "support": {
+       "title": "Unrestricted cash runway",
+       "formula": "(Cash at bank − unspent grant money) ÷ this month's cash spending",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Cash at bank",
+         "$480,780",
+         "$525,675"
+        ],
+        [
+         "Less unspent grant money (belongs to funders' programs)",
+         "$-156,100",
+         "$-221,900"
+        ],
+        [
+         "Unrestricted cash",
+         "$324,680",
+         "$303,775"
+        ],
+        [
+         "Cash spending in the month (expenses less depreciation)",
+         "$162,900",
+         "$141,200"
+        ],
+        [
+         "Runway",
+         "2.0 months",
+         "2.2 months"
+        ]
+       ],
+       "note": "Reserves target: 3 months.",
+       "series": null
+      }
      },
      {
       "label": "Grants ending in 6 months",
       "value": "2 · $117,300",
       "sub": "still to spend before they end",
-      "cls": "bad"
+      "cls": "bad",
+      "support": {
+       "title": "Grants ending in the next 6 months",
+       "formula": "Grant total − spent to date",
+       "head": [
+        "",
+        "Ends",
+        "Still to spend"
+       ],
+       "rows": [
+        [
+         "Housing support",
+         "31 Dec 2026",
+         "$102,300"
+        ],
+        [
+         "Volunteer coordinator",
+         "28 Feb 2027",
+         "$15,000"
+        ],
+        [
+         "Total",
+         "",
+         "$117,300"
+        ]
+       ],
+       "note": "Unspent money usually has to be returned, or an extension negotiated, so plan the spending now.",
+       "series": null
+      }
      }
     ],
     "chart": {
-     "title": "Grant spend vs budget to date (%)",
+     "title": "Grant spend to date against budget",
      "labels": [
       "Youth outreach",
       "Housing support",
@@ -2003,7 +3102,516 @@ window.FOURTH_SHEET_DASHBOARD = {
      ],
      "target": 100,
      "format": "pct0",
-     "what": "grant spend against budget"
+     "what": "grant spend against budget",
+     "plain": true,
+     "views": [
+      {
+       "id": "pct",
+       "label": "% of budget",
+       "values": [
+        102.1,
+        95.4,
+        100.0,
+        99.3,
+        95.3,
+        100.0
+       ],
+       "format": "pct0",
+       "target": 100
+      },
+      {
+       "id": "spend",
+       "label": "$ spent",
+       "values": [
+        306300,
+        257700,
+        12000,
+        59600,
+        57200,
+        21000
+       ],
+       "format": "money_k",
+       "marks": [
+        300000,
+        270000,
+        12000,
+        60000,
+        60000,
+        21000
+       ],
+       "mark_label": "Budget to date"
+      }
+     ],
+     "details": [
+      {
+       "title": "Youth outreach",
+       "formula": "State Department of Families · $480,000 · Jul 2025 to Jun 2027",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Received from the funder",
+         "$300,000",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$173,700",
+         ""
+        ],
+        [
+         "Months left",
+         "9",
+         ""
+        ],
+        [
+         "Spent to date",
+         "$306,300",
+         ""
+        ],
+        [
+         "Budget to date",
+         "$300,000",
+         ""
+        ],
+        [
+         "Spent against budget",
+         "102.1%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": {
+        "title": "Spend by month against budget",
+        "labels": [
+         "Jul 25",
+         "Aug 25",
+         "Sep 25",
+         "Oct 25",
+         "Nov 25",
+         "Dec 25",
+         "Jan 26",
+         "Feb 26",
+         "Mar 26",
+         "Apr 26",
+         "May 26",
+         "Jun 26",
+         "Jul 26",
+         "Aug 26",
+         "Sep 26"
+        ],
+        "values": [
+         17363,
+         21144,
+         17537,
+         21925,
+         21079,
+         19272,
+         21157,
+         20743,
+         16515,
+         20451,
+         21174,
+         20366,
+         23274,
+         21500,
+         22800
+        ],
+        "budget": [
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000,
+         20000
+        ],
+        "format": "money0"
+       }
+      },
+      {
+       "title": "Housing support",
+       "formula": "State Housing Program · $360,000 · Jan 2026 to Dec 2026",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Received from the funder",
+         "$360,000",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$102,300",
+         ""
+        ],
+        [
+         "Months left",
+         "3",
+         ""
+        ],
+        [
+         "Spent to date",
+         "$257,700",
+         ""
+        ],
+        [
+         "Budget to date",
+         "$270,000",
+         ""
+        ],
+        [
+         "Spent against budget",
+         "95.4%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": {
+        "title": "Spend by month against budget",
+        "labels": [
+         "Jan 26",
+         "Feb 26",
+         "Mar 26",
+         "Apr 26",
+         "May 26",
+         "Jun 26",
+         "Jul 26",
+         "Aug 26",
+         "Sep 26"
+        ],
+        "values": [
+         30502,
+         26508,
+         24832,
+         23730,
+         31337,
+         29994,
+         29097,
+         30500,
+         31200
+        ],
+        "budget": [
+         30000,
+         30000,
+         30000,
+         30000,
+         30000,
+         30000,
+         30000,
+         30000,
+         30000
+        ],
+        "format": "money0"
+       }
+      },
+      {
+       "title": "Community meals",
+       "formula": "Local council community grant · $48,000 · Jul 2026 to Jun 2027",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Received from the funder",
+         "$48,000",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$36,000",
+         ""
+        ],
+        [
+         "Months left",
+         "9",
+         ""
+        ],
+        [
+         "Spent to date",
+         "$12,000",
+         ""
+        ],
+        [
+         "Budget to date",
+         "$12,000",
+         ""
+        ],
+        [
+         "Spent against budget",
+         "100.0%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": {
+        "title": "Spend by month against budget",
+        "labels": [
+         "Jul 26",
+         "Aug 26",
+         "Sep 26"
+        ],
+        "values": [
+         3600,
+         4100,
+         4300
+        ],
+        "budget": [
+         4000,
+         4000,
+         4000
+        ],
+        "format": "money0"
+       }
+      },
+      {
+       "title": "Digital literacy",
+       "formula": "Philanthropic foundation · $90,000 · Oct 2025 to Mar 2027",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Received from the funder",
+         "$45,000",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$30,400",
+         ""
+        ],
+        [
+         "Months left",
+         "6",
+         ""
+        ],
+        [
+         "Spent to date",
+         "$59,600",
+         ""
+        ],
+        [
+         "Budget to date",
+         "$60,000",
+         ""
+        ],
+        [
+         "Spent against budget",
+         "99.3%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": {
+        "title": "Spend by month against budget",
+        "labels": [
+         "Oct 25",
+         "Nov 25",
+         "Dec 25",
+         "Jan 26",
+         "Feb 26",
+         "Mar 26",
+         "Apr 26",
+         "May 26",
+         "Jun 26",
+         "Jul 26",
+         "Aug 26",
+         "Sep 26"
+        ],
+        "values": [
+         5160,
+         4585,
+         5221,
+         4426,
+         5408,
+         5427,
+         5509,
+         4635,
+         4316,
+         4813,
+         5200,
+         4900
+        ],
+        "budget": [
+         5000,
+         5000,
+         5000,
+         5000,
+         5000,
+         5000,
+         5000,
+         5000,
+         5000,
+         5000,
+         5000,
+         5000
+        ],
+        "format": "money0"
+       }
+      },
+      {
+       "title": "Mental health first aid",
+       "formula": "Federal health program · $120,000 · Apr 2026 to Mar 2027",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Received from the funder",
+         "$60,000",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$62,800",
+         ""
+        ],
+        [
+         "Months left",
+         "6",
+         ""
+        ],
+        [
+         "Spent to date",
+         "$57,200",
+         ""
+        ],
+        [
+         "Budget to date",
+         "$60,000",
+         ""
+        ],
+        [
+         "Spent against budget",
+         "95.3%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": {
+        "title": "Spend by month against budget",
+        "labels": [
+         "Apr 26",
+         "May 26",
+         "Jun 26",
+         "Jul 26",
+         "Aug 26",
+         "Sep 26"
+        ],
+        "values": [
+         9584,
+         8950,
+         9797,
+         8669,
+         9400,
+         10800
+        ],
+        "budget": [
+         10000,
+         10000,
+         10000,
+         10000,
+         10000,
+         10000
+        ],
+        "format": "money0"
+       }
+      },
+      {
+       "title": "Volunteer coordinator",
+       "formula": "State volunteering grant · $36,000 · Mar 2026 to Feb 2027",
+       "head": [
+        "",
+        "Sep 2026",
+        "Aug 2026"
+       ],
+       "rows": [
+        [
+         "Received from the funder",
+         "$36,000",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$15,000",
+         ""
+        ],
+        [
+         "Months left",
+         "5",
+         ""
+        ],
+        [
+         "Spent to date",
+         "$21,000",
+         ""
+        ],
+        [
+         "Budget to date",
+         "$21,000",
+         ""
+        ],
+        [
+         "Spent against budget",
+         "100.0%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": {
+        "title": "Spend by month against budget",
+        "labels": [
+         "Mar 26",
+         "Apr 26",
+         "May 26",
+         "Jun 26",
+         "Jul 26",
+         "Aug 26",
+         "Sep 26"
+        ],
+        "values": [
+         2932,
+         3555,
+         2649,
+         2699,
+         3165,
+         3000,
+         3000
+        ],
+        "budget": [
+         3000,
+         3000,
+         3000,
+         3000,
+         3000,
+         3000,
+         3000
+        ],
+        "format": "money0"
+       }
+      }
+     ]
     }
    },
    "checks": [

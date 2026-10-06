@@ -304,7 +304,7 @@ function applyPrices() {
    .detail rows under 720px). The page re-checks that everything adds up
    before showing the "Balances" tick.
 --------------------------------------------------------------------------- */
-const dash = { org: 'trades', tab: 'fourth' };
+const dash = { org: 'trades', tab: 'fourth', view: 'pct' };
 
 // Accounting format in whole dollars: 1,234 / (1,234) for negatives / - for zero
 const acct = (n) => (n < 0 ? `(${Math.abs(n).toLocaleString('en-AU')})` : n === 0 ? '-' : n.toLocaleString('en-AU'));
@@ -313,6 +313,7 @@ const CHART_FORMATS = {
   money0: (v) => `$${Math.round(v).toLocaleString('en-AU')}`,
   pct0: (v) => `${Math.round(v)}%`,
   cents_int: (v) => `${v}¢`,
+  money_k: (v) => (Math.abs(v) >= 1000 ? `$${Math.round(v / 1000).toLocaleString('en-AU')}k` : `$${v}`),
 };
 
 // Re-check a statement: every subtotal equals the detail lines above it
@@ -351,41 +352,85 @@ function renderStatement(o, st) {
 
 function renderChart(ch) {
   // Categorical data -> horizontal bars (labels down the left), the default.
-  // Time series (ch.kind === 'time') would use columns; none on the page yet.
-  // Every bar carries a small value label. Amber = below target, the only
-  // meaning of the colour, with a key underneath when any bar is amber.
+  // Every bar carries a small value label and opens its workings when clicked.
+  // Amber/sand = below target (the only meaning of the colour), unless the
+  // chart is "plain". "marks" = a small tick per bar (e.g. budget to date).
   const fmt = CHART_FORMATS[ch.format] || String;
-  const W = 300, right = 274, top = 6, row = 15, bh = 9;
+  const W = 300, right = 268, top = 6, row = 15, bh = 9;
   const left = Math.min(140, 8 + Math.max(...ch.labels.map((l) => String(l).length)) * 3.9); // room for the longest name
   const n = ch.values.length, plotH = n * row;
-  const H = top + plotH + (ch.values.some((v) => ch.target != null && v < ch.target) ? 24 : 14);
-  const max = Math.max(...ch.values, ch.target || 0) * 1.08;
+  const below = (v) => !ch.plain && ch.target != null && v < ch.target;
+  const anyBelow = ch.values.some(below);
+  const H = top + plotH + (anyBelow || ch.marks ? 24 : ch.target != null ? 14 : 4);
+  const max = Math.max(...ch.values, ch.target || 0, ...(ch.marks || [0])) * 1.1;
   const x = (v) => left + (v / max) * (right - left);
-  const below = (v) => ch.target != null && v < ch.target;
   let g = `<line class="dash-grid" x1="${left}" x2="${left}" y1="${top - 2}" y2="${top + plotH}"/>`;
+  // target line first, so the bars and their value labels sit on top of it
+  if (ch.target != null) g += `<line class="dash-target" x1="${x(ch.target).toFixed(1)}" x2="${x(ch.target).toFixed(1)}" y1="${top - 2}" y2="${top + plotH}"/>`;
   ch.values.forEach((v, i) => {
-    const y = top + i * row + (row - bh) / 2, w = x(v) - left;
-    g += `<text class="dash-axis" x="${left - 5}" y="${(y + bh - 1.5).toFixed(1)}" text-anchor="end">${esc(ch.labels[i])}</text>`;
-    g += `<rect class="dash-bar dash-bar--h${below(v) ? ' dash-bar--below' : ''}" x="${left}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${bh}" rx="1.5"><title>${esc(ch.labels[i])}: ${fmt(v)}</title></rect>`;
-    g += `<text class="dash-value" x="${(x(v) + 3).toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${fmt(v)}</text>`;
+    const y = top + i * row + (row - bh) / 2;
+    g += `<g class="dash-row" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
+      + `<rect class="dash-hit" x="0" y="${(top + i * row).toFixed(1)}" width="${W}" height="${row}"/>`
+      + `<text class="dash-axis" x="${left - 5}" y="${(y + bh - 1.5).toFixed(1)}" text-anchor="end">${esc(ch.labels[i])}</text>`
+      + `<rect class="dash-bar dash-bar--h${below(v) ? ' dash-bar--below' : ''}" x="${left}" y="${y.toFixed(1)}" width="${(x(v) - left).toFixed(1)}" height="${bh}" rx="1.5"/>`;
+    if (ch.marks) g += `<line class="dash-mark" x1="${x(ch.marks[i]).toFixed(1)}" x2="${x(ch.marks[i]).toFixed(1)}" y1="${(y - 2).toFixed(1)}" y2="${(y + bh + 2).toFixed(1)}"/>`;
+    g += `<text class="dash-value" x="${(Math.max(x(v), ch.marks ? x(ch.marks[i]) : 0) + 3).toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${fmt(v)}</text></g>`;
   });
-  if (ch.target) {
-    const tx = x(ch.target).toFixed(1);
-    g += `<line class="dash-target" x1="${tx}" x2="${tx}" y1="${top - 2}" y2="${top + plotH}"/>`;
-    g += `<text class="dash-target-label" x="${tx}" y="${top + plotH + 10}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
-  }
-  if (ch.values.some(below)) g += `<rect class="dash-bar--below" x="${left}" y="${H - 9}" width="7" height="7" rx="1"/><text class="dash-key" x="${left + 10}" y="${H - 3}">Below target</text>`;
-  const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target ? `; target ${fmt(ch.target)}` : ''}.`;
+  if (ch.target != null) g += `<text class="dash-target-label" x="${x(ch.target).toFixed(1)}" y="${top + plotH + 10}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
+  if (anyBelow) g += `<rect class="dash-bar--below" x="${left}" y="${H - 9}" width="7" height="7" rx="1"/><text class="dash-key" x="${left + 10}" y="${H - 3}">Below target</text>`;
+  if (ch.marks) g += `<line class="dash-mark" x1="${left + 3}" x2="${left + 3}" y1="${H - 10}" y2="${H - 2}"/><text class="dash-key" x="${left + 9}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
+  const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}.`;
   return `<svg class="dash-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
 }
 
+// A time series (spend by month): columns, with the budget as a dotted step line
+function renderSeries(se) {
+  const fmt = CHART_FORMATS[se.format] || String;
+  const W = 300, H = 120, top = 8, base = 96, left = 6, right = 294, n = se.values.length;
+  const max = Math.max(...se.values, ...(se.budget || [0])) * 1.12;
+  const slot = (right - left) / n, bw = slot * 0.62, y = (v) => base - (v / max) * (base - top);
+  let g = `<line class="dash-grid" x1="${left}" x2="${right}" y1="${base}" y2="${base}"/>`;
+  se.values.forEach((v, i) => {
+    const x0 = left + i * slot + (slot - bw) / 2;
+    g += `<rect class="dash-bar" x="${x0.toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - y(v)).toFixed(1)}" rx="1.5"><title>${esc(se.labels[i])}: ${fmt(v)}</title></rect>`;
+    if (n <= 14) g += `<text class="dash-axis" x="${(x0 + bw / 2).toFixed(1)}" y="${base + 9}" text-anchor="middle">${esc(se.labels[i])}</text>`;
+    if (se.budget) g += `<line class="dash-target" x1="${(left + i * slot).toFixed(1)}" x2="${(left + (i + 1) * slot).toFixed(1)}" y1="${y(se.budget[i]).toFixed(1)}" y2="${y(se.budget[i]).toFixed(1)}"/>`;
+  });
+  if (n > 14) [0, n - 1].forEach((i) => { g += `<text class="dash-axis" x="${(left + i * slot + slot / 2).toFixed(1)}" y="${base + 9}" text-anchor="middle">${esc(se.labels[i])}</text>`; });
+  if (se.budget) g += `<line class="dash-target" x1="${left}" x2="${left + 14}" y1="${H - 5}" y2="${H - 5}"/><text class="dash-key" x="${left + 18}" y="${H - 3}">Monthly budget</text>`;
+  return `<p class="support-chart-title">${esc(se.title)}</p><svg class="dash-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(se.title)}: ${se.labels.map((l, i) => `${l} ${fmt(se.values[i])}`).join(', ')}">${g}</svg>`;
+}
+
+function openSupport(sp) {
+  if (!sp) return;
+  document.getElementById('support-title').textContent = sp.title;
+  const rows = sp.rows.map((r) => `<tr><th scope="row">${esc(r[0])}</th>${r.slice(1).map((c) => `<td class="n">${esc(c)}</td>`).join('')}</tr>`).join('');
+  const twoCol = sp.rows.every((r) => !r[2]);
+  const head = twoCol ? '' : `<thead><tr>${sp.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead>`;
+  document.getElementById('support-body').innerHTML =
+    `<p class="support-formula">${esc(sp.formula)}</p>`
+    + `<table class="support-table${twoCol ? ' support-table--two' : ''}">${head}<tbody>${twoCol ? rows.replace(/<td class="n"><\/td>/g, '') : rows}</tbody></table>`
+    + (sp.note ? `<p class="assumptions-intro">${esc(sp.note)}</p>` : '')
+    + (sp.series ? renderSeries(sp.series) : '')
+    + `<p class="support-foot">Sample data. Every figure is in the Excel download.</p>`;
+  const dlg = document.getElementById('support-dialog');
+  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+}
+
 function renderFourth(o) {
-  // Kept deliberately simple: three headline numbers and one chart.
-  // The fuller fourth sheet (tables etc.) is in the Excel and PDF downloads.
+  // Kept deliberately simple: three headline numbers and one chart. Every
+  // number opens its workings; the full lists are in the Excel and PDF.
   const f = o.fourth;
-  const kpis = f.kpis.slice(0, 3).map((k) => `<div class="dash-kpi${k.spine ? ' dash-kpi--spine' : ''}"><span>${esc(k.label)}</span><strong>${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em></div>`).join('');
+  const kpis = f.kpis.slice(0, 3).map((k, i) => `<button type="button" class="dash-kpi${k.spine ? ' dash-kpi--spine' : ''}" data-kpi="${i}"><span>${esc(k.label)}</span><strong>${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em><small class="dash-how">How it's worked out</small></button>`).join('');
+  let ch = f.chart;
+  let toggle = '';
+  if (ch.views) {
+    const v = ch.views.find((x) => x.id === dash.view) || ch.views[0];
+    ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label };
+    toggle = `<div class="dash-toggle dash-toggle--small" role="group" aria-label="Show as">${ch.views.map((x) => `<button type="button" data-view="${x.id}" aria-pressed="${x.id === v.id}">${esc(x.label)}</button>`).join('')}</div>`;
+  }
   return `<div class="dash-kpis">${kpis}</div>
-    <div class="dash-chart"><p class="dash-chart-title">${esc(f.chart.title)}</p>${renderChart(f.chart)}</div>`;
+    <div class="dash-chart"><div class="dash-chart-head"><p class="dash-chart-title">${esc(ch.title)}</p>${toggle}</div>${renderChart(ch)}<p class="dash-hint">Tap a bar or a number to see how it's worked out.</p></div>`;
 }
 
 function renderAssumptions(o) {
@@ -508,6 +553,22 @@ function setupHeroDash() {
   const dlg = document.getElementById('assumptions-dialog');
   document.getElementById('dash-assumptions').addEventListener('click', () => (dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', '')));
   document.getElementById('assumptions-close').addEventListener('click', () => dlg.close());
+  // workings: headline numbers, chart bars and the %/$ toggle
+  const sdlg = document.getElementById('support-dialog');
+  document.getElementById('support-close').addEventListener('click', () => sdlg.close());
+  sdlg.addEventListener('click', (e) => { if (e.target === sdlg) sdlg.close(); });
+  const panel = document.getElementById('dash-panel');
+  const org = () => window.FOURTH_SHEET_DASHBOARD.orgs.find((x) => x.id === dash.org);
+  panel.addEventListener('click', (e) => {
+    const k = e.target.closest('[data-kpi]'), r = e.target.closest('[data-detail]'), v = e.target.closest('[data-view]');
+    if (k) openSupport(org().fourth.kpis[+k.dataset.kpi].support);
+    else if (r) openSupport((org().fourth.chart.details || [])[+r.dataset.detail]);
+    else if (v) { dash.view = v.dataset.view; renderDash(); }
+  });
+  panel.addEventListener('keydown', (e) => {
+    const r = e.target.closest('[data-detail]');
+    if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openSupport((org().fourth.chart.details || [])[+r.dataset.detail]); }
+  });
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); }); // click outside closes
   renderDash();
 }
