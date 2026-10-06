@@ -249,7 +249,7 @@ h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); margin: 0 0 0.75rem; letter-spacing:
 
 /* PLACEHOLDER CHIP — marks a detail still to be confirmed ("Name TBC").
    The real token is in the element's data-placeholder
-   attribute. Delete the chip when you fill the value in: see PLACEHOLDERS.md. */
+   attribute. Delete the chip when you fill the value in: see the project notes in OneDrive. */
 .tbc {
   display: inline-block;
   padding: 0.05em 0.55em;
@@ -740,3 +740,4 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .dash-status-line { margin: -0.3rem 0 0.4rem; font-size: 0.72rem; color: var(--muted); }
 .deliv-status { margin: 0.2rem 0.9rem 0; font-size: 0.78rem; color: var(--muted); }
 .deliv-status .dash-status { margin-right: 0.4rem; cursor: default; }
+.dash-chart-sub { margin: -0.15rem 0 0.4rem; font-size: 0.72rem; line-height: 1.35; color: var(--muted); }

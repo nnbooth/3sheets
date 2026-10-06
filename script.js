@@ -34,21 +34,21 @@
 const REPORTS = [
   {
     title: 'Sales',
-    preview: 'media/report-sales.png',
+    preview: 'media/mockups/report-sales.png',
     question: "What's selling, what's cancelling and what's in the pipeline",
     embedUrl: '',
     status: 'In build',
   },
   {
     title: 'Purchasing',
-    preview: 'media/report-purchasing.png',
+    preview: 'media/mockups/report-purchasing.png',
     question: 'Which suppliers are late, and where costs are moving',
     embedUrl: '',
     status: 'In build',
   },
   {
     title: 'Payroll & overtime',
-    preview: 'media/report-payroll.png',
+    preview: 'media/mockups/report-payroll.png',
     question: 'Where overtime is growing, and why',
     embedUrl: '',
     status: 'In build',
@@ -312,6 +312,7 @@ const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const CHART_FORMATS = {
   money0: (v) => `$${Math.round(v).toLocaleString('en-AU')}`,
   pct0: (v) => `${Math.round(v)}%`,
+  pct1: (v) => `${Number(v).toFixed(1)}%`,
   cents_int: (v) => `${v}¢`,
   money_k: (v) => (Math.abs(v) >= 1000 ? `$${Math.round(v / 1000).toLocaleString('en-AU')}k` : `$${v}`),
 };
@@ -360,22 +361,27 @@ function renderChart(ch) {
   const W = 300, right = 268, top = 6, row = 15, bh = 9;
   const left = Math.min(140, 8 + Math.max(...ch.labels.map((l) => String(l).length)) * 3.9); // room for the longest name
   const n = ch.values.length, plotH = n * row;
-  const below = (v) => !ch.plain && ch.target != null && v < ch.target;
-  const anyBelow = ch.values.some(below);
+  const below = (v, i) => !ch.plain && ((ch.target != null && v < ch.target) || (ch.below_marks && ch.marks && v < ch.marks[i]));
+  const anyBelow = ch.values.some((v, i) => below(v, i));
   const H = top + plotH + (anyBelow || ch.marks ? 24 : ch.target != null ? 14 : 4);
   const max = Math.max(...ch.values, ch.target || 0, ...(ch.marks || [0])) * 1.1;
   const x = (v) => left + (v / max) * (right - left);
   let g = `<line class="dash-grid" x1="${left}" x2="${left}" y1="${top - 2}" y2="${top + plotH}"/>`;
-  ch.values.forEach((v, i) => {
-    const y = top + i * row + (row - bh) / 2;
+  // bars sorted by value, largest first, whichever view is showing; i stays the bar's own index (for its workings)
+  const order = ch.values.map((v, i) => i).sort((p, q) => ch.values[q] - ch.values[p]);
+  order.forEach((i, pos) => {
+    const v = ch.values[i];
+    const y = top + pos * row + (row - bh) / 2;
     g += `<g class="dash-row" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
-      + `<rect class="dash-hit" x="0" y="${(top + i * row).toFixed(1)}" width="${W}" height="${row}"/>`
+      + `<rect class="dash-hit" x="0" y="${(top + pos * row).toFixed(1)}" width="${W}" height="${row}"/>`
       + `<text class="dash-axis" x="${left - 5}" y="${(y + bh - 1.5).toFixed(1)}" text-anchor="end">${esc(ch.labels[i])}</text>`
-      + `<rect class="dash-bar dash-bar--h${below(v) ? ' dash-bar--below' : ''}" x="${left}" y="${y.toFixed(1)}" width="${(x(v) - left).toFixed(1)}" height="${bh}" rx="1.5"/>`;
+      + `<rect class="dash-bar dash-bar--h${below(v, i) ? ' dash-bar--below' : ''}" x="${left}" y="${y.toFixed(1)}" width="${(x(v) - left).toFixed(1)}" height="${bh}" rx="1.5"/>`;
     if (ch.marks) g += `<line class="dash-mark" x1="${x(ch.marks[i]).toFixed(1)}" x2="${x(ch.marks[i]).toFixed(1)}" y1="${(y - 2).toFixed(1)}" y2="${(y + bh + 2).toFixed(1)}"/>`;
     // value label at the end of the bar; if it would sit on the target line, it steps past the line
     const txt = fmt(v), tw = txt.length * 3.5;
-    let lx = Math.max(x(v), ch.marks ? x(ch.marks[i]) : 0) + 3;
+    // label at the bar's end; if a marker sits just past the bar, the label goes before it when it fits, else after it
+    let lx = x(v) + 3;
+    if (ch.marks) { const mx = x(ch.marks[i]); if (mx >= x(v) - 1 && mx < lx + tw + 2) lx = mx + 3; }
     if (ch.target != null && lx - 2 < x(ch.target) && x(ch.target) < lx + tw + 2) lx = x(ch.target) + 3;
     g += `<text class="dash-value" x="${lx.toFixed(1)}" y="${(y + bh - 1.5).toFixed(1)}">${txt}</text></g>`;
   });
@@ -384,7 +390,7 @@ function renderChart(ch) {
     g += `<line class="dash-target" x1="${tx}" x2="${tx}" y1="${top - 3}" y2="${top + plotH + 1}"/>`;
     g += `<text class="dash-target-label" x="${tx}" y="${top + plotH + 10}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
   }
-  if (anyBelow) g += `<rect class="dash-bar--below" x="${left}" y="${H - 9}" width="7" height="7" rx="1"/><text class="dash-key" x="${left + 10}" y="${H - 3}">Below target</text>`;
+  if (anyBelow && !ch.marks) g += `<rect class="dash-bar--below" x="${left}" y="${H - 9}" width="7" height="7" rx="1"/><text class="dash-key" x="${left + 10}" y="${H - 3}">Below target</text>`;
   if (ch.marks) g += `<line class="dash-mark" x1="${left + 3}" x2="${left + 3}" y1="${H - 10}" y2="${H - 2}"/><text class="dash-key" x="${left + 9}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}.`;
   return `<svg class="dash-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
@@ -433,11 +439,11 @@ function renderFourth(o) {
   let toggle = '';
   if (ch.views) {
     const v = ch.views.find((x) => x.id === dash.view) || ch.views[0];
-    ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label };
+    ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks };
     toggle = `<div class="dash-toggle dash-toggle--small" role="group" aria-label="Show as">${ch.views.map((x) => `<button type="button" data-view="${x.id}" aria-pressed="${x.id === v.id}">${esc(x.label)}</button>`).join('')}</div>`;
   }
   return `<div class="dash-kpis">${kpis}</div>
-    <div class="dash-chart"><div class="dash-chart-head"><p class="dash-chart-title">${esc(ch.title)}</p>${toggle}</div>${renderChart(ch)}<p class="dash-hint">Tap a bar or a number to see how it's worked out.</p></div>`;
+    <div class="dash-chart"><div class="dash-chart-head"><p class="dash-chart-title">${esc(ch.title)}</p>${toggle}</div>${ch.subtitle ? `<p class="dash-chart-sub">${esc(ch.subtitle)}</p>` : ''}${renderChart(ch)}<p class="dash-hint">Tap a bar or a number to see how it's worked out.</p></div>`;
 }
 
 function renderAssumptions(o) {
@@ -506,7 +512,7 @@ function setupDeliveries() {
     document.getElementById('deliv-map').innerHTML = '<p style="padding:1rem">The map could not load. The Excel and PDF downloads have every delivery.</p>';
   }
   document.getElementById('deliv-periods').innerHTML = D.periods.map((p) => `<button type="button" data-period="${p.id}" aria-pressed="false">${esc(p.label)}</button>`).join('');
-  const pct = (v) => (v == null ? '–' : `${v}%`);
+  const pct = (v) => (v == null ? '–' : `${Number(v).toFixed(1)}%`);
   function render() {
     const v = D[st.side][st.period], k = v.kpis, out = st.side === 'out';
     box.querySelectorAll('[data-side]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.side === st.side)));
@@ -521,7 +527,7 @@ function setupDeliveries() {
       [out ? 'On the truck' : 'Due, not here yet', k.open, ''],
     ].map(([l, val, c]) => `<div class="${c}"><span>${l}</span><strong>${val}</strong></div>`).join('');
     document.getElementById('deliv-hot').innerHTML = v.hotspots.length
-      ? v.hotspots.map((h) => `<li>${esc(h.label)}: <b>${h.pct}% late</b> (${h.late} of ${h.of})</li>`).join('')
+      ? v.hotspots.map((h) => `<li>${esc(h.label)}: <b>${Number(h.pct).toFixed(1)}% late</b> (${h.late} of ${h.of})</li>`).join('')
       : '<li>Nothing stands out for this period.</li>';
     if (!map) return;
     layer.clearLayers();

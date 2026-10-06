@@ -258,9 +258,9 @@ GROUPS = [
     ("Cloud database: daily star schema behind the home-page dashboard", "dim_"),
     ("", "fact_"),
     ("Home-page dashboard model (index.html, dashboard-data.js, media/exports/)", "model_"),
-    ("Live-display screens (media/display-*.png)", "display_"),
-    ("Report previews (media/report-*.png)", "report_"),
-    ("Management-pack template (media/template-excel.png)", "template_"),
+    ("Live-display screens (media/mockups/display-*.png)", "display_"),
+    ("Report previews (media/mockups/report-*.png)", "report_"),
+    ("Management-pack template (media/mockups/template-excel.png)", "template_"),
 ]
 
 def write_readme():
@@ -288,7 +288,7 @@ def write_readme():
         "- `dim_date` carries the whole drill path: financial year > quarter > month > week (`week_start`, Monday) > day, plus",
         "  working days and Brisbane public holidays. Join any fact on `date_key` and drill from the year to a single day.",
         "",
-        "Status: the Azure SQL database (`3sheets.db.sql`) is currently deleted and needs to be recreated before loading.",
+        "Status: the Azure SQL database (to be recreated as `thefourthsheet` on server `thefourthsheet.database.windows.net`) is currently deleted and needs to be created before loading.",
         "",
         "## Loading into a database",
         "",

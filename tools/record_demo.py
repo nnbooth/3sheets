@@ -47,7 +47,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 REPO = Path(__file__).resolve().parent.parent
-MEDIA = REPO / "media"
+MEDIA = REPO / "media" / "game"
 
 FPS = 30                 # video frame rate
 TICKS_PER_FRAME = 60 // FPS
@@ -214,7 +214,7 @@ def main():
     print(f"  {full.relative_to(REPO)}   {total / FPS:.1f} s")
     print(f"  {short.relative_to(REPO)}    {n / FPS:.1f} s")
     print(f"  {gif.relative_to(REPO)}    {gw}px, {gfps} fps, {gmb:.2f} MB")
-    print("  media/poster.png")
+    print("  media/game/poster.png")
 
 
 if __name__ == "__main__":

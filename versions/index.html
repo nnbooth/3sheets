@@ -221,7 +221,7 @@
     view.src = v.path;
     open.href = v.path;
     if (v.phone) setPhone(true);
-    try { localStorage.setItem('3s-versions-last', v.id); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('tfs-versions-last', v.id); } catch (e) { /* ignore */ }
     if (location.hash !== '#' + v.id) history.replaceState(null, '', '#' + v.id);
     buttons[v.id].scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
@@ -245,7 +245,7 @@
   // Start on the version in the URL, else the last one viewed, else the live site
   let start = location.hash.slice(1);
   if (!items.some(x => x.id === start)) {
-    try { start = localStorage.getItem('3s-versions-last'); } catch (e) { start = null; }
+    try { start = localStorage.getItem('tfs-versions-last'); } catch (e) { start = null; }
   }
   show(start || 'main');
 </script>

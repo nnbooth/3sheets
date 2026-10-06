@@ -9,9 +9,9 @@
     <meta name="description" content="Financial discipline for SMEs and not-for-profits: the numbers underneath your accounts, answering the questions you actually ask, set up from the data you already have. Brisbane-based. Without the full-time hire." />
 
     <!-- Favicon: SVG for modern browsers, PNG fallbacks for older ones / iOS. -->
-    <link rel="icon" href="../../Assets/favicon.svg?v=4th" type="image/svg+xml" />
-    <link rel="icon" href="../../Assets/favicon-32.png?v=4th" type="image/png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="../../Assets/apple-touch-icon.png?v=4th" />
+    <link rel="icon" href="../../assets/brand/mark-4th.svg?v=4th" type="image/svg+xml" />
+    <link rel="icon" href="../../assets/brand/mark-4th-32.png?v=4th" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="../../assets/brand/mark-4th-180.png?v=4th" />
     <meta name="theme-color" content="#2f7a5d" />
 
     <!-- Social sharing previews (LinkedIn, Facebook, X/Twitter).
@@ -25,14 +25,14 @@
     <meta property="og:title" content="The Fourth Sheet | The numbers underneath" />
     <meta property="og:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
     <meta property="og:url" content="https://[[DOMAIN]]/" />
-    <meta property="og:image" content="https://[[DOMAIN]]/Assets/og-image.png" />
+    <meta property="og:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="The Fourth Sheet: your accountant gives you three sheets. I give you the fourth." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Fourth Sheet | The numbers underneath" />
     <meta name="twitter:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
-    <meta name="twitter:image" content="https://[[DOMAIN]]/Assets/og-image.png" />
+    <meta name="twitter:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
 
     <!-- Inter, loaded explicitly so every visitor sees the same font (before
          this, each browser fell back to whatever it had installed). -->
@@ -41,20 +41,20 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="../../styles.css?v=2026-10-17" />
+    <link rel="stylesheet" href="../../styles.css?v=2026-10-19" />
     <!-- Theme look for this old version, layered over the main styles -->
     <link rel="stylesheet" href="styles.css" />
   </head>
 
   <!--
     PLACEHOLDERS: anything still to be filled in is marked with a
-    data-placeholder attribute. See PLACEHOLDERS.md for the full
+    data-placeholder attribute. See the project notes (OneDrive: Business/Project notes.md) for the full
     list and how to replace each one.
   -->
 
   <!-- DEV NOTES: the orange "TO DO" boxes on this page are reminders for Nathan.
        They only show while the body tag has class="dev-notes". BEFORE GOING LIVE,
-       delete that class (and, if you like, the .devnote elements). See PLACEHOLDERS.md. -->
+       delete that class (and, if you like, the .devnote elements). See the project notes (OneDrive: Business/Project notes.md). -->
   <body class="dev-notes">
     <div class="devnote devnote--bar" role="note">DEV NOTES ARE ON: orange TO DO boxes mark things still to build. Remove class="dev-notes" from the body tag before going live.</div>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -78,7 +78,7 @@
     <main id="main">
       <!-- HERO: the brand line as the headline, one short line underneath, and a
            sample "fourth sheet" dashboard on the right (data and toggle in
-           script.js, search "HERO DASHBOARD"). Headline options: PLACEHOLDERS.md.
+           script.js, search "HERO DASHBOARD"). Headline options: the project notes (OneDrive).
            [[BOOKING_URL]]: replace href="#contact" on every "numbers check" button. -->
       <section class="hero" id="top">
         <div class="container hero-grid hero-grid--dash">
@@ -89,10 +89,10 @@
             <div class="hero-actions">
               <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
             </div>
-            <!-- The person behind the business. [[PHOTO]]: see PLACEHOLDERS.md.
+            <!-- The person behind the business. [[PHOTO]]: see the project notes in OneDrive.
                  "CPA" is not shown until Nathan confirms what's allowed. -->
             <p class="hero-byline">
-              <img class="headshot headshot--sm" src="../../Assets/headshot-placeholder.svg" data-placeholder="[[PHOTO]]" alt="" width="36" height="36" />
+              <img class="headshot headshot--sm" src="../../assets/people/headshot-placeholder.svg" data-placeholder="[[PHOTO]]" alt="" width="36" height="36" />
               <span><strong>Nathan Booth</strong> · 20 years in corporate reporting · Brisbane</span>
             </p>
           </div>
@@ -254,7 +254,7 @@
     </footer>
 
     <script src="launcher.js"></script>
-    <script src="../../dashboard-data.js?v=2026-10-17"></script>
-    <script src="../../script.js?v=2026-10-17"></script>
+    <script src="../../data/dashboard-data.js?v=2026-10-19"></script>
+    <script src="../../script.js?v=2026-10-19"></script>
   </body>
 </html>

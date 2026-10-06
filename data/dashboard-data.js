@@ -635,7 +635,69 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": "Technicians are on salary, so a quiet month for jobs lowers the margin even if every job is priced well.",
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Revenue (every job invoiced in the month)",
+          "kind": "money",
+          "values": [
+           202337,
+           179007
+          ],
+          "calc": null
+         },
+         {
+          "label": "Materials",
+          "kind": "money",
+          "values": [
+           -64860,
+           -51530
+          ],
+          "calc": null
+         },
+         {
+          "label": "Subcontractors",
+          "kind": "money",
+          "values": [
+           -13200,
+           -9300
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician wages",
+          "kind": "money",
+          "values": [
+           -54600,
+           -54600
+          ],
+          "calc": null
+         },
+         {
+          "label": "Gross profit",
+          "kind": "money",
+          "values": [
+           69677,
+           63577
+          ],
+          "calc": "r0+r1+r2+r3"
+         },
+         {
+          "label": "Gross margin",
+          "kind": "pct",
+          "values": [
+           0.3443611400781864,
+           0.355164881820264
+          ],
+          "calc": "r4/r0"
+         }
+        ]
+       }
       }
      },
      {
@@ -669,13 +731,48 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Marketing spend",
+          "kind": "money",
+          "values": [
+           7600,
+           8400
+          ],
+          "calc": null
+         },
+         {
+          "label": "New customers (first job ever)",
+          "kind": "int",
+          "values": [
+           47,
+           41
+          ],
+          "calc": null
+         },
+         {
+          "label": "Cost per new customer",
+          "kind": "money",
+          "values": [
+           161.70212765957447,
+           204.8780487804878
+          ],
+          "calc": "r0/r1"
+         }
+        ]
+       }
       }
      },
      {
       "label": "Technician time on jobs",
-      "value": "64%",
-      "sub": "▲ from 62% in Aug",
+      "value": "64.3%",
+      "sub": "▲ from 61.6% in Aug",
       "cls": "good",
       "support": {
        "title": "Technician time on jobs",
@@ -689,7 +786,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Hours charged to jobs (timesheets)",
          "752.5 h",
-         "655 h"
+         "655.0 h"
         ],
         [
          "Technicians",
@@ -702,23 +799,91 @@ window.FOURTH_SHEET_DASHBOARD = {
          "20"
         ],
         [
-         "Hours available (technicians × days × 7.6)",
+         "Hours per day",
+         "7.6 h",
+         "7.6 h"
+        ],
+        [
+         "Hours available",
          "1,170.4 h",
-         "1,064 h"
+         "1,064.0 h"
         ],
         [
          "Time on jobs",
-         "64%",
-         "62%"
+         "64.3%",
+         "61.6%"
         ]
        ],
        "note": "August had one fewer working day for the Ekka show holiday. The rest is travel, training, quoting and waiting time.",
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Hours charged to jobs (timesheets)",
+          "kind": "hours",
+          "values": [
+           752.5,
+           655.0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technicians",
+          "kind": "int",
+          "values": [
+           7,
+           7
+          ],
+          "calc": null
+         },
+         {
+          "label": "Working days",
+          "kind": "int",
+          "values": [
+           22,
+           20
+          ],
+          "calc": null
+         },
+         {
+          "label": "Hours per day",
+          "kind": "hours",
+          "values": [
+           7.6,
+           7.6
+          ],
+          "calc": null
+         },
+         {
+          "label": "Hours available",
+          "kind": "hours",
+          "values": [
+           1170.3999999999999,
+           1064.0
+          ],
+          "calc": "r1*r2*r3"
+         },
+         {
+          "label": "Time on jobs",
+          "kind": "pct",
+          "values": [
+           0.6429425837320575,
+           0.6156015037593985
+          ],
+          "calc": "r0/r4"
+         }
+        ]
+       }
       }
      }
     ],
     "chart": {
-     "title": "Margin by installation job, September (%)",
+     "title": "Margin on each installation job invoiced in September 2026",
+     "subtitle": "Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at $68/hour. One 35.0% target for every job for now.",
      "labels": [
       "Bulimba EV chargers",
       "Milton office LED lighting",
@@ -735,8 +900,8 @@ window.FOURTH_SHEET_DASHBOARD = {
       26.9,
       13.5
      ],
-     "target": 35,
-     "format": "pct0",
+     "target": 35.0,
+     "format": "pct1",
      "what": "job margin",
      "details": [
       {
@@ -744,15 +909,9 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "Gross profit ÷ revenue for this job",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This job"
        ],
        "rows": [
-        [
-         "Invoiced",
-         "23 Sep",
-         ""
-        ],
         [
          "Revenue",
          "$9,800",
@@ -769,8 +928,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Technician hours",
+         "26.0 h",
+         ""
+        ],
+        [
+         "Technician cost rate ($/hour)",
+         "$68",
+         ""
+        ],
+        [
          "Technician time",
-         "26 h × $68 = ($1,768)",
+         "($1,768)",
          ""
         ],
         [
@@ -785,22 +954,87 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This job"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           9800
+          ],
+          "calc": null
+         },
+         {
+          "label": "Materials",
+          "kind": "money",
+          "values": [
+           -3600
+          ],
+          "calc": null
+         },
+         {
+          "label": "Subcontractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician hours",
+          "kind": "hours",
+          "values": [
+           26
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           68
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician time",
+          "kind": "money",
+          "values": [
+           -1768
+          ],
+          "calc": "-r3*r4"
+         },
+         {
+          "label": "Gross profit",
+          "kind": "money",
+          "values": [
+           4432
+          ],
+          "calc": "r0+r1+r2+r5"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.45224489795918366
+          ],
+          "calc": "r6/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Milton office LED lighting",
        "formula": "Gross profit ÷ revenue for this job",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This job"
        ],
        "rows": [
-        [
-         "Invoiced",
-         "9 Sep",
-         ""
-        ],
         [
          "Revenue",
          "$18,600",
@@ -817,8 +1051,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Technician hours",
+         "64.0 h",
+         ""
+        ],
+        [
+         "Technician cost rate ($/hour)",
+         "$68",
+         ""
+        ],
+        [
          "Technician time",
-         "64 h × $68 = ($4,352)",
+         "($4,352)",
          ""
         ],
         [
@@ -833,22 +1077,87 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This job"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           18600
+          ],
+          "calc": null
+         },
+         {
+          "label": "Materials",
+          "kind": "money",
+          "values": [
+           -6900
+          ],
+          "calc": null
+         },
+         {
+          "label": "Subcontractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician hours",
+          "kind": "hours",
+          "values": [
+           64
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           68
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician time",
+          "kind": "money",
+          "values": [
+           -4352
+          ],
+          "calc": "-r3*r4"
+         },
+         {
+          "label": "Gross profit",
+          "kind": "money",
+          "values": [
+           7348
+          ],
+          "calc": "r0+r1+r2+r5"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.39505376344086024
+          ],
+          "calc": "r6/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Chermside clinic cabling",
        "formula": "Gross profit ÷ revenue for this job",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This job"
        ],
        "rows": [
-        [
-         "Invoiced",
-         "29 Sep",
-         ""
-        ],
         [
          "Revenue",
          "$15,200",
@@ -865,8 +1174,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Technician hours",
+         "52.0 h",
+         ""
+        ],
+        [
+         "Technician cost rate ($/hour)",
+         "$68",
+         ""
+        ],
+        [
          "Technician time",
-         "52 h × $68 = ($3,536)",
+         "($3,536)",
          ""
         ],
         [
@@ -881,22 +1200,87 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This job"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           15200
+          ],
+          "calc": null
+         },
+         {
+          "label": "Materials",
+          "kind": "money",
+          "values": [
+           -4300
+          ],
+          "calc": null
+         },
+         {
+          "label": "Subcontractors",
+          "kind": "money",
+          "values": [
+           -1800
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician hours",
+          "kind": "hours",
+          "values": [
+           52
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           68
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician time",
+          "kind": "money",
+          "values": [
+           -3536
+          ],
+          "calc": "-r3*r4"
+         },
+         {
+          "label": "Gross profit",
+          "kind": "money",
+          "values": [
+           5564
+          ],
+          "calc": "r0+r1+r2+r5"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.36605263157894735
+          ],
+          "calc": "r6/r0"
+         }
+        ]
+       }
       },
       {
        "title": "West End cafe air-con",
        "formula": "Gross profit ÷ revenue for this job",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This job"
        ],
        "rows": [
-        [
-         "Invoiced",
-         "18 Sep",
-         ""
-        ],
         [
          "Revenue",
          "$12,900",
@@ -913,8 +1297,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Technician hours",
+         "38.0 h",
+         ""
+        ],
+        [
+         "Technician cost rate ($/hour)",
+         "$68",
+         ""
+        ],
+        [
          "Technician time",
-         "38 h × $68 = ($2,584)",
+         "($2,584)",
          ""
         ],
         [
@@ -929,22 +1323,87 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This job"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           12900
+          ],
+          "calc": null
+         },
+         {
+          "label": "Materials",
+          "kind": "money",
+          "values": [
+           -5100
+          ],
+          "calc": null
+         },
+         {
+          "label": "Subcontractors",
+          "kind": "money",
+          "values": [
+           -900
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician hours",
+          "kind": "hours",
+          "values": [
+           38
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           68
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician time",
+          "kind": "money",
+          "values": [
+           -2584
+          ],
+          "calc": "-r3*r4"
+         },
+         {
+          "label": "Gross profit",
+          "kind": "money",
+          "values": [
+           4316
+          ],
+          "calc": "r0+r1+r2+r5"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.3345736434108527
+          ],
+          "calc": "r6/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Carindale solar and battery",
        "formula": "Gross profit ÷ revenue for this job",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This job"
        ],
        "rows": [
-        [
-         "Invoiced",
-         "15 Sep",
-         ""
-        ],
         [
          "Revenue",
          "$27,400",
@@ -961,8 +1420,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Technician hours",
+         "46.0 h",
+         ""
+        ],
+        [
+         "Technician cost rate ($/hour)",
+         "$68",
+         ""
+        ],
+        [
          "Technician time",
-         "46 h × $68 = ($3,128)",
+         "($3,128)",
          ""
         ],
         [
@@ -977,22 +1446,87 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This job"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           27400
+          ],
+          "calc": null
+         },
+         {
+          "label": "Materials",
+          "kind": "money",
+          "values": [
+           -13800
+          ],
+          "calc": null
+         },
+         {
+          "label": "Subcontractors",
+          "kind": "money",
+          "values": [
+           -3100
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician hours",
+          "kind": "hours",
+          "values": [
+           46
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           68
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician time",
+          "kind": "money",
+          "values": [
+           -3128
+          ],
+          "calc": "-r3*r4"
+         },
+         {
+          "label": "Gross profit",
+          "kind": "money",
+          "values": [
+           7372
+          ],
+          "calc": "r0+r1+r2+r5"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.26905109489051093
+          ],
+          "calc": "r6/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Wacol warehouse switchboard",
        "formula": "Gross profit ÷ revenue for this job",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This job"
        ],
        "rows": [
-        [
-         "Invoiced",
-         "4 Sep",
-         ""
-        ],
         [
          "Revenue",
          "$46,800",
@@ -1009,8 +1543,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Technician hours",
+         "150.0 h",
+         ""
+        ],
+        [
+         "Technician cost rate ($/hour)",
+         "$68",
+         ""
+        ],
+        [
          "Technician time",
-         "150 h × $68 = ($10,200)",
+         "($10,200)",
          ""
         ],
         [
@@ -1025,7 +1569,117 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This job"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           46800
+          ],
+          "calc": null
+         },
+         {
+          "label": "Materials",
+          "kind": "money",
+          "values": [
+           -22900
+          ],
+          "calc": null
+         },
+         {
+          "label": "Subcontractors",
+          "kind": "money",
+          "values": [
+           -7400
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician hours",
+          "kind": "hours",
+          "values": [
+           150
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           68
+          ],
+          "calc": null
+         },
+         {
+          "label": "Technician time",
+          "kind": "money",
+          "values": [
+           -10200
+          ],
+          "calc": "-r3*r4"
+         },
+         {
+          "label": "Gross profit",
+          "kind": "money",
+          "values": [
+           6300
+          ],
+          "calc": "r0+r1+r2+r5"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.1346153846153846
+          ],
+          "calc": "r6/r0"
+         }
+        ]
+       }
+      }
+     ],
+     "views": [
+      {
+       "id": "pct",
+       "label": "Margin %",
+       "values": [
+        45.2,
+        39.5,
+        36.6,
+        33.5,
+        26.9,
+        13.5
+       ],
+       "format": "pct1",
+       "target": 35.0
+      },
+      {
+       "id": "dollars",
+       "label": "Gross profit $",
+       "values": [
+        4432,
+        7348,
+        5564,
+        4316,
+        7372,
+        6300
+       ],
+       "format": "money0",
+       "marks": [
+        3430,
+        6510,
+        5320,
+        4515,
+        9590,
+        16380
+       ],
+       "mark_label": "Target profit (35.0% of the job's revenue)",
+       "below_marks": true
       }
      ]
     }
@@ -1689,8 +2343,8 @@ window.FOURTH_SHEET_DASHBOARD = {
     "kpis": [
      {
       "label": "Consultant utilisation, September",
-      "value": "74%",
-      "sub": "▲ from 71% in Aug",
+      "value": "74.0%",
+      "sub": "▲ from 71.1% in Aug",
       "cls": "good",
       "spine": true,
       "support": {
@@ -1704,8 +2358,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Billable hours (timesheets)",
-         "742 h",
-         "648 h"
+         "742.0 h",
+         "648.0 h"
         ],
         [
          "Consultants",
@@ -1718,18 +2372,85 @@ window.FOURTH_SHEET_DASHBOARD = {
          "20"
         ],
         [
-         "Hours available (consultants × days × 7.6)",
+         "Hours per day",
+         "7.6 h",
+         "7.6 h"
+        ],
+        [
+         "Hours available",
          "1,003.2 h",
-         "912 h"
+         "912.0 h"
         ],
         [
          "Utilisation",
-         "74%",
-         "71%"
+         "74.0%",
+         "71.1%"
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Billable hours (timesheets)",
+          "kind": "hours",
+          "values": [
+           742,
+           648
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultants",
+          "kind": "int",
+          "values": [
+           6,
+           6
+          ],
+          "calc": null
+         },
+         {
+          "label": "Working days",
+          "kind": "int",
+          "values": [
+           22,
+           20
+          ],
+          "calc": null
+         },
+         {
+          "label": "Hours per day",
+          "kind": "hours",
+          "values": [
+           7.6,
+           7.6
+          ],
+          "calc": null
+         },
+         {
+          "label": "Hours available",
+          "kind": "hours",
+          "values": [
+           1003.1999999999999,
+           912.0
+          ],
+          "calc": "r1*r2*r3"
+         },
+         {
+          "label": "Utilisation",
+          "kind": "pct",
+          "values": [
+           0.7396331738437002,
+           0.7105263157894737
+          ],
+          "calc": "r0/r4"
+         }
+        ]
+       }
       }
      },
      {
@@ -1753,8 +2474,8 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Billable hours",
-         "742 h",
-         "648 h"
+         "742.0 h",
+         "648.0 h"
         ],
         [
          "Revenue per hour",
@@ -1763,7 +2484,42 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": "Retainers and training are fixed fees, so fewer hours on them raises the hourly figure.",
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           131850,
+           114640
+          ],
+          "calc": null
+         },
+         {
+          "label": "Billable hours",
+          "kind": "hours",
+          "values": [
+           742,
+           648
+          ],
+          "calc": null
+         },
+         {
+          "label": "Revenue per hour",
+          "kind": "money",
+          "values": [
+           177.6954177897574,
+           176.91358024691357
+          ],
+          "calc": "r0/r1"
+         }
+        ]
+       }
       }
      },
      {
@@ -1797,12 +2553,48 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": "Milestone billing on the logistics and manufacturer projects landed at the end of September, so it moved from unbilled to unpaid.",
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Work in progress (project time not yet billed)",
+          "kind": "money",
+          "values": [
+           99290,
+           77900
+          ],
+          "calc": null
+         },
+         {
+          "label": "Unpaid client invoices",
+          "kind": "money",
+          "values": [
+           116800,
+           71290
+          ],
+          "calc": null
+         },
+         {
+          "label": "Total tied up",
+          "kind": "money",
+          "values": [
+           216090,
+           149190
+          ],
+          "calc": "r0+r1"
+         }
+        ]
+       }
       }
      }
     ],
     "chart": {
-     "title": "Margin by engagement, September (%)",
+     "title": "Margin on each client engagement, September 2026 work only",
+     "subtitle": "September's revenue less contractors and consultant time at $60/hour. Not the whole engagement to date. One 40.0% target for every engagement for now.",
      "labels": [
       "Power BI basics",
       "Retail pricing review",
@@ -1827,8 +2619,8 @@ window.FOURTH_SHEET_DASHBOARD = {
       52.7,
       48.6
      ],
-     "target": 40,
-     "format": "pct0",
+     "target": 40.0,
+     "format": "pct1",
      "what": "engagement margin",
      "details": [
       {
@@ -1836,20 +2628,9 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Training",
-         ""
-        ],
-        [
-         "Hours",
-         "14 h",
-         ""
-        ],
         [
          "Revenue",
          "$4,600",
@@ -1861,8 +2642,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "14.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "14 h × $60 = ($840)",
+         "($840)",
          ""
         ],
         [
@@ -1877,27 +2668,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           4600
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           14
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -840
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           3760
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.8173913043478261
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Retail pricing review",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Project",
-         ""
-        ],
-        [
-         "Hours",
-         "96 h",
-         ""
-        ],
         [
          "Revenue",
          "$18,240",
@@ -1909,8 +2752,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "96.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "96 h × $60 = ($5,760)",
+         "($5,760)",
          ""
         ],
         [
@@ -1925,27 +2778,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           18240
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           96
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -5760
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           12480
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.6842105263157895
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Agribusiness CFO support",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Retainer",
-         ""
-        ],
-        [
-         "Hours",
-         "70 h",
-         ""
-        ],
         [
          "Revenue",
          "$12,000",
@@ -1957,8 +2862,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "70.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "70 h × $60 = ($4,200)",
+         "($4,200)",
          ""
         ],
         [
@@ -1973,27 +2888,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           12000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           70
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -4200
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           7800
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.65
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Health charity board pack",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Project",
-         ""
-        ],
-        [
-         "Hours",
-         "64 h",
-         ""
-        ],
         [
          "Revenue",
          "$10,560",
@@ -2005,8 +2972,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "64.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "64 h × $60 = ($3,840)",
+         "($3,840)",
          ""
         ],
         [
@@ -2021,27 +2998,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           10560
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           64
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -3840
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           6720
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.6363636363636364
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Construction firm finance",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Retainer",
-         ""
-        ],
-        [
-         "Hours",
-         "58 h",
-         ""
-        ],
         [
          "Revenue",
          "$9,500",
@@ -2053,8 +3082,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "58.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "58 h × $60 = ($3,480)",
+         "($3,480)",
          ""
         ],
         [
@@ -2069,27 +3108,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           9500
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           58
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -3480
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           6020
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.6336842105263157
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Excel for managers",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Training",
-         ""
-        ],
-        [
-         "Hours",
-         "30 h",
-         ""
-        ],
         [
          "Revenue",
          "$8,800",
@@ -2101,8 +3192,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "30.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "30 h × $60 = ($1,800)",
+         "($1,800)",
          ""
         ],
         [
@@ -2117,27 +3218,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           8800
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           -1500
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           30
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -1800
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           5500
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.625
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Dental group reporting",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Retainer",
-         ""
-        ],
-        [
-         "Hours",
-         "44 h",
-         ""
-        ],
         [
          "Revenue",
          "$6,800",
@@ -2149,8 +3302,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "44.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "44 h × $60 = ($2,640)",
+         "($2,640)",
          ""
         ],
         [
@@ -2165,27 +3328,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           6800
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           44
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -2640
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           4160
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.611764705882353
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Manufacturer process mapping",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Project",
-         ""
-        ],
-        [
-         "Hours",
-         "120 h",
-         ""
-        ],
         [
          "Revenue",
          "$20,400",
@@ -2197,8 +3412,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "120.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "120 h × $60 = ($7,200)",
+         "($7,200)",
          ""
         ],
         [
@@ -2213,27 +3438,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           20400
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           -2200
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           120
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -7200
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           11000
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.5392156862745098
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Logistics systems rollout",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Project",
-         ""
-        ],
-        [
-         "Hours",
-         "210 h",
-         ""
-        ],
         [
          "Revenue",
          "$36,750",
@@ -2245,8 +3522,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "210.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "210 h × $60 = ($12,600)",
+         "($12,600)",
          ""
         ],
         [
@@ -2261,27 +3548,79 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           36750
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           -4800
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           210
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -12600
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           19350
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.5265306122448979
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
       },
       {
        "title": "Hospitality payroll",
        "formula": "Contribution ÷ revenue for this engagement",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This engagement"
        ],
        "rows": [
-        [
-         "Type",
-         "Retainer",
-         ""
-        ],
-        [
-         "Hours",
-         "36 h",
-         ""
-        ],
         [
          "Revenue",
          "$4,200",
@@ -2293,8 +3632,18 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Consultant hours",
+         "36.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour)",
+         "$60",
+         ""
+        ],
+        [
          "Consultant time",
-         "36 h × $60 = ($2,160)",
+         "($2,160)",
          ""
         ],
         [
@@ -2309,7 +3658,121 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": null,
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           4200
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           36
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -2160
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Contribution",
+          "kind": "money",
+          "values": [
+           2040
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Margin",
+          "kind": "pct",
+          "values": [
+           0.4857142857142857
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
+      }
+     ],
+     "views": [
+      {
+       "id": "pct",
+       "label": "Margin %",
+       "values": [
+        81.7,
+        68.4,
+        65.0,
+        63.6,
+        63.4,
+        62.5,
+        61.2,
+        53.9,
+        52.7,
+        48.6
+       ],
+       "format": "pct1",
+       "target": 40.0
+      },
+      {
+       "id": "dollars",
+       "label": "Contribution $",
+       "values": [
+        3760,
+        12480,
+        7800,
+        6720,
+        6020,
+        5500,
+        4160,
+        11000,
+        19350,
+        2040
+       ],
+       "format": "money0",
+       "marks": [
+        1840,
+        7296,
+        4800,
+        4224,
+        3800,
+        3520,
+        2720,
+        8160,
+        14700,
+        1680
+       ],
+       "mark_label": "Target contribution (40.0% of revenue)",
+       "below_marks": true
       }
      ]
     }
@@ -2967,7 +4430,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       "spine": true,
       "support": {
        "title": "Cost to raise a dollar",
-       "formula": "Fundraising costs ÷ money raised (grants, donations, events)",
+       "formula": "Fundraising costs ÷ money raised (grants, donations, events), in cents",
        "head": [
         "",
         "Sep 2026",
@@ -3021,7 +4484,96 @@ window.FOURTH_SHEET_DASHBOARD = {
         ]
        ],
        "note": "September's gala raised $41,600 but cost $16,900 to run, which lifts the month's figure.",
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Grant writing and reporting",
+          "kind": "money",
+          "values": [
+           7100,
+           7100
+          ],
+          "calc": null
+         },
+         {
+          "label": "Donor campaigns",
+          "kind": "money",
+          "values": [
+           5400,
+           2200
+          ],
+          "calc": null
+         },
+         {
+          "label": "Event costs",
+          "kind": "money",
+          "values": [
+           16900,
+           2400
+          ],
+          "calc": null
+         },
+         {
+          "label": "Fundraising costs",
+          "kind": "money",
+          "values": [
+           29400,
+           11700
+          ],
+          "calc": "r0+r1+r2"
+         },
+         {
+          "label": "Grant income",
+          "kind": "money",
+          "values": [
+           77000,
+           73700
+          ],
+          "calc": null
+         },
+         {
+          "label": "Donations",
+          "kind": "money",
+          "values": [
+           27900,
+           18400
+          ],
+          "calc": null
+         },
+         {
+          "label": "Fundraising events",
+          "kind": "money",
+          "values": [
+           41600,
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Money raised",
+          "kind": "money",
+          "values": [
+           146500,
+           92100
+          ],
+          "calc": "r4+r5+r6"
+         },
+         {
+          "label": "Cost per dollar raised",
+          "kind": "cents",
+          "values": [
+           20.06825938566553,
+           12.703583061889251
+          ],
+          "calc": "r3/r7*100"
+         }
+        ]
+       }
       }
      },
      {
@@ -3064,8 +4616,61 @@ window.FOURTH_SHEET_DASHBOARD = {
          "2.2 months"
         ]
        ],
-       "note": "Reserves target: 3 months.",
-       "series": null
+       "note": "Reserves target: 3.0 months.",
+       "series": null,
+       "xl": {
+        "cols": [
+         "Sep 2026",
+         "Aug 2026"
+        ],
+        "rows": [
+         {
+          "label": "Cash at bank",
+          "kind": "money",
+          "values": [
+           480780,
+           525675
+          ],
+          "calc": null
+         },
+         {
+          "label": "Less unspent grant money (belongs to funders' programs)",
+          "kind": "money",
+          "values": [
+           -156100,
+           -221900
+          ],
+          "calc": null
+         },
+         {
+          "label": "Unrestricted cash",
+          "kind": "money",
+          "values": [
+           324680,
+           303775
+          ],
+          "calc": "r0+r1"
+         },
+         {
+          "label": "Cash spending in the month (expenses less depreciation)",
+          "kind": "money",
+          "values": [
+           162900,
+           141200
+          ],
+          "calc": null
+         },
+         {
+          "label": "Runway",
+          "kind": "months",
+          "values": [
+           1.9931246163290361,
+           2.1513810198300285
+          ],
+          "calc": "r2/r3"
+         }
+        ]
+       }
       }
      },
      {
@@ -3075,36 +4680,67 @@ window.FOURTH_SHEET_DASHBOARD = {
       "cls": "bad",
       "support": {
        "title": "Grants ending in the next 6 months",
-       "formula": "Grant total − spent to date",
+       "formula": "Grant total − spent to date, for each grant ending soon",
        "head": [
         "",
-        "Ends",
         "Still to spend"
        ],
        "rows": [
         [
-         "Housing support",
-         "31 Dec 2026",
-         "$102,300"
+         "Housing support (ends 31 Dec 2026)",
+         "$102,300",
+         ""
         ],
         [
-         "Volunteer coordinator",
-         "28 Feb 2027",
-         "$15,000"
+         "Volunteer coordinator (ends 28 Feb 2027)",
+         "$15,000",
+         ""
         ],
         [
-         "Total",
-         "",
-         "$117,300"
+         "Total still to spend",
+         "$117,300",
+         ""
         ]
        ],
        "note": "Unspent money usually has to be returned, or an extension negotiated, so plan the spending now.",
-       "series": null
+       "series": null,
+       "xl": {
+        "cols": [
+         "Still to spend"
+        ],
+        "rows": [
+         {
+          "label": "Housing support (ends 31 Dec 2026)",
+          "kind": "money",
+          "values": [
+           102300
+          ],
+          "calc": null
+         },
+         {
+          "label": "Volunteer coordinator (ends 28 Feb 2027)",
+          "kind": "money",
+          "values": [
+           15000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Total still to spend",
+          "kind": "money",
+          "values": [
+           117300
+          ],
+          "calc": "r0+r1"
+         }
+        ]
+       }
       }
      }
     ],
     "chart": {
-     "title": "Grant spend to date against budget",
+     "title": "Each grant: spent to 30 September 2026 against budget to the same date",
+     "subtitle": "Whole grant from its start date. Budget to date = the grant spread evenly over its months.",
      "labels": [
       "Youth outreach",
       "Housing support",
@@ -3121,8 +4757,8 @@ window.FOURTH_SHEET_DASHBOARD = {
       100.0,
       100.0
      ],
-     "target": 100,
-     "format": "pct0",
+     "target": 100.0,
+     "format": "pct1",
      "what": "grant spend against budget",
      "plain": true,
      "views": [
@@ -3137,11 +4773,11 @@ window.FOURTH_SHEET_DASHBOARD = {
         100.0,
         100.0
        ],
-       "format": "pct0",
-       "target": 100
+       "format": "pct1",
+       "target": 100.0
       },
       {
-       "id": "spend",
+       "id": "dollars",
        "label": "$ spent",
        "values": [
         306300,
@@ -3151,7 +4787,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         12000,
         21000
        ],
-       "format": "money_k",
+       "format": "money0",
        "marks": [
         300000,
         270000,
@@ -3169,23 +4805,17 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "State Department of Families · $480,000 · Jul 2025 to Jun 2027",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This grant"
        ],
        "rows": [
         [
+         "Grant total",
+         "$480,000",
+         ""
+        ],
+        [
          "Received from the funder",
          "$300,000",
-         ""
-        ],
-        [
-         "Still to spend",
-         "$173,700",
-         ""
-        ],
-        [
-         "Months left",
-         "9",
          ""
         ],
         [
@@ -3196,6 +4826,16 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Budget to date",
          "$300,000",
+         ""
+        ],
+        [
+         "Months left",
+         "9",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$173,700",
          ""
         ],
         [
@@ -3259,6 +4899,69 @@ window.FOURTH_SHEET_DASHBOARD = {
          20000
         ],
         "format": "money0"
+       },
+       "xl": {
+        "cols": [
+         "This grant"
+        ],
+        "rows": [
+         {
+          "label": "Grant total",
+          "kind": "money",
+          "values": [
+           480000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Received from the funder",
+          "kind": "money",
+          "values": [
+           300000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Spent to date",
+          "kind": "money",
+          "values": [
+           306300
+          ],
+          "calc": null
+         },
+         {
+          "label": "Budget to date",
+          "kind": "money",
+          "values": [
+           300000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Months left",
+          "kind": "int",
+          "values": [
+           9
+          ],
+          "calc": null
+         },
+         {
+          "label": "Still to spend",
+          "kind": "money",
+          "values": [
+           173700
+          ],
+          "calc": "r0-r2"
+         },
+         {
+          "label": "Spent against budget",
+          "kind": "pct",
+          "values": [
+           1.021
+          ],
+          "calc": "r2/r3"
+         }
+        ]
        }
       },
       {
@@ -3266,23 +4969,17 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "State Housing Program · $360,000 · Jan 2026 to Dec 2026",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This grant"
        ],
        "rows": [
         [
-         "Received from the funder",
+         "Grant total",
          "$360,000",
          ""
         ],
         [
-         "Still to spend",
-         "$102,300",
-         ""
-        ],
-        [
-         "Months left",
-         "3",
+         "Received from the funder",
+         "$360,000",
          ""
         ],
         [
@@ -3293,6 +4990,16 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Budget to date",
          "$270,000",
+         ""
+        ],
+        [
+         "Months left",
+         "3",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$102,300",
          ""
         ],
         [
@@ -3338,6 +5045,69 @@ window.FOURTH_SHEET_DASHBOARD = {
          30000
         ],
         "format": "money0"
+       },
+       "xl": {
+        "cols": [
+         "This grant"
+        ],
+        "rows": [
+         {
+          "label": "Grant total",
+          "kind": "money",
+          "values": [
+           360000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Received from the funder",
+          "kind": "money",
+          "values": [
+           360000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Spent to date",
+          "kind": "money",
+          "values": [
+           257700
+          ],
+          "calc": null
+         },
+         {
+          "label": "Budget to date",
+          "kind": "money",
+          "values": [
+           270000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Months left",
+          "kind": "int",
+          "values": [
+           3
+          ],
+          "calc": null
+         },
+         {
+          "label": "Still to spend",
+          "kind": "money",
+          "values": [
+           102300
+          ],
+          "calc": "r0-r2"
+         },
+         {
+          "label": "Spent against budget",
+          "kind": "pct",
+          "values": [
+           0.9544444444444444
+          ],
+          "calc": "r2/r3"
+         }
+        ]
        }
       },
       {
@@ -3345,23 +5115,17 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "Federal health program · $120,000 · Apr 2026 to Mar 2027",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This grant"
        ],
        "rows": [
         [
+         "Grant total",
+         "$120,000",
+         ""
+        ],
+        [
          "Received from the funder",
          "$60,000",
-         ""
-        ],
-        [
-         "Still to spend",
-         "$62,800",
-         ""
-        ],
-        [
-         "Months left",
-         "6",
          ""
         ],
         [
@@ -3372,6 +5136,16 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Budget to date",
          "$60,000",
+         ""
+        ],
+        [
+         "Months left",
+         "6",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$62,800",
          ""
         ],
         [
@@ -3408,6 +5182,69 @@ window.FOURTH_SHEET_DASHBOARD = {
          10000
         ],
         "format": "money0"
+       },
+       "xl": {
+        "cols": [
+         "This grant"
+        ],
+        "rows": [
+         {
+          "label": "Grant total",
+          "kind": "money",
+          "values": [
+           120000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Received from the funder",
+          "kind": "money",
+          "values": [
+           60000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Spent to date",
+          "kind": "money",
+          "values": [
+           57200
+          ],
+          "calc": null
+         },
+         {
+          "label": "Budget to date",
+          "kind": "money",
+          "values": [
+           60000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Months left",
+          "kind": "int",
+          "values": [
+           6
+          ],
+          "calc": null
+         },
+         {
+          "label": "Still to spend",
+          "kind": "money",
+          "values": [
+           62800
+          ],
+          "calc": "r0-r2"
+         },
+         {
+          "label": "Spent against budget",
+          "kind": "pct",
+          "values": [
+           0.9533333333333334
+          ],
+          "calc": "r2/r3"
+         }
+        ]
        }
       },
       {
@@ -3415,23 +5252,17 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "Philanthropic foundation · $90,000 · Oct 2025 to Mar 2027",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This grant"
        ],
        "rows": [
         [
+         "Grant total",
+         "$90,000",
+         ""
+        ],
+        [
          "Received from the funder",
          "$45,000",
-         ""
-        ],
-        [
-         "Still to spend",
-         "$30,400",
-         ""
-        ],
-        [
-         "Months left",
-         "6",
          ""
         ],
         [
@@ -3442,6 +5273,16 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Budget to date",
          "$60,000",
+         ""
+        ],
+        [
+         "Months left",
+         "6",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$30,400",
          ""
         ],
         [
@@ -3496,6 +5337,69 @@ window.FOURTH_SHEET_DASHBOARD = {
          5000
         ],
         "format": "money0"
+       },
+       "xl": {
+        "cols": [
+         "This grant"
+        ],
+        "rows": [
+         {
+          "label": "Grant total",
+          "kind": "money",
+          "values": [
+           90000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Received from the funder",
+          "kind": "money",
+          "values": [
+           45000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Spent to date",
+          "kind": "money",
+          "values": [
+           59600
+          ],
+          "calc": null
+         },
+         {
+          "label": "Budget to date",
+          "kind": "money",
+          "values": [
+           60000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Months left",
+          "kind": "int",
+          "values": [
+           6
+          ],
+          "calc": null
+         },
+         {
+          "label": "Still to spend",
+          "kind": "money",
+          "values": [
+           30400
+          ],
+          "calc": "r0-r2"
+         },
+         {
+          "label": "Spent against budget",
+          "kind": "pct",
+          "values": [
+           0.9933333333333333
+          ],
+          "calc": "r2/r3"
+         }
+        ]
        }
       },
       {
@@ -3503,23 +5407,17 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "Local council community grant · $48,000 · Jul 2026 to Jun 2027",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This grant"
        ],
        "rows": [
         [
-         "Received from the funder",
+         "Grant total",
          "$48,000",
          ""
         ],
         [
-         "Still to spend",
-         "$36,000",
-         ""
-        ],
-        [
-         "Months left",
-         "9",
+         "Received from the funder",
+         "$48,000",
          ""
         ],
         [
@@ -3530,6 +5428,16 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Budget to date",
          "$12,000",
+         ""
+        ],
+        [
+         "Months left",
+         "9",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$36,000",
          ""
         ],
         [
@@ -3557,6 +5465,69 @@ window.FOURTH_SHEET_DASHBOARD = {
          4000
         ],
         "format": "money0"
+       },
+       "xl": {
+        "cols": [
+         "This grant"
+        ],
+        "rows": [
+         {
+          "label": "Grant total",
+          "kind": "money",
+          "values": [
+           48000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Received from the funder",
+          "kind": "money",
+          "values": [
+           48000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Spent to date",
+          "kind": "money",
+          "values": [
+           12000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Budget to date",
+          "kind": "money",
+          "values": [
+           12000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Months left",
+          "kind": "int",
+          "values": [
+           9
+          ],
+          "calc": null
+         },
+         {
+          "label": "Still to spend",
+          "kind": "money",
+          "values": [
+           36000
+          ],
+          "calc": "r0-r2"
+         },
+         {
+          "label": "Spent against budget",
+          "kind": "pct",
+          "values": [
+           1.0
+          ],
+          "calc": "r2/r3"
+         }
+        ]
        }
       },
       {
@@ -3564,23 +5535,17 @@ window.FOURTH_SHEET_DASHBOARD = {
        "formula": "State volunteering grant · $36,000 · Mar 2026 to Feb 2027",
        "head": [
         "",
-        "Sep 2026",
-        "Aug 2026"
+        "This grant"
        ],
        "rows": [
         [
-         "Received from the funder",
+         "Grant total",
          "$36,000",
          ""
         ],
         [
-         "Still to spend",
-         "$15,000",
-         ""
-        ],
-        [
-         "Months left",
-         "5",
+         "Received from the funder",
+         "$36,000",
          ""
         ],
         [
@@ -3591,6 +5556,16 @@ window.FOURTH_SHEET_DASHBOARD = {
         [
          "Budget to date",
          "$21,000",
+         ""
+        ],
+        [
+         "Months left",
+         "5",
+         ""
+        ],
+        [
+         "Still to spend",
+         "$15,000",
          ""
         ],
         [
@@ -3630,6 +5605,69 @@ window.FOURTH_SHEET_DASHBOARD = {
          3000
         ],
         "format": "money0"
+       },
+       "xl": {
+        "cols": [
+         "This grant"
+        ],
+        "rows": [
+         {
+          "label": "Grant total",
+          "kind": "money",
+          "values": [
+           36000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Received from the funder",
+          "kind": "money",
+          "values": [
+           36000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Spent to date",
+          "kind": "money",
+          "values": [
+           21000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Budget to date",
+          "kind": "money",
+          "values": [
+           21000
+          ],
+          "calc": null
+         },
+         {
+          "label": "Months left",
+          "kind": "int",
+          "values": [
+           5
+          ],
+          "calc": null
+         },
+         {
+          "label": "Still to spend",
+          "kind": "money",
+          "values": [
+           15000
+          ],
+          "calc": "r0-r2"
+         },
+         {
+          "label": "Spent against budget",
+          "kind": "pct",
+          "values": [
+           1.0
+          ],
+          "calc": "r2/r3"
+         }
+        ]
        }
       }
      ]

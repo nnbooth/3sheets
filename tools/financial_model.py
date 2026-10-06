@@ -617,162 +617,191 @@ def money(v):
     return f"(${-v:,})" if v < 0 else f"${v:,}"
 
 
-def support(title, formula, rows, note=None, series=None):
-    """The workings behind a number: rows are [label, September, August] (already formatted)."""
-    return {"title": title, "formula": formula, "head": ["", "Sep 2026", "Aug 2026"], "rows": rows, "note": note, "series": series}
+# ---- number formats: ONE rule per kind, used on the site, in PDFs and in Excel
+# money: whole dollars, negatives in brackets · pct: 1 decimal place (stored as a
+# fraction) · hours: 1 dp · int: whole · months: 1 dp · cents: whole cents
+FMT = {
+    "money": lambda v: money(v),
+    "pct": lambda v: f"{v * 100:.1f}%",
+    "hours": lambda v: f"{v:,.1f} h",
+    "int": lambda v: f"{v:,.0f}",
+    "months": lambda v: f"{v:.1f} months",
+    "cents": lambda v: f"{half_up(v)}¢",
+    "date": lambda v: v,
+    "text": lambda v: v,
+}
 
 
-def pct(v, dp=1):
-    return f"{v:.{dp}f}%"
+def inp(label, kind, values):
+    """An input row (data): one value per column."""
+    return {"label": label, "kind": kind, "values": list(values), "calc": None}
 
 
-def hrs(v):
-    return f"{v:,.1f}".rstrip("0").rstrip(".") + " h"
+def calc(label, kind, expr):
+    """A calculated row: expr uses r0, r1… for earlier rows, e.g. 'r4/r0'. Becomes an Excel formula."""
+    return {"label": label, "kind": kind, "values": None, "calc": expr}
+
+
+def support(title, formula, rows, note=None, series=None, cols=("Sep 2026", "Aug 2026")):
+    """The workings behind a number. Calculated rows are worked out here (for the site and
+    PDF) and written as formulas in Excel, from the same expressions."""
+    import re
+    for r_ in rows:
+        if r_["calc"]:
+            r_["values"] = [eval(re.sub(r"r(\d+)", lambda m: f"rows[{m.group(1)}]['values'][{c}]", r_["calc"]), {}, {"rows": rows})
+                            for c in range(len(cols))]
+    shown = [[r_["label"], *[FMT[r_["kind"]](v) for v in r_["values"]]] + ([""] if len(cols) == 1 else []) for r_ in rows]
+    return {"title": title, "formula": formula, "head": ["", *cols], "rows": shown, "note": note, "series": series,
+            "xl": {"cols": list(cols), "rows": rows}}
 
 
 def fourth_trades(m, out):
     r = out["r"]
-    gm = {mo: 100 * r[mo]["gp"] / r[mo]["revenue"] for mo in PERIODS}
-    cac = {mo: m["opex"]["Marketing"][mo] / m["new_customers"][mo] for mo in PERIODS}
-    util = {mo: 100 * r[mo]["hours"] / r[mo]["available"] for mo in PERIODS}
+    S = lambda f: [f(mo) for mo in PERIODS]
     installs = sorted([j for j in out["jobs"] if j["month"] == "2026-09" and j["type"] == "Installation"],
                       key=lambda j: -j["gross_profit"] / j["revenue"])     # bars sorted by value
-    k1, c1 = chg(gm["2026-09"], gm["2026-08"], pct)
-    k2, c2 = chg(cac["2026-09"], cac["2026-08"], money, "down")
-    k3, c3 = chg(util["2026-09"], util["2026-08"], lambda v: pct(v, 0))
-    P = lambda f: [f(mo) for mo in PERIODS]
+    s_gm = support("Gross margin", "Gross profit ÷ revenue", [
+        inp("Revenue (every job invoiced in the month)", "money", S(lambda mo: r[mo]["revenue"])),
+        inp("Materials", "money", S(lambda mo: -r[mo]["mat"])), inp("Subcontractors", "money", S(lambda mo: -r[mo]["sub"])),
+        inp("Technician wages", "money", S(lambda mo: -r[mo]["techw"])),
+        calc("Gross profit", "money", "r0+r1+r2+r3"), calc("Gross margin", "pct", "r4/r0")],
+        "Technicians are on salary, so a quiet month for jobs lowers the margin even if every job is priced well.")
+    s_cac = support("Cost to win a customer", "Marketing spend ÷ new customers", [
+        inp("Marketing spend", "money", S(lambda mo: m["opex"]["Marketing"][mo])),
+        inp("New customers (first job ever)", "int", S(lambda mo: m["new_customers"][mo])),
+        calc("Cost per new customer", "money", "r0/r1")])
+    s_ut = support("Technician time on jobs", "Hours charged to jobs ÷ hours available", [
+        inp("Hours charged to jobs (timesheets)", "hours", S(lambda mo: r[mo]["hours"])),
+        inp("Technicians", "int", S(lambda mo: m["technicians"])), inp("Working days", "int", S(lambda mo: WORKING_DAYS[mo])),
+        inp("Hours per day", "hours", S(lambda mo: HOURS_PER_DAY)),
+        calc("Hours available", "hours", "r1*r2*r3"), calc("Time on jobs", "pct", "r0/r4")],
+        "August had one fewer working day for the Ekka show holiday. The rest is travel, training, quoting and waiting time.")
+    kp = lambda sp, i=-1: sp["xl"]["rows"][i]["values"]
+    gm, cac, util = kp(s_gm), kp(s_cac), kp(s_ut)
+    k1, c1 = chg(gm[0], gm[1], FMT["pct"])
+    k2, c2 = chg(cac[0], cac[1], FMT["money"], "down")
+    k3, c3 = chg(util[0], util[1], FMT["pct"])
+    details = [support(j["description"], "Gross profit ÷ revenue for this job", [
+        inp("Revenue", "money", [j["revenue"]]), inp("Materials", "money", [-j["materials"]]),
+        inp("Subcontractors", "money", [-j["subcontractors"]]), inp("Technician hours", "hours", [j["hours"]]),
+        inp("Technician cost rate ($/hour)", "money", [m["tech_cost_rate"]]), calc("Technician time", "money", "-r3*r4"),
+        calc("Gross profit", "money", "r0+r1+r2+r5"), calc("Margin", "pct", "r6/r0")], cols=("This job",)) for j in installs]
     return {
-        "kpis": [
-            {"label": "Gross margin, September", "value": pct(gm["2026-09"]), "sub": k1, "cls": c1, "spine": True,
-             "support": support("Gross margin", "Gross profit ÷ revenue", [
-                 ["Revenue (every job invoiced in the month)", *P(lambda mo: money(r[mo]["revenue"]))],
-                 ["Materials", *P(lambda mo: money(-r[mo]["mat"]))], ["Subcontractors", *P(lambda mo: money(-r[mo]["sub"]))],
-                 ["Technician wages", *P(lambda mo: money(-r[mo]["techw"]))],
-                 ["Gross profit", *P(lambda mo: money(r[mo]["gp"]))], ["Gross margin", *P(lambda mo: pct(gm[mo]))]],
-                 "Technicians are on salary, so a quiet month for jobs lowers the margin even if every job is priced well.")},
-            {"label": "Cost to win a customer", "value": money(cac["2026-09"]), "sub": k2, "cls": c2,
-             "support": support("Cost to win a customer", "Marketing spend ÷ new customers", [
-                 ["Marketing spend", *P(lambda mo: money(m["opex"]["Marketing"][mo]))],
-                 ["New customers (first job ever)", *P(lambda mo: str(m["new_customers"][mo]))],
-                 ["Cost per new customer", *P(lambda mo: money(cac[mo]))]])},
-            {"label": "Technician time on jobs", "value": pct(util["2026-09"], 0), "sub": k3, "cls": c3,
-             "support": support("Technician time on jobs", "Hours charged to jobs ÷ hours available", [
-                 ["Hours charged to jobs (timesheets)", *P(lambda mo: hrs(r[mo]["hours"]))],
-                 ["Technicians", *P(lambda mo: str(m["technicians"]))],
-                 ["Working days", *P(lambda mo: str(WORKING_DAYS[mo]))],
-                 ["Hours available (technicians × days × 7.6)", *P(lambda mo: hrs(r[mo]["available"]))],
-                 ["Time on jobs", *P(lambda mo: pct(util[mo], 0))]],
-                 "August had one fewer working day for the Ekka show holiday. The rest is travel, training, quoting and waiting time.")}],
-        "chart": {"title": "Margin by installation job, September (%)", "labels": [j["description"] for j in installs],
-                  "values": [round(100 * j["gross_profit"] / j["revenue"], 1) for j in installs],
-                  "target": m["target_margin"], "format": "pct0", "what": "job margin",
-                  "details": [support(j["description"], "Gross profit ÷ revenue for this job", [
-                      ["Invoiced", j["invoice_date"].strftime("%-d %b"), ""], ["Revenue", money(j["revenue"]), ""],
-                      ["Materials", money(-j["materials"]), ""], ["Subcontractors", money(-j["subcontractors"]), ""],
-                      ["Technician time", f"{hrs(j['hours'])} × ${m['tech_cost_rate']} = {money(-j['labour_cost'])}", ""],
-                      ["Gross profit", money(j["gross_profit"]), ""], ["Margin", pct(100 * j["gross_profit"] / j["revenue"]), ""]])
-                      for j in installs]},
+        "kpis": [{"label": "Gross margin, September", "value": FMT["pct"](gm[0]), "sub": k1, "cls": c1, "spine": True, "support": s_gm},
+                 {"label": "Cost to win a customer", "value": FMT["money"](cac[0]), "sub": k2, "cls": c2, "support": s_cac},
+                 {"label": "Technician time on jobs", "value": FMT["pct"](util[0]), "sub": k3, "cls": c3, "support": s_ut}],
+        "chart": {"title": "Margin on each installation job invoiced in September 2026",
+                  "subtitle": f"Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at ${m['tech_cost_rate']}/hour. One {m['target_margin']}.0% target for every job for now.",
+                  "labels": [j["description"] for j in installs],
+                  "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                  "target": float(m["target_margin"]), "format": "pct1", "what": "job margin", "details": details,
+                  "views": [{"id": "pct", "label": "Margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                             "format": "pct1", "target": float(m["target_margin"])},
+                            {"id": "dollars", "label": "Gross profit $", "values": [j["gross_profit"] for j in installs], "format": "money0",
+                             "marks": [half_up(j["revenue"] * m["target_margin"] / 100) for j in installs],
+                             "mark_label": f"Target profit ({m['target_margin']}.0% of the job's revenue)", "below_marks": True}]},
         "facts": dict(gm=gm, cac=cac, util=util),
     }
 
 
 def fourth_services(m, out):
     r = out["r"]
-    util = {mo: 100 * r[mo]["hours"] / r[mo]["available"] for mo in PERIODS}
-    rate = {mo: r[mo]["revenue"] / r[mo]["hours"] for mo in PERIODS}
-    lock = {mo: out["bs"][mo]["debtors"] + out["bs"][mo]["stock"] for mo in PERIODS}
+    S = lambda f: [f(mo) for mo in PERIODS]
     sep = sorted([x for x in out["engagements"] if x["month"] == "2026-09"], key=lambda x: -x["contribution"] / x["revenue"])
-    k1, c1 = chg(util["2026-09"], util["2026-08"], lambda v: pct(v, 0))
-    k2, c2 = chg(rate["2026-09"], rate["2026-08"], money)
-    k3, c3 = chg(lock["2026-09"], lock["2026-08"], money, "down")
-    P = lambda f: [f(mo) for mo in PERIODS]
+    s_ut = support("Consultant utilisation", "Billable hours ÷ hours available", [
+        inp("Billable hours (timesheets)", "hours", S(lambda mo: r[mo]["hours"])),
+        inp("Consultants", "int", S(lambda mo: m["consultants"])), inp("Working days", "int", S(lambda mo: WORKING_DAYS[mo])),
+        inp("Hours per day", "hours", S(lambda mo: HOURS_PER_DAY)),
+        calc("Hours available", "hours", "r1*r2*r3"), calc("Utilisation", "pct", "r0/r4")])
+    s_rate = support("Revenue per billable hour", "Revenue ÷ billable hours", [
+        inp("Revenue", "money", S(lambda mo: r[mo]["revenue"])), inp("Billable hours", "hours", S(lambda mo: r[mo]["hours"])),
+        calc("Revenue per hour", "money", "r0/r1")],
+        "Retainers and training are fixed fees, so fewer hours on them raises the hourly figure.")
+    s_lock = support("Cash tied up in work", "Work in progress + unpaid invoices at month end", [
+        inp("Work in progress (project time not yet billed)", "money", S(lambda mo: out["bs"][mo]["stock"])),
+        inp("Unpaid client invoices", "money", S(lambda mo: out["bs"][mo]["debtors"])),
+        calc("Total tied up", "money", "r0+r1")],
+        "Milestone billing on the logistics and manufacturer projects landed at the end of September, so it moved from unbilled to unpaid.")
+    kp = lambda sp: sp["xl"]["rows"][-1]["values"]
+    util, rate, lock = kp(s_ut), kp(s_rate), kp(s_lock)
+    k1, c1 = chg(util[0], util[1], FMT["pct"])
+    k2, c2 = chg(rate[0], rate[1], FMT["money"])
+    k3, c3 = chg(lock[0], lock[1], FMT["money"], "down")
+    details = [support(x["description"], "Contribution ÷ revenue for this engagement", [
+        inp("Revenue", "money", [x["revenue"]]), inp("Contractors", "money", [-x["contractors"]]),
+        inp("Consultant hours", "hours", [x["hours"]]), inp("Consultant cost rate ($/hour)", "money", [m["cost_rate"]]),
+        calc("Consultant time", "money", "-r2*r3"), calc("Contribution", "money", "r0+r1+r4"), calc("Margin", "pct", "r5/r0")],
+        cols=("This engagement",)) for x in sep]
     return {
-        "kpis": [
-            {"label": "Consultant utilisation, September", "value": pct(util["2026-09"], 0), "sub": k1, "cls": c1, "spine": True,
-             "support": support("Consultant utilisation", "Billable hours ÷ hours available", [
-                 ["Billable hours (timesheets)", *P(lambda mo: hrs(r[mo]["hours"]))],
-                 ["Consultants", *P(lambda mo: str(m["consultants"]))], ["Working days", *P(lambda mo: str(WORKING_DAYS[mo]))],
-                 ["Hours available (consultants × days × 7.6)", *P(lambda mo: hrs(r[mo]["available"]))],
-                 ["Utilisation", *P(lambda mo: pct(util[mo], 0))]])},
-            {"label": "Revenue per billable hour", "value": money(rate["2026-09"]), "sub": k2, "cls": c2,
-             "support": support("Revenue per billable hour", "Revenue ÷ billable hours", [
-                 ["Revenue", *P(lambda mo: money(r[mo]["revenue"]))], ["Billable hours", *P(lambda mo: hrs(r[mo]["hours"]))],
-                 ["Revenue per hour", *P(lambda mo: money(rate[mo]))]],
-                 "Retainers and training are fixed fees, so fewer hours on them raises the hourly figure.")},
-            {"label": "Unbilled work + unpaid invoices", "value": money(lock["2026-09"]), "sub": k3, "cls": c3,
-             "support": support("Cash tied up in work", "Work in progress + unpaid invoices at month end", [
-                 ["Work in progress (project time not yet billed)", *P(lambda mo: money(out["bs"][mo]["stock"]))],
-                 ["Unpaid client invoices", *P(lambda mo: money(out["bs"][mo]["debtors"]))],
-                 ["Total tied up", *P(lambda mo: money(lock[mo]))]],
-                 "Milestone billing on the logistics and manufacturer projects landed at the end of September, so it moved from unbilled to unpaid.")}],
-        "chart": {"title": "Margin by engagement, September (%)", "labels": [x["description"] for x in sep],
-                  "values": [round(100 * x["contribution"] / x["revenue"], 1) for x in sep],
-                  "target": m["target_margin"], "format": "pct0", "what": "engagement margin",
-                  "details": [support(x["description"], "Contribution ÷ revenue for this engagement", [
-                      ["Type", x["type"], ""], ["Hours", hrs(x["hours"]), ""], ["Revenue", money(x["revenue"]), ""],
-                      ["Contractors", money(-x["contractors"]), ""],
-                      ["Consultant time", f"{hrs(x['hours'])} × ${m['cost_rate']} = {money(-x['allocated_cost'])}", ""],
-                      ["Contribution", money(x["contribution"]), ""], ["Margin", pct(100 * x["contribution"] / x["revenue"]), ""]])
-                      for x in sep]},
+        "kpis": [{"label": "Consultant utilisation, September", "value": FMT["pct"](util[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ut},
+                 {"label": "Revenue per billable hour", "value": FMT["money"](rate[0]), "sub": k2, "cls": c2, "support": s_rate},
+                 {"label": "Unbilled work + unpaid invoices", "value": FMT["money"](lock[0]), "sub": k3, "cls": c3, "support": s_lock}],
+        "chart": {"title": "Margin on each client engagement, September 2026 work only",
+                  "subtitle": f"September's revenue less contractors and consultant time at ${m['cost_rate']}/hour. Not the whole engagement to date. One {m['target_margin']}.0% target for every engagement for now.",
+                  "labels": [x["description"] for x in sep],
+                  "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                  "target": float(m["target_margin"]), "format": "pct1", "what": "engagement margin", "details": details,
+                  "views": [{"id": "pct", "label": "Margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                             "format": "pct1", "target": float(m["target_margin"])},
+                            {"id": "dollars", "label": "Contribution $", "values": [x["contribution"] for x in sep], "format": "money0",
+                             "marks": [half_up(x["revenue"] * m["target_margin"] / 100) for x in sep],
+                             "mark_label": f"Target contribution ({m['target_margin']}.0% of revenue)", "below_marks": True}]},
         "facts": dict(util=util, rate=rate, lock=lock),
     }
 
 
 def fourth_nfp(m, out):
     r, bs = out["r"], out["bs"]
-    raised = {mo: r[mo]["grant_income"] + r[mo]["other_income"]["Donations"] + r[mo]["other_income"]["Fundraising events"] for mo in PERIODS}
-    fund = {mo: sum(r[mo]["fund"].values()) for mo in PERIODS}
-    ctr = {mo: fund[mo] / raised[mo] for mo in PERIODS}
-    unrestricted = {mo: bs[mo]["cash"] - bs[mo]["grants_in_advance"] for mo in PERIODS}
-    runway = {mo: unrestricted[mo] / r[mo]["cash_expenses"] for mo in PERIODS}
+    S = lambda f: [f(mo) for mo in PERIODS]
+    fund_rows = [inp(k, "money", S(lambda mo, k=k: r[mo]["fund"][k])) for k in m["fundraising"]]
+    nf = len(fund_rows)
+    s_ctr = support("Cost to raise a dollar", "Fundraising costs ÷ money raised (grants, donations, events), in cents", fund_rows + [
+        calc("Fundraising costs", "money", "+".join(f"r{i}" for i in range(nf))),
+        inp("Grant income", "money", S(lambda mo: r[mo]["grant_income"])),
+        inp("Donations", "money", S(lambda mo: r[mo]["other_income"]["Donations"])),
+        inp("Fundraising events", "money", S(lambda mo: r[mo]["other_income"]["Fundraising events"])),
+        calc("Money raised", "money", f"r{nf + 1}+r{nf + 2}+r{nf + 3}"),
+        calc("Cost per dollar raised", "cents", f"r{nf}/r{nf + 4}*100")],
+        "September's gala raised $41,600 but cost $16,900 to run, which lifts the month's figure.")
+    s_run = support("Unrestricted cash runway", "(Cash at bank − unspent grant money) ÷ this month's cash spending", [
+        inp("Cash at bank", "money", S(lambda mo: bs[mo]["cash"])),
+        inp("Less unspent grant money (belongs to funders' programs)", "money", S(lambda mo: -bs[mo]["grants_in_advance"])),
+        calc("Unrestricted cash", "money", "r0+r1"),
+        inp("Cash spending in the month (expenses less depreciation)", "money", S(lambda mo: r[mo]["cash_expenses"])),
+        calc("Runway", "months", "r2/r3")], f"Reserves target: {m['reserves_target_months']}.0 months.")
     ending = [gr for gr in out["grants"] if gr["months_left"] < m["ending_within_months"]]
-    cents = lambda v: f"{half_up(v * 100)}¢"
-    k1, c1 = chg(ctr["2026-09"], ctr["2026-08"], cents, "down")
-    k2, c2 = chg(runway["2026-09"], runway["2026-08"], lambda v: f"{v:.1f} months")
-    P = lambda f: [f(mo) for mo in PERIODS]
+    s_end = support(f"Grants ending in the next {m['ending_within_months']} months", "Grant total − spent to date, for each grant ending soon",
+                    [inp(f"{gr['program']} (ends {date.fromisoformat(gr['end']).strftime('%-d %b %Y')})", "money", [gr["unspent"]]) for gr in ending]
+                    + [calc("Total still to spend", "money", "+".join(f"r{i}" for i in range(len(ending))))],
+                    "Unspent money usually has to be returned, or an extension negotiated, so plan the spending now.", cols=("Still to spend",))
+    ctr, run = s_ctr["xl"]["rows"][-1]["values"], s_run["xl"]["rows"][-1]["values"]
+    k1, c1 = chg(ctr[0], ctr[1], FMT["cents"], "down")
+    k2, c2 = chg(run[0], run[1], FMT["months"])
     G = sorted(out["grants"], key=lambda gr: -gr["total"])     # biggest grants first, same order in both views
     mname = lambda mo: date(int(mo[:4]), int(mo[5:]), 1).strftime("%b %y")
+    details = [support(gr["program"], f"{gr['funder']} · {money(gr['total'])} · {date.fromisoformat(gr['start']).strftime('%b %Y')} to {date.fromisoformat(gr['end']).strftime('%b %Y')}", [
+        inp("Grant total", "money", [gr["total"]]), inp("Received from the funder", "money", [gr["received_to_date"]]),
+        inp("Spent to date", "money", [gr["spent_to_date"]]), inp("Budget to date", "money", [gr["budget_to_date"]]),
+        inp("Months left", "int", [gr["months_left"]]), calc("Still to spend", "money", "r0-r2"),
+        calc("Spent against budget", "pct", "r2/r3")], None,
+        {"title": "Spend by month against budget", "labels": [mname(x["month"]) for x in gr["monthly"]],
+         "values": [x["spend"] for x in gr["monthly"]], "budget": [x["budget"] for x in gr["monthly"]], "format": "money0"},
+        cols=("This grant",)) for gr in G]
+    pcts = [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details]
     return {
-        "kpis": [
-            {"label": "Cost to raise a dollar, September", "value": cents(ctr["2026-09"]), "sub": k1, "cls": c1, "spine": True,
-             "support": support("Cost to raise a dollar", "Fundraising costs ÷ money raised (grants, donations, events)", [
-                 *[[k, *P(lambda mo, k=k: money(r[mo]["fund"][k]))] for k in m["fundraising"]],
-                 ["Fundraising costs", *P(lambda mo: money(fund[mo]))],
-                 ["Grant income", *P(lambda mo: money(r[mo]["grant_income"]))],
-                 ["Donations", *P(lambda mo: money(r[mo]["other_income"]["Donations"]))],
-                 ["Fundraising events", *P(lambda mo: money(r[mo]["other_income"]["Fundraising events"]))],
-                 ["Money raised", *P(lambda mo: money(raised[mo]))], ["Cost per dollar raised", *P(lambda mo: cents(ctr[mo]))]],
-                 "September's gala raised $41,600 but cost $16,900 to run, which lifts the month's figure.")},
-            {"label": "Unrestricted cash runway", "value": f"{runway['2026-09']:.1f} months", "sub": k2, "cls": c2,
-             "support": support("Unrestricted cash runway", "(Cash at bank − unspent grant money) ÷ this month's cash spending", [
-                 ["Cash at bank", *P(lambda mo: money(bs[mo]["cash"]))],
-                 ["Less unspent grant money (belongs to funders' programs)", *P(lambda mo: money(-bs[mo]["grants_in_advance"]))],
-                 ["Unrestricted cash", *P(lambda mo: money(unrestricted[mo]))],
-                 ["Cash spending in the month (expenses less depreciation)", *P(lambda mo: money(r[mo]["cash_expenses"]))],
-                 ["Runway", *P(lambda mo: f"{runway[mo]:.1f} months")]],
-                 f"Reserves target: {m['reserves_target_months']} months.")},
-            {"label": f"Grants ending in {m['ending_within_months']} months", "value": f"{len(ending)} · {money(sum(gr['unspent'] for gr in ending))}",
-             "sub": "still to spend before they end", "cls": "bad" if ending else "",
-             "support": {"title": f"Grants ending in the next {m['ending_within_months']} months", "formula": "Grant total − spent to date",
-                         "head": ["", "Ends", "Still to spend"],
-                         "rows": [[gr["program"], date.fromisoformat(gr["end"]).strftime("%-d %b %Y"), money(gr["unspent"])] for gr in ending]
-                                 + [["Total", "", money(sum(gr["unspent"] for gr in ending))]],
-                         "note": "Unspent money usually has to be returned, or an extension negotiated, so plan the spending now.", "series": None}}],
-        "chart": {"title": "Grant spend to date against budget", "labels": [gr["program"] for gr in G],
-                  "values": [gr["spend_vs_budget_pct"] for gr in G], "target": 100, "format": "pct0", "what": "grant spend against budget",
-                  "plain": True,
-                  "views": [{"id": "pct", "label": "% of budget", "values": [gr["spend_vs_budget_pct"] for gr in G], "format": "pct0", "target": 100},
-                            {"id": "spend", "label": "$ spent", "values": [gr["spent_to_date"] for gr in G], "format": "money_k",
+        "kpis": [{"label": "Cost to raise a dollar, September", "value": FMT["cents"](ctr[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ctr},
+                 {"label": "Unrestricted cash runway", "value": FMT["months"](run[0]), "sub": k2, "cls": c2, "support": s_run},
+                 {"label": f"Grants ending in {m['ending_within_months']} months", "value": f"{len(ending)} · {money(sum(gr['unspent'] for gr in ending))}",
+                  "sub": "still to spend before they end", "cls": "bad" if ending else "", "support": s_end}],
+        "chart": {"title": "Each grant: spent to 30 September 2026 against budget to the same date",
+                  "subtitle": "Whole grant from its start date. Budget to date = the grant spread evenly over its months.",
+                  "labels": [gr["program"] for gr in G],
+                  "values": pcts, "target": 100.0, "format": "pct1", "what": "grant spend against budget", "plain": True,
+                  "views": [{"id": "pct", "label": "% of budget", "values": pcts, "format": "pct1", "target": 100.0},
+                            {"id": "dollars", "label": "$ spent", "values": [gr["spent_to_date"] for gr in G], "format": "money0",
                              "marks": [gr["budget_to_date"] for gr in G], "mark_label": "Budget to date"}],
-                  "details": [support(gr["program"], f"{gr['funder']} · {money(gr['total'])} · {date.fromisoformat(gr['start']).strftime('%b %Y')} to {date.fromisoformat(gr['end']).strftime('%b %Y')}", [
-                      ["Received from the funder", money(gr["received_to_date"]), ""], ["Still to spend", money(gr["unspent"]), ""],
-                      ["Months left", str(gr["months_left"]), ""],
-                      ["Spent to date", money(gr["spent_to_date"]), ""], ["Budget to date", money(gr["budget_to_date"]), ""],
-                      ["Spent against budget", pct(gr["spend_vs_budget_pct"]), ""]], None,
-                      {"title": "Spend by month against budget", "labels": [mname(x["month"]) for x in gr["monthly"]],
-                       "values": [x["spend"] for x in gr["monthly"]], "budget": [x["budget"] for x in gr["monthly"]], "format": "money0"})
-                      for gr in G]},
-        "facts": dict(ctr=ctr, runway=runway, unrestricted=unrestricted, ending=ending),
+                  "details": details},
+        "facts": dict(ctr=ctr, runway=run, ending=ending),
     }
 
 

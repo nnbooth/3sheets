@@ -31,3 +31,6 @@ venv/
 # OS clutter
 .DS_Store
 Thumbs.db
+
+# LinkedIn cuts of the game video (tools/record_demo.py): not used by the site; kept in OneDrive "Media"
+media/game/month-end-run-15s.*
