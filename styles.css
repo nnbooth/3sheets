@@ -680,3 +680,30 @@ body.dev-notes .devnote { display: flex; }
   .nav-links.open { display: flex; }
   .hero { padding-top: 2rem; padding-bottom: 1.5rem; }
 }
+
+/* ---------------------------------------------------------------- DELIVERIES MAP (work.html) */
+.deliv { margin: 0; background: #ffffff; border: 1px solid var(--border); border-radius: 0.9rem; overflow: hidden; box-shadow: 0 10px 30px rgba(37, 52, 42, 0.07); }
+.deliv-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; padding: 0.8rem 0.9rem 0; }
+.deliv-bar .dash-toggle { margin-bottom: 0; }
+.deliv-period { margin: 0.5rem 0.9rem 0; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.deliv-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; padding: 0.6rem 0.9rem; }
+.deliv-kpis div { padding: 0.45rem 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.6rem; }
+.deliv-kpis span { display: block; font-size: 0.72rem; color: var(--muted); }
+.deliv-kpis strong { font-size: 1.25rem; color: var(--ink, #25342a); font-variant-numeric: tabular-nums; }
+.deliv-kpis .bad strong { color: #c2412d; }
+.deliv-body { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 0.9rem; padding: 0 0.9rem 0.9rem; }
+.deliv-map { height: 420px; border: 1px solid var(--border); border-radius: 0.6rem; background: #eef2ee; z-index: 0; }
+.deliv-side h3 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+.deliv-side ol { margin: 0 0 0.8rem; padding-left: 1.1rem; font-size: 0.85rem; }
+.deliv-side ol li { margin: 0.3rem 0; }
+.deliv-side ol li b { color: #c2412d; }
+.deliv-legend { list-style: none; margin: 0; padding: 0; font-size: 0.8rem; color: var(--muted); }
+.deliv-legend li { margin: 0.2rem 0; }
+.deliv-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.4rem; border-radius: 50%; vertical-align: -1px; }
+.deliv-note { font-size: 0.75rem; color: var(--muted); }
+.deliv-dc { padding: 1px 6px; font: 700 11px Inter, sans-serif; color: #fff; background: #25342a; border-radius: 4px; white-space: nowrap; }
+@media (max-width: 720px) {
+  .deliv-kpis { grid-template-columns: repeat(2, 1fr); }
+  .deliv-body { grid-template-columns: 1fr; }
+  .deliv-map { height: 340px; }
+}

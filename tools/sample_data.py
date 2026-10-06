@@ -226,6 +226,10 @@ def main():
     for name, (desc, cols, rows, ddl) in warehouse.build(publish_dashboard.publish.res).items():
         table(name, desc, cols, rows)
         DDL[name] = ddl
+    import deliveries           # deliveries in and out, for the map on work.html
+    for name, (desc, cols, rows, ddl) in deliveries.tables(deliveries.publish()).items():
+        table(name, desc, cols, rows)
+        DDL[name] = ddl
     for name, (desc, cols, rows) in tables.items():
         table(name, desc, cols, rows)
     check_totals()

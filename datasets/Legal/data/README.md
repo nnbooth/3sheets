@@ -6,7 +6,7 @@ tables for work performed, billing, disbursements, and fee-earner budgets.
 
 ## Repository Location
 
-This dataset is stored at `datasets/Legal/data/` in the DataPortfolio repository.
+The data files live in OneDrive, not git: `Projects/The 4th Sheet/Data/Legal/` (scripts find it on Mac or Windows; see the repo README). This README stays in the repository.
 
 ## Current storage / migration status
 

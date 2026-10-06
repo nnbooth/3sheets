@@ -1,6 +1,17 @@
-# Placeholders and open decisions
+# Project notes: decisions, placeholders and how things work
 
-**Site structure (hub and spoke):** `index.html` (home: hero, two audience doors, credibility strip, short ladder, contact) → `sme.html`, `not-for-profit.html`, `work.html` (who I've worked with, examples, tools, game), `how-we-work.html` (full ladder, steps, quick wins, Excel, AI) and `about.html`. The header, nav, contact block and footer are repeated in each page: change them in all six files.
+## Where the business is (current thinking)
+
+- **The Fourth Sheet** (Nathan Booth, Brisbane). *"Your accountant gives you three sheets. I give you the fourth."* The fourth sheet is the numbers underneath the P&L, balance sheet and cash flow: what a customer costs to win, which jobs make money, what a dollar costs to raise.
+- **Who for:** SMEs (never "small business") and not-for-profits. Management-accountant thinking *without the full-time hire*.
+- **Offer ladder:** Set up and hand over → Bedding-in → Monthly. Where a client has no usable data, setup includes the processes and frameworks to start capturing it. Small fixed-scope automations ("quick wins") on the side.
+- **What makes it different:** daily numbers with drill-downs (year > quarter > month > week > day) instead of waiting for the accountant to close the month; month-end reporting against the prior month; granular down to the job, engagement, grant or delivery.
+- **Technology agnostic:** data comes from wherever it lives and goes into whatever the client already uses. Copy names sources and outcomes, not products.
+- **Data design:** all supporting data is built to live in a cloud database (star schema, daily grain) so any dashboard can be rebuilt in Power BI or another tool.
+- **Claims:** no client results claimed; every sample is labelled "Sample data" and adds up. AI is "built with AI, checked by hand", with no big-data or AI-query promises. No "CPA" anywhere until confirmed. Prices off until the CPA certificate application is in.
+- **Every report or dashboard** gets an Excel (formatted) and a PDF download.
+
+**Site structure (hub and spoke):** `index.html` (home: hero, two audience doors, credibility strip, short ladder, contact) → `sme.html`, `not-for-profit.html`, `work.html` (who I've worked with, example dashboards, reports, templates, the deliveries map, tools, game), `how-we-work.html` (full ladder, steps, quick wins, Excel, AI) and `about.html`. The header, nav, contact block and footer are repeated in each page: change them in all six files.
 
 Every detail that isn't final is marked with a token like `[[EMAIL]]`. Search the repo for `[[` to find them all. Most are in `index.html`.
 
@@ -91,13 +102,23 @@ The dashboard in the home hero uses **sample data** (captioned "Sample data"). I
 
 The **fourth sheet** tab is first and always opens by default (also when switching organisation): three headline numbers for September against August, and one chart drilling into jobs, engagements or grants. Every bar shows its value; amber bars are below target (that is the only meaning of the colour).
 
-**Every figure is calculated** by `tools/financial_model.py` and checked: subtotals, balance sheet balances, cash ties, profit/surplus rolls into equity, jobs/engagements/grants add up to the statements, debtors equal unpaid invoices, unspent grants equal instalments received less income recognised. To change anything, edit the assumptions in that file and run `python3 tools/sample_data.py`; that rewrites `dashboard-data.js`, the Excel and PDF downloads in `media/exports/` and the CSVs in OneDrive, `The 4th Sheet/Data/Website sample data/` (`model_statements`, `model_jobs`, `model_engagements`, `model_invoices`, `model_grants`, `model_grant_instalments`, …). The Assumptions pop-up shows the same assumptions.
+**Every figure is calculated** by `tools/financial_model.py` and checked: subtotals, balance sheet balances, cash ties, profit/surplus rolls into equity, jobs/engagements/grants add up to the statements, debtors equal unpaid invoices, unspent grants equal instalments received less income recognised. To change anything, edit the assumptions in that file and run `python3 tools/sample_data.py`; that rewrites `dashboard-data.js`, the Excel and PDF downloads in `media/exports/` and the CSVs in OneDrive, `The 4th Sheet/Data/Website sample data/` (`model_statements` plus the star-schema tables below). The Assumptions pop-up shows the same assumptions.
 
 **Cloud database.** The same numbers are also generated as a daily star schema (`dim_*` and `fact_*` CSVs plus `schema.sql`, written to OneDrive: `The 4th Sheet/Data/Website sample data/`): a daily ledger, daily cash and debtor balances and daily timesheets, with a date dimension for drilling from financial year to quarter, month, week and day. It's checked to roll up to the statements to the dollar, and is ready for rebuilding the dashboards in Power BI or another tool. **To do:** the Azure SQL database is currently deleted. Recreate it, run `schema.sql`, load the CSVs (dim_ tables first).
 
+## Deliveries map (`work.html`)
+
+An interactive map of deliveries **out** to ~65 customers across south-east Queensland and **in** from 14 suppliers around Australia, for an invented distribution centre at Wacol, as at 2pm today (6 Oct 2026). Periods: today, last working day, 7 days, 30 days. Dots are coloured by on-time share (green 95%+, amber 80–95%, red under 80% or anything overdue, blue on its way); a "Where it's going wrong" list ranks carrier/region or supplier hotspots. Planted stories: Carrier A's Gold Coast run goes late from 7 Sep; Supplier C (Melbourne) runs late in September; an import container is held at the port in late September.
+
+Generated by `tools/deliveries.py` (via `python3 tools/sample_data.py`): `deliveries-data.js`, `media/exports/deliveries-sample.xlsx` and `.pdf`, and CSVs `dim_customer`, `dim_supplier`, `fact_delivery_out`, `fact_delivery_in` (one row per delivery, joined to `dim_date`). The map uses Leaflet with OpenStreetMap tiles: fine for a low-traffic site with the attribution shown; move to a paid tile provider if traffic grows.
+
+## Where the data lives
+
+All data (CSV, Excel) lives in OneDrive, not git: `Projects/The 4th Sheet/Data/` (website sample data in `Website sample data/`, domain datasets in `Health/`, `Legal/`, `Purchasing/`, `Retail/`). Scripts find it on the Mac or a Windows PC. Only the website's own downloads (`media/exports/`) are in git. For Power BI on the PC: point a folder parameter at the OneDrive `Data` folder (set it to "Always keep on this device"), or load the CSVs into the cloud database and connect to that.
+
 ## Downloads (Excel and PDF)
 
-Each sample organisation on the home dashboard has a formatted Excel workbook and an A4 PDF in `media/exports/` (fourth sheet, P&L, balance sheet and cash flow with a Change column, the full job / engagement / grant list, assumptions, checks). They're regenerated by `python3 tools/sample_data.py`, so they always match the page. New reports and dashboards should get the same two downloads.
+Each sample organisation on the home dashboard (and the deliveries map) has a formatted Excel workbook and an A4 PDF in `media/exports/` (fourth sheet, P&L, balance sheet and cash flow with a Change column, the full job / engagement / grant list, assumptions, checks). They're regenerated by `python3 tools/sample_data.py`, so they always match the page. New reports and dashboards should get the same two downloads.
 
 ## Logo mark
 
@@ -122,6 +143,13 @@ The dashboard, report and template images are mock-ups with invented "Sample Co"
 - [ ] Real photo in the hero.
 - [ ] Domain live with HTTPS (steps above); LinkedIn Post Inspector shows the right preview.
 - [ ] **Undeploy or restrict the old Apps Script** behind the removed "Email Staff Individually" button. Its address is still in git history.
-- [ ] **Old copies in `versions/`** still contain the old site, including the email button. Delete them or stop serving them.
+- [ ] **Recreate the Azure SQL database** (currently deleted), run `schema.sql`, load the CSVs from OneDrive (dim_ tables first).
 - [ ] Game `CONFIG` confirmed (hours, rate, costs, days) and media re-recorded.
 - [ ] Final check at phone and desktop widths.
+
+## Ideas and next steps (not started)
+
+- **Second game:** *"Why did the accountant cross the road?" "Because that's what we did last month."* About streamlining or dropping processes that no longer earn their keep.
+- **Daily data for the other mock-ups:** the warehouse, reception, boardroom, sales, purchasing and payroll images still sit on small summary tables. Give them daily transaction data underneath (orders, purchase orders, timesheets), close enough rather than perfect.
+- **"October so far":** show the current month to date next to the closed month, to make the daily point on the home dashboard.
+- **Business card:** waiting on the CPA, email and domain answers.

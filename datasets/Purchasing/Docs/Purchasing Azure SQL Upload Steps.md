@@ -1,7 +1,11 @@
 # Purchasing → Azure SQL Upload — Steps
 
+> **Status (Oct 2026):** the Azure SQL database is currently deleted and needs recreating before
+> these steps will work. The CSVs now live in OneDrive (`Projects/The 4th Sheet/Data/Purchasing/`),
+> not in the repository; the scripts find that folder automatically on Mac or Windows.
+
 How the `purchasing` schema in Azure SQL gets created and (re)loaded from the CSVs in
-[`datasets/Purchasing/Data`](../Data), using the scripts in
+the OneDrive `Data/Purchasing` folder, using the scripts in
 [`datasets/Purchasing/Scripts`](../Scripts). This is the template for the equivalent
 Legal, Health, and Retail scripts — same shape, different schema name and source files.
 
