@@ -3,7 +3,9 @@
 sample_data.py — the sample data behind every mock-up dashboard and report.
 
 ONE place for the invented "Sample Co" numbers shown on the website:
-  - the home-page hero dashboard (small business and not-for-profit views)
+  - the home-page dashboard: three sample organisations' P&L, balance sheet,
+    cash flow and fourth sheet (calculated by tools/financial_model.py, which
+    also writes dashboard-data.js and the Excel/PDF exports)
   - the live-display screens (warehouse, reception, boardroom)
   - the report previews (sales, purchasing, payroll and overtime)
   - the management-pack template (profit and loss)
@@ -40,31 +42,8 @@ TABLES = {}
 def table(name, description, columns, rows):
     TABLES[name] = (description, columns, rows)
 
-# --- Home-page hero dashboard: small business view
-table("hero_sb_kpis", "Home hero dashboard, small business view: KPI tiles (as at 30 Sep 2026).",
-      ["kpi", "value", "unit", "comparison"],
-      [["Cost to win a customer", 184, "AUD", "-20% on last quarter"],
-       ["Profit per customer", 1240, "AUD", "+8% on last quarter"],
-       ["Cash in 30 days", 42600, "AUD", "after payroll and BAS"]])
-table("hero_sb_cost_to_win_monthly", "Home hero dashboard: cost to win a customer by month, against target.",
-      ["month", "cost_to_win_aud", "target_aud"],
-      [[m.isoformat(), v, 200] for m, v in zip(MONTHS_2026[3:9], [310, 284, 259, 231, 206, 184])])
-table("hero_sb_channels", "Home hero dashboard: leads, customers won and cost to win by channel (September). Weighted cost to win = $184.",
-      ["channel", "leads", "customers_won", "cost_to_win_aud"],
-      [["Referrals", 42, 18, 115], ["Google ads", 61, 14, 225], ["Social", 38, 7, 280]])
-
-# --- Home-page hero dashboard: not-for-profit view
-table("hero_nfp_kpis", "Home hero dashboard, not-for-profit view: KPI tiles (as at 30 Sep 2026).",
-      ["kpi", "value", "unit", "comparison"],
-      [["Cost to raise a dollar", 0.18, "AUD", "-16c since April"],
-       ["Cost per program hour", 62, "AUD", "+$4 on last quarter"],
-       ["Cash runway", 7.5, "months", "at current spend"]])
-table("hero_nfp_cost_to_raise_monthly", "Home hero dashboard: cost to raise a dollar by month, against target.",
-      ["month", "cost_to_raise_dollar_aud", "target_aud"],
-      [[m.isoformat(), v, 0.20] for m, v in zip(MONTHS_2026[3:9], [0.34, 0.31, 0.27, 0.24, 0.21, 0.18])])
-table("hero_nfp_funding_sources", "Home hero dashboard: money raised and cost per dollar by funding source (year to date). Weighted cost per dollar = $0.18.",
-      ["funding_source", "raised_aud", "share_pct", "cost_per_dollar_aud"],
-      [["Grants", 120000, 59, 0.06], ["Events", 46000, 23, 0.54], ["Donations", 36000, 18, 0.12]])
+# --- Home-page dashboard: generated from tools/financial_model.py (see main()),
+#     so the statements always add up. Tables: model_*.
 
 # --- Live display: warehouse floor (today = 14 Oct 2026)
 TODAY = date(2026, 10, 14)
@@ -188,11 +167,6 @@ def check_totals():
     assert sum(r[2] for r in t["report_payroll_overtime_by_week"]) == 412
     assert sum(r[1] for r in t["report_payroll_by_team"]) == 412
     assert round(198000 / sum(r[2] for r in t["report_payroll_by_team"] if r[2])) == 143
-    ch = t["hero_sb_channels"]
-    assert round(sum(r[2] * r[3] for r in ch) / sum(r[2] for r in ch)) == 184
-    fs = t["hero_nfp_funding_sources"]
-    assert round(sum(r[1] * r[3] for r in fs) / sum(r[1] for r in fs), 2) == 0.18
-    assert sum(r[2] for r in fs) == 100
     p = {r[1]: r for r in t["template_pnl"]}
     for col in (2, 3):
         assert p["Gross margin"][col] == p["Revenue"][col] - p["Materials"][col] - p["Freight"][col] - p["Wastage"][col]
@@ -207,7 +181,6 @@ MOCKUP_CHECKS = {
     "tools/mockups/report-purchasing.html": ["$286k", "91%", "+4.2%", "PO-1042"],
     "tools/mockups/report-payroll.html": ["$198k", "412", "9.6%", "$143"],
     "tools/mockups/template-excel.html": ["412,300", "210,300", "50,500"],
-    "script.js": ["$184", "$0.18", "'$115'", "'$46k'", "'$0.54'"],
 }
 
 def check_mockups():
@@ -231,6 +204,10 @@ def sql_type(values):
     return f"VARCHAR({max(20, max(len(str(v)) for v in vals) + 20)})"
 
 def main():
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import publish_dashboard  # the driver-based model: checks, dashboard-data.js, Excel and PDF exports
+    for name, (desc, cols, rows) in publish_dashboard.publish().items():
+        table(name, desc, cols, rows)
     check_totals()
     check_mockups()
     OUT.mkdir(exist_ok=True)
@@ -249,7 +226,7 @@ def main():
     print(f"Wrote {len(TABLES)} CSVs and schema.sql to {OUT.relative_to(REPO)}/")
 
 GROUPS = [
-    ("Home-page hero dashboard (index.html)", "hero_"),
+    ("Home-page dashboard model (index.html, dashboard-data.js, media/exports/)", "model_"),
     ("Live-display screens (media/display-*.png)", "display_"),
     ("Report previews (media/report-*.png)", "report_"),
     ("Management-pack template (media/template-excel.png)", "template_"),

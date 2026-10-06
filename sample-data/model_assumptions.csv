@@ -1,0 +1,60 @@
+org,assumption_group,assumption,value
+trades,The organisation,What it is,"A field/trade services business: maintenance contracts, installations and call-outs. About 14 staff."
+trades,The organisation,Staff (full-time equivalent),14 (FY2025: 13)
+trades,The organisation,Financial year,1 July to 30 June; FY2026 = year to 30 June 2026
+trades,Revenue,Maintenance contracts,$720k (FY2025: $660k)
+trades,Revenue,Installations,"$1,180k (FY2025: $1,060k)"
+trades,Revenue,Call-outs and repairs,$540k (FY2025: $490k)
+trades,Revenue,New customers won,522 (FY2025: 436)
+trades,Costs,Direct costs by service line,"materials, subcontractors and labour set per line (see the P&L)"
+trades,Costs,Overheads,"as listed in the P&L, set directly"
+trades,Costs,Income tax,25% of profit before tax (base rate entity); paid the following year
+trades,Costs,Superannuation,included in wages
+trades,Cash and balance sheet,Debtor days,34 (FY2025: 38)
+trades,Cash and balance sheet,Creditor days,42 days of non-wage costs
+trades,Cash and balance sheet,Materials on hand,$66k at 30 June (FY2025: $62k)
+trades,Cash and balance sheet,Employee leave provisions,9% of wages
+trades,Cash and balance sheet,Equipment bought,$40k (FY2025: $70k)
+trades,Cash and balance sheet,Equipment finance repaid,$60k a year
+trades,Cash and balance sheet,Dividends paid,$40k (FY2025: $0k)
+trades,Cash and balance sheet,GST,"excluded throughout, for simplicity"
+services,The organisation,What it is,"A professional services consultancy: projects, monthly retainers and training. About 12 staff."
+services,The organisation,Staff (full-time equivalent),12 (FY2025: 11.5)
+services,The organisation,Financial year,1 July to 30 June; FY2026 = year to 30 June 2026
+services,Revenue,Projects,$980k (FY2025: $900k)
+services,Revenue,Retainers,$620k (FY2025: $560k)
+services,Revenue,Training,$200k (FY2025: $160k)
+services,Revenue,New customers won,48 (FY2025: 41)
+services,Costs,Direct costs by service line,"materials, subcontractors and labour set per line (see the P&L)"
+services,Costs,Overheads,"as listed in the P&L, set directly"
+services,Costs,Income tax,25% of profit before tax (base rate entity); paid the following year
+services,Costs,Superannuation,included in wages
+services,Cash and balance sheet,Debtor days,45 (FY2025: 52)
+services,Cash and balance sheet,Creditor days,30 days of non-wage costs
+services,Cash and balance sheet,Work in progress (unbilled),$89k at 30 June (FY2025: $98k)
+services,Cash and balance sheet,Employee leave provisions,11% of wages
+services,Cash and balance sheet,Equipment bought,$30k (FY2025: $20k)
+services,Cash and balance sheet,Equipment finance repaid,$20k a year
+services,Cash and balance sheet,Dividends paid,$80k (FY2025: $30k)
+services,Cash and balance sheet,GST,"excluded throughout, for simplicity"
+services,Utilisation,Billable staff,9 (FY2025: 8.5)
+services,Utilisation,Available hours per person,"1,600 a year"
+services,Utilisation,Billable hours,"10,800 (FY2025: 9,950)"
+nfp,The organisation,What it is,"A community services charity: government-funded programs, donations, events and program fees. About 18 staff. Registered charity, income-tax exempt."
+nfp,The organisation,Staff (full-time equivalent),18 (FY2025: 17)
+nfp,The organisation,Financial year,1 July to 30 June; FY2026 = year to 30 June 2026
+nfp,Income,Government grants,"$1,420k (FY2025: $1,310k)"
+nfp,Income,Donations,$380k (FY2025: $352k)
+nfp,Income,Fundraising events,$210k (FY2025: $188k)
+nfp,Income,Program fees,$340k (FY2025: $300k)
+nfp,Income,Interest,$18k (FY2025: $12k)
+nfp,Spending,"Program, fundraising and admin costs",set directly (see Income and expenditure)
+nfp,Spending,Program hours delivered,"23,200 (FY2025: 22,600)"
+nfp,Spending,Income tax,"none: registered charity, income-tax exempt"
+nfp,Cash and balance sheet,Grants received in advance (unspent),$340k at 30 June (FY2025: $300k)
+nfp,Cash and balance sheet,Receivables / prepayments / payables,$76k / $26k / $101k at 30 June
+nfp,Cash and balance sheet,Employee leave provisions,12% of wages
+nfp,Cash and balance sheet,Equipment bought,$60k (FY2025: $40k)
+nfp,Cash and balance sheet,Unrestricted cash,cash at bank less grants received in advance
+nfp,Cash and balance sheet,Reserves target,3 months of spending
+nfp,Cash and balance sheet,GST,"excluded throughout, for simplicity"
