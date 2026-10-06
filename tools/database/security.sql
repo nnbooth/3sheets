@@ -6,6 +6,7 @@
 --   stage   where each load lands first and is checked; the live tables only change once every check passes
 --   ops     the load log: who loaded what, when, from where, how many rows, and whether it passed
 --   rpt     reporting views (the website, the report builder and Power BI read these; next step)
+--   retail, health, legal   the three synthetic datasets (tools/datasets.py), each in its own schema
 --
 -- Roles (people and apps are added to a role, never granted rights one by one)
 --   report_reader  read-only: SELECT on dbo and rpt. For Power BI, the report builder, the website's API.
@@ -15,6 +16,9 @@
 IF SCHEMA_ID('stage') IS NULL EXEC('CREATE SCHEMA stage');
 IF SCHEMA_ID('ops') IS NULL EXEC('CREATE SCHEMA ops');
 IF SCHEMA_ID('rpt') IS NULL EXEC('CREATE SCHEMA rpt');
+IF SCHEMA_ID('retail') IS NULL EXEC('CREATE SCHEMA retail');
+IF SCHEMA_ID('health') IS NULL EXEC('CREATE SCHEMA health');
+IF SCHEMA_ID('legal') IS NULL EXEC('CREATE SCHEMA legal');
 
 IF OBJECT_ID('ops.load_run') IS NULL
 CREATE TABLE ops.load_run (
@@ -47,8 +51,14 @@ IF DATABASE_PRINCIPAL_ID('data_loader') IS NULL CREATE ROLE data_loader;
 
 GRANT SELECT ON SCHEMA::dbo TO report_reader;
 GRANT SELECT ON SCHEMA::rpt TO report_reader;
+GRANT SELECT ON SCHEMA::retail TO report_reader;
+GRANT SELECT ON SCHEMA::health TO report_reader;
+GRANT SELECT ON SCHEMA::legal TO report_reader;
 
 GRANT SELECT, INSERT, DELETE ON SCHEMA::dbo TO data_loader;
+GRANT SELECT, INSERT, DELETE ON SCHEMA::retail TO data_loader;
+GRANT SELECT, INSERT, DELETE ON SCHEMA::health TO data_loader;
+GRANT SELECT, INSERT, DELETE ON SCHEMA::legal TO data_loader;
 GRANT SELECT, INSERT, DELETE, ALTER ON SCHEMA::stage TO data_loader;
 GRANT SELECT, INSERT, UPDATE ON SCHEMA::ops TO data_loader;
 GRANT CREATE TABLE TO data_loader;
