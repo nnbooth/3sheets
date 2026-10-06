@@ -42,7 +42,7 @@ The only spreadsheets kept in git are the website's own downloads in `media/expo
 Run from the repository root (`dataPortfolio`):
 
 ```
-python3 -m http.server 8765        # then open http://127.0.0.1:8765
+python3 tools/serve.py             # then open http://127.0.0.1:8765 (no caching)
 python3 tools/sample_data.py       # regenerate the sample model, downloads and CSVs
 ```
 
