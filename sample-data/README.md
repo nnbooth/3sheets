@@ -18,16 +18,15 @@ The invented "Sample Co" numbers behind every mock-up dashboard and report on th
 
 ## Tables
 
-### Home-page hero dashboard (index.html)
+### Home-page dashboard model (index.html, dashboard-data.js, media/exports/)
 
 | Table | What it is | Columns |
 | --- | --- | --- |
-| `hero_sb_kpis` | Home hero dashboard, small business view: KPI tiles (as at 30 Sep 2026). | `kpi`, `value`, `unit`, `comparison` |
-| `hero_sb_cost_to_win_monthly` | Home hero dashboard: cost to win a customer by month, against target. | `month`, `cost_to_win_aud`, `target_aud` |
-| `hero_sb_channels` | Home hero dashboard: leads, customers won and cost to win by channel (September). Weighted cost to win = $184. | `channel`, `leads`, `customers_won`, `cost_to_win_aud` |
-| `hero_nfp_kpis` | Home hero dashboard, not-for-profit view: KPI tiles (as at 30 Sep 2026). | `kpi`, `value`, `unit`, `comparison` |
-| `hero_nfp_cost_to_raise_monthly` | Home hero dashboard: cost to raise a dollar by month, against target. | `month`, `cost_to_raise_dollar_aud`, `target_aud` |
-| `hero_nfp_funding_sources` | Home hero dashboard: money raised and cost per dollar by funding source (year to date). Weighted cost per dollar = $0.18. | `funding_source`, `raised_aud`, `share_pct`, `cost_per_dollar_aud` |
+| `model_statements` | Home-page dashboard: P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, FY2026 and FY2025, $'000. Costs and outflows are negative. level = detail/subtotal/total/key. | `org`, `statement`, `line_order`, `line`, `level`, `financial_year`, `amount_aud_k` |
+| `model_fourth_sheet_kpis` | Home-page dashboard: the fourth-sheet KPI tiles, as displayed. | `org`, `kpi`, `value`, `comparison` |
+| `model_monthly` | Home-page dashboard: monthly drivers behind the fourth-sheet charts, FY2026 (sum to the annual figures). | `org`, `financial_year`, `month`, `measure`, `value` |
+| `model_bridge` | Home-page dashboard: profit (surplus) to cash bridge, FY2026, $'000. | `org`, `line`, `amount_aud_k` |
+| `model_assumptions` | Home-page dashboard: the assumptions each sample organisation's statements are built from. | `org`, `assumption_group`, `assumption`, `value` |
 
 ### Live-display screens (media/display-*.png)
 
