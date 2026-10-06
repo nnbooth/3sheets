@@ -76,23 +76,26 @@ def read_files(t):
     return files, rows, checksum
 
 
-def checksum_sql(t, schema_name):
+def checksum_sql(t, where):
+    """where: 'live' or 'stage'."""
+    target = t.qual if where == "live" else t.stage
     nums = [c for c, k in t.columns if numeric(k)]
     if not nums:
-        return f"SELECT COUNT(*), CAST(0 AS DECIMAL(38,2)) FROM {schema_name}.[{t.name}]"
+        return f"SELECT COUNT(*), CAST(0 AS DECIMAL(38,2)) FROM {target}"
     s = " + ".join(f"CAST(ISNULL([{c}], 0) AS DECIMAL(38,2))" for c in nums)
-    return f"SELECT COUNT(*), ISNULL(SUM({s}), 0) FROM {schema_name}.[{t.name}]"
+    return f"SELECT COUNT(*), ISNULL(SUM({s}), 0) FROM {target}"
 
 
-def existing_columns(cur, name):
-    cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION", (name,))
+def existing_columns(cur, t):
+    cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION", (t.schema_name, t.name))
     return [r[0] for r in cur.fetchall()]
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Load the CSVs into the cloud database (stage, check, then replace live in one transaction).")
     ap.add_argument("--check", action="store_true", help="stage and check only; change nothing live")
-    ap.add_argument("--tables", help="comma-separated table names (default: all)")
+    ap.add_argument("--tables", help="comma-separated table names (default: all), e.g. dim_org,retail.fact_sales")
+    ap.add_argument("--dataset", help="only one area: website (dbo), retail, health or legal")
     ap.add_argument("--rebuild", action="store_true", help="drop and recreate live tables whose columns have changed (their data is reloaded)")
     ap.add_argument("--interactive", action="store_true", help="sign in through the browser instead of az login")
     a = ap.parse_args(argv)
@@ -105,6 +108,11 @@ def main(argv=None):
         if unknown:
             raise SystemExit(f"Unknown table(s): {', '.join(sorted(unknown))}")
         order = [n for n in order if n in pick]
+    if a.dataset:
+        want = "dbo" if a.dataset == "website" else a.dataset
+        order = [n for n in order if ts[n].schema_name == want]
+        if not order:
+            raise SystemExit(f"No tables for dataset {a.dataset!r}")
 
     print(f"Reading {len(order)} tables from {schema.data_root()} ...")
     data = {n: read_files(ts[n]) for n in order}
@@ -121,23 +129,25 @@ def main(argv=None):
     conn.commit()
     t0 = time.time()
     try:
-        # 1. live tables exist, with the right columns
+        # 1. live tables exist, with the right columns (each dataset in its own schema)
+        for sch in sorted({ts[n].schema_name for n in order} - {"dbo"}):
+            cur.execute(f"IF SCHEMA_ID('{sch}') IS NULL EXEC('CREATE SCHEMA [{sch}]')")
         for n in order:
-            have = existing_columns(cur, n)
+            have = existing_columns(cur, ts[n])
             want = [c for c, _ in ts[n].columns]
             if not have:
-                cur.execute(ts[n].ddl_dbo())
+                cur.execute(ts[n].ddl_live())
             elif have != want:
                 if not a.rebuild:
-                    raise SystemExit(f"dbo.{n} has different columns from schema.sql.\n  database: {have}\n  schema:   {want}\n"
+                    raise SystemExit(f"{ts[n].qual} has different columns from its schema file.\n  database: {have}\n  schema:   {want}\n"
                                      "Re-run with --rebuild to recreate it (its data is reloaded from the files).")
-                print(f"  rebuilding dbo.{n} (columns changed)")
+                print(f"  rebuilding {ts[n].qual} (columns changed)")
         if a.rebuild:
-            changed = [n for n in order if existing_columns(cur, n) not in ([], [c for c, _ in ts[n].columns])]
+            changed = [n for n in order if existing_columns(cur, ts[n]) not in ([], [c for c, _ in ts[n].columns])]
             for n in reversed(changed):
-                cur.execute(f"DROP TABLE dbo.[{n}]")
+                cur.execute(f"DROP TABLE {ts[n].qual}")
             for n in changed:
-                cur.execute(ts[n].ddl_dbo())
+                cur.execute(ts[n].ddl_live())
         conn.commit()
 
         # 2. stage every table and check it against the files
@@ -145,11 +155,11 @@ def main(argv=None):
         for n in order:
             t = ts[n]
             files, rows, csum = data[n]
-            cur.execute(f"DROP TABLE IF EXISTS stage.[{n}]")
-            cur.execute(t.ddl_in("stage"))
+            cur.execute(f"DROP TABLE IF EXISTS {t.stage}")
+            cur.execute(t.ddl_stage())
             cols = ", ".join(f"[{c}]" for c, _ in t.columns)
             marks = ", ".join("?" for _ in t.columns)
-            sql = f"INSERT INTO stage.[{n}] ({cols}) VALUES ({marks})"
+            sql = f"INSERT INTO {t.stage} ({cols}) VALUES ({marks})"
             for i in range(0, len(rows), BATCH):
                 cur.executemany(sql, rows[i:i + BATCH])
             conn.commit()
@@ -157,7 +167,7 @@ def main(argv=None):
             got_n, got_sum = cur.fetchone()
             ok = got_n == len(rows) and Decimal(got_sum) == csum
             report.append((n, len(files), len(rows), got_n, csum, Decimal(got_sum)))
-            print(f"  staged {n:42} {got_n:>7,} rows  {'ok' if ok else 'MISMATCH'}")
+            print(f"  staged {n:44} {got_n:>7,} rows  {'ok' if ok else 'MISMATCH'}")
             if not ok:
                 raise SystemExit(f"{n}: the database has {got_n} rows (checksum {got_sum}) but the files have {len(rows)} (checksum {csum}). Nothing live was changed.")
 
@@ -166,19 +176,19 @@ def main(argv=None):
         else:
             # 3. replace the live tables, all in one transaction
             for n in reversed(order):
-                cur.execute(f"DELETE FROM dbo.[{n}]")
+                cur.execute(f"DELETE FROM {ts[n].qual}")
             for n in order:
                 cols = ", ".join(f"[{c}]" for c, _ in ts[n].columns)
-                cur.execute(f"INSERT INTO dbo.[{n}] ({cols}) SELECT {cols} FROM stage.[{n}]")
+                cur.execute(f"INSERT INTO {ts[n].qual} ({cols}) SELECT {cols} FROM {ts[n].stage}")
             for n, _, csv_rows, _, csum, _ in report:
-                cur.execute(checksum_sql(ts[n], "dbo"))
+                cur.execute(checksum_sql(ts[n], "live"))
                 live_n, live_sum = cur.fetchone()
                 if live_n != csv_rows or Decimal(live_sum) != csum:
-                    raise SystemExit(f"dbo.{n} doesn't match after loading ({live_n} rows). Rolled back: nothing live was changed.")
+                    raise SystemExit(f"{ts[n].qual} doesn't match after loading ({live_n} rows). Rolled back: nothing live was changed.")
             conn.commit()
             status, msg = "Loaded", f"{len(order)} tables replaced in one transaction."
         for n in order:
-            cur.execute(f"DROP TABLE IF EXISTS stage.[{n}]")
+            cur.execute(f"DROP TABLE IF EXISTS {ts[n].stage}")
         for n, nf, csv_rows, got_n, csum, got_sum in report:
             cur.execute("INSERT INTO ops.load_table VALUES (?, ?, ?, ?, ?, ?, ?)", (load_id, n, nf, csv_rows, got_n, csum, got_sum))
         cur.execute("UPDATE ops.load_run SET finished_at = SYSUTCDATETIME(), status = ?, tables_loaded = ?, rows_loaded = ?, message = ? WHERE load_id = ?",

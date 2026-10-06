@@ -20,15 +20,21 @@ def data_root():
 
 
 class Table:
-    def __init__(self, name, ddl, comment):
-        self.name, self.ddl = name, ddl.strip()
+    """A table in the database. key = 'name' for the website's tables (schema dbo), 'schema.name' for the datasets."""
+
+    def __init__(self, qualname, ddl, comment):
+        self.schema_name, self.name = qualname.split(".") if "." in qualname else ("dbo", qualname)
+        self.key = qualname
+        self.qual = f"[{self.schema_name}].[{self.name}]"
+        self.stage = f"stage.[{self.schema_name}__{self.name}]"
+        self.ddl = ddl.strip()
         body = ddl[ddl.index("(") + 1:ddl.rindex(")")]
         self.columns = []
         for part in re.split(r",\s*\n", body):
             m = re.match(r"\s*([a-z_][a-z0-9_]*)\s+([A-Z]+(?:\([0-9, ]+\))?)", part)
             if m and m.group(1) not in ("primary", "foreign", "constraint", "unique"):
                 self.columns.append((m.group(1), m.group(2)))
-        self.refs = sorted(set(re.findall(r"REFERENCES\s+([a-z_]+)", ddl)) - {name})
+        self.refs = sorted({(f"{s}.{t}" if s and s != "dbo" else t) for s, t in re.findall(r"REFERENCES\s+(?:([a-z_]+)\.)?([a-z_]+)", ddl)} - {qualname})
         path = re.search(r"\[Data/([^\]]+?)(?: \(one file per organisation[^\]]*\))?\]", comment)
         self.pattern = path.group(1) if path else None
 
@@ -40,20 +46,28 @@ class Table:
         f = data_root() / self.pattern
         return [f] if f.exists() else []
 
-    def ddl_in(self, schema):
-        """The CREATE TABLE for another schema (e.g. stage), with keys and references dropped."""
+    def ddl_stage(self):
+        """The CREATE TABLE for its staging copy, with keys and references dropped."""
         cols = ",\n".join(f"    [{c}] {t}" for c, t in self.columns)
-        return f"CREATE TABLE {schema}.[{self.name}] (\n{cols}\n);"
+        return f"CREATE TABLE {self.stage} (\n{cols}\n);"
 
-    def ddl_dbo(self):
+    def ddl_live(self):
+        if self.schema_name != "dbo":
+            return self.ddl
         return re.sub(r"REFERENCES ([a-z_]+)\(", r"REFERENCES dbo.\1(", re.sub(r"^CREATE TABLE ([a-z_]+)", r"CREATE TABLE dbo.\1", self.ddl))
 
 
+def schema_files():
+    """schema.sql (the website's tables) and schema-<dataset>.sql (Retail, Health, Legal: tools/datasets.py)."""
+    return [schema_file()] + sorted(schema_file().parent.glob("schema-*.sql"))
+
+
 def tables():
-    text = schema_file().read_text(encoding="utf-8")
     out = {}
-    for m in re.finditer(r"((?:--[^\n]*\n)*)(CREATE TABLE ([a-z_]+) \((?:.|\n)*?\n\);)", text):
-        out[m.group(3)] = Table(m.group(3), m.group(2), m.group(1))
+    for f in schema_files():
+        text = f.read_text(encoding="utf-8")
+        for m in re.finditer(r"((?:--[^\n]*\n)*)(CREATE TABLE ((?:[a-z_]+\.)?[a-z_]+) \((?:.|\n)*?\n\);)", text):
+            out[m.group(3)] = Table(m.group(3), m.group(2), m.group(1))
     return out
 
 

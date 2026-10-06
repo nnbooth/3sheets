@@ -97,6 +97,7 @@ loads with a load log. See [tools/database/README.md](tools/database/README.md).
 
 - `azure_setup.py` creates and locks down the server and database.
 - `load.py` loads the CSVs.
+- `../datasets.py` prepares the Retail, Health and Legal datasets (trimmed, synthetic names, up to date, checked) for their own schemas.
 - `document.py` writes the table-by-table guide and star-schema plan, with Claude prompts, to OneDrive.
 - The report builder reads the database with `--source db`, and `python3 tools/report.py --compare-sources` proves it gives the same reports as the CSVs.
 

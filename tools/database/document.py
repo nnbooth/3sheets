@@ -73,6 +73,44 @@ for n in ("report_payroll_by_team", "report_payroll_hours_vs_jobs", "report_payr
             "sales": "fact_sales_order_line (order, customer, product, dates, value, cancelled + reason) with dim_customer and dim_product"}[area]
     STAR[n] = ("Presentation (mock-up report)", f"Don't store: a **rpt.** view over {feed}.")
 
+# ---- the three datasets (tools/datasets.py): each already close to a star; advice is the tidy-up to finish it
+STAR.update({
+    # Retail
+    "retail.dim_date": ("Dimension (conformed)", "Keep as **retail.dim_date**; better, conform with one company-wide dim_date (same date_key) so retail, health, legal and finance share a calendar."),
+    "retail.dim_store": ("Dimension", "Keep as **dim_store** (surrogate store_key). current_sales_rep_id makes it type 2 territory history: when a store changes rep, start a new row so past sales stay with the rep who made them. Retailer and channel can be a dim_retailer outrigger."),
+    "retail.dim_product": ("Dimension", "Keep as **dim_product** (surrogate product_key) with brand and pack size as the hierarchy. unit_price is a list price that changes: type 2, or a separate price list fact."),
+    "retail.dim_employee": ("Dimension", "Keep as **dim_employee**, type 2 on role and territory; end_date and status describe the employment, not the row."),
+    "retail.dim_carrier": ("Dimension", "Keep as **dim_carrier** (surrogate carrier_key)."),
+    "retail.dim_delivery_status": ("Dimension (small)", "Fold with on_time / in_full / difot flags into one junk dimension **dim_delivery_outcome**, so the fact carries one key instead of five columns."),
+    "retail.dim_cancellation_reason": ("Dimension (small)", "Keep as **dim_cancellation_reason** with category and controllable as attributes; facts use −1 for 'not cancelled'."),
+    "retail.dim_sales_channel": ("Dimension (small)", "Keep as **dim_sales_channel**; the default discount is an attribute, the actual discount is a measure on the sale."),
+    "retail.dim_transaction_source": ("Dimension (small)", "Fold into a junk dimension with channel if both stay small, or keep as **dim_transaction_source**."),
+    "retail.dim_promotion": ("Dimension", "Keep as **dim_promotion** (surrogate key, −1 'no promotion'). Scope (retailer, state, store type, SKU) is a bridge if a promotion can cover several of each."),
+    "retail.fact_sales": ("Fact (transaction)", "The centre of the retail star: **fact_sales** at one row per order line, keys only (date, store, product, rep, channel, promotion, source, order) + qty, gross and net sales, discount = gross − net. Clustered columnstore."),
+    "retail.fact_sales_order": ("Fact (accumulating snapshot)", "Keep as **fact_sales_order** with role-playing dates (ordered, requested, cancelled) and the order status as a key; order_total stays a view over fact_sales (it equals the sum of the lines)."),
+    "retail.fact_delivery": ("Fact (accumulating snapshot)", "Keep as **fact_delivery** with role-playing dates (dispatched, scheduled, delivered), carrier_key, the delivery outcome junk key, and measures qty dispatched, received, damaged, rejected. DIFOT % is a measure."),
+    "retail.fact_budget_product_month": ("Fact (plan)", "Keep as **fact_budget** at product × month (month's first date_key). Actual vs budget is a view joining fact_sales at the same grain."),
+    # Health
+    "health.dim_date": ("Dimension (conformed)", "Conform with the company-wide **dim_date**."),
+    "health.dim_provider": ("Dimension", "Keep as **dim_provider** (surrogate key), type 2 on FTE and specialty."),
+    "health.dim_service_type": ("Dimension", "Keep as **dim_service_type**; the standard fee and Medicare rebate change every July: type 2 (valid_from/to) so old appointments keep the fee in force."),
+    "health.fact_appointment": ("Fact (transaction)", "Keep as **fact_appointment** at one row per booking: date and booking date keys, provider, service type, patient (add a **dim_patient**, de-identified), a status/billing-type junk key; measures fee, rebate, out of pocket, wait days, satisfaction."),
+    "health.fact_claim": ("Fact (accumulating snapshot)", "Keep as **fact_claim** with submitted and paid date keys, a claim status/rejection reason junk key, and claim amount; days to pay is a measure."),
+    # Legal
+    "legal.dim_date": ("Dimension (conformed)", "Conform with the company-wide **dim_date** (court vacations as an attribute)."),
+    "legal.dim_client": ("Dimension", "Keep as **dim_client** (surrogate key) with segment."),
+    "legal.dim_fee_earner": ("Dimension", "Keep as **dim_fee_earner**, type 2 on role, hourly rate and office, so past work keeps the rate it was charged at."),
+    "legal.dim_office": ("Dimension", "Keep as **dim_office**; the facts carry office_key only (done: the repeated office names were removed from the facts)."),
+    "legal.dim_practice_area": ("Dimension (small)", "Keep as **dim_practice_area**."),
+    "legal.dim_referral_source": ("Dimension (small)", "Keep as **dim_referral_source**."),
+    "legal.dim_matter": ("Dimension", "Keep as **dim_matter** (surrogate key) with client, practice area, fee earner, referral and office keys; open/close dates and status make it type 2 or move them to fact_matter."),
+    "legal.fact_matter": ("Fact (accumulating snapshot)", "Keep as **fact_matter**: one row per matter with open/close date keys and the claim, settlement, fees, disbursements, collected and written-off measures (recalculated from the detail, so they agree)."),
+    "legal.fact_work": ("Fact (transaction)", "Keep as **fact_work**: one row per timecard (date, matter, fee earner, office keys; hours, value at standard rate). Unbilled work = work without a billing row."),
+    "legal.fact_billing": ("Fact (transaction)", "Keep as **fact_billing**: one row per timecard billed (billing date, matter, fee earner; hours, rate, amount, write-off). Realisation = billed ÷ work value."),
+    "legal.fact_disbursement": ("Fact (transaction)", "Keep as **fact_disbursement** (date, matter, office; amount)."),
+    "legal.fact_fee_earner_budget_month": ("Fact (plan)", "Keep as **fact_fee_earner_budget** at fee earner × month: budget hours and revenue. Utilisation vs target and revenue vs budget are views."),
+})
+
 DESIGN = """
 ## The target: four stars that share their dimensions
 
@@ -153,11 +191,16 @@ def prompt(n, t, adv):
 
 
 def describe():
-    text = schema.schema_file().read_text(encoding="utf-8")
-    return {m.group(2): m.group(1).strip() for m in re.finditer(r"-- (.*?)\s+\[Data/[^\]]*\]\nCREATE TABLE ([a-z_]+)", text)}
+    out = {}
+    for f in schema.schema_files():
+        text = f.read_text(encoding="utf-8")
+        out |= {m.group(2): m.group(1).strip() for m in re.finditer(r"-- (.*?)\s+\[Data/[^\]]*\]\nCREATE TABLE ((?:[a-z_]+\.)?[a-z_]+)", text)}
+    return out
 
 
 def area(n):
+    if "." in n:
+        return {"retail": "Retail dataset", "health": "Health dataset", "legal": "Legal dataset"}[n.split(".")[0]]
     for pre, a in (("display_", "Mock-up screens"), ("report_", "Mock-up reports"), ("template_", "Mock-up reports"), ("model_", "Home dashboard model")):
         if n.startswith(pre):
             return a
@@ -198,6 +241,7 @@ def main():
           "Paste the ground rules first, then the table prompts in this order, one at a time, checking each reconciliation before the next. "
           "Each table's own prompt is also under it, below.", "", "**1. Ground rules (paste first):**", "", "```text", MCP_RULES, "```", "",
           "**2. Then, in this order:** " + " → ".join(f"[{n}](#{n})" for n in BUILD_ORDER if n in ts) + ". "
+          "The Retail, Health and Legal datasets are separate stars: for each, dimensions first, then facts, in the order listed below. "
           "The mock-up screen and report tables come last (views over the facts above; several need source facts that don't exist yet: "
           "picks, payroll, purchase orders, sales orders).", "",
           "**3. Finally:** \"Using the SQL database MCP, list every object in `star` and `rpt` with its row count, rerun every reconciliation "
@@ -211,7 +255,7 @@ def main():
         files, rows = info[n]
         role, adv = STAR[n]
         pk = re.findall(r"^\s*([a-z_]+) [A-Z]+[^,\n]*PRIMARY KEY", t.ddl, re.M)
-        refs = {c: r for c, r in re.findall(r"^\s*([a-z_]+) [A-Z]+[^,\n]*REFERENCES ([a-z_]+)", t.ddl, re.M)}
+        refs = {c: r.replace("dbo.", "") for c, r in re.findall(r"^\s*([a-z_]+) [A-Z]+[^,\n]*REFERENCES ((?:[a-z_]+\.)?[a-z_]+)", t.ddl, re.M)}
         ex = rows[0] if rows else [None] * len(t.columns)
         L += [f"### {n}", "", desc.get(n, ""), "",
               f"- **Area:** {area(n)} · **Rows:** {len(rows):,} · **Today:** {role}",
