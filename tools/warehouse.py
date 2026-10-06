@@ -424,6 +424,8 @@ def build(res):
         [("org_id", V(12) + " REFERENCES dim_org(org_id)"), ("month_key", V(7)), ("month_status", V(12)), ("line", V(40)), ("items", "INT"),
          ("revenue", "INT"), ("direct_cost", "INT"), ("margin", "INT")], lm)
     check_history(res, lm)
+    build.line_month, build.nfp_by_month, build.gsm = lm, by_ml, gsm
+    build.balance_daily = bal
     tbl("fact_grant_position", "Each grant at 30 Sep 2026: received, spent, budget to date, still to spend. balance = received - spent (+ in advance, - receivable).",
         [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("date_key", "INT"), ("received_to_date", "INT"), ("spent_to_date", "INT"),
          ("budget_to_date", "INT"), ("spend_vs_budget_pct", "DECIMAL(6,1)"), ("still_to_spend", "INT"), ("balance", "INT"), ("months_left", "INT")], gpos)
