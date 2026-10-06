@@ -6,7 +6,7 @@ into everything the website and your database use:
   dashboard-data.js                       data for the home-page dashboard
   media/exports/<org>-sample-statements.xlsx   formatted Excel workbook
   media/exports/<org>-sample-statements.pdf    A4 PDF report
-  (CSV rows for sample-data/ are returned to sample_data.py)
+  (CSV rows for the OneDrive data folder are returned to sample_data.py)
 
 Run via:  python3 tools/sample_data.py   (it calls this)
 Needs:    pip install openpyxl playwright   (PDFs use your installed Chrome)
