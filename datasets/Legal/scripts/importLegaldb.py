@@ -12,7 +12,18 @@ from psycopg import sql
 SCRIPT_DIR = Path(__file__).resolve().parent
 LEGAL_DIR = SCRIPT_DIR.parent
 # Data lives in OneDrive, not in git (set FOURTH_SHEET_DATA to use another folder).
-DATA_ROOT = Path(os.getenv("FOURTH_SHEET_DATA", Path.home() / "Library/CloudStorage/OneDrive-Personal/Projects/The 4th Sheet/Data")).expanduser()
+def _data_root():
+    """The 4th Sheet's OneDrive Data folder, on a Mac or a Windows PC."""
+    if os.getenv("FOURTH_SHEET_DATA"):
+        return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser()
+    for base in (os.getenv("OneDriveConsumer"), os.getenv("OneDrive"),                 # Windows
+                 Path.home() / "Library/CloudStorage/OneDrive-Personal", Path.home() / "OneDrive"):  # Mac
+        if base and (Path(base) / "Projects/The 4th Sheet").exists():
+            return Path(base) / "Projects/The 4th Sheet/Data"
+    raise SystemExit("Can't find the OneDrive folder 'Projects/The 4th Sheet'. Set FOURTH_SHEET_DATA to its Data folder.")
+
+
+DATA_ROOT = _data_root()
 RAW_DIR = Path(os.getenv("LEGAL_DATA_DIR", DATA_ROOT / "Legal"))
 
 PGHOST = os.getenv("PGHOST", "127.0.0.1")

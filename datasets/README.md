@@ -12,4 +12,4 @@ not in git:
 | Purchasing | `Data/Purchasing/` | `Purchasing/Scripts/` (generate, create schema, load to Azure SQL) |
 | Retail | `Data/Retail/` | none yet |
 
-Scripts read and write the OneDrive folder automatically. Set `FOURTH_SHEET_DATA` to point at a different `Data` folder.
+Scripts read and write the OneDrive folder automatically, on the Mac or a Windows PC. Set `FOURTH_SHEET_DATA` to point at a different `Data` folder.

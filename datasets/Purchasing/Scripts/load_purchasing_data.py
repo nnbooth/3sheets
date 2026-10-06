@@ -23,7 +23,18 @@ from azure_sql_connection import get_connection
 from purchasing_tables import SCHEMA_NAME, TABLES, Table
 
 # Data lives in OneDrive, not in git (set FOURTH_SHEET_DATA to use another folder).
-DATA_ROOT = Path(os.getenv("FOURTH_SHEET_DATA", Path.home() / "Library/CloudStorage/OneDrive-Personal/Projects/The 4th Sheet/Data")).expanduser()
+def _data_root():
+    """The 4th Sheet's OneDrive Data folder, on a Mac or a Windows PC."""
+    if os.getenv("FOURTH_SHEET_DATA"):
+        return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser()
+    for base in (os.getenv("OneDriveConsumer"), os.getenv("OneDrive"),                 # Windows
+                 Path.home() / "Library/CloudStorage/OneDrive-Personal", Path.home() / "OneDrive"):  # Mac
+        if base and (Path(base) / "Projects/The 4th Sheet").exists():
+            return Path(base) / "Projects/The 4th Sheet/Data"
+    raise SystemExit("Can't find the OneDrive folder 'Projects/The 4th Sheet'. Set FOURTH_SHEET_DATA to its Data folder.")
+
+
+DATA_ROOT = _data_root()
 DATA_DIR = DATA_ROOT / "Purchasing"
 
 # Tables any foreign_keys entry points at - TRUNCATE is not allowed on these.
