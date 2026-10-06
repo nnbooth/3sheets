@@ -295,7 +295,10 @@ function applyPrices() {
    Don't type numbers in here: change the assumptions in that file and run
    python3 tools/sample_data.py.
 
-   Tabs: P&L, Balance sheet, Cash flow, The fourth sheet.
+   Month-end: September 2026 against the prior month (August 2026), whole
+   dollars, built up from individual jobs, engagements and grants.
+   Tabs: The fourth sheet (always first, and shown by default), P&L,
+   Balance sheet, Cash flow.
    Toggle: SME · trades, SME · services, Not-for-profit.
    Phones show headline lines; larger screens show every line (CSS hides
    .detail rows under 720px). The page re-checks that everything adds up
@@ -303,13 +306,13 @@ function applyPrices() {
 --------------------------------------------------------------------------- */
 const dash = { org: 'trades', tab: 'fourth' };
 
-// Accounting format in $'000: 1,234 / (1,234) for negatives / - for zero
+// Accounting format in whole dollars: 1,234 / (1,234) for negatives / - for zero
 const acct = (n) => (n < 0 ? `(${Math.abs(n).toLocaleString('en-AU')})` : n === 0 ? '-' : n.toLocaleString('en-AU'));
 const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const CHART_FORMATS = {
   money0: (v) => `$${Math.round(v).toLocaleString('en-AU')}`,
   pct0: (v) => `${Math.round(v)}%`,
-  cents_int: (v) => `${v}c`,
+  cents_int: (v) => `${v}¢`,
 };
 
 // Re-check a statement: every subtotal equals the detail lines above it
@@ -332,35 +335,43 @@ function orgBalances(o) {
   const bs = o.statements.bs.rows, cf = o.statements.cf.rows;
   const equity = val(bs, 'Total equity') || val(bs, 'Accumulated funds');
   const ok = ['pnl', 'bs', 'cf'].every((k) => statementAddsUp(o.statements[k].rows));
-  return ok && [0, 1].every((i) => val(bs, 'Net assets')[i] === equity[i] && val(cf, 'Cash at 30 June')[i] === val(bs, 'Cash at bank')[i]);
+  return ok && [0, 1].every((i) => val(bs, 'Net assets')[i] === equity[i] && val(cf, 'Cash at end of month')[i] === val(bs, 'Cash at bank')[i]);
 }
 
 function renderStatement(o, st) {
   const rows = st.rows.map((r) => {
-    if (r.level === 'heading') return `<tr class="st-heading"><th colspan="3" scope="rowgroup">${esc(r.label)}</th></tr>`;
-    return `<tr class="st-${r.level}${r.level === 'detail' ? ' detail' : ''}"><td>${esc(r.label)}</td>${r.values.map((v) => `<td class="n">${acct(v)}</td>`).join('')}</tr>`;
+    if (r.level === 'heading') return `<tr class="st-heading"><th colspan="4" scope="rowgroup">${esc(r.label)}</th></tr>`;
+    const change = r.values[0] - r.values[1];
+    return `<tr class="st-${r.level}${r.level === 'detail' ? ' detail' : ''}"><td>${esc(r.label)}</td>${r.values.map((v) => `<td class="n">${acct(v)}</td>`).join('')}<td class="n st-change">${acct(change)}</td></tr>`;
   }).join('');
-  return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)} · $'000</p>
-    <div class="st-scroll"><table class="st-table"><thead><tr><th scope="col">$'000</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+  return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)}</p>
+    <div class="st-scroll"><table class="st-table"><thead><tr><th scope="col">$</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}<th scope="col" class="n st-change">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="dash-phone-note">Headline lines shown. Every line is on a larger screen, and in the Excel and PDF downloads.</p>`;
 }
 
 function renderChart(ch) {
-  const W = 300, H = 120, top = 14, base = 92, left = 6, right = 294;
+  // Every bar carries its value. Bars below the target are amber (that's the
+  // only meaning of the colour), with a key underneath when any are.
+  const W = 300, H = 132, top = 18, base = 100, left = 6, right = 294;
   const fmt = CHART_FORMATS[ch.format] || String;
-  const max = Math.max(...ch.values, ch.target || 0) * 1.12;
-  const slot = (right - left) / ch.values.length, bw = slot * 0.6;
+  const max = Math.max(...ch.values, ch.target || 0) * 1.15;
+  const slot = (right - left) / ch.values.length, bw = slot * 0.62;
   const y = (v) => base - (v / max) * (base - top);
+  const below = (v) => ch.target != null && v < ch.target;
+  const small = ch.values.length > 7 ? ' dash-small' : '';
   let g = `<line class="dash-grid" x1="${left}" x2="${right}" y1="${base}" y2="${base}"/>`;
-  ch.values.forEach((v, i) => {
-    const x = left + i * slot + (slot - bw) / 2, yy = y(v);
-    g += `<rect class="dash-bar${i === ch.values.length - 1 ? ' dash-bar--now' : ''}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - yy).toFixed(1)}" rx="2"><title>${ch.labels[i]}: ${fmt(v)}</title></rect>`;
-    g += `<text class="dash-axis" x="${(x + bw / 2).toFixed(1)}" y="${base + 13}" text-anchor="middle">${ch.labels[i]}</text>`;
-  });
   if (ch.target) {
     const ty = y(ch.target);
-    g += `<line class="dash-target" x1="${left}" x2="${right}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/><text class="dash-target-label" x="${right}" y="${(ty - 4).toFixed(1)}" text-anchor="end">Target ${fmt(ch.target)}</text>`;
+    g += `<line class="dash-target" x1="${left}" x2="${right}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`;
   }
+  ch.values.forEach((v, i) => {
+    const x = left + i * slot + (slot - bw) / 2, yy = y(v), cx = (x + bw / 2).toFixed(1);
+    g += `<rect class="dash-bar${below(v) ? ' dash-bar--below' : ''}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - yy).toFixed(1)}" rx="2"><title>${esc(ch.labels[i])}: ${fmt(v)}</title></rect>`;
+    g += `<text class="dash-value${small}" x="${cx}" y="${(yy - 3).toFixed(1)}" text-anchor="middle">${fmt(v)}</text>`;
+    g += `<text class="dash-axis${small}" x="${cx}" y="${base + 12}" text-anchor="middle">${esc(ch.labels[i])}</text>`;
+  });
+  if (ch.target) g += `<text class="dash-target-label" x="${right}" y="${H - 4}" text-anchor="end">- - Target ${fmt(ch.target)}</text>`;
+  if (ch.values.some(below)) g += `<rect class="dash-bar--below" x="${left}" y="${H - 11}" width="8" height="8" rx="1"/><text class="dash-target-label" x="${left + 12}" y="${H - 4}">Below target</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target ? `; target ${fmt(ch.target)}` : ''}.`;
   return `<svg class="dash-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
 }
@@ -409,7 +420,8 @@ function setupHeroDash() {
   const data = window.FOURTH_SHEET_DASHBOARD;
   if (!box || !data) return;
   document.getElementById('dash-orgs').innerHTML = data.orgs.map((o) => `<button type="button" data-org="${o.id}" aria-pressed="false">${esc(o.toggle)}</button>`).join('');
-  box.querySelectorAll('[data-org]').forEach((b) => b.addEventListener('click', () => { dash.org = b.dataset.org; renderDash(); }));
+  // switching organisation always opens on the fourth sheet
+  box.querySelectorAll('[data-org]').forEach((b) => b.addEventListener('click', () => { dash.org = b.dataset.org; dash.tab = 'fourth'; renderDash(); }));
   const tabs = [...box.querySelectorAll('[role="tab"]')];
   tabs.forEach((t, i) => {
     t.addEventListener('click', () => { dash.tab = t.dataset.tab; renderDash(); });

@@ -166,38 +166,95 @@ CREATE TABLE template_pnl (
     what_drove_it VARCHAR(61)
 );
 
--- Home-page dashboard: P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, FY2026 and FY2025, $'000. Costs and outflows are negative. level = detail/subtotal/total/key.
+-- Home-page dashboard: month-end P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, September 2026 and August 2026, whole dollars. Costs and outflows are negative. level = detail/subtotal/total/key.
 CREATE TABLE model_statements (
     org VARCHAR(28),
-    statement VARCHAR(44),
+    statement_key VARCHAR(23),
+    statement VARCHAR(58),
     line_order INT,
-    line VARCHAR(56),
+    line VARCHAR(65),
     level VARCHAR(28),
-    financial_year VARCHAR(26),
-    amount_aud_k INT
+    period VARCHAR(27),
+    amount_aud INT
 );
 
--- Home-page dashboard: the fourth-sheet KPI tiles, as displayed.
+-- Home-page dashboard: the fourth-sheet KPI tiles for September 2026, as displayed.
 CREATE TABLE model_fourth_sheet_kpis (
     org VARCHAR(28),
-    kpi VARCHAR(48),
-    value VARCHAR(30),
-    comparison VARCHAR(41)
+    kpi VARCHAR(53),
+    value VARCHAR(32),
+    comparison VARCHAR(50)
 );
 
--- Home-page dashboard: monthly drivers behind the fourth-sheet charts, FY2026 (sum to the annual figures).
-CREATE TABLE model_monthly (
-    org VARCHAR(28),
-    financial_year VARCHAR(26),
-    month VARCHAR(23),
-    measure VARCHAR(35),
-    value INT
+-- SME trades sample: every job May-September 2026 (maintenance contracts, installations, call-outs). Sep and Aug jobs add up to the P&L; unpaid invoices at month end = trade debtors. Labour cost = hours x $68.
+CREATE TABLE model_jobs (
+    month VARCHAR(27),
+    job VARCHAR(26),
+    job_type VARCHAR(40),
+    description VARCHAR(58),
+    invoice_date DATE,
+    paid_date DATE,
+    revenue INT,
+    materials INT,
+    subcontractors INT,
+    tech_hours DECIMAL(14,2),
+    labour_cost INT,
+    gross_profit INT
+);
+
+-- SME services sample: every client engagement worked in August and September 2026. Revenue adds up to the P&L; consultant time costed at $60/hour.
+CREATE TABLE model_engagements (
+    month VARCHAR(27),
+    engagement VARCHAR(25),
+    engagement_type VARCHAR(28),
+    description VARCHAR(63),
+    hours INT,
+    revenue INT,
+    billed INT,
+    contractors INT,
+    consultant_time_cost INT,
+    contribution INT
+);
+
+-- SME services sample: client invoices May-September 2026 with payment dates. Unpaid at month end = trade debtors.
+CREATE TABLE model_invoices (
+    invoice VARCHAR(31),
+    engagement VARCHAR(27),
+    amount INT,
+    invoice_date DATE,
+    paid_date DATE
+);
+
+-- Not-for-profit sample: each grant at 30 September 2026. Spend = grant income recognised; received less spent = grants in advance (or receivable).
+CREATE TABLE model_grants (
+    grant VARCHAR(25),
+    program VARCHAR(43),
+    funder VARCHAR(49),
+    total INT,
+    start_date DATE,
+    end_date DATE,
+    received_to_date INT,
+    spent_to_date INT,
+    spent_aug INT,
+    spent_sep INT,
+    budget_to_date INT,
+    spend_vs_budget_pct DECIMAL(14,2),
+    still_to_spend INT,
+    balance_30_sep INT,
+    months_left INT
+);
+
+-- Not-for-profit sample: grant instalment schedule (dates and amounts).
+CREATE TABLE model_grant_instalments (
+    grant VARCHAR(25),
+    instalment_date DATE,
+    amount INT
 );
 
 -- Home-page dashboard: the assumptions each sample organisation's statements are built from.
 CREATE TABLE model_assumptions (
     org VARCHAR(28),
-    assumption_group VARCHAR(42),
-    assumption VARCHAR(56),
-    value VARCHAR(168)
+    assumption_group VARCHAR(43),
+    assumption VARCHAR(49),
+    value VARCHAR(174)
 );

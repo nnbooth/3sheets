@@ -1,0 +1,7 @@
+grant,program,funder,total,start_date,end_date,received_to_date,spent_to_date,spent_aug,spent_sep,budget_to_date,spend_vs_budget_pct,still_to_spend,balance_30_sep,months_left
+G-101,Youth outreach,State Department of Families,480000,2025-07-01,2027-06-30,300000,306300,21500,22800,300000,102.1,173700,-6300,9
+G-102,Housing support,State Housing Program,360000,2026-01-01,2026-12-31,360000,257700,30500,31200,270000,95.4,102300,102300,3
+G-103,Community meals,Local council community grant,48000,2026-07-01,2027-06-30,48000,12000,4100,4300,12000,100.0,36000,36000,9
+G-104,Digital literacy,Philanthropic foundation,90000,2025-10-01,2027-03-31,45000,59600,5200,4900,60000,99.3,30400,-14600,6
+G-105,Mental health first aid,Federal health program,120000,2026-04-01,2027-03-31,60000,57200,9400,10800,60000,95.3,62800,2800,6
+G-106,Volunteer coordinator,State volunteering grant,36000,2026-03-01,2027-02-28,36000,21000,3000,3000,21000,100.0,15000,15000,5

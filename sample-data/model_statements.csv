@@ -1,297 +1,315 @@
-org,statement,line_order,line,level,financial_year,amount_aud_k
-trades,Profit and loss,2,Maintenance contracts,detail,FY2026,720
-trades,Profit and loss,2,Maintenance contracts,detail,FY2025,660
-trades,Profit and loss,3,Installations,detail,FY2026,1180
-trades,Profit and loss,3,Installations,detail,FY2025,1060
-trades,Profit and loss,4,Call-outs and repairs,detail,FY2026,540
-trades,Profit and loss,4,Call-outs and repairs,detail,FY2025,490
-trades,Profit and loss,5,Total revenue,subtotal,FY2026,2440
-trades,Profit and loss,5,Total revenue,subtotal,FY2025,2210
-trades,Profit and loss,7,Materials,detail,FY2026,-510
-trades,Profit and loss,7,Materials,detail,FY2025,-476
-trades,Profit and loss,8,Subcontractors,detail,FY2026,-170
-trades,Profit and loss,8,Subcontractors,detail,FY2025,-152
-trades,Profit and loss,9,Direct labour (incl. super),detail,FY2026,-840
-trades,Profit and loss,9,Direct labour (incl. super),detail,FY2025,-786
-trades,Profit and loss,10,Total cost of sales,subtotal,FY2026,-1520
-trades,Profit and loss,10,Total cost of sales,subtotal,FY2025,-1414
-trades,Profit and loss,11,Gross profit,total,FY2026,920
-trades,Profit and loss,11,Gross profit,total,FY2025,796
-trades,Profit and loss,13,Office and admin wages,detail,FY2026,-330
-trades,Profit and loss,13,Office and admin wages,detail,FY2025,-310
-trades,Profit and loss,14,Marketing,detail,FY2026,-96
-trades,Profit and loss,14,Marketing,detail,FY2025,-104
-trades,Profit and loss,15,Vehicles and fuel,detail,FY2026,-118
-trades,Profit and loss,15,Vehicles and fuel,detail,FY2025,-110
-trades,Profit and loss,16,Rent and occupancy,detail,FY2026,-84
-trades,Profit and loss,16,Rent and occupancy,detail,FY2025,-80
-trades,Profit and loss,17,Insurance,detail,FY2026,-36
-trades,Profit and loss,17,Insurance,detail,FY2025,-33
-trades,Profit and loss,18,IT and software,detail,FY2026,-28
-trades,Profit and loss,18,IT and software,detail,FY2025,-24
-trades,Profit and loss,19,Other overheads,detail,FY2026,-48
-trades,Profit and loss,19,Other overheads,detail,FY2025,-45
-trades,Profit and loss,20,Total operating expenses,subtotal,FY2026,-740
-trades,Profit and loss,20,Total operating expenses,subtotal,FY2025,-706
-trades,Profit and loss,21,EBITDA,total,FY2026,180
-trades,Profit and loss,21,EBITDA,total,FY2025,90
-trades,Profit and loss,22,Depreciation,subtotal,FY2026,-52
-trades,Profit and loss,22,Depreciation,subtotal,FY2025,-48
-trades,Profit and loss,23,Interest,subtotal,FY2026,-14
-trades,Profit and loss,23,Interest,subtotal,FY2025,-18
-trades,Profit and loss,24,Profit before tax,total,FY2026,114
-trades,Profit and loss,24,Profit before tax,total,FY2025,24
-trades,Profit and loss,25,Income tax (25%),subtotal,FY2026,-29
-trades,Profit and loss,25,Income tax (25%),subtotal,FY2025,-6
-trades,Profit and loss,26,Net profit after tax,key,FY2026,85
-trades,Profit and loss,26,Net profit after tax,key,FY2025,18
-trades,Balance sheet at 30 June,2,Cash at bank,detail,FY2026,82
-trades,Balance sheet at 30 June,2,Cash at bank,detail,FY2025,52
-trades,Balance sheet at 30 June,3,Trade debtors,detail,FY2026,227
-trades,Balance sheet at 30 June,3,Trade debtors,detail,FY2025,230
-trades,Balance sheet at 30 June,4,Materials on hand,detail,FY2026,66
-trades,Balance sheet at 30 June,4,Materials on hand,detail,FY2025,62
-trades,Balance sheet at 30 June,5,Prepayments,detail,FY2026,22
-trades,Balance sheet at 30 June,5,Prepayments,detail,FY2025,20
-trades,Balance sheet at 30 June,6,Total current assets,subtotal,FY2026,397
-trades,Balance sheet at 30 June,6,Total current assets,subtotal,FY2025,364
-trades,Balance sheet at 30 June,7,Vehicles and equipment,subtotal,FY2026,250
-trades,Balance sheet at 30 June,7,Vehicles and equipment,subtotal,FY2025,262
-trades,Balance sheet at 30 June,8,Total assets,total,FY2026,647
-trades,Balance sheet at 30 June,8,Total assets,total,FY2025,626
-trades,Balance sheet at 30 June,10,Trade creditors,detail,FY2026,125
-trades,Balance sheet at 30 June,10,Trade creditors,detail,FY2025,118
-trades,Balance sheet at 30 June,11,Employee leave provisions,detail,FY2026,105
-trades,Balance sheet at 30 June,11,Employee leave provisions,detail,FY2025,99
-trades,Balance sheet at 30 June,12,Income tax payable,detail,FY2026,29
-trades,Balance sheet at 30 June,12,Income tax payable,detail,FY2025,6
-trades,Balance sheet at 30 June,13,Total current liabilities,subtotal,FY2026,259
-trades,Balance sheet at 30 June,13,Total current liabilities,subtotal,FY2025,223
-trades,Balance sheet at 30 June,14,Equipment finance,subtotal,FY2026,110
-trades,Balance sheet at 30 June,14,Equipment finance,subtotal,FY2025,170
-trades,Balance sheet at 30 June,15,Total liabilities,total,FY2026,369
-trades,Balance sheet at 30 June,15,Total liabilities,total,FY2025,393
-trades,Balance sheet at 30 June,16,Net assets,key,FY2026,278
-trades,Balance sheet at 30 June,16,Net assets,key,FY2025,233
-trades,Balance sheet at 30 June,18,Share capital,detail,FY2026,10
-trades,Balance sheet at 30 June,18,Share capital,detail,FY2025,10
-trades,Balance sheet at 30 June,19,Retained earnings,detail,FY2026,268
-trades,Balance sheet at 30 June,19,Retained earnings,detail,FY2025,223
-trades,Balance sheet at 30 June,20,Total equity,key,FY2026,278
-trades,Balance sheet at 30 June,20,Total equity,key,FY2025,233
-trades,Cash flow statement,2,Receipts from customers,detail,FY2026,2443
-trades,Cash flow statement,2,Receipts from customers,detail,FY2025,2192
-trades,Cash flow statement,3,Payments to suppliers and employees,detail,FY2026,-2253
-trades,Cash flow statement,3,Payments to suppliers and employees,detail,FY2025,-2133
-trades,Cash flow statement,4,Interest paid,detail,FY2026,-14
-trades,Cash flow statement,4,Interest paid,detail,FY2025,-18
-trades,Cash flow statement,5,Income tax paid,detail,FY2026,-6
-trades,Cash flow statement,5,Income tax paid,detail,FY2025,-4
-trades,Cash flow statement,6,Net cash from operating activities,subtotal,FY2026,170
-trades,Cash flow statement,6,Net cash from operating activities,subtotal,FY2025,37
-trades,Cash flow statement,8,Purchase of vehicles and equipment,detail,FY2026,-40
-trades,Cash flow statement,8,Purchase of vehicles and equipment,detail,FY2025,-70
-trades,Cash flow statement,9,Net cash from investing activities,subtotal,FY2026,-40
-trades,Cash flow statement,9,Net cash from investing activities,subtotal,FY2025,-70
-trades,Cash flow statement,11,Equipment finance repaid,detail,FY2026,-60
-trades,Cash flow statement,11,Equipment finance repaid,detail,FY2025,-60
-trades,Cash flow statement,12,Dividends paid,detail,FY2026,-40
-trades,Cash flow statement,12,Dividends paid,detail,FY2025,0
-trades,Cash flow statement,13,Net cash from financing activities,subtotal,FY2026,-100
-trades,Cash flow statement,13,Net cash from financing activities,subtotal,FY2025,-60
-trades,Cash flow statement,14,Net change in cash,total,FY2026,30
-trades,Cash flow statement,14,Net change in cash,total,FY2025,-93
-trades,Cash flow statement,15,Cash at 1 July,subtotal,FY2026,52
-trades,Cash flow statement,15,Cash at 1 July,subtotal,FY2025,145
-trades,Cash flow statement,16,Cash at 30 June,key,FY2026,82
-trades,Cash flow statement,16,Cash at 30 June,key,FY2025,52
-services,Profit and loss,2,Projects,detail,FY2026,980
-services,Profit and loss,2,Projects,detail,FY2025,900
-services,Profit and loss,3,Retainers,detail,FY2026,620
-services,Profit and loss,3,Retainers,detail,FY2025,560
-services,Profit and loss,4,Training,detail,FY2026,200
-services,Profit and loss,4,Training,detail,FY2025,160
-services,Profit and loss,5,Total revenue,subtotal,FY2026,1800
-services,Profit and loss,5,Total revenue,subtotal,FY2025,1620
-services,Profit and loss,7,Subcontractors,detail,FY2026,-130
-services,Profit and loss,7,Subcontractors,detail,FY2025,-150
-services,Profit and loss,8,Consultant salaries (incl. super),detail,FY2026,-830
-services,Profit and loss,8,Consultant salaries (incl. super),detail,FY2025,-785
-services,Profit and loss,9,Total cost of sales,subtotal,FY2026,-960
-services,Profit and loss,9,Total cost of sales,subtotal,FY2025,-935
-services,Profit and loss,10,Gross profit,total,FY2026,840
-services,Profit and loss,10,Gross profit,total,FY2025,685
-services,Profit and loss,12,Management and admin wages,detail,FY2026,-290
-services,Profit and loss,12,Management and admin wages,detail,FY2025,-280
-services,Profit and loss,13,Marketing and business development,detail,FY2026,-72
-services,Profit and loss,13,Marketing and business development,detail,FY2025,-80
-services,Profit and loss,14,Rent and occupancy,detail,FY2026,-96
-services,Profit and loss,14,Rent and occupancy,detail,FY2025,-92
-services,Profit and loss,15,IT and software,detail,FY2026,-54
-services,Profit and loss,15,IT and software,detail,FY2025,-48
-services,Profit and loss,16,Professional indemnity insurance,detail,FY2026,-30
-services,Profit and loss,16,Professional indemnity insurance,detail,FY2025,-28
-services,Profit and loss,17,Travel,detail,FY2026,-26
-services,Profit and loss,17,Travel,detail,FY2025,-30
-services,Profit and loss,18,Other overheads,detail,FY2026,-40
-services,Profit and loss,18,Other overheads,detail,FY2025,-38
-services,Profit and loss,19,Total operating expenses,subtotal,FY2026,-608
-services,Profit and loss,19,Total operating expenses,subtotal,FY2025,-596
-services,Profit and loss,20,EBITDA,total,FY2026,232
-services,Profit and loss,20,EBITDA,total,FY2025,89
-services,Profit and loss,21,Depreciation,subtotal,FY2026,-24
-services,Profit and loss,21,Depreciation,subtotal,FY2025,-22
-services,Profit and loss,22,Interest,subtotal,FY2026,-4
-services,Profit and loss,22,Interest,subtotal,FY2025,-6
-services,Profit and loss,23,Profit before tax,total,FY2026,204
-services,Profit and loss,23,Profit before tax,total,FY2025,61
-services,Profit and loss,24,Income tax (25%),subtotal,FY2026,-51
-services,Profit and loss,24,Income tax (25%),subtotal,FY2025,-15
-services,Profit and loss,25,Net profit after tax,key,FY2026,153
-services,Profit and loss,25,Net profit after tax,key,FY2025,46
-services,Balance sheet at 30 June,2,Cash at bank,detail,FY2026,211
-services,Balance sheet at 30 June,2,Cash at bank,detail,FY2025,106
-services,Balance sheet at 30 June,3,Trade debtors,detail,FY2026,222
-services,Balance sheet at 30 June,3,Trade debtors,detail,FY2025,231
-services,Balance sheet at 30 June,4,Work in progress (unbilled),detail,FY2026,89
-services,Balance sheet at 30 June,4,Work in progress (unbilled),detail,FY2025,98
-services,Balance sheet at 30 June,5,Prepayments,detail,FY2026,16
-services,Balance sheet at 30 June,5,Prepayments,detail,FY2025,15
-services,Balance sheet at 30 June,6,Total current assets,subtotal,FY2026,538
-services,Balance sheet at 30 June,6,Total current assets,subtotal,FY2025,450
-services,Balance sheet at 30 June,7,Office equipment,subtotal,FY2026,64
-services,Balance sheet at 30 June,7,Office equipment,subtotal,FY2025,58
-services,Balance sheet at 30 June,8,Total assets,total,FY2026,602
-services,Balance sheet at 30 June,8,Total assets,total,FY2025,508
-services,Balance sheet at 30 June,10,Trade creditors,detail,FY2026,37
-services,Balance sheet at 30 June,10,Trade creditors,detail,FY2025,38
-services,Balance sheet at 30 June,11,Employee leave provisions,detail,FY2026,123
-services,Balance sheet at 30 June,11,Employee leave provisions,detail,FY2025,117
-services,Balance sheet at 30 June,12,Income tax payable,detail,FY2026,51
-services,Balance sheet at 30 June,12,Income tax payable,detail,FY2025,15
-services,Balance sheet at 30 June,13,Total current liabilities,subtotal,FY2026,211
-services,Balance sheet at 30 June,13,Total current liabilities,subtotal,FY2025,170
-services,Balance sheet at 30 June,14,Equipment finance,subtotal,FY2026,0
-services,Balance sheet at 30 June,14,Equipment finance,subtotal,FY2025,20
-services,Balance sheet at 30 June,15,Total liabilities,total,FY2026,211
-services,Balance sheet at 30 June,15,Total liabilities,total,FY2025,190
-services,Balance sheet at 30 June,16,Net assets,key,FY2026,391
-services,Balance sheet at 30 June,16,Net assets,key,FY2025,318
-services,Balance sheet at 30 June,18,Share capital,detail,FY2026,20
-services,Balance sheet at 30 June,18,Share capital,detail,FY2025,20
-services,Balance sheet at 30 June,19,Retained earnings,detail,FY2026,371
-services,Balance sheet at 30 June,19,Retained earnings,detail,FY2025,298
-services,Balance sheet at 30 June,20,Total equity,key,FY2026,391
-services,Balance sheet at 30 June,20,Total equity,key,FY2025,318
-services,Cash flow statement,2,Receipts from customers,detail,FY2026,1818
-services,Cash flow statement,2,Receipts from customers,detail,FY2025,1643
-services,Cash flow statement,3,Payments to suppliers and employees,detail,FY2026,-1564
-services,Cash flow statement,3,Payments to suppliers and employees,detail,FY2025,-1547
-services,Cash flow statement,4,Interest paid,detail,FY2026,-4
-services,Cash flow statement,4,Interest paid,detail,FY2025,-6
-services,Cash flow statement,5,Income tax paid,detail,FY2026,-15
-services,Cash flow statement,5,Income tax paid,detail,FY2025,-10
-services,Cash flow statement,6,Net cash from operating activities,subtotal,FY2026,235
-services,Cash flow statement,6,Net cash from operating activities,subtotal,FY2025,80
-services,Cash flow statement,8,Purchase of equipment,detail,FY2026,-30
-services,Cash flow statement,8,Purchase of equipment,detail,FY2025,-20
-services,Cash flow statement,9,Net cash from investing activities,subtotal,FY2026,-30
-services,Cash flow statement,9,Net cash from investing activities,subtotal,FY2025,-20
-services,Cash flow statement,11,Equipment finance repaid,detail,FY2026,-20
-services,Cash flow statement,11,Equipment finance repaid,detail,FY2025,-20
-services,Cash flow statement,12,Dividends paid,detail,FY2026,-80
-services,Cash flow statement,12,Dividends paid,detail,FY2025,-30
-services,Cash flow statement,13,Net cash from financing activities,subtotal,FY2026,-100
-services,Cash flow statement,13,Net cash from financing activities,subtotal,FY2025,-50
-services,Cash flow statement,14,Net change in cash,total,FY2026,105
-services,Cash flow statement,14,Net change in cash,total,FY2025,10
-services,Cash flow statement,15,Cash at 1 July,subtotal,FY2026,106
-services,Cash flow statement,15,Cash at 1 July,subtotal,FY2025,96
-services,Cash flow statement,16,Cash at 30 June,key,FY2026,211
-services,Cash flow statement,16,Cash at 30 June,key,FY2025,106
-nfp,Income and expenditure,2,Government grants,detail,FY2026,1420
-nfp,Income and expenditure,2,Government grants,detail,FY2025,1310
-nfp,Income and expenditure,3,Donations,detail,FY2026,380
-nfp,Income and expenditure,3,Donations,detail,FY2025,352
-nfp,Income and expenditure,4,Fundraising events,detail,FY2026,210
-nfp,Income and expenditure,4,Fundraising events,detail,FY2025,188
-nfp,Income and expenditure,5,Program fees,detail,FY2026,340
-nfp,Income and expenditure,5,Program fees,detail,FY2025,300
-nfp,Income and expenditure,6,Interest,detail,FY2026,18
-nfp,Income and expenditure,6,Interest,detail,FY2025,12
-nfp,Income and expenditure,7,Total income,subtotal,FY2026,2368
-nfp,Income and expenditure,7,Total income,subtotal,FY2025,2162
-nfp,Income and expenditure,9,Program delivery wages,detail,FY2026,-1180
-nfp,Income and expenditure,9,Program delivery wages,detail,FY2025,-1120
-nfp,Income and expenditure,10,Program costs,detail,FY2026,-260
-nfp,Income and expenditure,10,Program costs,detail,FY2025,-240
-nfp,Income and expenditure,11,Total program spend,subtotal,FY2026,-1440
-nfp,Income and expenditure,11,Total program spend,subtotal,FY2025,-1360
-nfp,Income and expenditure,13,Grant writing and reporting,detail,FY2026,-85
-nfp,Income and expenditure,13,Grant writing and reporting,detail,FY2025,-80
-nfp,Income and expenditure,14,Event costs,detail,FY2026,-113
-nfp,Income and expenditure,14,Event costs,detail,FY2025,-120
-nfp,Income and expenditure,15,Donor campaigns,detail,FY2026,-46
-nfp,Income and expenditure,15,Donor campaigns,detail,FY2025,-50
-nfp,Income and expenditure,16,Total fundraising costs,subtotal,FY2026,-244
-nfp,Income and expenditure,16,Total fundraising costs,subtotal,FY2025,-250
-nfp,Income and expenditure,18,Administration wages,detail,FY2026,-220
-nfp,Income and expenditure,18,Administration wages,detail,FY2025,-230
-nfp,Income and expenditure,19,Occupancy,detail,FY2026,-120
-nfp,Income and expenditure,19,Occupancy,detail,FY2025,-116
-nfp,Income and expenditure,20,Other administration,detail,FY2026,-96
-nfp,Income and expenditure,20,Other administration,detail,FY2025,-90
-nfp,Income and expenditure,21,Total administration,subtotal,FY2026,-436
-nfp,Income and expenditure,21,Total administration,subtotal,FY2025,-436
-nfp,Income and expenditure,22,Depreciation,subtotal,FY2026,-34
-nfp,Income and expenditure,22,Depreciation,subtotal,FY2025,-30
-nfp,Income and expenditure,23,Total expenses,total,FY2026,-2154
-nfp,Income and expenditure,23,Total expenses,total,FY2025,-2076
-nfp,Income and expenditure,24,Surplus for the year,key,FY2026,214
-nfp,Income and expenditure,24,Surplus for the year,key,FY2025,86
-nfp,Balance sheet at 30 June,2,Cash at bank,detail,FY2026,1161
-nfp,Balance sheet at 30 June,2,Cash at bank,detail,FY2025,926
-nfp,Balance sheet at 30 June,3,Grants and fees receivable,detail,FY2026,76
-nfp,Balance sheet at 30 June,3,Grants and fees receivable,detail,FY2025,70
-nfp,Balance sheet at 30 June,4,Prepayments,detail,FY2026,26
-nfp,Balance sheet at 30 June,4,Prepayments,detail,FY2025,24
-nfp,Balance sheet at 30 June,5,Total current assets,subtotal,FY2026,1263
-nfp,Balance sheet at 30 June,5,Total current assets,subtotal,FY2025,1020
-nfp,Balance sheet at 30 June,6,Vehicles and equipment,subtotal,FY2026,186
-nfp,Balance sheet at 30 June,6,Vehicles and equipment,subtotal,FY2025,160
-nfp,Balance sheet at 30 June,7,Total assets,total,FY2026,1449
-nfp,Balance sheet at 30 June,7,Total assets,total,FY2025,1180
-nfp,Balance sheet at 30 June,9,Payables,detail,FY2026,101
-nfp,Balance sheet at 30 June,9,Payables,detail,FY2025,92
-nfp,Balance sheet at 30 June,10,Grants received in advance (unspent),detail,FY2026,340
-nfp,Balance sheet at 30 June,10,Grants received in advance (unspent),detail,FY2025,300
-nfp,Balance sheet at 30 June,11,Employee leave provisions,detail,FY2026,168
-nfp,Balance sheet at 30 June,11,Employee leave provisions,detail,FY2025,162
-nfp,Balance sheet at 30 June,12,Total liabilities,total,FY2026,609
-nfp,Balance sheet at 30 June,12,Total liabilities,total,FY2025,554
-nfp,Balance sheet at 30 June,13,Net assets,key,FY2026,840
-nfp,Balance sheet at 30 June,13,Net assets,key,FY2025,626
-nfp,Balance sheet at 30 June,15,Accumulated funds,key,FY2026,840
-nfp,Balance sheet at 30 June,15,Accumulated funds,key,FY2025,626
-nfp,Cash flow statement,2,Grants received,detail,FY2026,1454
-nfp,Cash flow statement,2,Grants received,detail,FY2025,1344
-nfp,Cash flow statement,3,Donations and fundraising received,detail,FY2026,590
-nfp,Cash flow statement,3,Donations and fundraising received,detail,FY2025,540
-nfp,Cash flow statement,4,Program fees received,detail,FY2026,340
-nfp,Cash flow statement,4,Program fees received,detail,FY2025,300
-nfp,Cash flow statement,5,Interest received,detail,FY2026,18
-nfp,Cash flow statement,5,Interest received,detail,FY2025,12
-nfp,Cash flow statement,6,Payments to suppliers and employees,detail,FY2026,-2107
-nfp,Cash flow statement,6,Payments to suppliers and employees,detail,FY2025,-2050
-nfp,Cash flow statement,7,Net cash from operating activities,subtotal,FY2026,295
-nfp,Cash flow statement,7,Net cash from operating activities,subtotal,FY2025,146
-nfp,Cash flow statement,9,Purchase of vehicles and equipment,detail,FY2026,-60
-nfp,Cash flow statement,9,Purchase of vehicles and equipment,detail,FY2025,-40
-nfp,Cash flow statement,10,Net cash from investing activities,subtotal,FY2026,-60
-nfp,Cash flow statement,10,Net cash from investing activities,subtotal,FY2025,-40
-nfp,Cash flow statement,11,Net change in cash,total,FY2026,235
-nfp,Cash flow statement,11,Net change in cash,total,FY2025,106
-nfp,Cash flow statement,12,Cash at 1 July,subtotal,FY2026,926
-nfp,Cash flow statement,12,Cash at 1 July,subtotal,FY2025,820
-nfp,Cash flow statement,13,Cash at 30 June,key,FY2026,1161
-nfp,Cash flow statement,13,Cash at 30 June,key,FY2025,926
+org,statement_key,statement,line_order,line,level,period,amount_aud
+trades,pnl,"Profit and loss, September 2026",2,Maintenance contracts (14),detail,2026-09,40500
+trades,pnl,"Profit and loss, September 2026",2,Maintenance contracts (14),detail,2026-08,40500
+trades,pnl,"Profit and loss, September 2026",3,Installations (jobs),detail,2026-09,130700
+trades,pnl,"Profit and loss, September 2026",3,Installations (jobs),detail,2026-08,109600
+trades,pnl,"Profit and loss, September 2026",4,Call-outs and repairs,detail,2026-09,31137
+trades,pnl,"Profit and loss, September 2026",4,Call-outs and repairs,detail,2026-08,28907
+trades,pnl,"Profit and loss, September 2026",5,Total revenue,subtotal,2026-09,202337
+trades,pnl,"Profit and loss, September 2026",5,Total revenue,subtotal,2026-08,179007
+trades,pnl,"Profit and loss, September 2026",7,Materials,detail,2026-09,-64860
+trades,pnl,"Profit and loss, September 2026",7,Materials,detail,2026-08,-51530
+trades,pnl,"Profit and loss, September 2026",8,Subcontractors,detail,2026-09,-13200
+trades,pnl,"Profit and loss, September 2026",8,Subcontractors,detail,2026-08,-9300
+trades,pnl,"Profit and loss, September 2026",9,Technician wages (incl. super),detail,2026-09,-54600
+trades,pnl,"Profit and loss, September 2026",9,Technician wages (incl. super),detail,2026-08,-54600
+trades,pnl,"Profit and loss, September 2026",10,Total cost of sales,subtotal,2026-09,-132660
+trades,pnl,"Profit and loss, September 2026",10,Total cost of sales,subtotal,2026-08,-115430
+trades,pnl,"Profit and loss, September 2026",11,Gross profit,total,2026-09,69677
+trades,pnl,"Profit and loss, September 2026",11,Gross profit,total,2026-08,63577
+trades,pnl,"Profit and loss, September 2026",13,Office and admin wages,detail,2026-09,-21900
+trades,pnl,"Profit and loss, September 2026",13,Office and admin wages,detail,2026-08,-21900
+trades,pnl,"Profit and loss, September 2026",14,Marketing,detail,2026-09,-7600
+trades,pnl,"Profit and loss, September 2026",14,Marketing,detail,2026-08,-8400
+trades,pnl,"Profit and loss, September 2026",15,Vehicles and fuel,detail,2026-09,-8300
+trades,pnl,"Profit and loss, September 2026",15,Vehicles and fuel,detail,2026-08,-7900
+trades,pnl,"Profit and loss, September 2026",16,Rent and occupancy,detail,2026-09,-7000
+trades,pnl,"Profit and loss, September 2026",16,Rent and occupancy,detail,2026-08,-7000
+trades,pnl,"Profit and loss, September 2026",17,Insurance,detail,2026-09,-3000
+trades,pnl,"Profit and loss, September 2026",17,Insurance,detail,2026-08,-3000
+trades,pnl,"Profit and loss, September 2026",18,IT and software,detail,2026-09,-2300
+trades,pnl,"Profit and loss, September 2026",18,IT and software,detail,2026-08,-2300
+trades,pnl,"Profit and loss, September 2026",19,Other overheads,detail,2026-09,-3900
+trades,pnl,"Profit and loss, September 2026",19,Other overheads,detail,2026-08,-3600
+trades,pnl,"Profit and loss, September 2026",20,Total operating expenses,subtotal,2026-09,-54000
+trades,pnl,"Profit and loss, September 2026",20,Total operating expenses,subtotal,2026-08,-54100
+trades,pnl,"Profit and loss, September 2026",21,EBITDA,total,2026-09,15677
+trades,pnl,"Profit and loss, September 2026",21,EBITDA,total,2026-08,9477
+trades,pnl,"Profit and loss, September 2026",22,Depreciation,subtotal,2026-09,-4500
+trades,pnl,"Profit and loss, September 2026",22,Depreciation,subtotal,2026-08,-4300
+trades,pnl,"Profit and loss, September 2026",23,Interest,subtotal,2026-09,-1080
+trades,pnl,"Profit and loss, September 2026",23,Interest,subtotal,2026-08,-1100
+trades,pnl,"Profit and loss, September 2026",24,Profit before tax,total,2026-09,10097
+trades,pnl,"Profit and loss, September 2026",24,Profit before tax,total,2026-08,4077
+trades,pnl,"Profit and loss, September 2026",25,Income tax provision (25%),subtotal,2026-09,-2524
+trades,pnl,"Profit and loss, September 2026",25,Income tax provision (25%),subtotal,2026-08,-1019
+trades,pnl,"Profit and loss, September 2026",26,Net profit after tax,key,2026-09,7573
+trades,pnl,"Profit and loss, September 2026",26,Net profit after tax,key,2026-08,3058
+trades,bs,Balance sheet at 30 September 2026,2,Cash at bank,detail,2026-09,59746
+trades,bs,Balance sheet at 30 September 2026,2,Cash at bank,detail,2026-08,65263
+trades,bs,Balance sheet at 30 September 2026,3,Trade debtors (unpaid invoices),detail,2026-09,151063
+trades,bs,Balance sheet at 30 September 2026,3,Trade debtors (unpaid invoices),detail,2026-08,129819
+trades,bs,Balance sheet at 30 September 2026,4,Materials on hand,detail,2026-09,66000
+trades,bs,Balance sheet at 30 September 2026,4,Materials on hand,detail,2026-08,66000
+trades,bs,Balance sheet at 30 September 2026,5,Prepayments,detail,2026-09,21000
+trades,bs,Balance sheet at 30 September 2026,5,Prepayments,detail,2026-08,21000
+trades,bs,Balance sheet at 30 September 2026,6,Total current assets,subtotal,2026-09,297809
+trades,bs,Balance sheet at 30 September 2026,6,Total current assets,subtotal,2026-08,282082
+trades,bs,Balance sheet at 30 September 2026,7,Vehicles and equipment,subtotal,2026-09,255200
+trades,bs,Balance sheet at 30 September 2026,7,Vehicles and equipment,subtotal,2026-08,247700
+trades,bs,Balance sheet at 30 September 2026,8,Total assets,total,2026-09,553009
+trades,bs,Balance sheet at 30 September 2026,8,Total assets,total,2026-08,529782
+trades,bs,Balance sheet at 30 September 2026,10,Trade creditors (bills due next month),detail,2026-09,78060
+trades,bs,Balance sheet at 30 September 2026,10,Trade creditors (bills due next month),detail,2026-08,60830
+trades,bs,Balance sheet at 30 September 2026,11,Employee leave provisions,detail,2026-09,106000
+trades,bs,Balance sheet at 30 September 2026,11,Employee leave provisions,detail,2026-08,105100
+trades,bs,Balance sheet at 30 September 2026,12,Income tax payable,detail,2026-09,35043
+trades,bs,Balance sheet at 30 September 2026,12,Income tax payable,detail,2026-08,32519
+trades,bs,Balance sheet at 30 September 2026,13,Total current liabilities,subtotal,2026-09,219103
+trades,bs,Balance sheet at 30 September 2026,13,Total current liabilities,subtotal,2026-08,198449
+trades,bs,Balance sheet at 30 September 2026,14,Equipment finance,subtotal,2026-09,95000
+trades,bs,Balance sheet at 30 September 2026,14,Equipment finance,subtotal,2026-08,100000
+trades,bs,Balance sheet at 30 September 2026,15,Total liabilities,total,2026-09,314103
+trades,bs,Balance sheet at 30 September 2026,15,Total liabilities,total,2026-08,298449
+trades,bs,Balance sheet at 30 September 2026,16,Net assets,key,2026-09,238906
+trades,bs,Balance sheet at 30 September 2026,16,Net assets,key,2026-08,231333
+trades,bs,Balance sheet at 30 September 2026,18,Share capital,detail,2026-09,10000
+trades,bs,Balance sheet at 30 September 2026,18,Share capital,detail,2026-08,10000
+trades,bs,Balance sheet at 30 September 2026,19,Retained earnings,detail,2026-09,228906
+trades,bs,Balance sheet at 30 September 2026,19,Retained earnings,detail,2026-08,221333
+trades,bs,Balance sheet at 30 September 2026,20,Total equity,key,2026-09,238906
+trades,bs,Balance sheet at 30 September 2026,20,Total equity,key,2026-08,231333
+trades,cf,"Cash flow, September 2026",2,Receipts from customers (invoices paid),detail,2026-09,181093
+trades,cf,"Cash flow, September 2026",2,Receipts from customers (invoices paid),detail,2026-08,156273
+trades,cf,"Cash flow, September 2026",3,Payments to suppliers,detail,2026-09,-92930
+trades,cf,"Cash flow, September 2026",3,Payments to suppliers,detail,2026-08,-97510
+trades,cf,"Cash flow, September 2026",4,Payments to employees,detail,2026-09,-75600
+trades,cf,"Cash flow, September 2026",4,Payments to employees,detail,2026-08,-75400
+trades,cf,"Cash flow, September 2026",5,Interest paid,detail,2026-09,-1080
+trades,cf,"Cash flow, September 2026",5,Interest paid,detail,2026-08,-1100
+trades,cf,"Cash flow, September 2026",6,Income tax paid,detail,2026-09,0
+trades,cf,"Cash flow, September 2026",6,Income tax paid,detail,2026-08,0
+trades,cf,"Cash flow, September 2026",7,Net cash from operating activities,subtotal,2026-09,11483
+trades,cf,"Cash flow, September 2026",7,Net cash from operating activities,subtotal,2026-08,-17737
+trades,cf,"Cash flow, September 2026",9,Purchase of vehicles and equipment,detail,2026-09,-12000
+trades,cf,"Cash flow, September 2026",9,Purchase of vehicles and equipment,detail,2026-08,0
+trades,cf,"Cash flow, September 2026",10,Net cash from investing activities,subtotal,2026-09,-12000
+trades,cf,"Cash flow, September 2026",10,Net cash from investing activities,subtotal,2026-08,0
+trades,cf,"Cash flow, September 2026",12,Equipment finance repaid,detail,2026-09,-5000
+trades,cf,"Cash flow, September 2026",12,Equipment finance repaid,detail,2026-08,-5000
+trades,cf,"Cash flow, September 2026",13,Net cash from financing activities,subtotal,2026-09,-5000
+trades,cf,"Cash flow, September 2026",13,Net cash from financing activities,subtotal,2026-08,-5000
+trades,cf,"Cash flow, September 2026",14,Net change in cash,total,2026-09,-5517
+trades,cf,"Cash flow, September 2026",14,Net change in cash,total,2026-08,-22737
+trades,cf,"Cash flow, September 2026",15,Cash at start of month,subtotal,2026-09,65263
+trades,cf,"Cash flow, September 2026",15,Cash at start of month,subtotal,2026-08,88000
+trades,cf,"Cash flow, September 2026",16,Cash at end of month,key,2026-09,59746
+trades,cf,"Cash flow, September 2026",16,Cash at end of month,key,2026-08,65263
+services,pnl,"Profit and loss, September 2026",2,Projects (hours worked),detail,2026-09,85950
+services,pnl,"Profit and loss, September 2026",2,Projects (hours worked),detail,2026-08,75740
+services,pnl,"Profit and loss, September 2026",3,Retainers,detail,2026-09,32500
+services,pnl,"Profit and loss, September 2026",3,Retainers,detail,2026-08,32500
+services,pnl,"Profit and loss, September 2026",4,Training,detail,2026-09,13400
+services,pnl,"Profit and loss, September 2026",4,Training,detail,2026-08,6400
+services,pnl,"Profit and loss, September 2026",5,Total revenue,subtotal,2026-09,131850
+services,pnl,"Profit and loss, September 2026",5,Total revenue,subtotal,2026-08,114640
+services,pnl,"Profit and loss, September 2026",7,Consultant salaries (incl. super),detail,2026-09,-46500
+services,pnl,"Profit and loss, September 2026",7,Consultant salaries (incl. super),detail,2026-08,-46500
+services,pnl,"Profit and loss, September 2026",8,Contractors,detail,2026-09,-8500
+services,pnl,"Profit and loss, September 2026",8,Contractors,detail,2026-08,-6900
+services,pnl,"Profit and loss, September 2026",9,Total cost of sales,subtotal,2026-09,-55000
+services,pnl,"Profit and loss, September 2026",9,Total cost of sales,subtotal,2026-08,-53400
+services,pnl,"Profit and loss, September 2026",10,Gross profit,total,2026-09,76850
+services,pnl,"Profit and loss, September 2026",10,Gross profit,total,2026-08,61240
+services,pnl,"Profit and loss, September 2026",12,Management and admin wages,detail,2026-09,-24000
+services,pnl,"Profit and loss, September 2026",12,Management and admin wages,detail,2026-08,-24000
+services,pnl,"Profit and loss, September 2026",13,Marketing and business development,detail,2026-09,-5800
+services,pnl,"Profit and loss, September 2026",13,Marketing and business development,detail,2026-08,-6500
+services,pnl,"Profit and loss, September 2026",14,Rent and occupancy,detail,2026-09,-8000
+services,pnl,"Profit and loss, September 2026",14,Rent and occupancy,detail,2026-08,-8000
+services,pnl,"Profit and loss, September 2026",15,IT and software,detail,2026-09,-4500
+services,pnl,"Profit and loss, September 2026",15,IT and software,detail,2026-08,-4500
+services,pnl,"Profit and loss, September 2026",16,Professional indemnity insurance,detail,2026-09,-2500
+services,pnl,"Profit and loss, September 2026",16,Professional indemnity insurance,detail,2026-08,-2500
+services,pnl,"Profit and loss, September 2026",17,Travel,detail,2026-09,-1800
+services,pnl,"Profit and loss, September 2026",17,Travel,detail,2026-08,-2600
+services,pnl,"Profit and loss, September 2026",18,Other overheads,detail,2026-09,-3300
+services,pnl,"Profit and loss, September 2026",18,Other overheads,detail,2026-08,-3300
+services,pnl,"Profit and loss, September 2026",19,Total operating expenses,subtotal,2026-09,-49900
+services,pnl,"Profit and loss, September 2026",19,Total operating expenses,subtotal,2026-08,-51400
+services,pnl,"Profit and loss, September 2026",20,EBITDA,total,2026-09,26950
+services,pnl,"Profit and loss, September 2026",20,EBITDA,total,2026-08,9840
+services,pnl,"Profit and loss, September 2026",21,Depreciation,subtotal,2026-09,-2000
+services,pnl,"Profit and loss, September 2026",21,Depreciation,subtotal,2026-08,-2000
+services,pnl,"Profit and loss, September 2026",22,Interest,subtotal,2026-09,-240
+services,pnl,"Profit and loss, September 2026",22,Interest,subtotal,2026-08,-250
+services,pnl,"Profit and loss, September 2026",23,Profit before tax,total,2026-09,24710
+services,pnl,"Profit and loss, September 2026",23,Profit before tax,total,2026-08,7590
+services,pnl,"Profit and loss, September 2026",24,Income tax provision (25%),subtotal,2026-09,-6178
+services,pnl,"Profit and loss, September 2026",24,Income tax provision (25%),subtotal,2026-08,-1898
+services,pnl,"Profit and loss, September 2026",25,Net profit after tax,key,2026-09,18532
+services,pnl,"Profit and loss, September 2026",25,Net profit after tax,key,2026-08,5692
+services,bs,Balance sheet at 30 September 2026,2,Cash at bank,detail,2026-09,149260
+services,bs,Balance sheet at 30 September 2026,2,Cash at bank,detail,2026-08,192150
+services,bs,Balance sheet at 30 September 2026,3,Trade debtors (unpaid invoices),detail,2026-09,116800
+services,bs,Balance sheet at 30 September 2026,3,Trade debtors (unpaid invoices),detail,2026-08,71290
+services,bs,Balance sheet at 30 September 2026,4,Work in progress (unbilled project time),detail,2026-09,99290
+services,bs,Balance sheet at 30 September 2026,4,Work in progress (unbilled project time),detail,2026-08,77900
+services,bs,Balance sheet at 30 September 2026,5,Prepayments,detail,2026-09,15000
+services,bs,Balance sheet at 30 September 2026,5,Prepayments,detail,2026-08,15000
+services,bs,Balance sheet at 30 September 2026,6,Total current assets,subtotal,2026-09,380350
+services,bs,Balance sheet at 30 September 2026,6,Total current assets,subtotal,2026-08,356340
+services,bs,Balance sheet at 30 September 2026,7,Office equipment,subtotal,2026-09,60200
+services,bs,Balance sheet at 30 September 2026,7,Office equipment,subtotal,2026-08,59000
+services,bs,Balance sheet at 30 September 2026,8,Total assets,total,2026-09,440550
+services,bs,Balance sheet at 30 September 2026,8,Total assets,total,2026-08,415340
+services,bs,Balance sheet at 30 September 2026,10,Trade creditors (bills due next month),detail,2026-09,8500
+services,bs,Balance sheet at 30 September 2026,10,Trade creditors (bills due next month),detail,2026-08,6900
+services,bs,Balance sheet at 30 September 2026,11,Employee leave provisions,detail,2026-09,122300
+services,bs,Balance sheet at 30 September 2026,11,Employee leave provisions,detail,2026-08,121700
+services,bs,Balance sheet at 30 September 2026,12,Income tax payable,detail,2026-09,56576
+services,bs,Balance sheet at 30 September 2026,12,Income tax payable,detail,2026-08,50398
+services,bs,Balance sheet at 30 September 2026,13,Total current liabilities,subtotal,2026-09,187376
+services,bs,Balance sheet at 30 September 2026,13,Total current liabilities,subtotal,2026-08,178998
+services,bs,Balance sheet at 30 September 2026,14,Equipment finance,subtotal,2026-09,14600
+services,bs,Balance sheet at 30 September 2026,14,Equipment finance,subtotal,2026-08,16300
+services,bs,Balance sheet at 30 September 2026,15,Total liabilities,total,2026-09,201976
+services,bs,Balance sheet at 30 September 2026,15,Total liabilities,total,2026-08,195298
+services,bs,Balance sheet at 30 September 2026,16,Net assets,key,2026-09,238574
+services,bs,Balance sheet at 30 September 2026,16,Net assets,key,2026-08,220042
+services,bs,Balance sheet at 30 September 2026,18,Share capital,detail,2026-09,20000
+services,bs,Balance sheet at 30 September 2026,18,Share capital,detail,2026-08,20000
+services,bs,Balance sheet at 30 September 2026,19,Retained earnings,detail,2026-09,218574
+services,bs,Balance sheet at 30 September 2026,19,Retained earnings,detail,2026-08,200042
+services,bs,Balance sheet at 30 September 2026,20,Total equity,key,2026-09,238574
+services,bs,Balance sheet at 30 September 2026,20,Total equity,key,2026-08,220042
+services,cf,"Cash flow, September 2026",2,Receipts from customers (invoices paid),detail,2026-09,64950
+services,cf,"Cash flow, September 2026",2,Receipts from customers (invoices paid),detail,2026-08,137200
+services,cf,"Cash flow, September 2026",3,Payments to contractors and suppliers,detail,2026-09,-32800
+services,cf,"Cash flow, September 2026",3,Payments to contractors and suppliers,detail,2026-08,-31300
+services,cf,"Cash flow, September 2026",4,Payments to employees,detail,2026-09,-69900
+services,cf,"Cash flow, September 2026",4,Payments to employees,detail,2026-08,-69800
+services,cf,"Cash flow, September 2026",5,Interest paid,detail,2026-09,-240
+services,cf,"Cash flow, September 2026",5,Interest paid,detail,2026-08,-250
+services,cf,"Cash flow, September 2026",6,Income tax paid,detail,2026-09,0
+services,cf,"Cash flow, September 2026",6,Income tax paid,detail,2026-08,0
+services,cf,"Cash flow, September 2026",7,Net cash from operating activities,subtotal,2026-09,-37990
+services,cf,"Cash flow, September 2026",7,Net cash from operating activities,subtotal,2026-08,35850
+services,cf,"Cash flow, September 2026",9,Purchase of equipment,detail,2026-09,-3200
+services,cf,"Cash flow, September 2026",9,Purchase of equipment,detail,2026-08,0
+services,cf,"Cash flow, September 2026",10,Net cash from investing activities,subtotal,2026-09,-3200
+services,cf,"Cash flow, September 2026",10,Net cash from investing activities,subtotal,2026-08,0
+services,cf,"Cash flow, September 2026",12,Equipment finance repaid,detail,2026-09,-1700
+services,cf,"Cash flow, September 2026",12,Equipment finance repaid,detail,2026-08,-1700
+services,cf,"Cash flow, September 2026",13,Net cash from financing activities,subtotal,2026-09,-1700
+services,cf,"Cash flow, September 2026",13,Net cash from financing activities,subtotal,2026-08,-1700
+services,cf,"Cash flow, September 2026",14,Net change in cash,total,2026-09,-42890
+services,cf,"Cash flow, September 2026",14,Net change in cash,total,2026-08,34150
+services,cf,"Cash flow, September 2026",15,Cash at start of month,subtotal,2026-09,192150
+services,cf,"Cash flow, September 2026",15,Cash at start of month,subtotal,2026-08,158000
+services,cf,"Cash flow, September 2026",16,Cash at end of month,key,2026-09,149260
+services,cf,"Cash flow, September 2026",16,Cash at end of month,key,2026-08,192150
+nfp,pnl,"Income and expenditure, September 2026",2,G-101 Youth outreach grant,detail,2026-09,22800
+nfp,pnl,"Income and expenditure, September 2026",2,G-101 Youth outreach grant,detail,2026-08,21500
+nfp,pnl,"Income and expenditure, September 2026",3,G-102 Housing support grant,detail,2026-09,31200
+nfp,pnl,"Income and expenditure, September 2026",3,G-102 Housing support grant,detail,2026-08,30500
+nfp,pnl,"Income and expenditure, September 2026",4,G-103 Community meals grant,detail,2026-09,4300
+nfp,pnl,"Income and expenditure, September 2026",4,G-103 Community meals grant,detail,2026-08,4100
+nfp,pnl,"Income and expenditure, September 2026",5,G-104 Digital literacy grant,detail,2026-09,4900
+nfp,pnl,"Income and expenditure, September 2026",5,G-104 Digital literacy grant,detail,2026-08,5200
+nfp,pnl,"Income and expenditure, September 2026",6,G-105 Mental health first aid grant,detail,2026-09,10800
+nfp,pnl,"Income and expenditure, September 2026",6,G-105 Mental health first aid grant,detail,2026-08,9400
+nfp,pnl,"Income and expenditure, September 2026",7,G-106 Volunteer coordinator grant,detail,2026-09,3000
+nfp,pnl,"Income and expenditure, September 2026",7,G-106 Volunteer coordinator grant,detail,2026-08,3000
+nfp,pnl,"Income and expenditure, September 2026",8,Donations,detail,2026-09,27900
+nfp,pnl,"Income and expenditure, September 2026",8,Donations,detail,2026-08,18400
+nfp,pnl,"Income and expenditure, September 2026",9,Fundraising events,detail,2026-09,41600
+nfp,pnl,"Income and expenditure, September 2026",9,Fundraising events,detail,2026-08,0
+nfp,pnl,"Income and expenditure, September 2026",10,Program fees,detail,2026-09,28300
+nfp,pnl,"Income and expenditure, September 2026",10,Program fees,detail,2026-08,26800
+nfp,pnl,"Income and expenditure, September 2026",11,Interest,detail,2026-09,1380
+nfp,pnl,"Income and expenditure, September 2026",11,Interest,detail,2026-08,1450
+nfp,pnl,"Income and expenditure, September 2026",12,Total income,subtotal,2026-09,176180
+nfp,pnl,"Income and expenditure, September 2026",12,Total income,subtotal,2026-08,120350
+nfp,pnl,"Income and expenditure, September 2026",14,Grant-funded program wages,detail,2026-09,-57750
+nfp,pnl,"Income and expenditure, September 2026",14,Grant-funded program wages,detail,2026-08,-55275
+nfp,pnl,"Income and expenditure, September 2026",15,Grant-funded program costs,detail,2026-09,-19250
+nfp,pnl,"Income and expenditure, September 2026",15,Grant-funded program costs,detail,2026-08,-18425
+nfp,pnl,"Income and expenditure, September 2026",16,Program delivery wages (untied),detail,2026-09,-14500
+nfp,pnl,"Income and expenditure, September 2026",16,Program delivery wages (untied),detail,2026-08,-14000
+nfp,pnl,"Income and expenditure, September 2026",17,Program costs (untied),detail,2026-09,-6100
+nfp,pnl,"Income and expenditure, September 2026",17,Program costs (untied),detail,2026-08,-5500
+nfp,pnl,"Income and expenditure, September 2026",18,Total program spend,subtotal,2026-09,-97600
+nfp,pnl,"Income and expenditure, September 2026",18,Total program spend,subtotal,2026-08,-93200
+nfp,pnl,"Income and expenditure, September 2026",20,Grant writing and reporting,detail,2026-09,-7100
+nfp,pnl,"Income and expenditure, September 2026",20,Grant writing and reporting,detail,2026-08,-7100
+nfp,pnl,"Income and expenditure, September 2026",21,Donor campaigns,detail,2026-09,-5400
+nfp,pnl,"Income and expenditure, September 2026",21,Donor campaigns,detail,2026-08,-2200
+nfp,pnl,"Income and expenditure, September 2026",22,Event costs,detail,2026-09,-16900
+nfp,pnl,"Income and expenditure, September 2026",22,Event costs,detail,2026-08,-2400
+nfp,pnl,"Income and expenditure, September 2026",23,Total fundraising costs,subtotal,2026-09,-29400
+nfp,pnl,"Income and expenditure, September 2026",23,Total fundraising costs,subtotal,2026-08,-11700
+nfp,pnl,"Income and expenditure, September 2026",25,Administration wages,detail,2026-09,-18300
+nfp,pnl,"Income and expenditure, September 2026",25,Administration wages,detail,2026-08,-18300
+nfp,pnl,"Income and expenditure, September 2026",26,Occupancy,detail,2026-09,-10000
+nfp,pnl,"Income and expenditure, September 2026",26,Occupancy,detail,2026-08,-10000
+nfp,pnl,"Income and expenditure, September 2026",27,Other administration,detail,2026-09,-7600
+nfp,pnl,"Income and expenditure, September 2026",27,Other administration,detail,2026-08,-8000
+nfp,pnl,"Income and expenditure, September 2026",28,Total administration,subtotal,2026-09,-35900
+nfp,pnl,"Income and expenditure, September 2026",28,Total administration,subtotal,2026-08,-36300
+nfp,pnl,"Income and expenditure, September 2026",29,Depreciation,subtotal,2026-09,-2900
+nfp,pnl,"Income and expenditure, September 2026",29,Depreciation,subtotal,2026-08,-2900
+nfp,pnl,"Income and expenditure, September 2026",30,Total expenses,total,2026-09,-165800
+nfp,pnl,"Income and expenditure, September 2026",30,Total expenses,total,2026-08,-144100
+nfp,pnl,"Income and expenditure, September 2026",31,Surplus for the month,key,2026-09,10380
+nfp,pnl,"Income and expenditure, September 2026",31,Surplus for the month,key,2026-08,-23750
+nfp,bs,Balance sheet at 30 September 2026,2,Cash at bank,detail,2026-09,480780
+nfp,bs,Balance sheet at 30 September 2026,2,Cash at bank,detail,2026-08,525675
+nfp,bs,Balance sheet at 30 September 2026,3,Program fees receivable,detail,2026-09,10400
+nfp,bs,Balance sheet at 30 September 2026,3,Program fees receivable,detail,2026-08,9800
+nfp,bs,Balance sheet at 30 September 2026,4,Grants receivable (spent ahead of instalment),detail,2026-09,20900
+nfp,bs,Balance sheet at 30 September 2026,4,Grants receivable (spent ahead of instalment),detail,2026-08,9700
+nfp,bs,Balance sheet at 30 September 2026,5,Prepayments,detail,2026-09,21000
+nfp,bs,Balance sheet at 30 September 2026,5,Prepayments,detail,2026-08,21000
+nfp,bs,Balance sheet at 30 September 2026,6,Total current assets,subtotal,2026-09,533080
+nfp,bs,Balance sheet at 30 September 2026,6,Total current assets,subtotal,2026-08,566175
+nfp,bs,Balance sheet at 30 September 2026,7,Vehicles and equipment,subtotal,2026-09,172200
+nfp,bs,Balance sheet at 30 September 2026,7,Vehicles and equipment,subtotal,2026-08,175100
+nfp,bs,Balance sheet at 30 September 2026,8,Total assets,total,2026-09,705280
+nfp,bs,Balance sheet at 30 September 2026,8,Total assets,total,2026-08,741275
+nfp,bs,Balance sheet at 30 September 2026,10,Payables (bills due next month),detail,2026-09,65250
+nfp,bs,Balance sheet at 30 September 2026,10,Payables (bills due next month),detail,2026-08,46525
+nfp,bs,Balance sheet at 30 September 2026,11,Grants received in advance (unspent),detail,2026-09,156100
+nfp,bs,Balance sheet at 30 September 2026,11,Grants received in advance (unspent),detail,2026-08,221900
+nfp,bs,Balance sheet at 30 September 2026,12,Employee leave provisions,detail,2026-09,166600
+nfp,bs,Balance sheet at 30 September 2026,12,Employee leave provisions,detail,2026-08,165900
+nfp,bs,Balance sheet at 30 September 2026,13,Total liabilities,total,2026-09,387950
+nfp,bs,Balance sheet at 30 September 2026,13,Total liabilities,total,2026-08,434325
+nfp,bs,Balance sheet at 30 September 2026,14,Net assets,key,2026-09,317330
+nfp,bs,Balance sheet at 30 September 2026,14,Net assets,key,2026-08,306950
+nfp,bs,Balance sheet at 30 September 2026,16,Accumulated funds,key,2026-09,317330
+nfp,bs,Balance sheet at 30 September 2026,16,Accumulated funds,key,2026-08,306950
+nfp,cf,"Cash flow, September 2026",2,Grant instalments received,detail,2026-09,0
+nfp,cf,"Cash flow, September 2026",2,Grant instalments received,detail,2026-08,0
+nfp,cf,"Cash flow, September 2026",3,Donations and fundraising received,detail,2026-09,69500
+nfp,cf,"Cash flow, September 2026",3,Donations and fundraising received,detail,2026-08,18400
+nfp,cf,"Cash flow, September 2026",4,Program fees received,detail,2026-09,27700
+nfp,cf,"Cash flow, September 2026",4,Program fees received,detail,2026-08,26100
+nfp,cf,"Cash flow, September 2026",5,Interest received,detail,2026-09,1380
+nfp,cf,"Cash flow, September 2026",5,Interest received,detail,2026-08,1450
+nfp,cf,"Cash flow, September 2026",6,Payments to suppliers,detail,2026-09,-46525
+nfp,cf,"Cash flow, September 2026",6,Payments to suppliers,detail,2026-08,-36500
+nfp,cf,"Cash flow, September 2026",7,Payments to employees,detail,2026-09,-96950
+nfp,cf,"Cash flow, September 2026",7,Payments to employees,detail,2026-08,-93775
+nfp,cf,"Cash flow, September 2026",8,Net cash from operating activities,subtotal,2026-09,-44895
+nfp,cf,"Cash flow, September 2026",8,Net cash from operating activities,subtotal,2026-08,-84325
+nfp,cf,"Cash flow, September 2026",10,Purchase of vehicles and equipment,detail,2026-09,0
+nfp,cf,"Cash flow, September 2026",10,Purchase of vehicles and equipment,detail,2026-08,0
+nfp,cf,"Cash flow, September 2026",11,Net cash from investing activities,subtotal,2026-09,0
+nfp,cf,"Cash flow, September 2026",11,Net cash from investing activities,subtotal,2026-08,0
+nfp,cf,"Cash flow, September 2026",12,Net change in cash,total,2026-09,-44895
+nfp,cf,"Cash flow, September 2026",12,Net change in cash,total,2026-08,-84325
+nfp,cf,"Cash flow, September 2026",13,Cash at start of month,subtotal,2026-09,525675
+nfp,cf,"Cash flow, September 2026",13,Cash at start of month,subtotal,2026-08,610000
+nfp,cf,"Cash flow, September 2026",14,Cash at end of month,key,2026-09,480780
+nfp,cf,"Cash flow, September 2026",14,Cash at end of month,key,2026-08,525675
