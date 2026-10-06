@@ -113,7 +113,7 @@ li + li { margin-top: 4px; }
 
 /* Round page avatar */
 .brand::before {
-  content: "4";
+  content: none;
   display: grid;
   place-items: center;
   width: 40px;
@@ -229,7 +229,7 @@ li + li { margin-top: 4px; }
 .hero-grid > div:first-child { position: relative; padding-left: 196px; min-height: 120px; }
 
 .hero-grid > div:first-child::before {
-  content: "4";
+  content: none;
   position: absolute;
   left: 16px;
   top: -84px;
@@ -415,7 +415,7 @@ main > section:last-of-type { padding-bottom: 16px; }
 }
 
 .section-heading::before {
-  content: "4";
+  content: none;
   grid-row: span 2;
   display: grid;
   place-items: center;

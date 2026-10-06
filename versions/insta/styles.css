@@ -162,7 +162,7 @@ li + li { margin-top: 4px; }
 
 /* Avatar with story ring */
 .hero-grid > div:first-child::before {
-  content: "4";
+  content: none;
   grid-area: pic;
   display: grid;
   place-items: center;
