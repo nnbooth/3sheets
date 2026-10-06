@@ -17,7 +17,6 @@ This repo is **public** and the website is served straight from it. Private note
 
 ```
 index.html  sme.html  not-for-profit.html  work.html  how-we-work.html  about.html
-small-business.html         redirect to sme.html (old links keep working)
 styles.css  script.js
 data/                       generated data the pages read (dashboard-data.js, deliveries-data.js)
 assets/brand/               the 4th mark, wordmark, share image
