@@ -22,9 +22,13 @@ The invented "Sample Co" numbers behind every mock-up dashboard and report on th
 
 | Table | What it is | Columns |
 | --- | --- | --- |
-| `model_statements` | Home-page dashboard: P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, FY2026 and FY2025, $'000. Costs and outflows are negative. level = detail/subtotal/total/key. | `org`, `statement`, `line_order`, `line`, `level`, `financial_year`, `amount_aud_k` |
-| `model_fourth_sheet_kpis` | Home-page dashboard: the fourth-sheet KPI tiles, as displayed. | `org`, `kpi`, `value`, `comparison` |
-| `model_monthly` | Home-page dashboard: monthly drivers behind the fourth-sheet charts, FY2026 (sum to the annual figures). | `org`, `financial_year`, `month`, `measure`, `value` |
+| `model_statements` | Home-page dashboard: month-end P&L / income and expenditure, balance sheet and cash flow for the three sample organisations, September 2026 and August 2026, whole dollars. Costs and outflows are negative. level = detail/subtotal/total/key. | `org`, `statement_key`, `statement`, `line_order`, `line`, `level`, `period`, `amount_aud` |
+| `model_fourth_sheet_kpis` | Home-page dashboard: the fourth-sheet KPI tiles for September 2026, as displayed. | `org`, `kpi`, `value`, `comparison` |
+| `model_jobs` | SME trades sample: every job May-September 2026 (maintenance contracts, installations, call-outs). Sep and Aug jobs add up to the P&L; unpaid invoices at month end = trade debtors. Labour cost = hours x $68. | `month`, `job`, `job_type`, `description`, `invoice_date`, `paid_date`, `revenue`, `materials`, `subcontractors`, `tech_hours`, `labour_cost`, `gross_profit` |
+| `model_engagements` | SME services sample: every client engagement worked in August and September 2026. Revenue adds up to the P&L; consultant time costed at $60/hour. | `month`, `engagement`, `engagement_type`, `description`, `hours`, `revenue`, `billed`, `contractors`, `consultant_time_cost`, `contribution` |
+| `model_invoices` | SME services sample: client invoices May-September 2026 with payment dates. Unpaid at month end = trade debtors. | `invoice`, `engagement`, `amount`, `invoice_date`, `paid_date` |
+| `model_grants` | Not-for-profit sample: each grant at 30 September 2026. Spend = grant income recognised; received less spent = grants in advance (or receivable). | `grant`, `program`, `funder`, `total`, `start_date`, `end_date`, `received_to_date`, `spent_to_date`, `spent_aug`, `spent_sep`, `budget_to_date`, `spend_vs_budget_pct`, `still_to_spend`, `balance_30_sep`, `months_left` |
+| `model_grant_instalments` | Not-for-profit sample: grant instalment schedule (dates and amounts). | `grant`, `instalment_date`, `amount` |
 | `model_assumptions` | Home-page dashboard: the assumptions each sample organisation's statements are built from. | `org`, `assumption_group`, `assumption`, `value` |
 
 ### Live-display screens (media/display-*.png)

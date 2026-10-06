@@ -976,11 +976,20 @@
   function drawBrandBar() {
     rect(0, 0, W, HUD_H, PAL.paper);
     rect(0, HUD_H - 1, W, 1, PAL.sage);
-    // "4th" mark: a 4 with a raised TH (the pixel font has no superscript)
-    box(6, 5, 30, 18, PAL.accent, PAL.accentDark);
-    text('4', 13, 10, PAL.white, 8);
-    text('TH', 21, 7, PAL.white, 8);
-    text('THE FOURTH SHEET', 42, 10, PAL.ink);
+    // "4th" mark: a big 4 with a small raised "th"
+    box(6, 4, 29, 20, PAL.accent, PAL.accentDark);
+    text('4', 9, 6, PAL.white, 16);
+    drawTh(24, 7, 1, PAL.white);
+    text('THE FOURTH SHEET', 41, 10, PAL.ink);
+  }
+
+  // Lower-case "th" as a tiny pixel sprite (the font only has capitals at
+  // one size, so a real superscript has to be drawn). 7 x 5 pixels per scale.
+  const TH_PIXELS = ['.#..#..', '###.#..', '.#..##.', '.#..#.#', '.##.#.#'];
+  function drawTh(x, y, scale, color) {
+    TH_PIXELS.forEach((line, r) => [...line].forEach((ch, c) => {
+      if (ch === '#') rect(x + c * scale, y + r * scale, scale, scale, color);
+    }));
   }
 
   /* ---------------------------------------------------------------- banners */
@@ -1156,10 +1165,10 @@
 
   function drawEnd() {
     rect(0, 0, W, H, PAL.bg);
-    // "4" mark, then the business name and the person
-    box(W / 2 - 22, 4, 44, 28, PAL.accent, PAL.accentDark);
-    text('4', W / 2 - 16, 10, PAL.white, 16);
-    text('TH', W / 2, 8, PAL.white, 8);
+    // "4th" mark, then the business name and the person
+    box(W / 2 - 17, 4, 34, 28, PAL.accent, PAL.accentDark);
+    text('4', W / 2 - 13, 10, PAL.white, 16);
+    drawTh(W / 2 + 1, 9, 2, PAL.white);
     text('THE FOURTH SHEET', W / 2, 34, PAL.accent, 8, 'center');
 
     const name = cfg('name', '');

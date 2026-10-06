@@ -1,13 +1,10 @@
 org,kpi,value,comparison
-trades,Cost to win a customer,$184,FY2025: $239
-trades,Gross margin,37.7%,FY2025: 36.0%
-trades,Debtor days,34,FY2025: 38
-trades,Break-even revenue,$2.14M,88% of revenue
-services,Utilisation,75%,FY2025: 73%
-services,Revenue per billable hour,$167,FY2025: $163
-services,Lock-up days (debtors + WIP),63,FY2025: 74
-services,Cost to win a client,"$1,500","FY2025: $1,951"
-nfp,Cost to raise a dollar,$0.12,FY2025: $0.14
-nfp,Spent on programs,67c in $1,of every dollar spent
-nfp,Cash runway (unrestricted),4.6 months,Target 3 months
-nfp,Cost per program hour,$62,FY2025: $60
+trades,"Gross margin, September",34.4%,▼ from 35.5% in Aug
+trades,Cost to win a customer,$162,▼ from $205 in Aug
+trades,Technician time on jobs,64%,▲ from 62% in Aug
+services,"Consultant utilisation, September",74%,▲ from 71% in Aug
+services,Revenue per billable hour,$178,▲ from $177 in Aug
+services,Unbilled work + unpaid invoices,"$216,090","▲ from $149,190 in Aug"
+nfp,"Cost to raise a dollar, September",20¢,▲ from 13¢ in Aug
+nfp,Unrestricted cash runway,2.0 months,▼ from 2.2 months in Aug
+nfp,Grants ending in 6 months,"2 · $117,300",still to spend before they end

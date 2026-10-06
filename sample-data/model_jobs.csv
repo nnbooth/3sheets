@@ -1,0 +1,383 @@
+month,job,job_type,description,invoice_date,paid_date,revenue,materials,subcontractors,tech_hours,labour_cost,gross_profit
+2026-05,MC-01,Maintenance contract,Riverside Apartments (strata),2026-05-01,2026-05-26,3200,60,0,18,1224,1916
+2026-05,MC-02,Maintenance contract,Southbank café group,2026-05-01,2026-05-31,1800,40,0,10,680,1080
+2026-05,MC-03,Maintenance contract,Milton office tower,2026-05-01,2026-05-26,4200,90,0,24,1632,2478
+2026-05,MC-04,Maintenance contract,Ashgrove aged care,2026-05-01,2026-05-31,3600,80,0,20,1360,2160
+2026-05,MC-05,Maintenance contract,Newstead gym,2026-05-01,2026-06-08,1600,30,0,9,612,958
+2026-05,MC-06,Maintenance contract,Kangaroo Point townhouses,2026-05-01,2026-05-31,2400,50,0,14,952,1398
+2026-05,MC-07,Maintenance contract,Rocklea factory,2026-05-01,2026-05-26,3900,110,0,22,1496,2294
+2026-05,MC-08,Maintenance contract,Wynnum medical centre,2026-05-01,2026-06-03,2200,40,0,12,816,1344
+2026-05,MC-09,Maintenance contract,Bulimba school,2026-05-01,2026-05-26,2800,60,0,16,1088,1652
+2026-05,MC-10,Maintenance contract,Fortitude Valley hotel,2026-05-01,2026-06-08,3400,70,0,19,1292,2038
+2026-05,MC-11,Maintenance contract,Chermside retail centre,2026-05-01,2026-06-08,4100,100,0,23,1564,2436
+2026-05,MC-12,Maintenance contract,West End brewery,2026-05-01,2026-05-31,2600,50,0,15,1020,1530
+2026-05,MC-13,Maintenance contract,Carindale vet clinic,2026-05-01,2026-05-31,1700,30,0,9,612,1058
+2026-05,MC-14,Maintenance contract,Wacol logistics depot,2026-05-01,2026-06-03,3000,70,0,17,1156,1774
+2026-05,J-2500,Installation,Installation (earlier month),2026-05-06,2026-05-20,32000,12100,2500,123,8364,9036
+2026-05,J-2501,Installation,Installation (earlier month),2026-05-05,2026-06-19,10400,3900,800,40,2720,2980
+2026-05,J-2502,Installation,Installation (earlier month),2026-05-18,2026-07-02,39300,14900,3100,151,10268,11032
+2026-05,J-2503,Installation,Installation (earlier month),2026-05-09,2026-06-08,10700,4000,800,41,2788,3112
+2026-05,C-0501,Call-out,Call-out and repair,2026-05-11,2026-05-18,504,220,0,1.5,102,182
+2026-05,C-0502,Call-out,Call-out and repair,2026-05-15,2026-05-17,708,210,0,3,204,294
+2026-05,C-0503,Call-out,Call-out and repair,2026-05-02,2026-05-02,643,160,0,3,204,279
+2026-05,C-0504,Call-out,Call-out and repair,2026-05-07,2026-05-14,643,160,0,3,204,279
+2026-05,C-0505,Call-out,Call-out and repair,2026-05-03,2026-06-02,524,180,0,2,136,208
+2026-05,C-0506,Call-out,Call-out and repair,2026-05-14,2026-05-21,589,230,0,2,136,223
+2026-05,C-0507,Call-out,Call-out and repair,2026-05-19,2026-06-18,537,190,0,2,136,211
+2026-05,C-0508,Call-out,Call-out and repair,2026-05-19,2026-05-26,723,110,0,4,272,341
+2026-05,C-0509,Call-out,Call-out and repair,2026-05-24,2026-05-26,671,70,0,4,272,329
+2026-05,C-0510,Call-out,Call-out and repair,2026-05-04,2026-05-04,355,50,0,2,136,169
+2026-05,C-0511,Call-out,Call-out and repair,2026-05-10,2026-05-10,736,120,0,4,272,344
+2026-05,C-0512,Call-out,Call-out and repair,2026-05-07,2026-05-21,617,140,0,3,204,273
+2026-05,C-0513,Call-out,Call-out and repair,2026-05-25,2026-05-25,262,90,0,1,68,104
+2026-05,C-0514,Call-out,Call-out and repair,2026-05-09,2026-05-09,498,160,0,2,136,202
+2026-05,C-0515,Call-out,Call-out and repair,2026-05-18,2026-05-25,407,90,0,2,136,181
+2026-05,C-0516,Call-out,Call-out and repair,2026-05-01,2026-05-08,467,80,0,2.5,170,217
+2026-05,C-0517,Call-out,Call-out and repair,2026-05-23,2026-05-30,275,100,0,1,68,107
+2026-05,C-0518,Call-out,Call-out and repair,2026-05-20,2026-05-20,407,90,0,2,136,181
+2026-05,C-0519,Call-out,Call-out and repair,2026-05-28,2026-06-11,669,180,0,3,204,285
+2026-05,C-0520,Call-out,Call-out and repair,2026-05-05,2026-05-19,552,90,0,3,204,258
+2026-05,C-0521,Call-out,Call-out and repair,2026-05-04,2026-06-03,461,20,0,3,204,237
+2026-05,C-0522,Call-out,Call-out and repair,2026-05-12,2026-06-11,697,90,0,4,272,335
+2026-05,C-0523,Call-out,Call-out and repair,2026-05-14,2026-05-21,539,80,0,3,204,255
+2026-05,C-0524,Call-out,Call-out and repair,2026-05-22,2026-05-22,682,190,0,3,204,288
+2026-05,C-0525,Call-out,Call-out and repair,2026-05-19,2026-05-19,472,140,0,2,136,196
+2026-05,C-0526,Call-out,Call-out and repair,2026-05-14,2026-05-21,309,70,0,1.5,102,137
+2026-05,C-0527,Call-out,Call-out and repair,2026-05-11,2026-05-25,762,140,0,4,272,350
+2026-05,C-0528,Call-out,Call-out and repair,2026-05-28,2026-05-28,474,30,0,3,204,240
+2026-05,C-0529,Call-out,Call-out and repair,2026-05-14,2026-05-28,879,230,0,4,272,377
+2026-05,C-0530,Call-out,Call-out and repair,2026-05-13,2026-05-15,669,180,0,3,204,285
+2026-05,C-0531,Call-out,Call-out and repair,2026-05-22,2026-05-22,433,110,0,2,136,187
+2026-05,C-0532,Call-out,Call-out and repair,2026-05-20,2026-05-20,519,120,0,2.5,170,229
+2026-05,C-0533,Call-out,Call-out and repair,2026-05-19,2026-05-19,474,30,0,3,204,240
+2026-05,C-0534,Call-out,Call-out and repair,2026-05-22,2026-06-05,695,200,0,3,204,291
+2026-05,C-0535,Call-out,Call-out and repair,2026-05-15,2026-05-15,532,130,0,2.5,170,232
+2026-05,C-0536,Call-out,Call-out and repair,2026-05-02,2026-05-04,721,220,0,3,204,297
+2026-05,C-0537,Call-out,Call-out and repair,2026-05-26,2026-06-25,643,160,0,3,204,279
+2026-05,C-0538,Call-out,Call-out and repair,2026-05-01,2026-05-31,355,50,0,2,136,169
+2026-05,C-0539,Call-out,Call-out and repair,2026-05-13,2026-05-13,506,110,0,2.5,170,226
+2026-05,C-0540,Call-out,Call-out and repair,2026-05-01,2026-05-15,519,120,0,2.5,170,229
+2026-05,C-0541,Call-out,Call-out and repair,2026-05-10,2026-05-10,283,50,0,1.5,102,131
+2026-05,C-0542,Call-out,Call-out and repair,2026-05-09,2026-05-09,441,60,0,2.5,170,211
+2026-05,C-0543,Call-out,Call-out and repair,2026-05-06,2026-05-06,662,230,0,2.5,170,262
+2026-05,C-0544,Call-out,Call-out and repair,2026-05-07,2026-05-14,506,110,0,2.5,170,226
+2026-05,C-0545,Call-out,Call-out and repair,2026-05-21,2026-05-21,656,170,0,3,204,282
+2026-05,C-0546,Call-out,Call-out and repair,2026-05-22,2026-05-22,623,200,0,2.5,170,253
+2026-05,C-0547,Call-out,Call-out and repair,2026-05-17,2026-05-17,591,120,0,3,204,267
+2026-05,C-0548,Call-out,Call-out and repair,2026-05-23,2026-05-30,368,60,0,2,136,172
+2026-05,C-0549,Call-out,Call-out and repair,2026-05-15,2026-06-14,210,50,0,1,68,92
+2026-05,C-0550,Call-out,Call-out and repair,2026-05-17,2026-05-24,342,40,0,2,136,166
+2026-05,C-0551,Call-out,Call-out and repair,2026-05-15,2026-05-15,550,200,0,2,136,214
+2026-05,C-0552,Call-out,Call-out and repair,2026-05-26,2026-05-28,257,30,0,1.5,102,125
+2026-05,C-0553,Call-out,Call-out and repair,2026-05-27,2026-06-10,461,20,0,3,204,237
+2026-05,C-0554,Call-out,Call-out and repair,2026-05-23,2026-05-25,524,180,0,2,136,208
+2026-05,C-0555,Call-out,Call-out and repair,2026-05-04,2026-05-18,461,20,0,3,204,237
+2026-06,MC-01,Maintenance contract,Riverside Apartments (strata),2026-06-01,2026-07-04,3200,60,0,18,1224,1916
+2026-06,MC-02,Maintenance contract,Southbank café group,2026-06-01,2026-07-09,1800,40,0,10,680,1080
+2026-06,MC-03,Maintenance contract,Milton office tower,2026-06-01,2026-07-04,4200,90,0,24,1632,2478
+2026-06,MC-04,Maintenance contract,Ashgrove aged care,2026-06-01,2026-07-09,3600,80,0,20,1360,2160
+2026-06,MC-05,Maintenance contract,Newstead gym,2026-06-01,2026-07-09,1600,30,0,9,612,958
+2026-06,MC-06,Maintenance contract,Kangaroo Point townhouses,2026-06-01,2026-07-09,2400,50,0,14,952,1398
+2026-06,MC-07,Maintenance contract,Rocklea factory,2026-06-01,2026-07-09,3900,110,0,22,1496,2294
+2026-06,MC-08,Maintenance contract,Wynnum medical centre,2026-06-01,2026-07-01,2200,40,0,12,816,1344
+2026-06,MC-09,Maintenance contract,Bulimba school,2026-06-01,2026-07-04,2800,60,0,16,1088,1652
+2026-06,MC-10,Maintenance contract,Fortitude Valley hotel,2026-06-01,2026-07-01,3400,70,0,19,1292,2038
+2026-06,MC-11,Maintenance contract,Chermside retail centre,2026-06-01,2026-07-01,4100,100,0,23,1564,2436
+2026-06,MC-12,Maintenance contract,West End brewery,2026-06-01,2026-06-26,2600,50,0,15,1020,1530
+2026-06,MC-13,Maintenance contract,Carindale vet clinic,2026-06-01,2026-07-04,1700,30,0,9,612,1058
+2026-06,MC-14,Maintenance contract,Wacol logistics depot,2026-06-01,2026-07-04,3000,70,0,17,1156,1774
+2026-06,J-2520,Installation,Installation (earlier month),2026-06-15,2026-07-06,18400,6900,1400,70,4760,5340
+2026-06,J-2521,Installation,Installation (earlier month),2026-06-15,2026-07-15,36900,14000,2900,141,9588,10412
+2026-06,J-2522,Installation,Installation (earlier month),2026-06-25,2026-08-09,9800,3700,700,37,2516,2884
+2026-06,J-2523,Installation,Installation (earlier month),2026-06-20,2026-08-04,15100,5700,1200,58,3944,4256
+2026-06,J-2524,Installation,Installation (earlier month),2026-06-18,2026-08-02,23000,8700,1800,88,5984,6516
+2026-06,C-0601,Call-out,Call-out and repair,2026-06-07,2026-06-07,734,230,0,3,204,300
+2026-06,C-0602,Call-out,Call-out and repair,2026-06-21,2026-06-28,223,60,0,1,68,95
+2026-06,C-0603,Call-out,Call-out and repair,2026-06-19,2026-06-19,524,180,0,2,136,208
+2026-06,C-0604,Call-out,Call-out and repair,2026-06-17,2026-06-17,420,100,0,2,136,184
+2026-06,C-0605,Call-out,Call-out and repair,2026-06-24,2026-06-24,461,20,0,3,204,237
+2026-06,C-0606,Call-out,Call-out and repair,2026-06-06,2026-06-06,296,60,0,1.5,102,134
+2026-06,C-0607,Call-out,Call-out and repair,2026-06-09,2026-06-16,314,130,0,1,68,116
+2026-06,C-0608,Call-out,Call-out and repair,2026-06-02,2026-06-04,498,160,0,2,136,202
+2026-06,C-0609,Call-out,Call-out and repair,2026-06-26,2026-07-03,500,50,0,3,204,246
+2026-06,C-0610,Call-out,Call-out and repair,2026-06-17,2026-07-17,658,60,0,4,272,326
+2026-06,C-0611,Call-out,Call-out and repair,2026-06-28,2026-06-30,662,230,0,2.5,170,262
+2026-06,C-0612,Call-out,Call-out and repair,2026-06-12,2026-06-12,723,110,0,4,272,341
+2026-06,C-0613,Call-out,Call-out and repair,2026-06-13,2026-06-27,658,60,0,4,272,326
+2026-06,C-0614,Call-out,Call-out and repair,2026-06-18,2026-07-18,591,120,0,3,204,267
+2026-06,C-0615,Call-out,Call-out and repair,2026-06-26,2026-06-26,244,20,0,1.5,102,122
+2026-06,C-0616,Call-out,Call-out and repair,2026-06-08,2026-06-08,400,140,0,1.5,102,158
+2026-06,C-0617,Call-out,Call-out and repair,2026-06-25,2026-07-09,389,20,0,2.5,170,199
+2026-06,C-0618,Call-out,Call-out and repair,2026-06-18,2026-06-25,636,210,0,2.5,170,256
+2026-06,C-0619,Call-out,Call-out and repair,2026-06-10,2026-06-17,524,180,0,2,136,208
+2026-06,C-0620,Call-out,Call-out and repair,2026-06-26,2026-07-10,519,120,0,2.5,170,229
+2026-06,C-0621,Call-out,Call-out and repair,2026-06-20,2026-06-20,552,90,0,3,204,258
+2026-06,C-0622,Call-out,Call-out and repair,2026-06-06,2026-06-13,355,50,0,2,136,169
+2026-06,C-0623,Call-out,Call-out and repair,2026-06-06,2026-06-06,381,70,0,2,136,175
+2026-06,C-0624,Call-out,Call-out and repair,2026-06-23,2026-06-23,656,170,0,3,204,282
+2026-06,C-0625,Call-out,Call-out and repair,2026-06-27,2026-06-29,288,110,0,1,68,110
+2026-06,C-0626,Call-out,Call-out and repair,2026-06-08,2026-06-10,197,40,0,1,68,89
+2026-06,C-0627,Call-out,Call-out and repair,2026-06-20,2026-06-20,643,160,0,3,204,279
+2026-06,C-0628,Call-out,Call-out and repair,2026-06-20,2026-06-27,879,230,0,4,272,377
+2026-06,C-0629,Call-out,Call-out and repair,2026-06-17,2026-06-17,697,90,0,4,272,335
+2026-06,C-0630,Call-out,Call-out and repair,2026-06-03,2026-06-17,537,190,0,2,136,211
+2026-06,C-0631,Call-out,Call-out and repair,2026-06-17,2026-06-17,262,90,0,1,68,104
+2026-06,C-0632,Call-out,Call-out and repair,2026-06-13,2026-06-15,840,200,0,4,272,368
+2026-06,C-0633,Call-out,Call-out and repair,2026-06-05,2026-07-05,645,50,0,4,272,323
+2026-06,C-0634,Call-out,Call-out and repair,2026-06-08,2026-06-22,775,150,0,4,272,353
+2026-06,C-0635,Call-out,Call-out and repair,2026-06-16,2026-07-16,658,60,0,4,272,326
+2026-06,C-0636,Call-out,Call-out and repair,2026-06-09,2026-06-09,801,170,0,4,272,359
+2026-06,C-0637,Call-out,Call-out and repair,2026-06-03,2026-06-03,697,90,0,4,272,335
+2026-06,C-0638,Call-out,Call-out and repair,2026-06-21,2026-06-21,426,160,0,1.5,102,164
+2026-06,C-0639,Call-out,Call-out and repair,2026-06-04,2026-07-04,658,60,0,4,272,326
+2026-06,C-0640,Call-out,Call-out and repair,2026-06-26,2026-07-26,539,80,0,3,204,255
+2026-06,C-0641,Call-out,Call-out and repair,2026-06-08,2026-06-08,329,30,0,2,136,163
+2026-06,C-0642,Call-out,Call-out and repair,2026-06-13,2026-06-13,472,140,0,2,136,196
+2026-06,C-0643,Call-out,Call-out and repair,2026-06-19,2026-06-26,348,100,0,1.5,102,146
+2026-06,C-0644,Call-out,Call-out and repair,2026-06-20,2026-07-04,563,210,0,2,136,217
+2026-06,C-0645,Call-out,Call-out and repair,2026-06-08,2026-06-08,513,60,0,3,204,249
+2026-06,C-0646,Call-out,Call-out and repair,2026-06-01,2026-06-08,487,40,0,3,204,243
+2026-06,C-0647,Call-out,Call-out and repair,2026-06-21,2026-07-21,511,170,0,2,136,205
+2026-06,C-0648,Call-out,Call-out and repair,2026-06-19,2026-06-19,500,50,0,3,204,246
+2026-06,C-0649,Call-out,Call-out and repair,2026-06-28,2026-06-28,762,140,0,4,272,350
+2026-06,C-0650,Call-out,Call-out and repair,2026-06-20,2026-06-20,389,20,0,2.5,170,199
+2026-06,C-0651,Call-out,Call-out and repair,2026-06-21,2026-06-28,491,210,0,1.5,102,179
+2026-06,C-0652,Call-out,Call-out and repair,2026-06-21,2026-06-21,374,120,0,1.5,102,152
+2026-06,C-0653,Call-out,Call-out and repair,2026-06-05,2026-06-05,472,140,0,2,136,196
+2026-06,C-0654,Call-out,Call-out and repair,2026-06-11,2026-07-11,184,30,0,1,68,86
+2026-06,C-0655,Call-out,Call-out and repair,2026-06-16,2026-06-16,736,120,0,4,272,344
+2026-06,C-0656,Call-out,Call-out and repair,2026-06-08,2026-06-15,433,110,0,2,136,187
+2026-06,C-0657,Call-out,Call-out and repair,2026-06-17,2026-07-17,439,170,0,1.5,102,167
+2026-07,MC-01,Maintenance contract,Riverside Apartments (strata),2026-07-01,2026-08-03,3200,60,0,18,1224,1916
+2026-07,MC-02,Maintenance contract,Southbank café group,2026-07-01,2026-08-03,1800,40,0,10,680,1080
+2026-07,MC-03,Maintenance contract,Milton office tower,2026-07-01,2026-08-08,4200,90,0,24,1632,2478
+2026-07,MC-04,Maintenance contract,Ashgrove aged care,2026-07-01,2026-07-31,3600,80,0,20,1360,2160
+2026-07,MC-05,Maintenance contract,Newstead gym,2026-07-01,2026-07-31,1600,30,0,9,612,958
+2026-07,MC-06,Maintenance contract,Kangaroo Point townhouses,2026-07-01,2026-07-26,2400,50,0,14,952,1398
+2026-07,MC-07,Maintenance contract,Rocklea factory,2026-07-01,2026-07-31,3900,110,0,22,1496,2294
+2026-07,MC-08,Maintenance contract,Wynnum medical centre,2026-07-01,2026-08-03,2200,40,0,12,816,1344
+2026-07,MC-09,Maintenance contract,Bulimba school,2026-07-01,2026-07-26,2800,60,0,16,1088,1652
+2026-07,MC-10,Maintenance contract,Fortitude Valley hotel,2026-07-01,2026-08-03,3400,70,0,19,1292,2038
+2026-07,MC-11,Maintenance contract,Chermside retail centre,2026-07-01,2026-08-08,4100,100,0,23,1564,2436
+2026-07,MC-12,Maintenance contract,West End brewery,2026-07-01,2026-07-31,2600,50,0,15,1020,1530
+2026-07,MC-13,Maintenance contract,Carindale vet clinic,2026-07-01,2026-07-26,1700,30,0,9,612,1058
+2026-07,MC-14,Maintenance contract,Wacol logistics depot,2026-07-01,2026-08-08,3000,70,0,17,1156,1774
+2026-07,J-2540,Installation,Installation (earlier month),2026-07-07,2026-08-06,30500,11500,2400,117,7956,8644
+2026-07,J-2541,Installation,Installation (earlier month),2026-07-06,2026-07-27,34600,13100,2700,133,9044,9756
+2026-07,J-2542,Installation,Installation (earlier month),2026-07-02,2026-07-16,29200,11000,2300,112,7616,8284
+2026-07,J-2543,Installation,Installation (earlier month),2026-07-03,2026-07-24,33300,12600,2600,128,8704,9396
+2026-07,C-0701,Call-out,Call-out and repair,2026-07-24,2026-07-26,578,110,0,3,204,264
+2026-07,C-0702,Call-out,Call-out and repair,2026-07-28,2026-07-28,478,200,0,1.5,102,176
+2026-07,C-0703,Call-out,Call-out and repair,2026-07-02,2026-07-02,329,30,0,2,136,163
+2026-07,C-0704,Call-out,Call-out and repair,2026-07-23,2026-08-06,431,220,0,1,68,143
+2026-07,C-0705,Call-out,Call-out and repair,2026-07-07,2026-08-06,433,110,0,2,136,187
+2026-07,C-0706,Call-out,Call-out and repair,2026-07-07,2026-07-07,749,130,0,4,272,347
+2026-07,C-0707,Call-out,Call-out and repair,2026-07-16,2026-07-30,426,160,0,1.5,102,164
+2026-07,C-0708,Call-out,Call-out and repair,2026-07-20,2026-07-27,394,80,0,2,136,178
+2026-07,C-0709,Call-out,Call-out and repair,2026-07-19,2026-07-19,500,50,0,3,204,246
+2026-07,C-0710,Call-out,Call-out and repair,2026-07-07,2026-08-06,405,200,0,1,68,137
+2026-07,C-0711,Call-out,Call-out and repair,2026-07-23,2026-07-23,721,220,0,3,204,297
+2026-07,C-0712,Call-out,Call-out and repair,2026-07-18,2026-07-18,576,220,0,2,136,220
+2026-07,C-0713,Call-out,Call-out and repair,2026-07-27,2026-07-27,223,60,0,1,68,95
+2026-07,C-0714,Call-out,Call-out and repair,2026-07-11,2026-08-10,389,20,0,2.5,170,199
+2026-07,C-0715,Call-out,Call-out and repair,2026-07-19,2026-07-19,439,170,0,1.5,102,167
+2026-07,C-0716,Call-out,Call-out and repair,2026-07-09,2026-07-16,762,140,0,4,272,350
+2026-07,C-0717,Call-out,Call-out and repair,2026-07-22,2026-07-22,322,80,0,1.5,102,140
+2026-07,C-0718,Call-out,Call-out and repair,2026-07-10,2026-07-17,669,180,0,3,204,285
+2026-07,C-0719,Call-out,Call-out and repair,2026-07-03,2026-07-10,658,60,0,4,272,326
+2026-07,C-0720,Call-out,Call-out and repair,2026-07-02,2026-07-09,361,110,0,1.5,102,149
+2026-07,C-0721,Call-out,Call-out and repair,2026-07-27,2026-07-27,392,190,0,1,68,134
+2026-07,C-0722,Call-out,Call-out and repair,2026-07-20,2026-07-22,485,150,0,2,136,199
+2026-07,C-0723,Call-out,Call-out and repair,2026-07-06,2026-07-13,342,40,0,2,136,166
+2026-07,C-0724,Call-out,Call-out and repair,2026-07-23,2026-08-22,597,180,0,2.5,170,247
+2026-07,C-0725,Call-out,Call-out and repair,2026-07-13,2026-07-27,361,110,0,1.5,102,149
+2026-07,C-0726,Call-out,Call-out and repair,2026-07-16,2026-07-16,275,100,0,1,68,107
+2026-07,C-0727,Call-out,Call-out and repair,2026-07-04,2026-07-04,342,40,0,2,136,166
+2026-07,C-0728,Call-out,Call-out and repair,2026-07-25,2026-07-25,283,50,0,1.5,102,131
+2026-07,C-0729,Call-out,Call-out and repair,2026-07-17,2026-08-16,342,40,0,2,136,166
+2026-07,C-0730,Call-out,Call-out and repair,2026-07-19,2026-08-02,827,190,0,4,272,365
+2026-07,C-0731,Call-out,Call-out and repair,2026-07-16,2026-07-18,656,170,0,3,204,282
+2026-07,C-0732,Call-out,Call-out and repair,2026-07-09,2026-07-16,428,50,0,2.5,170,208
+2026-07,C-0733,Call-out,Call-out and repair,2026-07-18,2026-07-25,506,110,0,2.5,170,226
+2026-07,C-0734,Call-out,Call-out and repair,2026-07-08,2026-08-07,381,70,0,2,136,175
+2026-07,C-0735,Call-out,Call-out and repair,2026-07-26,2026-08-02,584,170,0,2.5,170,244
+2026-07,C-0736,Call-out,Call-out and repair,2026-07-18,2026-07-25,461,20,0,3,204,237
+2026-07,C-0737,Call-out,Call-out and repair,2026-07-01,2026-07-08,322,80,0,1.5,102,140
+2026-07,C-0738,Call-out,Call-out and repair,2026-07-09,2026-07-16,394,80,0,2,136,178
+2026-07,C-0739,Call-out,Call-out and repair,2026-07-04,2026-08-03,879,230,0,4,272,377
+2026-07,C-0740,Call-out,Call-out and repair,2026-07-06,2026-07-06,407,90,0,2,136,181
+2026-07,C-0741,Call-out,Call-out and repair,2026-07-14,2026-08-13,656,170,0,3,204,282
+2026-07,C-0742,Call-out,Call-out and repair,2026-07-03,2026-07-03,461,20,0,3,204,237
+2026-07,C-0743,Call-out,Call-out and repair,2026-07-25,2026-07-27,506,110,0,2.5,170,226
+2026-07,C-0744,Call-out,Call-out and repair,2026-07-11,2026-07-13,301,120,0,1,68,113
+2026-07,C-0745,Call-out,Call-out and repair,2026-07-06,2026-08-05,342,40,0,2,136,166
+2026-07,C-0746,Call-out,Call-out and repair,2026-07-04,2026-07-04,381,70,0,2,136,175
+2026-07,C-0747,Call-out,Call-out and repair,2026-07-10,2026-07-17,550,200,0,2,136,214
+2026-07,C-0748,Call-out,Call-out and repair,2026-07-11,2026-08-10,519,120,0,2.5,170,229
+2026-07,C-0749,Call-out,Call-out and repair,2026-07-11,2026-07-11,288,110,0,1,68,110
+2026-07,C-0750,Call-out,Call-out and repair,2026-07-21,2026-07-21,361,110,0,1.5,102,149
+2026-07,C-0751,Call-out,Call-out and repair,2026-07-05,2026-07-05,708,210,0,3,204,294
+2026-07,C-0752,Call-out,Call-out and repair,2026-07-04,2026-07-06,322,80,0,1.5,102,140
+2026-07,C-0753,Call-out,Call-out and repair,2026-07-08,2026-07-22,459,130,0,2,136,193
+2026-07,C-0754,Call-out,Call-out and repair,2026-07-27,2026-07-27,184,30,0,1,68,86
+2026-08,MC-01,Maintenance contract,Riverside Apartments (strata),2026-08-01,2026-09-03,3200,60,0,18,1224,1916
+2026-08,MC-02,Maintenance contract,Southbank café group,2026-08-01,2026-08-26,1800,40,0,10,680,1080
+2026-08,MC-03,Maintenance contract,Milton office tower,2026-08-01,2026-08-26,4200,90,0,24,1632,2478
+2026-08,MC-04,Maintenance contract,Ashgrove aged care,2026-08-01,2026-08-26,3600,80,0,20,1360,2160
+2026-08,MC-05,Maintenance contract,Newstead gym,2026-08-01,2026-08-26,1600,30,0,9,612,958
+2026-08,MC-06,Maintenance contract,Kangaroo Point townhouses,2026-08-01,2026-08-31,2400,50,0,14,952,1398
+2026-08,MC-07,Maintenance contract,Rocklea factory,2026-08-01,2026-09-08,3900,110,0,22,1496,2294
+2026-08,MC-08,Maintenance contract,Wynnum medical centre,2026-08-01,2026-08-26,2200,40,0,12,816,1344
+2026-08,MC-09,Maintenance contract,Bulimba school,2026-08-01,2026-08-31,2800,60,0,16,1088,1652
+2026-08,MC-10,Maintenance contract,Fortitude Valley hotel,2026-08-01,2026-08-31,3400,70,0,19,1292,2038
+2026-08,MC-11,Maintenance contract,Chermside retail centre,2026-08-01,2026-09-03,4100,100,0,23,1564,2436
+2026-08,MC-12,Maintenance contract,West End brewery,2026-08-01,2026-08-26,2600,50,0,15,1020,1530
+2026-08,MC-13,Maintenance contract,Carindale vet clinic,2026-08-01,2026-08-31,1700,30,0,9,612,1058
+2026-08,MC-14,Maintenance contract,Wacol logistics depot,2026-08-01,2026-09-03,3000,70,0,17,1156,1774
+2026-08,J-2588,Installation,"Switchboard upgrade, Rocklea factory",2026-08-07,2026-09-06,38500,15600,4800,92,6256,11844
+2026-08,J-2591,Installation,"LED retrofit, Ashgrove school hall",2026-08-14,2026-09-13,21300,8100,0,70,4760,8440
+2026-08,J-2594,Installation,"Air-con install, Newstead gym",2026-08-19,2026-09-09,16800,6700,1200,44,2992,5908
+2026-08,J-2597,Installation,"Solar install, Wynnum residence",2026-08-24,2026-09-07,19600,9400,2200,36,2448,5552
+2026-08,J-2599,Installation,"Data cabling, Fortitude Valley office",2026-08-28,2026-09-27,13400,3900,1100,48,3264,5136
+2026-08,C-0801,Call-out,Call-out and repair,2026-08-24,2026-09-07,853,210,0,4,272,371
+2026-08,C-0802,Call-out,Call-out and repair,2026-08-19,2026-08-19,368,60,0,2,136,172
+2026-08,C-0803,Call-out,Call-out and repair,2026-08-01,2026-08-08,322,80,0,1.5,102,140
+2026-08,C-0804,Call-out,Call-out and repair,2026-08-06,2026-08-06,327,140,0,1,68,119
+2026-08,C-0805,Call-out,Call-out and repair,2026-08-26,2026-09-02,493,100,0,2.5,170,223
+2026-08,C-0806,Call-out,Call-out and repair,2026-08-11,2026-08-11,552,90,0,3,204,258
+2026-08,C-0807,Call-out,Call-out and repair,2026-08-13,2026-08-20,171,20,0,1,68,83
+2026-08,C-0808,Call-out,Call-out and repair,2026-08-03,2026-08-17,695,200,0,3,204,291
+2026-08,C-0809,Call-out,Call-out and repair,2026-08-21,2026-08-23,788,160,0,4,272,356
+2026-08,C-0810,Call-out,Call-out and repair,2026-08-08,2026-09-07,342,40,0,2,136,166
+2026-08,C-0811,Call-out,Call-out and repair,2026-08-03,2026-08-10,474,30,0,3,204,240
+2026-08,C-0812,Call-out,Call-out and repair,2026-08-27,2026-08-29,708,210,0,3,204,294
+2026-08,C-0813,Call-out,Call-out and repair,2026-08-12,2026-08-12,381,70,0,2,136,175
+2026-08,C-0814,Call-out,Call-out and repair,2026-08-05,2026-09-04,695,200,0,3,204,291
+2026-08,C-0815,Call-out,Call-out and repair,2026-08-09,2026-08-23,539,80,0,3,204,255
+2026-08,C-0816,Call-out,Call-out and repair,2026-08-22,2026-09-21,840,200,0,4,272,368
+2026-08,C-0817,Call-out,Call-out and repair,2026-08-17,2026-08-17,866,220,0,4,272,374
+2026-08,C-0818,Call-out,Call-out and repair,2026-08-19,2026-08-26,604,130,0,3,204,270
+2026-08,C-0819,Call-out,Call-out and repair,2026-08-11,2026-08-25,524,180,0,2,136,208
+2026-08,C-0820,Call-out,Call-out and repair,2026-08-26,2026-08-28,658,60,0,4,272,326
+2026-08,C-0821,Call-out,Call-out and repair,2026-08-18,2026-08-18,511,170,0,2,136,205
+2026-08,C-0822,Call-out,Call-out and repair,2026-08-25,2026-09-01,433,110,0,2,136,187
+2026-08,C-0823,Call-out,Call-out and repair,2026-08-13,2026-08-20,439,170,0,1.5,102,167
+2026-08,C-0824,Call-out,Call-out and repair,2026-08-22,2026-08-29,617,140,0,3,204,273
+2026-08,C-0825,Call-out,Call-out and repair,2026-08-22,2026-08-22,478,200,0,1.5,102,176
+2026-08,C-0826,Call-out,Call-out and repair,2026-08-14,2026-08-14,682,190,0,3,204,288
+2026-08,C-0827,Call-out,Call-out and repair,2026-08-03,2026-09-02,571,160,0,2.5,170,241
+2026-08,C-0828,Call-out,Call-out and repair,2026-08-22,2026-08-22,493,100,0,2.5,170,223
+2026-08,C-0829,Call-out,Call-out and repair,2026-08-27,2026-08-27,669,180,0,3,204,285
+2026-08,C-0830,Call-out,Call-out and repair,2026-08-11,2026-08-11,467,80,0,2.5,170,217
+2026-08,C-0831,Call-out,Call-out and repair,2026-08-24,2026-08-24,537,190,0,2,136,211
+2026-08,C-0832,Call-out,Call-out and repair,2026-08-11,2026-08-18,623,200,0,2.5,170,253
+2026-08,C-0833,Call-out,Call-out and repair,2026-08-03,2026-08-03,472,140,0,2,136,196
+2026-08,C-0834,Call-out,Call-out and repair,2026-08-15,2026-08-15,517,230,0,1.5,102,185
+2026-08,C-0835,Call-out,Call-out and repair,2026-08-05,2026-08-05,526,70,0,3,204,252
+2026-08,C-0836,Call-out,Call-out and repair,2026-08-12,2026-08-19,658,60,0,4,272,326
+2026-08,C-0837,Call-out,Call-out and repair,2026-08-11,2026-08-11,420,100,0,2,136,184
+2026-08,C-0838,Call-out,Call-out and repair,2026-08-25,2026-09-24,656,170,0,3,204,282
+2026-08,C-0839,Call-out,Call-out and repair,2026-08-25,2026-09-01,446,120,0,2,136,190
+2026-08,C-0840,Call-out,Call-out and repair,2026-08-28,2026-08-28,441,60,0,2.5,170,211
+2026-08,C-0841,Call-out,Call-out and repair,2026-08-15,2026-08-15,402,30,0,2.5,170,202
+2026-08,C-0842,Call-out,Call-out and repair,2026-08-23,2026-08-30,710,100,0,4,272,338
+2026-08,C-0843,Call-out,Call-out and repair,2026-08-08,2026-09-07,355,50,0,2,136,169
+2026-08,C-0844,Call-out,Call-out and repair,2026-08-04,2026-09-03,335,90,0,1.5,102,143
+2026-08,C-0845,Call-out,Call-out and repair,2026-08-14,2026-08-14,301,120,0,1,68,113
+2026-08,C-0846,Call-out,Call-out and repair,2026-08-12,2026-08-26,734,230,0,3,204,300
+2026-08,C-0847,Call-out,Call-out and repair,2026-08-08,2026-08-08,270,40,0,1.5,102,128
+2026-08,C-0848,Call-out,Call-out and repair,2026-08-16,2026-08-18,394,80,0,2,136,178
+2026-08,C-0849,Call-out,Call-out and repair,2026-08-28,2026-08-28,288,110,0,1,68,110
+2026-08,C-0850,Call-out,Call-out and repair,2026-08-01,2026-08-15,314,130,0,1,68,116
+2026-08,C-0851,Call-out,Call-out and repair,2026-08-10,2026-08-24,340,150,0,1,68,122
+2026-08,C-0852,Call-out,Call-out and repair,2026-08-03,2026-08-10,262,90,0,1,68,104
+2026-08,C-0853,Call-out,Call-out and repair,2026-08-24,2026-08-24,643,160,0,3,204,279
+2026-08,C-0854,Call-out,Call-out and repair,2026-08-04,2026-08-04,210,50,0,1,68,92
+2026-08,C-0855,Call-out,Call-out and repair,2026-08-06,2026-08-08,526,70,0,3,204,252
+2026-08,C-0856,Call-out,Call-out and repair,2026-08-22,2026-08-22,270,40,0,1.5,102,128
+2026-08,C-0857,Call-out,Call-out and repair,2026-08-23,2026-08-23,342,40,0,2,136,166
+2026-08,C-0858,Call-out,Call-out and repair,2026-08-22,2026-08-29,355,50,0,2,136,169
+2026-09,MC-01,Maintenance contract,Riverside Apartments (strata),2026-09-01,2026-10-01,3200,60,0,18,1224,1916
+2026-09,MC-02,Maintenance contract,Southbank café group,2026-09-01,2026-10-01,1800,40,0,10,680,1080
+2026-09,MC-03,Maintenance contract,Milton office tower,2026-09-01,2026-10-09,4200,90,0,24,1632,2478
+2026-09,MC-04,Maintenance contract,Ashgrove aged care,2026-09-01,2026-10-01,3600,80,0,20,1360,2160
+2026-09,MC-05,Maintenance contract,Newstead gym,2026-09-01,2026-10-09,1600,30,0,9,612,958
+2026-09,MC-06,Maintenance contract,Kangaroo Point townhouses,2026-09-01,2026-10-09,2400,50,0,14,952,1398
+2026-09,MC-07,Maintenance contract,Rocklea factory,2026-09-01,2026-10-09,3900,110,0,22,1496,2294
+2026-09,MC-08,Maintenance contract,Wynnum medical centre,2026-09-01,2026-10-04,2200,40,0,12,816,1344
+2026-09,MC-09,Maintenance contract,Bulimba school,2026-09-01,2026-10-09,2800,60,0,16,1088,1652
+2026-09,MC-10,Maintenance contract,Fortitude Valley hotel,2026-09-01,2026-10-01,3400,70,0,19,1292,2038
+2026-09,MC-11,Maintenance contract,Chermside retail centre,2026-09-01,2026-10-04,4100,100,0,23,1564,2436
+2026-09,MC-12,Maintenance contract,West End brewery,2026-09-01,2026-10-09,2600,50,0,15,1020,1530
+2026-09,MC-13,Maintenance contract,Carindale vet clinic,2026-09-01,2026-09-26,1700,30,0,9,612,1058
+2026-09,MC-14,Maintenance contract,Wacol logistics depot,2026-09-01,2026-10-01,3000,70,0,17,1156,1774
+2026-09,J-2604,Installation,"Switchboard upgrade, Wacol warehouse",2026-09-04,2026-10-19,46800,22900,7400,150,10200,6300
+2026-09,J-2607,Installation,"LED lighting retrofit, Milton office",2026-09-09,2026-10-09,18600,6900,0,64,4352,7348
+2026-09,J-2611,Installation,"Solar and battery, Carindale residence",2026-09-15,2026-09-29,27400,13800,3100,46,3128,7372
+2026-09,J-2615,Installation,"Air-con install, West End café",2026-09-18,2026-10-09,12900,5100,900,38,2584,4316
+2026-09,J-2618,Installation,"EV chargers, Bulimba townhouses",2026-09-23,2026-10-23,9800,3600,0,26,1768,4432
+2026-09,J-2620,Installation,"Data cabling, Chermside medical clinic",2026-09-29,2026-10-29,15200,4300,1800,52,3536,5564
+2026-09,C-0901,Call-out,Call-out and repair,2026-09-08,2026-09-08,589,230,0,2,136,223
+2026-09,C-0902,Call-out,Call-out and repair,2026-09-15,2026-09-15,604,130,0,3,204,270
+2026-09,C-0903,Call-out,Call-out and repair,2026-09-11,2026-09-11,565,100,0,3,204,261
+2026-09,C-0904,Call-out,Call-out and repair,2026-09-12,2026-09-12,472,140,0,2,136,196
+2026-09,C-0905,Call-out,Call-out and repair,2026-09-26,2026-09-26,472,140,0,2,136,196
+2026-09,C-0906,Call-out,Call-out and repair,2026-09-10,2026-09-17,454,70,0,2.5,170,214
+2026-09,C-0907,Call-out,Call-out and repair,2026-09-15,2026-09-29,734,230,0,3,204,300
+2026-09,C-0908,Call-out,Call-out and repair,2026-09-02,2026-09-04,444,230,0,1,68,146
+2026-09,C-0909,Call-out,Call-out and repair,2026-09-22,2026-10-22,762,140,0,4,272,350
+2026-09,C-0910,Call-out,Call-out and repair,2026-09-17,2026-09-19,539,80,0,3,204,255
+2026-09,C-0911,Call-out,Call-out and repair,2026-09-24,2026-10-01,526,70,0,3,204,252
+2026-09,C-0912,Call-out,Call-out and repair,2026-09-17,2026-09-24,413,150,0,1.5,102,161
+2026-09,C-0913,Call-out,Call-out and repair,2026-09-04,2026-09-04,775,150,0,4,272,353
+2026-09,C-0914,Call-out,Call-out and repair,2026-09-04,2026-09-04,348,100,0,1.5,102,146
+2026-09,C-0915,Call-out,Call-out and repair,2026-09-15,2026-10-15,775,150,0,4,272,353
+2026-09,C-0916,Call-out,Call-out and repair,2026-09-01,2026-09-08,368,60,0,2,136,172
+2026-09,C-0917,Call-out,Call-out and repair,2026-09-08,2026-09-15,526,70,0,3,204,252
+2026-09,C-0918,Call-out,Call-out and repair,2026-09-06,2026-09-06,467,80,0,2.5,170,217
+2026-09,C-0919,Call-out,Call-out and repair,2026-09-23,2026-09-23,589,230,0,2,136,223
+2026-09,C-0920,Call-out,Call-out and repair,2026-09-24,2026-10-01,342,40,0,2,136,166
+2026-09,C-0921,Call-out,Call-out and repair,2026-09-25,2026-10-02,461,20,0,3,204,237
+2026-09,C-0922,Call-out,Call-out and repair,2026-09-17,2026-10-17,441,60,0,2.5,170,211
+2026-09,C-0923,Call-out,Call-out and repair,2026-09-22,2026-09-22,749,130,0,4,272,347
+2026-09,C-0924,Call-out,Call-out and repair,2026-09-28,2026-09-28,801,170,0,4,272,359
+2026-09,C-0925,Call-out,Call-out and repair,2026-09-26,2026-09-26,322,80,0,1.5,102,140
+2026-09,C-0926,Call-out,Call-out and repair,2026-09-26,2026-10-10,374,120,0,1.5,102,152
+2026-09,C-0927,Call-out,Call-out and repair,2026-09-04,2026-09-11,550,200,0,2,136,214
+2026-09,C-0928,Call-out,Call-out and repair,2026-09-25,2026-10-09,563,210,0,2,136,217
+2026-09,C-0929,Call-out,Call-out and repair,2026-09-28,2026-10-05,606,20,0,4,272,314
+2026-09,C-0930,Call-out,Call-out and repair,2026-09-13,2026-09-13,643,160,0,3,204,279
+2026-09,C-0931,Call-out,Call-out and repair,2026-09-13,2026-10-13,342,40,0,2,136,166
+2026-09,C-0932,Call-out,Call-out and repair,2026-09-21,2026-10-21,597,180,0,2.5,170,247
+2026-09,C-0933,Call-out,Call-out and repair,2026-09-08,2026-09-08,452,180,0,1.5,102,170
+2026-09,C-0934,Call-out,Call-out and repair,2026-09-02,2026-09-09,441,60,0,2.5,170,211
+2026-09,C-0935,Call-out,Call-out and repair,2026-09-05,2026-09-12,316,20,0,2,136,160
+2026-09,C-0936,Call-out,Call-out and repair,2026-09-13,2026-09-13,335,90,0,1.5,102,143
+2026-09,C-0937,Call-out,Call-out and repair,2026-09-18,2026-09-20,322,80,0,1.5,102,140
+2026-09,C-0938,Call-out,Call-out and repair,2026-09-23,2026-10-07,381,70,0,2,136,175
+2026-09,C-0939,Call-out,Call-out and repair,2026-09-23,2026-09-23,262,90,0,1,68,104
+2026-09,C-0940,Call-out,Call-out and repair,2026-09-01,2026-10-01,623,200,0,2.5,170,253
+2026-09,C-0941,Call-out,Call-out and repair,2026-09-18,2026-09-25,288,110,0,1,68,110
+2026-09,C-0942,Call-out,Call-out and repair,2026-09-13,2026-09-27,552,90,0,3,204,258
+2026-09,C-0943,Call-out,Call-out and repair,2026-09-16,2026-10-16,270,40,0,1.5,102,128
+2026-09,C-0944,Call-out,Call-out and repair,2026-09-21,2026-09-28,684,80,0,4,272,332
+2026-09,C-0945,Call-out,Call-out and repair,2026-09-17,2026-09-17,645,50,0,4,272,323
+2026-09,C-0946,Call-out,Call-out and repair,2026-09-08,2026-09-08,565,100,0,3,204,261
+2026-09,C-0947,Call-out,Call-out and repair,2026-09-01,2026-09-08,441,60,0,2.5,170,211
+2026-09,C-0948,Call-out,Call-out and repair,2026-09-16,2026-09-18,327,140,0,1,68,119
+2026-09,C-0949,Call-out,Call-out and repair,2026-09-27,2026-10-11,550,200,0,2,136,214
+2026-09,C-0950,Call-out,Call-out and repair,2026-09-28,2026-10-28,517,230,0,1.5,102,185
+2026-09,C-0951,Call-out,Call-out and repair,2026-09-22,2026-09-22,643,160,0,3,204,279
+2026-09,C-0952,Call-out,Call-out and repair,2026-09-22,2026-09-29,420,100,0,2,136,184
+2026-09,C-0953,Call-out,Call-out and repair,2026-09-02,2026-09-02,309,70,0,1.5,102,137
+2026-09,C-0954,Call-out,Call-out and repair,2026-09-06,2026-09-06,446,120,0,2,136,190
+2026-09,C-0955,Call-out,Call-out and repair,2026-09-14,2026-09-14,171,20,0,1,68,83
+2026-09,C-0956,Call-out,Call-out and repair,2026-09-10,2026-09-10,736,120,0,4,272,344
+2026-09,C-0957,Call-out,Call-out and repair,2026-09-27,2026-09-27,550,200,0,2,136,214
+2026-09,C-0958,Call-out,Call-out and repair,2026-09-17,2026-09-24,322,80,0,1.5,102,140
+2026-09,C-0959,Call-out,Call-out and repair,2026-09-27,2026-09-29,348,100,0,1.5,102,146
+2026-09,C-0960,Call-out,Call-out and repair,2026-09-19,2026-09-19,381,70,0,2,136,175
+2026-09,C-0961,Call-out,Call-out and repair,2026-09-19,2026-10-03,301,120,0,1,68,113
+2026-09,C-0962,Call-out,Call-out and repair,2026-09-16,2026-09-16,335,90,0,1.5,102,143
+2026-09,C-0963,Call-out,Call-out and repair,2026-09-15,2026-10-15,532,130,0,2.5,170,232
+2026-09,C-0964,Call-out,Call-out and repair,2026-09-05,2026-09-12,459,130,0,2,136,193
