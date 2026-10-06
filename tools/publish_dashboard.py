@@ -88,7 +88,7 @@ def write_dashboard_js(res):
           "   Don't edit by hand: change the assumptions in financial_model.py and re-run.\n"
           "   All figures are invented sample data, in whole dollars: September 2026 vs August 2026. */\n"
           "window.FOURTH_SHEET_DASHBOARD = " + json.dumps(payload, ensure_ascii=False, indent=1) + ";\n")
-    (REPO / "dashboard-data.js").write_text(js)
+    (REPO / "data" / "dashboard-data.js").write_text(js)
 
 
 # ================================================= detail lists (granular)
@@ -165,158 +165,329 @@ def csv_tables(res):
 
 THIN = Side(style="thin", color=LINE)
 DOUBLE = Side(style="double", color=INK)
-NUM = '#,##0;(#,##0);"-"'
+F = ek.XL_FMT
+
+# How each total in a statement is worked out from the lines above it (written as Excel formulas).
+# Subtotals with detail lines above them are SUMs; these totals combine other lines.
+TOTALS = {
+    "Gross profit": [("Total revenue", 1), ("Total cost of sales", 1)],
+    "EBITDA": [("Gross profit", 1), ("Total operating expenses", 1)],
+    "Profit before tax": [("EBITDA", 1), ("Depreciation", 1), ("Interest", 1)],
+    "Net profit after tax": [("Profit before tax", 1), ("Income tax*", 1)],
+    "Total expenses": [("Total program spend", 1), ("Total fundraising costs", 1), ("Total administration", 1), ("Depreciation", 1)],
+    "Surplus for the month": [("Total income", 1), ("Total expenses", 1)],
+    "Total assets": [("Total current assets", 1), ("@prev", 1)],
+    "Total liabilities": [("Total current liabilities", 1), ("Equipment finance", 1)],
+    "Net assets": [("Total assets", 1), ("Total liabilities", -1)],
+    "Net change in cash": [("Net cash from*", 1)],
+    "Cash at end of month": [("Cash at start of month", 1), ("Net change in cash", 1)],
+}
 
 
-def xl_statement(ws, title, subtitle, rows, start_row=1):
-    ws.cell(start_row, 1, title).font = Font(bold=True, size=14, color=INK)
-    ws.cell(start_row + 1, 1, subtitle).font = Font(italic=True, size=9, color=MUTED)
-    hr = start_row + 3
-    for c, h in enumerate(["$"] + fm.COLUMNS + ["Change"], 1):
-        cell = ws.cell(hr, c, h)
+def statement_spec(rows):
+    """For each row: None (heading), 'input', ('sum', [i…]) or ('lin', [(i, sign)…])."""
+    spec, pending = [], []
+    def find(lab, i):
+        if lab == "@prev":
+            return [i - 1]
+        if lab.endswith("*"):
+            return [j for j in range(i) if rows[j]["label"].startswith(lab[:-1]) and rows[j]["values"] is not None]
+        return [max(j for j in range(i) if rows[j]["label"] == lab)]
+    for i, rw in enumerate(rows):
+        lv = rw["level"]
+        if lv == "heading":
+            spec.append(None); pending = []
+        elif lv == "detail":
+            spec.append("input"); pending.append(i)
+        elif pending:
+            spec.append(("sum", pending)); pending = []
+        elif lv in ("total", "key") and rw["label"] in TOTALS:
+            spec.append(("lin", [(j, sg) for lab, sg in TOTALS[rw["label"]] for j in find(lab, i)]))
+        else:
+            spec.append("input")
+    # prove the formulas give the model's numbers
+    for i, (rw, sp) in enumerate(zip(rows, spec)):
+        if isinstance(sp, tuple):
+            for c in range(2):
+                got = sum(rows[j]["values"][c] for j in sp[1]) if sp[0] == "sum" else sum(sg * rows[j]["values"][c] for j, sg in sp[1])
+                if got != rw["values"][c]:
+                    raise SystemExit(f"Excel formula for '{rw['label']}' gives {got}, model says {rw['values'][c]}")
+    return spec
+
+
+def head_cells(ws, r, heads, first_left=True):
+    for c, h in enumerate(heads, 1):
+        cell = ws.cell(r, c, h)
         cell.font = Font(bold=True, color="FFFFFF")
         cell.fill = PatternFill("solid", fgColor=GREEN)
-        cell.alignment = Alignment(horizontal="left" if c == 1 else "right")
-    r = hr + 1
-    for rw in rows:
-        a = ws.cell(r, 1, rw["label"])
-        if rw["level"] == "heading":
-            a.font = Font(bold=True, color=GREEN)
-        else:
-            for c, val in enumerate(rw["values"] + [f"=B{r}-C{r}"], 2):
-                cell = ws.cell(r, c, val)
-                cell.number_format = NUM
-                cell.alignment = Alignment(horizontal="right")
-                if c == 4:
-                    cell.font = Font(italic=True, color=MUTED)
-            if rw["level"] == "detail":
-                a.alignment = Alignment(indent=1)
-                a.font = Font(color=MUTED)
-            else:
-                for c in range(1, 5):
-                    ws.cell(r, c).font = Font(bold=True, color=GREEN if rw["level"] == "key" else INK)
-                    ws.cell(r, c).border = Border(top=THIN, bottom=DOUBLE if rw["level"] == "key" else None)
-                if rw["level"] == "key":
-                    for c in range(1, 5):
-                        ws.cell(r, c).fill = PatternFill("solid", fgColor=SOFT)
+        cell.alignment = Alignment(horizontal="left" if (c == 1 and first_left) else "right", vertical="center", wrap_text=True)
+
+
+def title_block(ws, title, sub, status):
+    ws["A1"] = title
+    ws["A1"].font = Font(bold=True, size=14, color=INK)
+    ws["A2"] = sub
+    ws["A2"].font = Font(italic=True, size=9, color=MUTED)
+    ws["A3"] = status
+    ws["A3"].font = Font(italic=True, size=9, color=MUTED)
+
+
+def xl_statement(ws, title, sub, status, rows):
+    """Detail lines are data; every subtotal, total and the Change column are formulas."""
+    title_block(ws, title, sub, status)
+    hr = 4
+    head_cells(ws, hr, ["$"] + fm.COLUMNS + ["Change"])
+    spec = statement_spec(rows)
+    rownum, starts = {}, []
+    r = hr
+    for i, (rw, sp) in enumerate(zip(rows, spec)):
         r += 1
-    return r
+        rownum[i] = r
+        a = ws.cell(r, 1, rw["label"])
+        if sp is None:
+            a.font = Font(bold=True, color=GREEN)
+            starts.append(r)
+            continue
+        for c, col in ((2, "B"), (3, "C")):
+            if sp == "input":
+                val = rw["values"][c - 2]
+            elif sp[0] == "sum":
+                rs = [rownum[j] for j in sp[1]]
+                val = f"=SUM({col}{rs[0]}:{col}{rs[-1]})" if rs == list(range(rs[0], rs[-1] + 1)) else "=" + "+".join(f"{col}{x}" for x in rs)
+            else:
+                val = "=" + "".join(f"{'+' if sg > 0 else '-'}{col}{rownum[j]}" for j, sg in sp[1]).lstrip("+")
+            cell = ws.cell(r, c, val)
+            cell.number_format = F["money"]
+        ch = ws.cell(r, 4, f"=B{r}-C{r}")
+        ch.number_format = F["money"]
+        ch.font = Font(italic=True, color=MUTED)
+        if rw["level"] == "detail":
+            a.alignment = Alignment(indent=1)
+            a.font = Font(color=MUTED)
+        else:
+            for c in range(1, 5):
+                ws.cell(r, c).font = Font(bold=True, italic=(c == 4), color=GREEN if rw["level"] == "key" else INK)
+                ws.cell(r, c).border = Border(top=THIN, bottom=DOUBLE if rw["level"] == "key" else None)
+                if rw["level"] == "key":
+                    ws.cell(r, c).fill = PatternFill("solid", fgColor=SOFT)
+    ws.column_dimensions["A"].width = 52
+    for col in "BCD":
+        ws.column_dimensions[col].width = 16
+    ws.freeze_panes = "B5"
+    return starts, r
+
+
+def xl_support(ws, r, sp):
+    """One workings panel: inputs as values, calculated rows as formulas. Returns (next row, {row index: excel row}, block start)."""
+    start = r
+    ws.cell(r, 1, sp["title"]).font = Font(bold=True, color=GREEN, size=12)
+    ws.cell(r + 1, 1, sp["formula"]).font = Font(italic=True, color=MUTED)
+    r += 2
+    cols = sp["xl"]["cols"]
+    head_cells(ws, r, [""] + cols)
+    rowmap = {}
+    letters = [get_column_letter(c) for c in range(2, 2 + len(cols))]
+    xr = sp["xl"]["rows"]
+    for i, row_ in enumerate(xr):
+        r += 1
+        rowmap[i] = r
+        ws.cell(r, 1, row_["label"])
+        for k, L in enumerate(letters):
+            if row_["calc"]:
+                import re
+                val = "=" + re.sub(r"r(\d+)", lambda m: f"{L}{rowmap[int(m.group(1))]}", row_["calc"])
+            else:
+                val = row_["values"][k]
+            cell = ws.cell(r, 2 + k, val)
+            cell.number_format = F[row_["kind"]]
+            cell.alignment = Alignment(horizontal="right")
+        if i == len(xr) - 1:
+            for c in range(1, 2 + len(cols)):
+                ws.cell(r, c).font = Font(bold=True)
+                ws.cell(r, c).border = Border(top=THIN)
+    if sp.get("note"):
+        r += 1
+        ws.cell(r, 1, sp["note"]).font = Font(italic=True, size=9, color=MUTED)
+    if sp.get("series"):
+        se = sp["series"]
+        r += 2
+        ws.cell(r, 1, se["title"]).font = Font(bold=True, color=INK)
+        r += 1
+        head_cells(ws, r, ["Month", "Spend", "Budget", "Spend against budget"])
+        top = r + 1
+        for lab, val, bud in zip(se["labels"], se["values"], se["budget"]):
+            r += 1
+            ws.cell(r, 1, lab)
+            ws.cell(r, 2, val).number_format = F["money"]
+            ws.cell(r, 3, bud).number_format = F["money"]
+            ws.cell(r, 4, f"=IF(C{r}=0,\"\",B{r}/C{r})").number_format = F["pct"]
+        r += 1
+        ws.cell(r, 1, "Total").font = Font(bold=True)
+        for c, L in ((2, "B"), (3, "C")):
+            cell = ws.cell(r, c, f"=SUM({L}{top}:{L}{r - 1})")
+            cell.number_format = F["money"]
+            cell.font = Font(bold=True)
+        cell = ws.cell(r, 4, f"=IF(C{r}=0,\"\",B{r}/C{r})")
+        cell.number_format = F["pct"]
+        cell.font = Font(bold=True)
+    return r + 3, rowmap, start
+
+
+def xl_list(ws, org, v, status, sub):
+    """The job / engagement / grant list: data columns are values, worked-out columns are formulas."""
+    o, m = v["out"], v["model"]
+    if org == "trades":
+        title = "Jobs, September and August 2026"
+        title_block(ws, title, sub, status)
+        ws["A4"], ws["B4"] = "Technician cost rate ($ per hour)", m["tech_cost_rate"]
+        ws["B4"].number_format = F["money"]
+        heads = ["Month", "Job", "Type", "Invoiced", "Paid", "Revenue", "Materials", "Subcontractors", "Tech hours",
+                 "Labour cost", "Gross profit", "Margin %"]
+        kinds = ["text", "text", "text", "date", "date", "money", "money", "money", "hours", "money", "money", "pct"]
+        jobs = sorted([j for j in o["jobs"] if j["month"] in fm.PERIODS], key=lambda j: (j["month"] != "2026-09", j["type"], j["description"]))
+        data = [[j["month"], j["description"], j["type"], j["invoice_date"], j["paid_date"], j["revenue"], j["materials"],
+                 j["subcontractors"], j["hours"], "=I{r}*$B$4", "=F{r}-G{r}-H{r}-J{r}", "=IF(F{r}=0,\"\",K{r}/F{r})"] for j in jobs]
+        group = [j["month"] for j in jobs]
+    elif org == "services":
+        title = "Client engagements, September and August 2026"
+        title_block(ws, title, sub, status)
+        ws["A4"], ws["B4"] = "Consultant cost rate ($ per hour)", m["cost_rate"]
+        ws["B4"].number_format = F["money"]
+        heads = ["Month", "Engagement", "Type", "Hours", "Revenue", "Billed", "Contractors", "Consultant time cost", "Contribution", "Margin %"]
+        kinds = ["text", "text", "text", "hours", "money", "money", "money", "money", "money", "pct"]
+        eng = sorted(o["engagements"], key=lambda x: (x["month"] != "2026-09", x["description"]))
+        data = [[x["month"], x["description"], x["type"], x["hours"], x["revenue"], x["billed"], x["contractors"],
+                 "=D{r}*$B$4", "=E{r}-G{r}-H{r}", "=IF(E{r}=0,\"\",I{r}/E{r})"] for x in eng]
+        group = [x["month"] for x in eng]
+    else:
+        title = "Grants at 30 September 2026"
+        title_block(ws, title, sub, status)
+        ws["A4"] = "Budget to date = the grant spread evenly over its months, to 30 September 2026."
+        ws["A4"].font = Font(italic=True, size=9, color=MUTED)
+        heads = ["Program", "Funder", "Grant total", "Start", "End", "Received to date", "Spent to date", "Spent Aug",
+                 "Spent Sep", "Budget to date", "Spent against budget", "Still to spend", "Months left"]
+        kinds = ["text", "text", "money", "date", "date", "money", "money", "money", "money", "money", "pct", "money", "int"]
+        G = sorted(o["grants"], key=lambda g: -g["total"])
+        data = [[g["program"], g["funder"], g["total"], date.fromisoformat(g["start"]), date.fromisoformat(g["end"]), g["received_to_date"],
+                 g["spent_to_date"], g["spent_aug"], g["spent_sep"], g["budget_to_date"], "=IF(J{r}=0,\"\",G{r}/J{r})", "=C{r}-G{r}", g["months_left"]] for g in G]
+        group = ["all"] * len(G)
+    hr = 6
+    head_cells(ws, hr, heads)
+    starts = []
+    for i, row_ in enumerate(data):
+        r = hr + 1 + i
+        if i and group[i] != group[i - 1]:
+            starts.append(r)          # a new month starts on a new page block
+        for c, (val, kind) in enumerate(zip(row_, kinds), 1):
+            if isinstance(val, str) and val.startswith("="):
+                val = val.format(r=r)
+            cell = ws.cell(r, c, val)
+            cell.number_format = F[kind]
+            if kind not in ("text",):
+                cell.alignment = Alignment(horizontal="right")
+    last = hr + len(data)
+    # totals row: formulas over the list (not for the grants' months-left or percentages)
+    tr = last + 1
+    ws.cell(tr, 1, "Total").font = Font(bold=True)
+    for c, kind in enumerate(kinds, 1):
+        L = get_column_letter(c)
+        if kind in ("money", "hours") and c > 2:
+            cell = ws.cell(tr, c, f"=SUM({L}{hr + 1}:{L}{last})")
+            cell.number_format = F[kind]
+            cell.font = Font(bold=True)
+            cell.border = Border(top=THIN, bottom=DOUBLE)
+    for c, (h, kind) in enumerate(zip(heads, kinds), 1):
+        ws.column_dimensions[get_column_letter(c)].width = 34 if h in ("Job", "Engagement", "Program", "Funder") else 13
+    ws.column_dimensions["A"].width = max(ws.column_dimensions["A"].width, 12)
+    ws.freeze_panes = f"C{hr + 1}"
+    ws.auto_filter.ref = f"A{hr}:{get_column_letter(len(heads))}{last}"
+    return hr, starts, tr
 
 
 def write_xlsx(org, v):
     wb = Workbook()
     name = v["model"]["long_name"]
-    sub = f"{name} · SAMPLE DATA (invented) · The Fourth Sheet · generated {date.today().isoformat()}"
+    filename = f"{org}-sample-statements.xlsx"
+    retrieved = ds.as_at_text()
+    sub = f"{name} · SAMPLE DATA (invented) · The Fourth Sheet"
+    status = "Data status: " + " · ".join(f"{date.fromisoformat(m + '-01').strftime('%b %Y')} {ds.month_status(m)[0].lower()}" for m in STATUS_MONTHS) + f" (data retrieved {retrieved})"
     f4 = v["fourth"]
+    pages = {}
 
-    ws = wb.active
-    ws.title = "The fourth sheet"
-    ws["A1"] = "The fourth sheet: September 2026 vs August 2026"
-    ws["A1"].font = Font(bold=True, size=14, color=INK)
-    ws["A2"] = sub
-    ws["A2"].font = Font(italic=True, size=9, color=MUTED)
-    r = 4
+    # --- Workings first in memory (other sheets point at it), shown after the fourth sheet
+    ws4 = wb.active
+    ws4.title = "The fourth sheet"
+    wk = wb.create_sheet("Workings")
+    title_block(wk, "How each number is worked out", sub, status)
+    r, starts, kpi_ref, det_ref = 5, [], [], []
     for k in f4["kpis"]:
-        ws.cell(r, 1, k["label"]).font = Font(color=MUTED)
-        ws.cell(r, 2, k["value"]).font = Font(bold=True, size=12, color=GREEN if k.get("spine") else INK)
-        ws.cell(r, 3, k["sub"]).font = Font(size=9, color=MUTED)
-        r += 1
-    r += 1
+        r, rowmap, st = xl_support(wk, r, k["support"])
+        starts.append(st)
+        kpi_ref.append((rowmap[len(k["support"]["xl"]["rows"]) - 1], k["support"]["xl"]["rows"][-1]["kind"], len(k["support"]["xl"]["cols"])))
+    for d in f4["chart"].get("details", []):
+        r, rowmap, st = xl_support(wk, r, d)
+        starts.append(st)
+        det_ref.append(rowmap)
+    wk.column_dimensions["A"].width = 58
+    for col in "BCD":
+        wk.column_dimensions[col].width = 20
+    pages["Workings"] = (None, starts, r)
+
+    # --- The fourth sheet: every number is a formula pointing at its workings
+    title_block(ws4, "The fourth sheet: September 2026 against August 2026", sub, status)
+    head_cells(ws4, 5, ["Headline number", "Sep 2026", "Aug 2026", "Change"])
+    for i, (k, (wr, kind, ncols)) in enumerate(zip(f4["kpis"], kpi_ref)):
+        r = 6 + i
+        ws4.cell(r, 1, k["label"].replace(", September", ""))
+        ws4.cell(r, 2, f"=Workings!B{wr}").number_format = F[kind]
+        if ncols > 1:
+            ws4.cell(r, 3, f"=Workings!C{wr}").number_format = F[kind]
+            ws4.cell(r, 4, f"=B{r}-C{r}").number_format = F[kind]
+    r = 6 + len(f4["kpis"]) + 2
     ch = f4["chart"]
-    ws.cell(r, 1, ch["title"]).font = Font(bold=True, color=INK)
-    for lab, val in zip(ch["labels"], ch["values"]):
+    ws4.cell(r, 1, ch["title"]).font = Font(bold=True, color=INK)
+    ws4.cell(r + 1, 1, ch.get("subtitle", "")).font = Font(italic=True, size=9, color=MUTED)
+    r += 2
+    views = ch.get("views") or [{"label": "Value", "format": ch["format"]}]
+    head_cells(ws4, r, ["", *[vw["label"] for vw in views]])
+    # which workings row holds the % and the $ for each bar
+    for i, (lab, rowmap) in enumerate(zip(ch["labels"], det_ref)):
         r += 1
-        ws.cell(r, 1, lab)
-        ws.cell(r, 2, val).number_format = "0.0" if isinstance(val, float) else "0"
+        ws4.cell(r, 1, lab)
+        n = len(rowmap)
+        pct_row = rowmap[n - 1]                                  # the last row is the % (margin / spent against budget)
+        dollar_row = rowmap[n - 2] if org != "nfp" else rowmap[2]   # profit / contribution; grants: spent to date
+        for c, vw in enumerate(views, 2):
+            pc = vw["format"].startswith("pct")
+            ws4.cell(r, c, f"=Workings!B{pct_row if pc else dollar_row}").number_format = F["pct" if pc else "money"]
     if ch.get("target") is not None:
         r += 1
-        ws.cell(r, 1, "Target").font = Font(italic=True, color=MUTED)
-        ws.cell(r, 2, ch["target"])
-    ws.column_dimensions["A"].width = 44
+        ws4.cell(r, 1, "Target").font = Font(italic=True, color=MUTED)
+        ws4.cell(r, 2, ch["target"] / 100).number_format = F["pct"]
+    ws4.column_dimensions["A"].width = 52
     for col in "BCD":
-        ws.column_dimensions[col].width = 16
+        ws4.column_dimensions[col].width = 18
+    pages["The fourth sheet"] = (5, [], r)
 
-    for key, s in statements(org, v).items():
-        w = wb.create_sheet(s["tab"].replace("&", "and"))
-        xl_statement(w, s["title"], sub, s["rows"])
-        w.column_dimensions["A"].width = 46
-        for col in "BCD":
-            w.column_dimensions[col].width = 14
-        w.freeze_panes = "B5"
-        w.page_setup.orientation = "portrait"
-        w.page_setup.fitToWidth = 1
-        w.sheet_properties.pageSetUpPr.fitToPage = True
+    # --- statements: data lines and formula totals
+    for key, st in statements(org, v).items():
+        tab = {"pnl": "Income and expenditure" if org == "nfp" else "Profit and loss", "bs": "Balance sheet", "cf": "Cash flow"}[key]
+        w = wb.create_sheet(tab)
+        starts, last = xl_statement(w, st["title"], sub, status, st["rows"])
+        pages[tab] = (4, starts, last)
 
-    w = wb.create_sheet("Workings")
-    w["A1"] = "How each number is worked out"
-    w["A1"].font = Font(bold=True, size=14, color=INK)
-    w["A2"] = sub
-    w["A2"].font = Font(italic=True, size=9, color=MUTED)
-    r = 4
-    supports = [k["support"] for k in f4["kpis"]] + f4["chart"].get("details", [])
-    for sp in supports:
-        w.cell(r, 1, sp["title"]).font = Font(bold=True, color=GREEN, size=12)
-        w.cell(r + 1, 1, sp["formula"]).font = Font(italic=True, color=MUTED)
-        r += 2
-        two = all(not row_[2] for row_ in sp["rows"])
-        heads = sp["head"][:2] if two else sp["head"]
-        for c, h in enumerate(heads, 1):
-            cell = w.cell(r, c, h or "")
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill("solid", fgColor=GREEN)
-        for row_ in sp["rows"]:
-            r += 1
-            for c, val in enumerate(row_[:2] if two else row_, 1):
-                w.cell(r, c, val).alignment = Alignment(horizontal="left" if c == 1 else "right")
-        if sp.get("note"):
-            r += 1
-            w.cell(r, 1, sp["note"]).font = Font(italic=True, size=9, color=MUTED)
-        if sp.get("series"):
-            se = sp["series"]
-            r += 2
-            w.cell(r, 1, se["title"]).font = Font(bold=True, color=INK)
-            for c, h in enumerate(["Month", "Spend", "Budget"], 1):
-                cell = w.cell(r + 1, c, h)
-                cell.font = Font(bold=True, color="FFFFFF")
-                cell.fill = PatternFill("solid", fgColor=GREEN)
-            r += 1
-            for lab, val, bud in zip(se["labels"], se["values"], se["budget"]):
-                r += 1
-                w.cell(r, 1, lab)
-                w.cell(r, 2, val).number_format = NUM
-                w.cell(r, 3, bud).number_format = NUM
-        r += 3
-    w.column_dimensions["A"].width = 52
-    for col in "BC":
-        w.column_dimensions[col].width = 26
+    # --- the granular list
+    tab = {"trades": "Jobs", "services": "Engagements", "nfp": "Grants"}[org]
+    w = wb.create_sheet(tab)
+    hr, starts, last = xl_list(w, org, v, status, sub)
+    pages[tab] = (hr, starts, last)
 
-    title, head, rows = detail_table(org, v)
-    w = wb.create_sheet({"trades": "Jobs", "services": "Engagements", "nfp": "Grants"}[org])
-    w["A1"] = title
-    w["A1"].font = Font(bold=True, size=14, color=INK)
-    w["A2"] = sub
-    w["A2"].font = Font(italic=True, size=9, color=MUTED)
-    for c, h in enumerate(head, 1):
-        cell = w.cell(4, c, h)
-        cell.font = Font(bold=True, color="FFFFFF")
-        cell.fill = PatternFill("solid", fgColor=GREEN)
-        cell.alignment = Alignment(horizontal="left" if isinstance(rows[0][c - 1], str) else "right", wrap_text=True)
-        w.column_dimensions[get_column_letter(c)].width = 36 if h in ("Job", "Engagement", "Program", "Funder") else 13
-    for r, rw in enumerate(rows, 5):
-        for c, val in enumerate(rw, 1):
-            cell = w.cell(r, c, val)
-            if isinstance(val, (int, float)):
-                cell.number_format = "0.0" if "%" in head[c - 1] else ("#,##0.0" if "hours" in head[c - 1].lower() and isinstance(val, float) else NUM)
-    w.freeze_panes = "C5"
-    w.auto_filter.ref = f"A4:{get_column_letter(len(head))}{len(rows) + 4}"
-
+    # --- assumptions (text)
     w = wb.create_sheet("Assumptions")
-    w["A1"] = "Assumptions"
-    w["A1"].font = Font(bold=True, size=14, color=INK)
-    w["A2"] = sub
-    w["A2"].font = Font(italic=True, size=9, color=MUTED)
-    r = 4
+    title_block(w, "Assumptions", sub, status)
+    r, starts = 5, []
     for group, items in v["assumptions"]:
+        starts.append(r)
         w.cell(r, 1, group).font = Font(bold=True, color=GREEN)
         r += 1
         for item, val in items:
@@ -324,22 +495,32 @@ def write_xlsx(org, v):
             w.cell(r, 2, val).alignment = Alignment(wrap_text=True, vertical="top")
             r += 1
         r += 1
+    starts.append(r)
     w.cell(r, 1, "Checks (all passed)").font = Font(bold=True, color=GREEN)
     for c in checks(org):
         r += 1
         w.cell(r, 1, "✓ " + c)
-    w.column_dimensions["A"].width = 40
-    w.column_dimensions["B"].width = 70
+    w.column_dimensions["A"].width = 44
+    w.column_dimensions["B"].width = 90
+    pages["Assumptions"] = (None, starts, r)
 
-    EXPORTS.mkdir(parents=True, exist_ok=True)
-    footer = ds.footer_text(["2026-09", "2026-10"])
+    # order: fourth sheet, statements, list, workings, assumptions
+    wb.move_sheet("Workings", offset=len(wb.sheetnames) - 2 - wb.sheetnames.index("Workings"))
+    review = []
     for ws_ in wb.worksheets:
-        if not ws_["A3"].value:
-            ws_["A3"] = "Data status: " + " · ".join(f"{date.fromisoformat(m + '-01').strftime('%b %Y')} {ds.month_status(m)[0].lower()}" for m in STATUS_MONTHS) + f" (as at {ds.as_at_text()})"
-            ws_["A3"].font = Font(italic=True, size=9, color=MUTED)
-        table = ws_.title in ("Jobs", "Engagements", "Grants")
-        ek.xl_print(ws_, footer, landscape=table, header_row=4 if (table or ws_.title in ("PandL", "Balance sheet", "Cash flow")) else None)
-    wb.save(EXPORTS / f"{org}-sample-statements.xlsx")
+        hr, starts, last = pages[ws_.title]
+        ek.xl_print(ws_, name, filename, retrieved, landscape=True, header_row=hr)
+        review.append(ek.xl_review(ws_, ek.xl_breaks(ws_, starts, last, hr), hr))
+    # record the print check in the file itself
+    w = wb["Assumptions"]
+    r = w.max_row + 2
+    w.cell(r, 1, "Print check (done before this file was saved)").font = Font(bold=True, color=GREEN)
+    for line in review:
+        r += 1
+        w.cell(r, 1, "✓ " + line)
+    print(f"  {filename}: " + " | ".join(review))
+    EXPORTS.mkdir(parents=True, exist_ok=True)
+    wb.save(EXPORTS / filename)
 
 
 # =============================================================== PDF
@@ -366,7 +547,10 @@ def html_report(org, v):
     tbl = "<table class=detail-list><tr>" + "".join(f"<th{' class=n' if num(drows[0][i]) else ''}>{esc(h)}</th>" for i, h in enumerate(dhead)) + "</tr>" + \
           "".join("<tr>" + "".join(f"<td{' class=n' if num(c) else (' class=w' if len(str(c)) > 14 else '')}>{esc(cellv(c))}</td>" for c in rw) + "</tr>" for rw in drows) + "</table>"
     ch = f4["chart"]
-    chart_svg = ek.hbar_svg(ch)
+    views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
+    chart_svg = "".join((f"<p class=viewlabel>{esc(vw['label'])}</p>" if len(views) > 1 else "")
+                        + ek.hbar_svg({**ch, **{k_: vw.get(k_) for k_ in ("values", "format", "target", "marks", "mark_label", "below_marks")}})
+                        for vw in views)
     def wk(sp):
         two = all(not r_[2] for r_ in sp["rows"])
         head = "" if two else "<tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sp["head"])) + "</tr>"
@@ -396,6 +580,7 @@ tr.key td {{ font-weight: 800; background: #eaf6ee; border-top: 1px solid #25342
 .detail-list {{ font-size: 8.5pt; }} .detail-list td {{ white-space: nowrap; }} .detail-list td.w {{ white-space: normal; min-width: 110px; }}
 @page wide {{ size: A4 landscape; margin: 14mm; }} .wide {{ page: wide; }}
 .formula {{ margin: 0 0 4px; font-style: italic; color: #5f6f63; }} .wk {{ margin-bottom: 10px; }} .wk tr:last-child td {{ font-weight: 700; border-top: 1px solid #9db8a6; }} .note {{ font-size: 8.5pt; color: #5f6f63; margin: 2px 0 8px; }}
+.viewlabel {{ margin: 6px 0 0; font-size: 8.5pt; font-weight: 700; color: #5f6f63; }}
 .stline {{ margin: -4px 0 6px; font-size: 8pt; color: #5f6f63; }} .chart {{ margin: 4px 0 10px; page-break-inside: avoid; }}
 """ + ek.STATUS_CSS + f"""
 .two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }} .page {{ page-break-before: always; }}
@@ -407,7 +592,7 @@ footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
 <h1>{esc(v['model']['long_name'])}</h1><p class=about>{esc(v['model']['about'])}</p>
 {ek.status_box_html([(date.fromisoformat(m + "-01").strftime("%B %Y"), *ds.month_status(m)) for m in STATUS_MONTHS])}
 <h2>The fourth sheet: September 2026 vs August 2026</h2><div class=kpis>{kpis}</div>
-<h3>{esc(ch['title'])}</h3><div class=chart>{chart_svg}</div>
+<h3>{esc(ch['title'])}</h3><p class=stline>{esc(ch.get('subtitle', ''))}</p><div class=chart>{chart_svg}</div>
 <div class=page><h2>How each number is worked out</h2>{workings}</div>
 <div class="page wide"><h2>{esc(dtitle)}</h2>{tbl}</div>
 <div class=page>{stmt(st['pnl'])}</div>
@@ -431,7 +616,8 @@ def write_pdfs(res):
             page.set_content(html_report(org, res[org]), wait_until="networkidle")
             page.evaluate("document.fonts.ready")
             page.pdf(path=str(EXPORTS / f"{org}-sample-statements.pdf"),
-                     **ek.pdf_options(f"The 4th Sheet · {res[org]['model']['long_name']} · Sample data", ds.footer_text(STATUS_MONTHS[:2] + STATUS_MONTHS[2:])))
+                     **ek.pdf_options(res[org]["model"]["long_name"], "Monthly report pack, September 2026 · Sample data",
+                                      f"{org}-sample-statements.pdf", ds.as_at_text()))
         browser.close()
 
 

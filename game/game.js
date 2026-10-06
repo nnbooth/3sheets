@@ -44,7 +44,7 @@
      number, reload, done. All money is AUD.
 
      Placeholders: values written like '[[DOMAIN]]' are the same tokens as
-     the website (see PLACEHOLDERS.md). Until you replace them, the game
+     the website (see the project notes in OneDrive). Until you replace them, the game
      shows the fallback noted beside each one, so it never displays
      raw [[TOKENS]].                                                       */
   const CONFIG = {

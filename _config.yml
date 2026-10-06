@@ -1,0 +1,5 @@
+# GitHub Pages settings. The repo is public; these files stay in git but are
+# not published as web pages.
+exclude:
+  - README.md
+  - tools
