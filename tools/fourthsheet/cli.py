@@ -17,6 +17,25 @@ from .build import build_all, default_period, load_data, periods_for, run_report
 from .catalogue import REPORTS
 
 
+def compare_sources():
+    """The database must give exactly the same reports as the CSVs it was loaded from."""
+    import json
+    from .source import CsvSource, SqlSource
+    a, b = load_data(CsvSource()), load_data(SqlSource())
+    bad = n = 0
+    for slug in REPORTS:
+        for p in periods_for(slug, a):
+            x = json.dumps(run_report(slug, p, a), sort_keys=True, default=str)
+            y = json.dumps(run_report(slug, p, b), sort_keys=True, default=str)
+            n += 1
+            if x != y:
+                bad += 1
+                print(f"  DIFFERENT: {slug} {p}")
+    print(f"{n} report runs compared, CSV against the database: {bad} different")
+    if bad:
+        raise SystemExit(1)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="report", description="Build a report from the data, for a period, as Excel, PDF and PowerPoint.")
     ap.add_argument("report", nargs="?", choices=list(REPORTS), help="which report")
@@ -25,7 +44,15 @@ def main(argv=None):
     ap.add_argument("--out", help="folder for the files (default: media/exports/reports/<period>/)")
     ap.add_argument("--list", action="store_true", help="list the reports and their periods")
     ap.add_argument("--all", action="store_true", help="build every report for every period (the website)")
+    ap.add_argument("--source", choices=["csv", "db"], help="read the CSV folder (default) or the cloud database")
+    ap.add_argument("--compare-sources", action="store_true", help="run every report from the CSVs and from the database and check they match")
     a = ap.parse_args(argv)
+    if a.source:
+        import os
+        os.environ["FOURTH_SHEET_SOURCE"] = a.source
+    if a.compare_sources:
+        compare_sources()
+        return
     if a.all:
         build_all(tuple(a.format.split(",")))
         return

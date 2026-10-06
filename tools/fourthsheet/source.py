@@ -63,6 +63,65 @@ class CsvSource:
         return rows
 
 
+SINGLE_ORG = {"fact_job_month": "trades", "fact_engagement_month": "services", "fact_grant_instalment": "nfp",
+              "fact_grant_position": "nfp", "fact_grant_spend_month": "nfp"}     # tables without an org column
+
+
+class SqlSource:
+    """Reads the same tables from the cloud database (Azure SQL), signed in as you (no password).
+    Same answers as CsvSource: check with  python3 tools/report.py --compare-sources"""
+
+    TEXT_KEYS = ("month_key", "job_id", "engagement_id", "grant_id")
+
+    def __init__(self):
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from database import connect, schema
+        self.conn = connect.connect()
+        self.known = {n: [c for c, _ in t.columns] for n, t in schema.tables().items()}
+        from database import config
+        self.name = f"Azure SQL {config.server_host()}"
+        self._cache = {}
+
+    def _all(self, name):
+        if name not in self.known:                      # only names from schema.sql ever reach the SQL
+            raise SystemExit(f"Unknown table: {name}")
+        if name not in self._cache:
+            cols = self.known[name]
+            cur = self.conn.cursor()
+            cur.execute(f"SELECT {', '.join(f'[{c}]' for c in cols)} FROM dbo.[{name}]")
+            rows = []
+            for r in cur.fetchall():
+                d = {}
+                for c, v in zip(cols, r):
+                    if v is None:
+                        v = None
+                    elif hasattr(v, "isoformat"):
+                        v = v.isoformat()
+                    elif c not in self.TEXT_KEYS and not isinstance(v, (str, int)):
+                        v = float(v)            # DECIMAL columns, as the CSV reader gives them (INT stays int)
+                    d[c] = v
+                rows.append(d)
+            self._cache[name] = rows
+        return self._cache[name]
+
+    def table(self, org, name):
+        rows = self._all(name)
+        if org is None:
+            return rows
+        if name in SINGLE_ORG:
+            return rows if SINGLE_ORG[name] == org else []
+        key = "org_id" if rows and "org_id" in rows[0] else "org" if rows and "org" in rows[0] else None
+        if name in COMMON:
+            return [r for r in rows if key is None or r.get(key) in (org, None)]
+        return [r for r in rows if key is None or r[key] == org]
+
+
+def source_from_env():
+    """FOURTH_SHEET_SOURCE=db reads the cloud database; anything else (the default) reads the CSV folder."""
+    return SqlSource() if os.getenv("FOURTH_SHEET_SOURCE", "csv").lower() in ("db", "sql", "azure") else CsvSource()
+
+
 class OrgData:
     """One organisation's data, shaped for reporting: monthly P&L from the ledger, lines, jobs, drivers."""
 
@@ -104,5 +163,5 @@ class OrgData:
 
 
 def load(src=None):
-    src = src or CsvSource()
+    src = src or source_from_env()
     return src, {o: OrgData(src, o) for o in ORG_FOLDERS}

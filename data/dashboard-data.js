@@ -65,11 +65,20 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "Call-outs and repairs",
+       "label": "Call-outs: technician time",
        "level": "detail",
        "values": [
-        31137,
-        28907
+        21543,
+        19872
+       ],
+       "note": null
+      },
+      {
+       "label": "Call-outs: materials charged",
+       "level": "detail",
+       "values": [
+        9594,
+        9035
        ],
        "note": null
       },

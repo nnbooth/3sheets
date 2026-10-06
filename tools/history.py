@@ -100,10 +100,14 @@ def trades_jobs(m):
             d = start + timedelta(days=rng.randrange(0, 28))
             if mo == OCT and d > AS_AT:
                 continue                                   # hasn't happened yet
+            rev_ = round(hrs * m["callout_rate"] * price + mat_ * m["materials_markup"])
+            mrev = fm.half_up(mat_ * m["materials_markup"])      # materials charged: cost + the mark-up
             jobs.append(dict(month=mo, job=f"C-{mo[2:4]}{mo[5:]}{k + 1:02d}", type="Call-out", description=f"Call-out {k + 1}, {start.strftime('%B %Y')}",
-                             revenue=round(hrs * m["callout_rate"] * price + mat_ * m["materials_markup"]), materials=mat_,
+                             revenue=rev_, labour_revenue=rev_ - mrev, materials_revenue=mrev, materials=mat_,
                              subcontractors=0, hours=hrs, invoice_date=d, days_to_pay=rng.choice([0, 0, 0, 2, 7, 7, 14, 30])))
     for j in jobs:
+        j.setdefault("labour_revenue", None)      # only call-outs bill time and materials separately
+        j.setdefault("materials_revenue", None)
         j["paid_date"] = j["invoice_date"] + timedelta(days=j["days_to_pay"])
         j["labour_cost"] = fm.half_up(j["hours"] * m["tech_cost_rate"])
         j["gross_profit"] = j["revenue"] - j["materials"] - j["subcontractors"] - j["labour_cost"]
@@ -309,7 +313,11 @@ def build(res):
         for j in mj:
             if mo == OCT and j["invoice_date"] > AS_AT:
                 continue
-            post(j["invoice_date"], "trades", rev_line[j["type"]], j["revenue"], job=j["job"])
+            if j["type"] == "Call-out":
+                post(j["invoice_date"], "trades", "Call-outs: technician time", j["labour_revenue"], job=j["job"])
+                post(j["invoice_date"], "trades", "Call-outs: materials charged", j["materials_revenue"], job=j["job"])
+            else:
+                post(j["invoice_date"], "trades", rev_line[j["type"]], j["revenue"], job=j["job"])
             post(j["invoice_date"], "trades", "Materials", -j["materials"], job=j["job"])
             post(j["invoice_date"], "trades", "Subcontractors", -j["subcontractors"], job=j["job"])
         lines = trades_lines(T, mo)

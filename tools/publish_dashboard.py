@@ -343,12 +343,12 @@ def xl_list(ws, org, v, status, sub):
         title_block(ws, title, sub, status)
         ws["A4"], ws["B4"] = "Technician cost rate ($ per hour, wages and all on-costs)", m["tech_cost_rate"]
         ws["B4"].number_format = F["money"]
-        heads = ["Month", "Job", "Type", "Invoiced", "Paid", "Revenue", "Materials", "Subcontractors", "Tech hours",
-                 "Labour cost (incl. on-costs)", "Job gross margin", "Job gross margin %"]
-        kinds = ["text", "text", "text", "date", "date", "money", "money", "money", "hours", "money", "money", "pct"]
+        heads = ["Month", "Job", "Type", "Invoiced", "Paid", "Revenue", "Technician time charged (call-outs)", "Materials charged (call-outs)",
+                 "Materials", "Subcontractors", "Tech hours", "Labour cost (incl. on-costs)", "Job gross margin", "Job gross margin %"]
+        kinds = ["text", "text", "text", "date", "date", "money", "money", "money", "money", "money", "hours", "money", "money", "pct"]
         jobs = sorted([j for j in o["jobs"] if j["month"] in fm.PERIODS], key=lambda j: (j["month"] != "2026-09", j["type"], j["description"]))
-        data = [[j["month"], j["description"], j["type"], j["invoice_date"], j["paid_date"], j["revenue"], j["materials"],
-                 j["subcontractors"], j["hours"], "=I{r}*$B$4", "=F{r}-G{r}-H{r}-J{r}", "=IF(F{r}=0,\"\",K{r}/F{r})"] for j in jobs]
+        data = [[j["month"], j["description"], j["type"], j["invoice_date"], j["paid_date"], j["revenue"], j["labour_revenue"], j["materials_revenue"],
+                 j["materials"], j["subcontractors"], j["hours"], "=K{r}*$B$4", "=F{r}-I{r}-J{r}-L{r}", "=IF(F{r}=0,\"\",M{r}/F{r})"] for j in jobs]
         group = [j["month"] for j in jobs]
     elif org == "services":
         title = "Client engagements, September and August 2026"

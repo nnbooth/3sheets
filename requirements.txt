@@ -1,5 +1,7 @@
-# Python packages the tools need (python3 -m pip install -r requirements.txt; then: python3 -m playwright install chromium)
+# Python packages the tools need. Installed by: python3 tools/setup_machine.py (Mac) or py tools\setup_machine.py (Windows)
 openpyxl
 playwright
 python-pptx
 pycel
+mssql-python      # Microsoft's SQL Server driver: no ODBC install needed, signs in with your Microsoft account
+azure-identity
