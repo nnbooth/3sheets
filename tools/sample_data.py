@@ -27,6 +27,8 @@ import os
 import sys
 from datetime import date, timedelta
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 REPO = Path(__file__).resolve().parent.parent
 # Data lives in OneDrive, not in git (set FOURTH_SHEET_DATA to use another folder).
@@ -34,11 +36,9 @@ def _data_root():
     """The 4th Sheet's OneDrive Data folder, on a Mac or a Windows PC."""
     if os.getenv("FOURTH_SHEET_DATA"):
         return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser()
-    for base in (os.getenv("OneDriveConsumer"), os.getenv("OneDrive"),                 # Windows
-                 Path.home() / "Library/CloudStorage/OneDrive-Personal", Path.home() / "OneDrive"):  # Mac
-        if base and (Path(base) / "Projects/The 4th Sheet").exists():
-            return Path(base) / "Projects/The 4th Sheet/Data"
-    raise SystemExit("Can't find the OneDrive folder 'Projects/The 4th Sheet'. Set FOURTH_SHEET_DATA to its Data folder.")
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from sync_media import onedrive_root      # one finder for every tool: Mac or PC, personal or business OneDrive
+    return onedrive_root() / "Data"
 
 
 DATA_ROOT = _data_root()

@@ -14,6 +14,7 @@ Run it yourself any time:   python3 tools/sync_media.py
 import os
 import shutil
 from pathlib import Path
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 REPO = Path(__file__).resolve().parent.parent
 LOCAL = REPO / "media"
@@ -25,14 +26,24 @@ RETIRED = [
 ]
 
 
+def onedrive_candidates():
+    """Every place OneDrive can live, personal or business, on a Mac or a Windows PC. The one that holds
+    'Projects/The 4th Sheet' wins, so moving the project to OneDrive for Business needs no code change."""
+    home = Path.home()
+    bases = [os.getenv("OneDriveConsumer"), os.getenv("OneDriveCommercial"), os.getenv("OneDrive"),
+             home / "Library/CloudStorage/OneDrive-Personal", *sorted((home / "Library/CloudStorage").glob("OneDrive-*")),
+             home / "OneDrive", *sorted(home.glob("OneDrive - *"))]
+    return [Path(b) for b in bases if b]
+
+
 def onedrive_root():
     if os.getenv("FOURTH_SHEET_DATA"):
         return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser().parent
-    for base in (os.getenv("OneDriveConsumer"), os.getenv("OneDrive"),
-                 Path.home() / "Library/CloudStorage/OneDrive-Personal", Path.home() / "OneDrive"):
-        if base and (Path(base) / "Projects/The 4th Sheet").exists():
-            return Path(base) / "Projects/The 4th Sheet"
-    raise SystemExit("Can't find the OneDrive folder 'Projects/The 4th Sheet'.")
+    for base in onedrive_candidates():
+        if (base / "Projects/The 4th Sheet").exists():
+            return base / "Projects/The 4th Sheet"
+    raise SystemExit("Can't find the OneDrive folder 'Projects/The 4th Sheet' (personal or business). "
+                     "Sign in to OneDrive and let it sync, or set FOURTH_SHEET_DATA to its Data folder.")
 
 
 def sync(quiet=False):

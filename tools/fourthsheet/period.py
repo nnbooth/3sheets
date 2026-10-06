@@ -60,7 +60,7 @@ class Period:
         self.ytd_name = f"Year to date ({self.fytd_l})"
         self.status_months = [self.prev, mo] + ([CURRENT] if CURRENT > mo else [])
         self.no_ly = f"Not available: the data starts {mdate(months[0]).strftime('%B %Y')}."
-        self.part_note = (f"{self.month} is still in progress (data to {ds.AS_AT.strftime('%-d %B')}), so it is a part month against full months."
+        self.part_note = (f"{self.month} is still in progress (data to {ds.strf(ds.AS_AT, '%-d %B')}), so it is a part month against full months."
                           if self.incomplete else "")
 
     def end_date(self):

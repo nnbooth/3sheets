@@ -31,6 +31,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import winutf8; winutf8.ensure()   # noqa: E402  Windows: run in UTF-8 mode
 
 from database import config  # noqa: E402
 

@@ -9,6 +9,7 @@ Edit a .html file, then run from the repo root:   python3 tools/render_mockups.p
 """
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 REPO = Path(__file__).resolve().parent.parent
 SRC = REPO / "tools" / "mockups"

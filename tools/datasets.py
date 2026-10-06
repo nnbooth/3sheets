@@ -38,6 +38,8 @@ import shutil
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 import pandas as pd
 

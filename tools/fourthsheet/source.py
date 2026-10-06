@@ -23,11 +23,10 @@ COMMON = ("dim_date", "dim_org", "target", "simulation_parameter")
 def data_root():
     if os.getenv("FOURTH_SHEET_DATA"):
         return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser()
-    for base in (os.getenv("OneDriveConsumer"), os.getenv("OneDrive"),
-                 Path.home() / "Library/CloudStorage/OneDrive-Personal", Path.home() / "OneDrive"):
-        if base and (Path(base) / "Projects/The 4th Sheet/Data").exists():
-            return Path(base) / "Projects/The 4th Sheet/Data"
-    raise SystemExit("Can't find the data folder (OneDrive 'Projects/The 4th Sheet/Data'). Set FOURTH_SHEET_DATA to it.")
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from sync_media import onedrive_root      # one finder for every tool: Mac or PC, personal or business OneDrive
+    return onedrive_root() / "Data"
 
 
 def _num(v):

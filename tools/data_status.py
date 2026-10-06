@@ -31,6 +31,15 @@ QLD_HOLIDAYS = {
 }
 
 
+def strf(d, pattern):
+    """strftime that works on Windows too: %-d, %-m, %-I and %-H (no leading zero) are Mac/Linux-only codes."""
+    for code, value in (("%-d", lambda: str(d.day)), ("%-m", lambda: str(d.month)),
+                        ("%-I", lambda: str(int(d.strftime("%I")))), ("%-H", lambda: str(d.hour))):
+        if code in pattern:
+            pattern = pattern.replace(code, value())
+    return d.strftime(pattern)
+
+
 def working(d):
     return d.weekday() < 5 and d not in QLD_HOLIDAYS
 
@@ -56,11 +65,11 @@ def month_status(month, as_at=AS_AT):
     """('Locked' | 'Provisional' | 'Incomplete', plain-English note)."""
     label = date.fromisoformat(month + "-01").strftime("%B %Y")
     if as_at.date() >= lock_date(month):
-        return "Locked", f"{label} is locked (closed {lock_date(month).strftime('%-d %b %Y')}). These numbers won't change."
+        return "Locked", f"{label} is locked (closed {strf(lock_date(month), '%-d %b %Y')}). These numbers won't change."
     if as_at.date() > month_end(month):
-        return "Provisional", (f"{label} is over but not locked yet (due {lock_date(month).strftime('%-d %b')}). "
+        return "Provisional", (f"{label} is over but not locked yet (due {strf(lock_date(month), '%-d %b')}). "
                                "Late invoices and adjustments can still change it.")
-    return "Incomplete", f"{label} is still in progress: figures to {as_at.strftime('%-d %b')} only."
+    return "Incomplete", f"{label} is still in progress: figures to {strf(as_at, '%-d %b')} only."
 
 
 def day_status(d, as_at=AS_AT):
@@ -72,7 +81,7 @@ def day_status(d, as_at=AS_AT):
 
 
 def as_at_text(as_at=AS_AT):
-    return as_at.strftime("%-I%p, %a %-d %b %Y").replace("AM", "am").replace("PM", "pm")
+    return strf(as_at, "%-I%p, %a %-d %b %Y").replace("AM", "am").replace("PM", "pm")
 
 
 def footer_text(months, as_at=AS_AT):
