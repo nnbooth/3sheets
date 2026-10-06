@@ -787,3 +787,25 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .report-cards .report-open { margin-top: auto; color: var(--accent); font-weight: 600; text-decoration: none; }
 .report-cards .report-open:hover { text-decoration: underline; }
 .report-cards .report-later { background: transparent; border-style: dashed; }
+
+/* Live charts on the SME and not-for-profit pages */
+.report-feature { margin: 0 0 1.4rem; }
+.report-feature .eyebrow a { color: inherit; }
+.card-chart { margin: 0.2rem 0 0.6rem; }
+.card-chart .report-cols { min-width: 0 !important; }
+.card-chart .report-scroll { overflow: hidden; }
+.card-kpi { margin: 0 0 0.3rem !important; color: var(--text) !important; } .card-kpi strong { font-size: 1.35rem; color: var(--accent); }
+.card-kpi span { font-size: 0.8rem; color: var(--muted); }
+.card-chart-title { margin: 0 0 0.1rem !important; font-size: 0.7rem !important; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.card-chart .dash-hint { display: none; }
+.report-card > .dash-svg:not(.report-cols) { max-width: 760px; }
+.card-chart .dash-value, .card-chart .dash-key--warn { display: none; }
+.mini-bars { list-style: none; margin: 0.3rem 0 0; padding: 0; }
+.mini-bars li { display: grid; grid-template-columns: 42% 1fr auto; align-items: center; gap: 0.4rem; margin: 0.25rem 0; font-size: 0.75rem; }
+.mini-bars .mb-l { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--muted); }
+.mini-bars .mb-t { height: 0.55rem; background: #eef2ee; border-radius: 2px; }
+.mini-bars .mb-t i { display: block; height: 100%; background: #5e8b76; border-radius: 2px; }
+.mini-bars .mb-t i.below { background: #c8a77e; }
+.mini-bars .mb-v { font-variant-numeric: tabular-nums; color: var(--text); }
+.report-cards .mini-bars li { display: grid; grid-template-columns: 48% 1fr auto; padding: 0; background: none; border: 0; border-radius: 0; }
+.mini-bars .mb-l { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.2; }

@@ -588,18 +588,11 @@ function renderColumns(labels, values, status, format, ids) {
   return `<div class="report-scroll"><svg class="dash-svg report-cols" viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 640)}px" role="img">${g}</svg></div>`;
 }
 
-function setupReport() {
-  const box = document.getElementById('report');
-  const all = window.FOURTH_SHEET_REPORTS;
-  if (!box || !all) return;
-  const r = all[box.dataset.report];
-  if (!r) return;
-  const root = document.getElementById('report-root');
-  const st = r.status[0];
-  document.getElementById('report-meta').insertAdjacentHTML('beforeend',
-    ` · <span class="dash-status is-${st.status.toLowerCase()}" title="${esc(r.status.map((x) => x.note).join(' '))}">${esc(st.label.split(' ')[0])} ${esc(st.status.toLowerCase())}</span> · October is still in progress`);
+function mountReport(root, r, only) {
+  // Draws a report (or only some of its section types) into root. Used by the report pages,
+  // the featured chart on the SME and not-for-profit pages, and nowhere else.
   const state = { block: 0, views: {} };
-  const supports = [];                 // every clickable number on the page -> its workings
+  const supports = [];                 // every clickable number -> its workings
   const sup = (sp) => { supports.push(sp); return supports.length - 1; };
 
   function kpiHtml(sec) {
@@ -624,21 +617,20 @@ function setupReport() {
     state.views[key] = cur;
     const view = sec.views[`${cur.line}|${cur.measure}`];
     const grp = (name, items, val) => (items.length > 1 ? `<div class="dash-toggle dash-toggle--small" role="group" aria-label="${name}">${items.map(([id, lab]) => `<button type="button" data-series="${key}" data-dim="${name}" data-id="${esc(id)}" aria-pressed="${id === val}">${esc(lab)}</button>`).join('')}</div>` : '');
-    const lineSup = (sec.supports || {})[cur.line] || [];
-    const ids = lineSup.map((p) => sup(p));
+    const ids = ((sec.supports || {})[cur.line] || []).map((p) => sup(p));
     const cols = renderColumns(sec.labels, view.values, sec.status, view.format).replace(/data-point="(\d+)"/g, (m, i) => (ids.length ? `data-sup="${ids[+i]}"` : ''));
-    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="report-toggles">${grp('line', dims.line.map((l) => [l, l === 'All' ? 'All' : l]), cur.line)}${grp('measure', dims.measure, cur.measure)}</div>${cols}${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
+    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="report-toggles">${grp('line', dims.line.map((l) => [l, l]), cur.line)}${grp('measure', dims.measure, cur.measure)}</div>${cols}${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
   }
   function tableHtml(sec) {
     return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row) => `<tr${row[0] === 'Total' ? ' class="st-total"' : ''}>${row.map((c, i) => `<td${i ? ' class="n"' : ''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
   }
   function render() {
     supports.length = 0;
-    const blocks = r.blocks;
-    const b = blocks[state.block];
+    const b = r.blocks[state.block];
     let html = '';
-    if (blocks.length > 1) html += `<div class="dash-toggle report-blocks" role="group" aria-label="Business">${blocks.map((x, i) => `<button type="button" data-block="${i}" aria-pressed="${i === state.block}">${esc(x.label)}</button>`).join('')}</div>`;
+    if (r.blocks.length > 1) html += `<div class="dash-toggle report-blocks" role="group" aria-label="Business">${r.blocks.map((x, i) => `<button type="button" data-block="${i}" aria-pressed="${i === state.block}">${esc(x.label)}</button>`).join('')}</div>`;
     b.sections.forEach((sec, i) => {
+      if (only && !only.includes(sec.type)) return;
       const key = `${state.block}-${i}`;
       if (sec.type === 'kpis') html += kpiHtml(sec);
       else if (sec.type === 'bars') html += barsHtml(sec, key);
@@ -655,17 +647,69 @@ function setupReport() {
     if (!t) return;
     if (t.dataset.block) { state.block = +t.dataset.block; render(); }
     else if (t.dataset.view) { state.views[t.dataset.view] = t.dataset.id; render(); }
-    else if (t.dataset.series) { const v = state.views[t.dataset.series]; v[t.dataset.dim] = t.dataset.id; render(); }
+    else if (t.dataset.series) { state.views[t.dataset.series][t.dataset.dim] = t.dataset.id; render(); }
     else if (t.dataset.sup !== undefined && t.dataset.sup !== 'null') openSupport(supports[+t.dataset.sup]);
   });
   root.addEventListener('keydown', (e) => {
     const t = e.target.closest('[data-sup]');
     if (t && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openSupport(supports[+t.dataset.sup]); }
   });
+  render();
+}
+
+function wireSupportDialog() {
   const dlg = document.getElementById('support-dialog');
+  if (!dlg || dlg.dataset.wired) return;
+  dlg.dataset.wired = '1';
   document.getElementById('support-close').addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
-  render();
+}
+
+function setupReport() {
+  const all = window.FOURTH_SHEET_REPORTS;
+  if (!all) return;
+  wireSupportDialog();
+  // a report page
+  const box = document.getElementById('report');
+  if (box && all[box.dataset.report]) {
+    const r = all[box.dataset.report];
+    const st = r.status[0];
+    document.getElementById('report-meta').insertAdjacentHTML('beforeend',
+      ` · <span class="dash-status is-${st.status.toLowerCase()}" title="${esc(r.status.map((x) => x.note).join(' '))}">${esc(st.label.split(' ')[0])} ${esc(st.status.toLowerCase())}</span> · October is still in progress`);
+    mountReport(document.getElementById('report-root'), r);
+  }
+  // the featured chart on the SME and not-for-profit pages
+  document.querySelectorAll('[data-report-feature]').forEach((el) => {
+    const r = all[el.dataset.reportFeature];
+    if (r) mountReport(el, r, el.dataset.only ? el.dataset.only.split(',') : null);
+  });
+  // a small live chart on every example report card
+  document.querySelectorAll('[data-report-card]').forEach((el) => {
+    const r = all[el.dataset.reportCard];
+    if (!r) return;
+    const secs = r.blocks[0].sections;
+    const k = secs.find((x) => x.type === 'kpis');
+    const first = secs.find((x) => x.type === 'bars' || x.type === 'series');   // the report's main chart
+    const bars = first && first.type === 'bars' ? first : null;
+    const ser = first && first.type === 'series' ? first : null;
+    let html = '';
+    if (k) html += `<p class="card-kpi"><strong>${esc(k.items[0].value)}</strong> <span>${esc(k.items[0].label)}</span></p>`;
+    if (ser) {
+      const dims = ser.dims || { line: ['All'], measure: [[Object.keys(ser.views)[0].split('|')[1], '']] };
+      const v = ser.views[`${dims.line[0]}|${dims.measure[0][0]}`];
+      const n = 12;
+      html += `<p class="card-chart-title">${esc(ser.title)} · latest ${n}</p>` + renderColumns(ser.labels.slice(-n), v.values.slice(-n), ser.status.slice(-n), v.format).replace(/ data-point="\d+" tabindex="0" role="button"/g, '');
+    } else if (bars) {
+      // a readable mini bar list (label, bar, value) for the biggest few, largest first
+      const ch = bars.chart, v0 = ch.views ? ch.views[0] : ch;
+      const fmt = CHART_FORMATS[v0.format] || String;
+      const items = ch.labels.map((l, i) => [l, v0.values[i]]).sort((p, q) => q[1] - p[1]).slice(0, 5);
+      const max = Math.max(...items.map((x) => x[1]), v0.target || 0) || 1;
+      const below = (v) => !ch.plain && v0.target != null && v < v0.target;
+      html += `<p class="card-chart-title">${esc(ch.title)}</p><ul class="mini-bars">${items.map(([l, v]) => `<li><span class="mb-l">${esc(l)}</span><span class="mb-t"><i class="${below(v) ? 'below' : ''}" style="width:${(100 * v / max).toFixed(1)}%"></i></span><span class="mb-v">${fmt(v)}</span></li>`).join('')}</ul>`;
+    }
+    el.innerHTML = html;
+  });
 }
 
 function setupHeroDash() {

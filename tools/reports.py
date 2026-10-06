@@ -333,7 +333,8 @@ def program_cost(res, by_ml, gsm):
     names = {g["code"]: g["program"] for g in res["nfp"]["out"]["grants"]}
     import history
     names.update({g[0]: g[2] for g in history.NFP_PAST_GRANTS})
-    progs = sorted(over, key=lambda c: -sum(over[c].values()))
+    current = {g["code"] for g in res["nfp"]["out"]["grants"]}
+    progs = sorted(over, key=lambda c: (c not in current, -sum(over[c].values())))     # current programs first
     budgets = {}
     for code, mo, spend, budget in gsm:
         budgets.setdefault(code, {})[mo] = budget
