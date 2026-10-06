@@ -226,6 +226,10 @@ def main():
     for name, (desc, cols, rows, ddl) in warehouse.build(publish_dashboard.publish.res).items():
         table(name, desc, cols, rows)
         DDL[name] = ddl
+    import drivers              # supporting files for every input that isn't a transaction
+    for name, (desc, cols, rows, ddl) in drivers.build(publish_dashboard.publish.res, warehouse.build.account_ids).items():
+        table(name, desc, cols, rows)
+        DDL[name] = ddl
     import deliveries           # deliveries in and out, for the map on work.html
     for name, (desc, cols, rows, ddl) in deliveries.tables(deliveries.publish()).items():
         table(name, desc, cols, rows)
@@ -240,7 +244,7 @@ def main():
               "-- Create (and load) the dim_ tables before the fact_ tables: the facts reference them.", ""]
     for old in OUT.glob("*.csv"):
         old.unlink()   # tables that no longer exist don't linger
-    order = sorted(TABLES, key=lambda n: (0 if n.startswith("dim_") else 1 if n.startswith("fact_") else 2))
+    order = sorted(TABLES, key=lambda n: (0 if n == "dim_org" else 1 if n.startswith("dim_") else 2 if n in ("driver_month", "cost_rate", "target", "opening_balance", "kpi_workings", "commentary", "simulation_parameter") else 3 if n.startswith("fact_") else 4))
     for name in order:
         desc, cols, rows = TABLES[name]
         with open(OUT / f"{name}.csv", "w", newline="") as f:
@@ -257,6 +261,8 @@ def main():
 GROUPS = [
     ("Cloud database: daily star schema behind the home-page dashboard", "dim_"),
     ("", "fact_"),
+    ("Supporting files: drivers, rates, targets, opening balances, workings and commentary", "driver_month"),
+    ("", "cost_rate"), ("", "target"), ("", "opening_balance"), ("", "kpi_workings"), ("", "commentary"), ("", "simulation_parameter"),
     ("Home-page dashboard model (index.html, dashboard-data.js, media/exports/)", "model_"),
     ("Live-display screens (media/mockups/display-*.png)", "display_"),
     ("Report previews (media/mockups/report-*.png)", "report_"),

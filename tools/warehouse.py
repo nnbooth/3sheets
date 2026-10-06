@@ -314,6 +314,8 @@ def build(res):
     gpos = [[g["code"], 20260930, g["received_to_date"], g["spent_to_date"], g["budget_to_date"], g["spend_vs_budget_pct"],
              g["unspent"], g["balance_30_sep"], g["months_left"]] for g in n["grants"]]
     orgs = [[o, res[o]["model"]["name"], res[o]["model"]["long_name"], ORG_SECTOR[o], res[o]["model"]["about"]] for o in ["trades", "services", "nfp"]]
+    orgs.append(["distribution", "Deliveries", "Sample Distribution Pty Ltd", "SME", "A distribution centre at Wacol, Brisbane: deliveries out to customers across south-east Queensland and in from suppliers (the map on Our work)."])
+    build.account_ids = acct
 
     T = {}
     def tbl(name, desc, cols, rows):
@@ -326,7 +328,7 @@ def build(res):
          ("financial_year", V(6)), ("fy_month_no", "INT"), ("fy_quarter", V(10)),
          ("day_status", V(12)), ("month_status", V(12)), ("month_locked_on", "DATE"), ("status_as_at", V(16))], dim_date())
     tbl("dim_org", "The three sample organisations.",
-        [("org_id", V(10) + " PRIMARY KEY"), ("toggle_name", V(30)), ("legal_name", V(60)), ("sector", V(20)), ("about", V(300))], orgs)
+        [("org_id", V(12) + " PRIMARY KEY"), ("toggle_name", V(30)), ("legal_name", V(60)), ("sector", V(20)), ("about", V(300))], orgs)
     tbl("dim_account", "Every statement line for each organisation (P&L, balance sheet, cash flow). is_postable = daily facts post to it; the rest are subtotals and totals.",
         [("account_id", "INT PRIMARY KEY"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"), ("statement", V(20)), ("section", V(40)),
          ("line", V(60)), ("line_level", V(10)), ("line_order", "INT"), ("is_postable", "INT")], acct_rows)
