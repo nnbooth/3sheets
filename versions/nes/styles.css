@@ -122,7 +122,7 @@ strong, b { color: var(--gold); font-weight: 400; }
 }
 
 .brand::before {
-  content: "4";
+  content: none;
   display: inline-block;
   margin-right: 10px;
   padding: 3px 5px 2px;
