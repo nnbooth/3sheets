@@ -1,51 +1,41 @@
-# Node dependencies
-**/node_modules/
+# The Fourth Sheet: website and tooling.
+# Code and docs live in git. DATA DOES NOT: every dataset lives in OneDrive
+# (Projects/The 4th Sheet/Data, found automatically on Mac or Windows, or set
+# FOURTH_SHEET_DATA). See README.md.
 
-# Environment files
-**/.env
-**/.env.*.local
-
-# OS artifacts
-.DS_Store
-Thumbs.db
-
-# Python caches
-**/__pycache__/
-**/*.pyc
-
-# Python virtual environments
-.venv/
-venv/
-
-# Logs
-**/*.log
-
-# VS Code workspace cache
-.vscode/
-.vscode/*
-
-# Claude Code MCP server config — local agent tooling, not portfolio content
-.mcp.json
-
-#Exclude Excel, CSV, and Word files
+# Data and office files
 *.csv
-# ...except the sample data behind the website mock-ups (tools/sample_data.py)
-!sample-data/*.csv
 *.xlsx
 *.xls
 *.docx
+*.pptx
+*.pdf
+*.pbix
+# ...except the website's own sample downloads, so every Excel/PDF/PowerPoint button works on the live site.
+# Temporary (decided 6 Oct 2026): these will be built on request from the database / Power BI instead.
+!media/exports/**/*.xlsx
+!media/exports/**/*.pptx
+!media/exports/**/*.pdf
 
-# Private / personal files
-businessplan.md
-git_readme.md
+# Secrets: copy .env.example to .env and fill it in; never commit .env
+**/.env
+**/.env.*.local
 
-# Owner documents — personal/private docs, not part of the portfolio repo
-Owner documents/
+# Local tooling, logs and caches
+.runlogs/
+**/*.log
+**/__pycache__/
+**/*.pyc
+.venv/
+venv/
+**/node_modules/
+.vscode/
+.mcp.json
+.claude/
 
-# scripts/ folder — only .js and .py files are tracked; all docs are internal
-scripts/*.md
-scripts/*.sh
-scripts/*.bat
+# OS clutter
+.DS_Store
+Thumbs.db
 
-# Power BI — exclude entire folder (IDE projects not suitable for version control)
-Power BI/
+# LinkedIn cuts of the game video (tools/record_demo.py): not used by the site; kept in OneDrive "Media"
+media/game/month-end-run-15s.*

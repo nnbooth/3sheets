@@ -1,4 +1,0 @@
-pandas
-numpy
-pyodbc
-python-dotenv

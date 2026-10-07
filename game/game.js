@@ -44,7 +44,7 @@
      number, reload, done. All money is AUD.
 
      Placeholders: values written like '[[DOMAIN]]' are the same tokens as
-     the website (see PLACEHOLDERS.md). Until you replace them, the game
+     the website (see the project notes in OneDrive). Until you replace them, the game
      shows the fallback noted beside each one, so it never displays
      raw [[TOKENS]].                                                       */
   const CONFIG = {
@@ -976,9 +976,20 @@
   function drawBrandBar() {
     rect(0, 0, W, HUD_H, PAL.paper);
     rect(0, HUD_H - 1, W, 1, PAL.sage);
-    box(6, 6, 24, 16, PAL.accent, PAL.accentDark);
-    text('4S', 18, 10, PAL.white, 8, 'center');
-    text('THE FOURTH SHEET', 36, 10, PAL.ink);
+    // "4th" mark: a big 4 with a small raised "th"
+    box(6, 4, 29, 20, PAL.accent, PAL.accentDark);
+    text('4', 9, 6, PAL.white, 16);
+    drawTh(24, 7, 1, PAL.white);
+    text('THE FOURTH SHEET', 41, 10, PAL.ink);
+  }
+
+  // Lower-case "th" as a tiny pixel sprite (the font only has capitals at
+  // one size, so a real superscript has to be drawn). 7 x 5 pixels per scale.
+  const TH_PIXELS = ['.#..#..', '###.#..', '.#..##.', '.#..#.#', '.##.#.#'];
+  function drawTh(x, y, scale, color) {
+    TH_PIXELS.forEach((line, r) => [...line].forEach((ch, c) => {
+      if (ch === '#') rect(x + c * scale, y + r * scale, scale, scale, color);
+    }));
   }
 
   /* ---------------------------------------------------------------- banners */
@@ -1154,9 +1165,10 @@
 
   function drawEnd() {
     rect(0, 0, W, H, PAL.bg);
-    // "4" mark, then the business name and the person
-    box(W / 2 - 20, 6, 40, 24, PAL.accent, PAL.accentDark);
-    text('4S', W / 2, 10, PAL.white, 16, 'center');
+    // "4th" mark, then the business name and the person
+    box(W / 2 - 17, 4, 34, 28, PAL.accent, PAL.accentDark);
+    text('4', W / 2 - 13, 10, PAL.white, 16);
+    drawTh(W / 2 + 1, 9, 2, PAL.white);
     text('THE FOURTH SHEET', W / 2, 34, PAL.accent, 8, 'center');
 
     const name = cfg('name', '');

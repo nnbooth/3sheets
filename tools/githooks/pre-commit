@@ -1,0 +1,5 @@
+#!/bin/sh
+# Blocks any commit that contains a password, key, secret or personal detail. Installed by tools/setup_machine.py
+# (git config core.hooksPath tools/githooks). Works on Mac and Windows (Git for Windows runs this with its own sh).
+PY=$(command -v python3 || command -v python || command -v py)
+exec "$PY" tools/githooks/check_secrets.py
