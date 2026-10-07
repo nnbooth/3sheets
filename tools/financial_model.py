@@ -310,10 +310,12 @@ SERVICES = {
     # month -> code -> [hours, amount billed (projects only), contractors]
     "activity": {
         "2026-08": {"E-311": [180, 0, 4200], "E-314": [60, 0, 0], "E-316": [88, 15840, 0], "E-320": [100, 0, 1800],
-                    "R-102": [56, 0, 0], "R-105": [42, 0, 0], "R-108": [68, 0, 0], "R-110": [34, 0, 0], "T-205": [20, 0, 900]},
-        "2026-09": {"E-311": [210, 30000, 4800], "E-314": [96, 0, 0], "E-318": [64, 10560, 0], "E-320": [120, 24000, 2200],
-                    "R-102": [58, 0, 0], "R-105": [44, 0, 0], "R-108": [70, 0, 0], "R-110": [36, 0, 0],
-                    "T-207": [30, 0, 1500], "T-209": [14, 0, 0]},
+                    "R-102": [56, 0, 0], "R-105": [42, 0, 0], "R-108": [68, 0, 0], "R-110": [48, 0, 0], "T-205": [20, 0, 900]},
+        # Below the 40% target on purpose: payroll retainer scope creep (hours up, same fee), the logistics rollout
+        # leaning on contractors, and the Excel course's venue and co-trainer.
+        "2026-09": {"E-311": [210, 30000, 11200], "E-314": [96, 0, 0], "E-318": [64, 10560, 0], "E-320": [120, 24000, 2200],
+                    "R-102": [58, 0, 0], "R-105": [44, 0, 0], "R-108": [70, 0, 0], "R-110": [52, 0, 0],
+                    "T-207": [36, 0, 4200], "T-209": [14, 0, 0]},
     },
     "opening_wip": {"E-311": 12000, "E-314": 0, "E-316": 0, "E-318": 0, "E-320": 6000},
     "history_billing": {"2026-05": 118000, "2026-06": 126000, "2026-07": 121000},   # earlier months' invoices (for debtors)
@@ -806,7 +808,7 @@ def fourth_nfp(m, out):
                  {"label": f"Grants ending in {m['ending_within_months']} months", "value": money(sum(gr['unspent'] for gr in ending)),
                   "sub": f"to spend in {m['ending_within_months']} months · {len(ending)} grant{'s' if len(ending) != 1 else ''} ending", "cls": "bad" if ending else "", "support": s_end}],
         "chart": {"title": "Each grant: over or under budget to 30 September 2026",
-                  "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over budget in red; under budget in grey.",
+                  "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over or under budget in red; within 1% in amber.",
                   "labels": [gr["program"] for gr in G],
                   "values": pcts, "format": "pct_var", "what": "grant spend against budget", "variance": True,
                   "views": [{"id": "pct", "label": "% of budget", "values": pcts, "format": "pct_var"},

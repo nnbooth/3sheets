@@ -1795,6 +1795,10 @@ window.FOURTH_SHEET_DASHBOARD = {
     "xlsx": "media/exports/trades-sample-statements.xlsx",
     "pdf": "media/exports/trades-sample-statements.pdf",
     "pptx": "media/exports/trades-sample-statements.pptx"
+   },
+   "exports_meta": {
+    "pdf_pages": 7,
+    "pptx_slides": 16
    }
   },
   {
@@ -1873,7 +1877,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Contractors",
        "level": "detail",
        "values": [
-        -8500,
+        -17600,
         -6900
        ],
        "note": null
@@ -1882,7 +1886,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total cost of sales",
        "level": "subtotal",
        "values": [
-        -55000,
+        -64100,
         -53400
        ],
        "note": null
@@ -1891,7 +1895,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Gross profit",
        "level": "total",
        "values": [
-        76850,
+        67750,
         61240
        ],
        "note": null
@@ -1978,7 +1982,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "EBITDA",
        "level": "total",
        "values": [
-        26950,
+        17850,
         9840
        ],
        "note": null
@@ -2005,7 +2009,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Profit before tax",
        "level": "total",
        "values": [
-        24710,
+        15610,
         7590
        ],
        "note": null
@@ -2014,7 +2018,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Income tax provision (25%)",
        "level": "subtotal",
        "values": [
-        -6178,
+        -3903,
         -1898
        ],
        "note": null
@@ -2023,7 +2027,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net profit after tax",
        "level": "key",
        "values": [
-        18532,
+        11707,
         5692
        ],
        "note": null
@@ -2113,7 +2117,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Trade creditors (bills due next month)",
        "level": "detail",
        "values": [
-        8500,
+        17600,
         6900
        ],
        "note": null
@@ -2131,7 +2135,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Income tax payable",
        "level": "detail",
        "values": [
-        56576,
+        54301,
         50398
        ],
        "note": null
@@ -2140,7 +2144,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total current liabilities",
        "level": "subtotal",
        "values": [
-        187376,
+        194201,
         178998
        ],
        "note": null
@@ -2158,7 +2162,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total liabilities",
        "level": "total",
        "values": [
-        201976,
+        208801,
         195298
        ],
        "note": null
@@ -2167,7 +2171,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net assets",
        "level": "key",
        "values": [
-        238574,
+        231749,
         220042
        ],
        "note": null
@@ -2191,7 +2195,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Retained earnings",
        "level": "detail",
        "values": [
-        218574,
+        211749,
         200042
        ],
        "note": null
@@ -2200,7 +2204,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total equity",
        "level": "key",
        "values": [
-        238574,
+        231749,
         220042
        ],
        "note": null
@@ -2353,8 +2357,8 @@ window.FOURTH_SHEET_DASHBOARD = {
     "kpis": [
      {
       "label": "Consultant utilisation, September",
-      "value": "74.0%",
-      "sub": "▲ from 71.1% in Aug",
+      "value": "76.2%",
+      "sub": "▲ from 72.6% in Aug",
       "cls": "good",
       "spine": true,
       "support": {
@@ -2368,8 +2372,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Billable hours (timesheets)",
-         "742.0 h",
-         "648.0 h"
+         "764.0 h",
+         "662.0 h"
         ],
         [
          "Consultants",
@@ -2393,8 +2397,8 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Utilisation",
-         "74.0%",
-         "71.1%"
+         "76.2%",
+         "72.6%"
         ]
        ],
        "note": null,
@@ -2409,8 +2413,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Billable hours (timesheets)",
           "kind": "hours",
           "values": [
-           742,
-           648
+           764,
+           662
           ],
           "calc": null
          },
@@ -2454,8 +2458,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Utilisation",
           "kind": "pct",
           "values": [
-           0.7396331738437002,
-           0.7105263157894737
+           0.7615629984051038,
+           0.7258771929824561
           ],
           "calc": "r0/r4"
          }
@@ -2465,9 +2469,9 @@ window.FOURTH_SHEET_DASHBOARD = {
      },
      {
       "label": "Revenue per billable hour",
-      "value": "$178",
-      "sub": "▲ from $177 in Aug",
-      "cls": "good",
+      "value": "$173",
+      "sub": "▼ from $173 in Aug",
+      "cls": "bad",
       "support": {
        "title": "Revenue per billable hour",
        "formula": "Revenue ÷ billable hours",
@@ -2484,13 +2488,13 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Billable hours",
-         "742.0 h",
-         "648.0 h"
+         "764.0 h",
+         "662.0 h"
         ],
         [
          "Revenue per hour",
-         "$178",
-         "$177"
+         "$173",
+         "$173"
         ]
        ],
        "note": "Retainers and training are fixed fees, so fewer hours on them raises the hourly figure.",
@@ -2514,8 +2518,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Billable hours",
           "kind": "hours",
           "values": [
-           742,
-           648
+           764,
+           662
           ],
           "calc": null
          },
@@ -2523,8 +2527,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue per hour",
           "kind": "money",
           "values": [
-           177.6954177897574,
-           176.91358024691357
+           172.57853403141362,
+           173.17220543806647
           ],
           "calc": "r0/r1"
          }
@@ -2611,10 +2615,10 @@ window.FOURTH_SHEET_DASHBOARD = {
       "Agribusiness CFO support",
       "Health charity board pack",
       "Construction firm finance",
-      "Excel for managers",
       "Dental group reporting",
       "Manufacturer process mapping",
       "Logistics systems rollout",
+      "Excel for managers",
       "Hospitality payroll"
      ],
      "values": [
@@ -2623,11 +2627,11 @@ window.FOURTH_SHEET_DASHBOARD = {
       65.0,
       63.6,
       63.4,
-      62.5,
       61.2,
       53.9,
-      52.7,
-      48.6
+      35.2,
+      27.7,
+      25.7
      ],
      "target": 40.0,
      "format": "pct1",
@@ -3184,116 +3188,6 @@ window.FOURTH_SHEET_DASHBOARD = {
        }
       },
       {
-       "title": "Excel for managers",
-       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
-       "head": [
-        "",
-        "This engagement"
-       ],
-       "rows": [
-        [
-         "Revenue",
-         "$8,800",
-         ""
-        ],
-        [
-         "Contractors",
-         "($1,500)",
-         ""
-        ],
-        [
-         "Consultant hours",
-         "30.0 h",
-         ""
-        ],
-        [
-         "Consultant cost rate ($/hour, wages and all on-costs)",
-         "$60",
-         ""
-        ],
-        [
-         "Consultant time",
-         "($1,800)",
-         ""
-        ],
-        [
-         "Gross margin",
-         "$5,500",
-         ""
-        ],
-        [
-         "Gross margin %",
-         "62.5%",
-         ""
-        ]
-       ],
-       "note": null,
-       "series": null,
-       "xl": {
-        "cols": [
-         "This engagement"
-        ],
-        "rows": [
-         {
-          "label": "Revenue",
-          "kind": "money",
-          "values": [
-           8800
-          ],
-          "calc": null
-         },
-         {
-          "label": "Contractors",
-          "kind": "money",
-          "values": [
-           -1500
-          ],
-          "calc": null
-         },
-         {
-          "label": "Consultant hours",
-          "kind": "hours",
-          "values": [
-           30
-          ],
-          "calc": null
-         },
-         {
-          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
-          "kind": "money",
-          "values": [
-           60
-          ],
-          "calc": null
-         },
-         {
-          "label": "Consultant time",
-          "kind": "money",
-          "values": [
-           -1800
-          ],
-          "calc": "-r2*r3"
-         },
-         {
-          "label": "Gross margin",
-          "kind": "money",
-          "values": [
-           5500
-          ],
-          "calc": "r0+r1+r4"
-         },
-         {
-          "label": "Gross margin %",
-          "kind": "pct",
-          "values": [
-           0.625
-          ],
-          "calc": "r5/r0"
-         }
-        ]
-       }
-      },
-      {
        "title": "Dental group reporting",
        "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
@@ -3528,7 +3422,7 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Contractors",
-         "($4,800)",
+         "($11,200)",
          ""
         ],
         [
@@ -3548,12 +3442,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$19,350",
+         "$12,950",
          ""
         ],
         [
          "Gross margin %",
-         "52.7%",
+         "35.2%",
          ""
         ]
        ],
@@ -3576,7 +3470,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Contractors",
           "kind": "money",
           "values": [
-           -4800
+           -11200
           ],
           "calc": null
          },
@@ -3608,7 +3502,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           19350
+           12950
           ],
           "calc": "r0+r1+r4"
          },
@@ -3616,7 +3510,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.5265306122448979
+           0.3523809523809524
           ],
           "calc": "r5/r0"
          }
@@ -3624,7 +3518,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        }
       },
       {
-       "title": "Hospitality payroll",
+       "title": "Excel for managers",
        "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
        "head": [
         "",
@@ -3633,12 +3527,12 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$4,200",
+         "$8,800",
          ""
         ],
         [
          "Contractors",
-         "$0",
+         "($4,200)",
          ""
         ],
         [
@@ -3658,12 +3552,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$2,040",
+         "$2,440",
          ""
         ],
         [
          "Gross margin %",
-         "48.6%",
+         "27.7%",
          ""
         ]
        ],
@@ -3678,7 +3572,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           4200
+           8800
           ],
           "calc": null
          },
@@ -3686,7 +3580,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Contractors",
           "kind": "money",
           "values": [
-           0
+           -4200
           ],
           "calc": null
          },
@@ -3718,7 +3612,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           2040
+           2440
           ],
           "calc": "r0+r1+r4"
          },
@@ -3726,7 +3620,117 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.4857142857142857
+           0.2772727272727273
+          ],
+          "calc": "r5/r0"
+         }
+        ]
+       }
+      },
+      {
+       "title": "Hospitality payroll",
+       "formula": "Gross margin ÷ revenue for this engagement (before overheads)",
+       "head": [
+        "",
+        "This engagement"
+       ],
+       "rows": [
+        [
+         "Revenue",
+         "$4,200",
+         ""
+        ],
+        [
+         "Contractors",
+         "$0",
+         ""
+        ],
+        [
+         "Consultant hours",
+         "52.0 h",
+         ""
+        ],
+        [
+         "Consultant cost rate ($/hour, wages and all on-costs)",
+         "$60",
+         ""
+        ],
+        [
+         "Consultant time",
+         "($3,120)",
+         ""
+        ],
+        [
+         "Gross margin",
+         "$1,080",
+         ""
+        ],
+        [
+         "Gross margin %",
+         "25.7%",
+         ""
+        ]
+       ],
+       "note": null,
+       "series": null,
+       "xl": {
+        "cols": [
+         "This engagement"
+        ],
+        "rows": [
+         {
+          "label": "Revenue",
+          "kind": "money",
+          "values": [
+           4200
+          ],
+          "calc": null
+         },
+         {
+          "label": "Contractors",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant hours",
+          "kind": "hours",
+          "values": [
+           52
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant cost rate ($/hour, wages and all on-costs)",
+          "kind": "money",
+          "values": [
+           60
+          ],
+          "calc": null
+         },
+         {
+          "label": "Consultant time",
+          "kind": "money",
+          "values": [
+           -3120
+          ],
+          "calc": "-r2*r3"
+         },
+         {
+          "label": "Gross margin",
+          "kind": "money",
+          "values": [
+           1080
+          ],
+          "calc": "r0+r1+r4"
+         },
+         {
+          "label": "Gross margin %",
+          "kind": "pct",
+          "values": [
+           0.2571428571428571
           ],
           "calc": "r5/r0"
          }
@@ -3744,11 +3748,11 @@ window.FOURTH_SHEET_DASHBOARD = {
         65.0,
         63.6,
         63.4,
-        62.5,
         61.2,
         53.9,
-        52.7,
-        48.6
+        35.2,
+        27.7,
+        25.7
        ],
        "format": "pct1",
        "target": 40.0
@@ -3762,11 +3766,11 @@ window.FOURTH_SHEET_DASHBOARD = {
         7800,
         6720,
         6020,
-        5500,
         4160,
         11000,
-        19350,
-        2040
+        12950,
+        2440,
+        1080
        ],
        "format": "money0",
        "marks": [
@@ -3775,10 +3779,10 @@ window.FOURTH_SHEET_DASHBOARD = {
         4800,
         4224,
         3800,
-        3520,
         2720,
         8160,
         14700,
+        3520,
         1680
        ],
        "mark_label": "Target gross margin (40.0% of revenue)",
@@ -3877,6 +3881,10 @@ window.FOURTH_SHEET_DASHBOARD = {
     "xlsx": "media/exports/services-sample-statements.xlsx",
     "pdf": "media/exports/services-sample-statements.pdf",
     "pptx": "media/exports/services-sample-statements.pptx"
+   },
+   "exports_meta": {
+    "pdf_pages": 8,
+    "pptx_slides": 14
    }
   },
   {
@@ -4751,7 +4759,7 @@ window.FOURTH_SHEET_DASHBOARD = {
     ],
     "chart": {
      "title": "Each grant: over or under budget to 30 September 2026",
-     "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over budget in red; under budget in grey.",
+     "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over or under budget in red; within 1% in amber.",
      "labels": [
       "Youth outreach",
       "Housing support",
@@ -5865,6 +5873,10 @@ window.FOURTH_SHEET_DASHBOARD = {
     "xlsx": "media/exports/nfp-sample-statements.xlsx",
     "pdf": "media/exports/nfp-sample-statements.pdf",
     "pptx": "media/exports/nfp-sample-statements.pptx"
+   },
+   "exports_meta": {
+    "pdf_pages": 7,
+    "pptx_slides": 14
    }
   }
  ]

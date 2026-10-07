@@ -101,7 +101,8 @@ def hbar_svg(ch, width=640):
         lab, v = labels[i], values[i]
         y = top + pos * row + (row - bh) / 2
         g.append(f'<text x="{left - 8}" y="{y + bh - 3}" text-anchor="end" font-size="11" fill="{MUTED}">{esc(lab)}</text>')
-        fill = (NEG if v > 0 else SOME) if variance else (NEG if v < 0 else SOME if below(v, i) else GOOD)
+        vp = abs((ch.get("variance_pct") or values)[i]) if variance else 0          # judged on % of budget
+        fill = (("#8A6D3B" if vp < 1 else NEG) if vp >= 0.05 else SOME) if variance else (NEG if v < 0 else SOME if below(v, i) else GOOD)
         g.append(f'<rect x="{min(x(v), x0):.1f}" y="{y}" width="{abs(x(v) - x0):.1f}" height="{bh}" rx="2" fill="{fill}"/>')
         text = fmt_value(v, f)
         lx = max(x(v), x0) + 5
@@ -112,7 +113,7 @@ def hbar_svg(ch, width=640):
                 lx = mxp + 5
         if tx is not None and lx - 4 < tx < lx + len(text) * char + 4:   # the label would sit on the target line
             lx = tx + 5
-        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{(NEG if v > 0 else INK) if variance else (NEG if v < 0 else INK)}">{esc(text)}</text>')
+        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{(NEG if vp >= 1 else INK) if variance else (NEG if v < 0 else INK)}">{esc(text)}</text>')
     if target is not None:
         g.append(f'<line x1="{tx:.1f}" x2="{tx:.1f}" y1="{top - 4}" y2="{top + plot_h + 2}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
         g.append(f'<text x="{tx:.1f}" y="{top + plot_h + 15}" text-anchor="middle" font-size="10" font-weight="600" fill="{INK}">Target {fmt_value(target, f)}</text>')
@@ -120,8 +121,8 @@ def hbar_svg(ch, width=640):
     if variance:
         height += 14
         ky = height - 6
-        g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{NEG}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Over budget</text>'
-                 f'<rect x="{left + 105}" y="{ky - 9}" width="10" height="10" rx="2" fill="{SOME}"/><text x="{left + 120}" y="{ky}" font-size="10" fill="{MUTED}">Under budget</text>')
+        g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{NEG}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Over or under budget</text>'
+                 f'<rect x="{left + 150}" y="{ky - 9}" width="10" height="10" rx="2" fill="#8A6D3B"/><text x="{left + 165}" y="{ky}" font-size="10" fill="{MUTED}">Within 1%</text>')
     elif any_below and not marks:
         g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{SOME}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Below target</text>')
     if marks:

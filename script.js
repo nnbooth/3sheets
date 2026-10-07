@@ -248,13 +248,11 @@ function mountExportMenu(container, opts) {
     + `<p class="xm-head"></p>`
     + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
     // (An "Include the workings" option would go here. Every export includes the workings for now.)
-    + `<div class="xm-foot"><button type="button" class="xm-copy" role="menuitem">Copy a link to this exact view</button>`
-    + `<a class="xm-sub" role="menuitem" href="#contact" data-placeholder="[[SUBSCRIBE_URL]]">Send this to me on the 3rd business day each month &rarr;</a></div>`
-    + `<p class="xm-live" aria-live="polite"></p></div>`;
+    + `<div class="xm-foot"><a class="xm-sub" role="menuitem" href="#contact" data-placeholder="[[SUBSCRIBE_URL]]">Send this to me on the 3rd business day each month &rarr;</a></div>`
+    + `</div>`;
   const btn = container.querySelector('.xm-btn');
   const menu = container.querySelector('.xm-menu');
   const items = () => [...menu.querySelectorAll('[role="menuitem"]')].filter((x) => !x.hasAttribute('aria-disabled'));
-  const live = menu.querySelector('.xm-live');
 
   function paint() {
     const bits = [state.filterLabel, 'sample data'].filter(Boolean).map(esc).join(' · ');
@@ -309,16 +307,6 @@ function mountExportMenu(container, opts) {
     else if (e.key === 'Tab') close(false);
   });
   menu.addEventListener('click', (e) => {
-    const copy = e.target.closest('.xm-copy');
-    if (copy) {
-      const done = () => { live.textContent = 'Link copied'; setTimeout(() => { live.textContent = ''; }, 2500); };
-      (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(done).catch(() => {
-        const t = document.createElement('textarea'); t.value = location.href; document.body.appendChild(t); t.select();
-        try { document.execCommand('copy'); done(); } catch { live.textContent = location.href; }
-        t.remove();
-      });
-      return;
-    }
     const item = e.target.closest('.xm-item[aria-disabled]');
     if (item) { e.preventDefault(); return; }
     if (e.target.closest('.xm-item, .xm-sub')) setTimeout(() => close(), 0);   // a choice closes the menu
@@ -527,7 +515,9 @@ function renderChart(ch, width = 320) {
     const v = ch.values[i];
     const y = top + pos * row + (row - bh) / 2;
     const dim = ch.highlight && ch.labels[i] !== ch.highlight ? ' dash-row--dim' : '';
-    const cls = ch.variance ? (v > 0 ? ' dash-bar--bad' : v < 0 ? ' dash-bar--below' : '') : v < 0 ? ' dash-bar--bad' : below(v, i) ? ' dash-bar--below' : '';
+    // variance charts: off budget either way is red; within 1% amber; on budget neutral (judged on the % of budget)
+    const vp = ch.variance ? Math.abs((ch.variancePct || ch.values)[i]) : 0;
+    const cls = ch.variance ? (vp < 0.05 ? '' : vp < 1 ? ' dash-bar--warn' : ' dash-bar--bad') : v < 0 ? ' dash-bar--bad' : below(v, i) ? ' dash-bar--below' : '';
     const bx = Math.min(x(v), x0), bw = Math.abs(x(v) - x0);
     g += `<g class="dash-row${dim}" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
       + `<rect class="dash-hit" x="0" y="${(top + pos * row).toFixed(1)}" width="${W}" height="${row}"/>`
@@ -539,7 +529,7 @@ function renderChart(ch, width = 320) {
     let lx = Math.max(x(v), x0) + 5;
     if (ch.marks) { const mx = x(ch.marks[i]); if (mx >= x(v) - 1 && mx < lx + tw + 3) lx = mx + 5; }
     if (ch.target != null && lx - 3 < x(ch.target) && x(ch.target) < lx + tw + 3) lx = x(ch.target) + 5;
-    const bad = ch.variance ? v > 0 : v < 0;
+    const bad = ch.variance ? vp >= 1 : v < 0;
     g += `<text class="dash-value${bad ? ' neg' : ''}" x="${lx.toFixed(1)}" y="${(y + bh - 3).toFixed(1)}">${txt}</text></g>`;
   });
   if (ch.target != null) {   // drawn after the bars, so the target sits on top
@@ -547,8 +537,8 @@ function renderChart(ch, width = 320) {
     g += `<line class="dash-target" x1="${tx}" x2="${tx}" y1="${top - 4}" y2="${top + plotH + 2}"/>`;
     g += `<text class="dash-target-label" x="${tx}" y="${top + plotH + 16}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
   }
-  if (ch.variance) g += `<rect class="dash-bar--bad" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Over budget</text>`
-    + `<rect class="dash-bar--below" x="${left + 110}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 126}" y="${H - 3}">Under budget</text>`;
+  if (ch.variance) g += `<rect class="dash-bar--bad" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Over or under budget</text>`
+    + `<rect class="dash-bar--warn" x="${left + 168}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 184}" y="${H - 3}">Within 1%</text>`;
   else if (anyBelow && !ch.marks) g += `<rect class="dash-bar--below" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Below target</text>`;
   if (ch.marks) g += `<line class="dash-mark" x1="${left + 4}" x2="${left + 4}" y1="${H - 14}" y2="${H - 1}"/><text class="dash-key" x="${left + 12}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}.`;
@@ -598,7 +588,7 @@ function renderFourth(o) {
   let toggle = '';
   if (ch.views) {
     const v = ch.views.find((x) => x.id === dash.view) || ch.views[0];
-    ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks };
+    ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, variancePct: ch.views[0].values };
     toggle = `<div class="seg" role="group" aria-label="Show as">${ch.views.map((x) => `<button type="button" data-view="${x.id}" aria-pressed="${x.id === v.id}">${esc(x.label)}</button>`).join('')}</div>`;
   }
   const w = chartWidth(document.getElementById('dash-panel'), 32);
@@ -829,7 +819,7 @@ function mountReport(root, r, only, simple, opts = {}) {
     if (ch.views) {
       const cur = state.views[key] || ch.views[0].id;
       const v = ch.views.find((x) => x.id === cur) || ch.views[0];
-      ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, orderBy: sec.chart.views[0].values };
+      ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, orderBy: sec.chart.views[0].values, variancePct: sec.chart.views[0].values };
       toggle = `<div class="seg" role="group" aria-label="Show as">${sec.chart.views.map((x) => `<button type="button" data-view="${key}" data-id="${x.id}" aria-pressed="${x.id === v.id}">${esc(x.label)}</button>`).join('')}</div>`;
     }
     if (sec.highlight_filter && ch.labels.includes(fval())) ch = { ...ch, highlight: fval() };

@@ -20,10 +20,15 @@
 ## Export menu (branch `export-menu`, on top of review phase 2)
 - One **Export** button and menu replaces every row of download pills: report pages (beside the Period picker), the home hero (Assumptions moved into the workings dialog as "See all assumptions"), and the deliveries map's top bar.
 - Menu header names the period and the current business and filter, live. Rows for Excel, PDF and PowerPoint show the Excel file size (read when the menu opens) and the PDF page and PowerPoint slide counts. The build writes the counts into the data (`exports_meta`); nothing is typed in.
-- "Copy a link to this exact view": report links now carry `?period=`, `&business=` and `&filter=`, and the home page `?business=`; all are restored on load. "Link copied" is announced in an `aria-live` region.
+- Linkable views: report links carry `?period=`, `&business=` and `&filter=`, and the home page `?business=`; all are restored on load, so a link copied from the address bar opens the same view. (The menu's "Copy a link" row was removed at Nathan's request; the menu is narrower for it.)
 - "Send this to me on the 3rd business day each month →" links to `#contact` with `data-placeholder="[[SUBSCRIBE_URL]]"`, ready for a subscription form.
 - Keyboard: Enter or Space opens it with focus on the first item; arrows, Home and End move; Esc and outside clicks close it, returning focus. On phones it's a bottom sheet with 44 px rows.
 - Reusable: `mountExportMenu(container, {period, filterLabel, exports, meta})`, plus `data-export-*` attributes for static or embedded pages. A period with no exports shows the rows disabled ("Not available for a part month").
 - Fixed along the way: a replaced report's resize watcher could re-send the old period to the menu.
-- `tools/tests/site_check.py` now opens the menu on every report at every period, checks the header and the three files, round-trips the copied link (period and filter), and runs a keyboard-only pass.
+- `tools/tests/site_check.py` now opens the menu on every report at every period, checks the header and the three files, round-trips the view's link (period and filter), and runs a keyboard-only pass.
 - No new tokens were needed: the review's Phase 1 tokens were already in place.
+
+## Sample data and colour (7 Oct, on `export-menu`)
+- SME services: three September engagements now sit below the 40% target, each for a stated reason in `financial_model.py`. The Hospitality payroll retainer has scope creep (52 hours in September and 48 in August on the same fee: 25.7%). The Logistics systems rollout leans on contractors (35.2%). Excel for managers carries a venue and co-trainer (27.7%). Every CSV, `schema.sql`, the table guide, the Power BI prompts and all downloads are rebuilt from the model.
+- Grant budget chart: under budget is red, the same as over budget; within 1% is amber; on budget is neutral. Same on the site, in the PDF and in PowerPoint.
+- Export menu: "Copy a link to this exact view" removed sitewide; the menu is narrower. The hero's menu opens upwards and is no longer clipped by the card.

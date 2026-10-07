@@ -124,7 +124,7 @@ class Deck:
             self.text(s, x + Inches(0.2), Inches(3.3), w - Inches(0.4), Inches(0.6), note, 11, colour=MUTED)
         return s
 
-    def bar_slide(self, heading, labels, values, fmt="pct1", target=None, below=None, sub=None, order_by=None, bad=None):
+    def bar_slide(self, heading, labels, values, fmt="pct1", target=None, below=None, sub=None, order_by=None, bad=None, warn=None):
         s = self.slide(heading, sub)
         by = order_by or values
         order = sorted(range(len(values)), key=lambda i: by[i])          # PowerPoint draws bars bottom-up: largest ends on top
@@ -150,7 +150,7 @@ class Deck:
         for k, i in enumerate(order):
             pt = ser.points[k]
             pt.format.fill.solid()
-            pt.format.fill.fore_color.rgb = rgb(NEG if (bad and bad[i]) else GREY if (below and below[i]) else GREEN)
+            pt.format.fill.fore_color.rgb = rgb(NEG if (bad and bad[i]) else "8A6D3B" if (warn and warn[i]) else GREY if (below and below[i]) else GREEN)
         if target is not None:
             self.text(s, Inches(0.5), H - Inches(0.75), Inches(12), Inches(0.3),
                       f"Target {target}  ·  grey = below target", 10, colour=MUTED)

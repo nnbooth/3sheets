@@ -553,7 +553,7 @@ def html_report(org, v):
     ch = f4["chart"]
     views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
     chart_svg = "".join((f"<p class=viewlabel>{esc(vw['label'])}</p>" if len(views) > 1 else "")
-                        + ek.hbar_svg({**ch, **{k_: vw.get(k_) for k_ in ("values", "format", "target", "marks", "mark_label", "below_marks")}, "order_by": views[0]["values"]})
+                        + ek.hbar_svg({**ch, **{k_: vw.get(k_) for k_ in ("values", "format", "target", "marks", "mark_label", "below_marks")}, "order_by": views[0]["values"], "variance_pct": views[0]["values"]})
                         for vw in views)
     def wk(sp):
         two = all(not r_[2] for r_ in sp["rows"])
@@ -619,13 +619,16 @@ def write_pptx(org, v):
     views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
     for vw in views:
         tgt = vw.get("target")
-        if ch.get("variance"):     # over budget red, under budget grey
-            below, bad = [x < 0 for x in vw["values"]], [x > 0 for x in vw["values"]]
+        if ch.get("variance"):     # off budget either way red (judged on % of budget); within 1% amber (shown grey here)
+            pcts = views[0]["values"]
+            bad = [abs(p_) >= 1 for p_ in pcts]
+            warn = [0.05 <= abs(p_) < 1 for p_ in pcts]
+            below = None
         else:
             below = None if ch.get("plain") else [(tgt is not None and x < tgt) or (vw.get("below_marks") and vw.get("marks") and x < vw["marks"][i]) for i, x in enumerate(vw["values"])]
-            bad = [x < 0 for x in vw["values"]]
+            bad, warn = [x < 0 for x in vw["values"]], None
         d.bar_slide(ch["title"] + (f" · {vw['label']}" if len(views) > 1 else ""), ch["labels"], vw["values"], vw["format"],
-                    (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"), order_by=views[0]["values"], bad=bad)
+                    (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"), order_by=views[0]["values"], bad=bad, warn=warn)
     for k in f4["kpis"]:
         sp = k["support"]
         d.table_slides(f"How it's worked out: {sp['title']}", sp["head"] if any(r_[2] for r_ in sp["rows"]) else sp["head"][:2],
