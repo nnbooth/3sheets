@@ -2476,8 +2476,8 @@ window.FOURTH_SHEET_DASHBOARD = {
      {
       "label": "Revenue per billable hour",
       "value": "$173",
-      "sub": "▼ from $173 in Aug",
-      "cls": "bad",
+      "sub": "■ same as Aug ($173)",
+      "cls": "",
       "support": {
        "title": "Revenue per billable hour",
        "formula": "Revenue ÷ billable hours",
@@ -3894,8 +3894,8 @@ window.FOURTH_SHEET_DASHBOARD = {
     "pptx_slides": 17,
     "names": {
      "xlsx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.xlsx",
-     "pdf": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0937.pdf",
-     "pptx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.pptx"
+     "pdf": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0953.pdf",
+     "pptx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0953.pptx"
     }
    }
   },

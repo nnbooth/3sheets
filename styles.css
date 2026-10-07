@@ -477,8 +477,6 @@ body.dev-notes .devnote { display: flex; }
 .dash-kpi { padding: var(--sp-2) var(--sp-3); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); min-width: 0; }
 .dash-kpi span { display: block; font-size: var(--fs-xs); color: var(--muted); line-height: 1.3; }
 .dash-kpi strong { display: block; font-size: var(--fs-lg); line-height: 1.2; margin: 0.1rem 0; color: var(--text); }
-.dash-kpi--spine { border-color: var(--accent); background: var(--accent-soft); }
-.dash-kpi--spine strong { color: var(--accent); }
 .dash-kpi em { display: block; font-style: normal; font-size: var(--fs-xs); color: var(--muted); }
 .dash-kpi em.good { color: var(--accent); font-weight: 600; }
 .dash-chart { margin-top: var(--sp-3); }
@@ -854,7 +852,7 @@ body.dev-notes .devnote { display: flex; }
   .hero-sheets img { width: 64px; }
   .st-table .detail { display: none; }
   .dash-kpis { grid-template-columns: 1fr 1fr; }
-  .dash-kpi--spine { grid-column: 1 / -1; }
+  .dash-kpis > .dash-kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }   /* three tiles: the third takes the row */
   .dash-phone-note { display: block; }
   .st-scroll { max-height: none; }
   .assumptions-body dl div { grid-template-columns: 1fr; gap: 0.1rem; }

@@ -694,7 +694,7 @@ function renderFourth(o) {
   // Kept deliberately simple: three headline numbers and one chart. Every
   // number opens its workings; the full lists are in the Excel and PDF.
   const f = o.fourth;
-  const kpis = f.kpis.slice(0, 3).map((k, i) => `<button type="button" class="dash-kpi${k.spine ? ' dash-kpi--spine' : ''}" data-kpi="${i}"><span>${esc(k.label)}</span><strong class="${(negCls(k.value) + (k.tone ? ` is-${k.tone}` : '')).trim()}">${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em><small class="dash-how">How it's worked out</small></button>`).join('');
+  const kpis = f.kpis.slice(0, 3).map((k, i) => `<button type="button" class="dash-kpi" data-kpi="${i}"><span>${esc(k.label)}</span><strong class="${(negCls(k.value) + (k.tone ? ` is-${k.tone}` : '')).trim()}">${esc(k.value)}</strong><em class="${k.cls}">${esc(k.sub)}</em><small class="dash-how">How it's worked out</small></button>`).join('');
   let ch = f.chart;
   let toggle = '';
   if (ch.views) {

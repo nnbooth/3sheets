@@ -614,6 +614,8 @@ def nfp(m):
 # into the detail. The full detail lists go to the Excel/PDF downloads and CSVs.
 
 def chg(cur, prev, fmt, better="up"):
+    if fmt(cur) == fmt(prev):          # the same once rounded: say so, not a red arrow next to two equal numbers
+        return f"■ same as Aug ({fmt(prev)})", ""
     up = cur > prev
     good = (up and better == "up") or (not up and better == "down")
     arrow = "▲" if up else ("▼" if cur < prev else "■")

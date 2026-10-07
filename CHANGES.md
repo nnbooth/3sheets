@@ -133,3 +133,4 @@
 
 ## Also
 - OneDrive sometimes stalls reading a file it's still syncing; the data reader now waits and retries rather than stopping the build.
+- Home dashboard: the three headline tiles look alike (the left tile's green "lead" style is gone; on phones the third tile takes its own row). A change that rounds to nothing reads "■ same as Aug ($173)" in neutral, not a red arrow beside two equal numbers.
