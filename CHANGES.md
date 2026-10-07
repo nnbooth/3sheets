@@ -1,0 +1,29 @@
+# Changes
+
+## Site review (branch `review-fixes`)
+
+### Phase 1: design tokens and components
+- `styles.css` uses tokens for colour (one data green `--good`, one red `--bad`, one amber `--warn`, a darker below-target grey `--neutral-bar`), type (six steps, no 800 weight), spacing (4 px base), radius (three) and shadow (two). No `!important` left. Dev notes and TBC chips untouched.
+- One segmented toggle, `.seg`, for statement tabs, sample business, %/$ views and report filters: 36 px (44 px on touch), arrow keys, and a sideways scroll strip on narrow screens.
+- Dashed borders only mean "not built yet".
+- `tone()` (script.js and exportkit.py) colours by meaning (higher or lower is good), not by sign.
+- Container 1360 px; 18 px root font from 1700 px wide.
+- Charts are drawn at their real pixel width, so chart text is 11–12 px at every width; month labels thin out instead of colliding.
+- **Decisions:** `--good` is the existing chart green `#0E9F6E` for bars and lines. "Good" *text* uses the brand green `--accent`, because `#0E9F6E` is under 4.5:1 on white for small text.
+
+### Phase 2: home page
+- Hero top-aligned with the dashboard at about 55%; "Sample business" bar above the statement tabs.
+- Not-for-profit grant chart shows over/under budget around zero (overspend red), in the site, PDF, Excel and PowerPoint; KPI 3 is the dollar figure.
+- Question rows: four per card, full width, › on the right; "Coming soon" row for the cash question; "Bring your own →" line.
+- Plain employer names; ladder card 1 labelled "Start here"; pricing said once; "No data" cut to one line.
+
+## Export menu (branch `export-menu`, on top of review phase 2)
+- One **Export** button and menu replaces every row of download pills: report pages (beside the Period picker), the home hero (Assumptions moved into the workings dialog as "See all assumptions"), and the deliveries map's top bar.
+- Menu header names the period and the current business and filter, live. Rows for Excel, PDF and PowerPoint show the Excel file size (read when the menu opens) and the PDF page and PowerPoint slide counts. The build writes the counts into the data (`exports_meta`); nothing is typed in.
+- "Copy a link to this exact view": report links now carry `?period=`, `&business=` and `&filter=`, and the home page `?business=`; all are restored on load. "Link copied" is announced in an `aria-live` region.
+- "Send this to me on the 3rd business day each month →" links to `#contact` with `data-placeholder="[[SUBSCRIBE_URL]]"`, ready for a subscription form.
+- Keyboard: Enter or Space opens it with focus on the first item; arrows, Home and End move; Esc and outside clicks close it, returning focus. On phones it's a bottom sheet with 44 px rows.
+- Reusable: `mountExportMenu(container, {period, filterLabel, exports, meta})`, plus `data-export-*` attributes for static or embedded pages. A period with no exports shows the rows disabled ("Not available for a part month").
+- Fixed along the way: a replaced report's resize watcher could re-send the old period to the menu.
+- `tools/tests/site_check.py` now opens the menu on every report at every period, checks the header and the three files, round-trips the copied link (period and filter), and runs a keyboard-only pass.
+- No new tokens were needed: the review's Phase 1 tokens were already in place.

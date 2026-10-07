@@ -508,10 +508,6 @@ body.dev-notes .devnote { display: flex; }
 .dash-check { margin-left: var(--sp-2); padding: 0.1rem var(--sp-2); border-radius: var(--r-pill); font-weight: 700; }
 .dash-check.is-ok { color: var(--accent); background: var(--good-soft); }
 .dash-check.is-bad { color: var(--bad); background: var(--bad-soft); }
-.dash-actions { display: flex; gap: var(--sp-2); }
-.dash-actions button, .dash-actions a { padding: var(--sp-1) var(--sp-2); font: inherit; font-size: var(--fs-xs); font-weight: 600; color: var(--accent); background: var(--paper); border: 1px solid var(--border); border-radius: var(--r-pill); text-decoration: none; cursor: pointer; }
-.dash-actions button:hover, .dash-actions a:hover { border-color: var(--accent); }
-.dash-actions :focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
 
 
 /* SEG — the one segmented toggle: statement tabs, sample business, %/$ views, report filters, period
@@ -530,6 +526,46 @@ body.dev-notes .devnote { display: flex; }
 
 .dash-body > .seg, .deliv-bar .seg { margin-bottom: var(--sp-3); }
 .dash-chart-head .seg, .report-toggles .seg { margin-bottom: var(--sp-2); }
+
+/* EXPORT MENU — one Export button and its menu (script.js mountExportMenu). A popover anchored to the button;
+   a bottom sheet on phones. */
+.xm { position: relative; display: inline-block; }
+.xm-btn { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 40px; padding: 0 var(--sp-4); font: inherit; font-size: var(--fs-sm); font-weight: 700; color: var(--accent); background: var(--paper); border: 1.5px solid var(--accent); border-radius: var(--r-pill); cursor: pointer; }
+.xm-btn:hover { background: var(--accent-soft); }
+.xm-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.xm-ico { width: 18px; height: 18px; }
+.xm-chev { width: 16px; height: 16px; transition: transform 150ms ease; }
+.xm.is-open .xm-chev { transform: rotate(180deg); }
+@media (pointer: coarse) { .xm-btn { min-height: 44px; } }
+.xm-menu { position: absolute; right: 0; top: calc(100% + var(--sp-2)); z-index: 40; width: min(400px, calc(100vw - 2rem)); padding: var(--sp-2); background: var(--paper); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-md); }
+.xm-menu[hidden] { display: none; }
+.xm-head { margin: var(--sp-1) var(--sp-2) var(--sp-2); font-size: var(--fs-xs); color: var(--muted); }
+.xm-head strong { color: var(--text); }
+.xm-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--sp-3); align-items: start; min-height: 44px; padding: var(--sp-3); color: var(--text); text-decoration: none; border-radius: var(--r-sm); }
+.xm-item:hover, .xm-item:focus-visible { background: var(--accent-soft); outline: none; }
+.xm-item[aria-disabled] { color: var(--muted); cursor: not-allowed; }
+.xm-item[aria-disabled] .xm-badge { background: var(--track); color: var(--muted); }
+.xm-badge { min-width: 48px; padding: var(--sp-1) var(--sp-2); font-size: var(--fs-xs); font-weight: 700; text-align: center; color: var(--on-accent); background: var(--accent); border-radius: var(--r-sm); }
+.xm-text { display: grid; gap: 2px; }
+.xm-text b { font-size: var(--fs-sm); }
+.xm-text span { font-size: var(--fs-xs); line-height: 1.4; color: var(--muted); }
+.xm-size { font-size: var(--fs-xs); font-weight: 700; color: var(--accent); }
+.xm-size:empty { display: none; }
+.xm-foot { display: grid; gap: var(--sp-1); margin-top: var(--sp-2); padding-top: var(--sp-2); border-top: 1px solid var(--border); }
+.xm-copy, .xm-sub { display: block; min-height: 40px; padding: var(--sp-2) var(--sp-3); font: inherit; font-size: var(--fs-sm); font-weight: 600; text-align: left; color: var(--accent); background: none; border: 0; border-radius: var(--r-sm); text-decoration: none; cursor: pointer; }
+.xm-copy:hover, .xm-copy:focus-visible, .xm-sub:hover, .xm-sub:focus-visible { background: var(--accent-soft); outline: none; }
+.xm-live { margin: 0 var(--sp-3); font-size: var(--fs-xs); font-weight: 700; color: var(--accent); }
+.xm-live:empty { display: none; }
+@media (max-width: 720px) {
+  .xm-menu { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: 85vh; overflow-y: auto; padding: var(--sp-3) var(--sp-3) var(--sp-6); border-radius: var(--r-md) var(--r-md) 0 0; }
+  .xm.is-open::before { content: ""; position: fixed; inset: 0; z-index: 39; background: var(--backdrop); }
+  .xm-item, .xm-copy, .xm-sub { min-height: 44px; }
+}
+.report-head-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); margin: var(--sp-2) 0 var(--sp-2); }
+.report-head-row .report-period { margin: 0; }
+.report-back-line { margin: var(--sp-4) 0 0; }
+.dash-export, .deliv-export { margin-left: auto; }
+.link-btn { padding: 0; font: inherit; font-weight: 600; color: var(--accent); background: none; border: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
 /* ASSUMPTIONS POP-UP */
 .assumptions { width: min(40rem, calc(100vw - 2rem)); max-height: calc(100vh - 3rem); padding: 0; border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); background: var(--paper); box-shadow: var(--shadow-md); }
@@ -846,7 +882,6 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .report-text .report-act { background: var(--accent-tint); }
 .report-table .st-total td { font-weight: 700; border-top: 1px solid var(--border); }
 .report-list { margin: 0; padding-left: var(--sp-5); } .report-list li { margin: var(--sp-1) 0; }
-.report-downloads { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-top: var(--sp-4); color: var(--muted); }
 @media (max-width: 720px) { .report-text { grid-template-columns: 1fr; } }
 .report-card { min-width: 0; }
 .report-back { margin-left: auto; color: var(--accent); font-weight: 600; text-decoration: none; }

@@ -401,6 +401,23 @@ def xl_print(ws, business, filename, retrieved, landscape=True, header_row=None,
         part.font = f"{XL_FONT},Regular"
 
 
+def export_meta(paths):
+    """What the Export menu says about each download: PDF page count and PowerPoint slide count, read from the files
+    the build just wrote (so nothing is typed in). paths: {"pdf": "media/...", "pptx": "media/..."} relative to the repo."""
+    import re
+    from pathlib import Path
+    repo = Path(__file__).resolve().parent.parent
+    meta = {}
+    pdf = repo / paths.get("pdf", "") if paths.get("pdf") else None
+    if pdf and pdf.is_file():
+        meta["pdf_pages"] = len(re.findall(rb"/Type\s*/Page(?![a-zA-Z])", pdf.read_bytes()))
+    pptx = repo / paths.get("pptx", "") if paths.get("pptx") else None
+    if pptx and pptx.is_file():
+        from pptx import Presentation
+        meta["pptx_slides"] = len(Presentation(str(pptx)).slides)
+    return meta
+
+
 def same_office_file(a, b):
     """True if two .xlsx/.pptx files differ only in their saved-at timestamps (docProps/core.xml), including
     the small workbooks embedded behind PowerPoint charts."""

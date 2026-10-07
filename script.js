@@ -219,6 +219,127 @@ function watchEmbedLoad(container) {
 }
 
 /* ---------------------------------------------------------------------------
+   EXPORT MENU — one Export button and menu wherever there are downloads (report pages, the home hero, the
+   deliveries map, and any future embedded report: Power BI or other iframe).
+
+     const menu = mountExportMenu(container, { period, filterLabel, exports: {xlsx, pdf, pptx}, meta: {pdf_pages, pptx_slides} });
+     menu.update({ period, filterLabel, exports, meta });     // when the period or the filter changes
+
+   Static pages can declare one instead: <div data-export data-export-period="September 2026" data-export-filter="All"
+   data-export-xlsx="…" data-export-pdf="…" data-export-pptx="…" data-export-pdf-pages="5" data-export-pptx-slides="9"></div>
+   No exports for a period (exports null) shows the rows disabled: "Not available for a part month".
+--------------------------------------------------------------------------- */
+const EXPORT_FORMATS = [
+  { fmt: 'xlsx', badge: 'XLSX', name: 'Excel workbook', what: 'Every figure as a live formula, the data behind it, and charts. Opens in Excel or Google Sheets.' },
+  { fmt: 'pdf', badge: 'PDF', name: 'PDF report', what: 'Print-ready A4, the same pages as this screen. For the board pack or your accountant.' },
+  { fmt: 'pptx', badge: 'PPTX', name: 'PowerPoint deck', what: 'Editable charts, one slide per finding. For the monthly meeting.' },
+];
+const ICON_DOWNLOAD = '<svg class="xm-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_CHEVRON = '<svg class="xm-chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+let exportMenuCount = 0;
+const fileSize = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+
+function mountExportMenu(container, opts) {
+  const id = `xm-${exportMenuCount += 1}`;
+  let state = { ...opts };
+  container.classList.add('xm');
+  container.innerHTML = `<button type="button" class="xm-btn" aria-haspopup="true" aria-expanded="false" aria-controls="${id}">${ICON_DOWNLOAD}<span>Export</span>${ICON_CHEVRON}</button>`
+    + `<div class="xm-menu" id="${id}" role="menu" aria-label="Export" hidden>`
+    + `<p class="xm-head"></p>`
+    + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
+    // (An "Include the workings" option would go here. Every export includes the workings for now.)
+    + `<div class="xm-foot"><button type="button" class="xm-copy" role="menuitem">Copy a link to this exact view</button>`
+    + `<a class="xm-sub" role="menuitem" href="#contact" data-placeholder="[[SUBSCRIBE_URL]]">Send this to me on the 3rd business day each month &rarr;</a></div>`
+    + `<p class="xm-live" aria-live="polite"></p></div>`;
+  const btn = container.querySelector('.xm-btn');
+  const menu = container.querySelector('.xm-menu');
+  const items = () => [...menu.querySelectorAll('[role="menuitem"]')].filter((x) => !x.hasAttribute('aria-disabled'));
+  const live = menu.querySelector('.xm-live');
+
+  function paint() {
+    const bits = [state.filterLabel, 'sample data'].filter(Boolean).map(esc).join(' · ');
+    menu.querySelector('.xm-head').innerHTML = `Export <strong>${esc(state.period || '')}</strong>${bits ? ` · ${bits}` : ''}`;
+    menu.querySelectorAll('.xm-item').forEach((a) => {
+      const href = state.exports && state.exports[a.dataset.fmt];
+      const size = a.querySelector('.xm-size');
+      if (href) {
+        a.href = href;
+        a.removeAttribute('aria-disabled');
+        a.removeAttribute('tabindex');
+        const m = state.meta || {};
+        size.textContent = a.dataset.fmt === 'pdf' && m.pdf_pages ? `${m.pdf_pages} page${m.pdf_pages === 1 ? '' : 's'}`
+          : a.dataset.fmt === 'pptx' && m.pptx_slides ? `${m.pptx_slides} slide${m.pptx_slides === 1 ? '' : 's'}` : '';
+      } else {
+        a.removeAttribute('href');
+        a.setAttribute('aria-disabled', 'true');
+        a.tabIndex = -1;
+        size.textContent = 'Not available for a part month';
+      }
+    });
+  }
+  function sizeExcel() {                         // the workbook's size, read when the menu opens (blank if that fails)
+    const a = menu.querySelector('.xm-item[data-fmt="xlsx"]');
+    if (!a.getAttribute('href')) return;
+    fetch(a.getAttribute('href'), { method: 'HEAD' }).then((r) => {
+      const n = Number(r.headers.get('content-length'));
+      if (r.ok && n) a.querySelector('.xm-size').textContent = fileSize(n);
+    }).catch(() => {});
+  }
+  function open() {
+    paint();
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    container.classList.add('is-open');
+    sizeExcel();
+    (items()[0] || btn).focus();
+  }
+  function close(refocus = true) {
+    if (menu.hidden) return;
+    menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    container.classList.remove('is-open');
+    if (refocus) btn.focus();
+  }
+  btn.addEventListener('click', () => (menu.hidden ? open() : close()));
+  menu.addEventListener('keydown', (e) => {
+    const list = items(), i = list.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); list[(i + (e.key === 'ArrowDown' ? 1 : -1) + list.length) % list.length].focus(); }
+    else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); list[e.key === 'Home' ? 0 : list.length - 1].focus(); }
+    else if (e.key === 'Tab') close(false);
+  });
+  menu.addEventListener('click', (e) => {
+    const copy = e.target.closest('.xm-copy');
+    if (copy) {
+      const done = () => { live.textContent = 'Link copied'; setTimeout(() => { live.textContent = ''; }, 2500); };
+      (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(done).catch(() => {
+        const t = document.createElement('textarea'); t.value = location.href; document.body.appendChild(t); t.select();
+        try { document.execCommand('copy'); done(); } catch { live.textContent = location.href; }
+        t.remove();
+      });
+      return;
+    }
+    const item = e.target.closest('.xm-item[aria-disabled]');
+    if (item) { e.preventDefault(); return; }
+    if (e.target.closest('.xm-item, .xm-sub')) setTimeout(() => close(), 0);   // a choice closes the menu
+  });
+  document.addEventListener('click', (e) => { if (!container.contains(e.target)) close(false); });
+  paint();
+  return { update(next) { state = { ...state, ...next }; paint(); }, close };
+}
+
+function mountStaticExportMenus() {
+  document.querySelectorAll('[data-export]').forEach((el) => {
+    const d = el.dataset;
+    mountExportMenu(el, {
+      period: d.exportPeriod, filterLabel: d.exportFilter,
+      exports: d.exportXlsx || d.exportPdf || d.exportPptx ? { xlsx: d.exportXlsx, pdf: d.exportPdf, pptx: d.exportPptx } : null,
+      meta: { pdf_pages: Number(d.exportPdfPages) || 0, pptx_slides: Number(d.exportPptxSlides) || 0 },
+    });
+  });
+}
+
+/* ---------------------------------------------------------------------------
    GAME SLOT — "The Month-End Run".
 
    The page only loads the poster image. Pressing Play (on the poster or the
@@ -463,7 +584,7 @@ function openSupport(sp) {
     + `<table class="support-table${twoCol ? ' support-table--two' : ''}">${head}<tbody>${twoCol ? rows.replace(/<td class="n"><\/td>/g, '') : rows}</tbody></table>`
     + (sp.note ? `<p class="assumptions-intro">${esc(sp.note)}</p>` : '')
     + (sp.series ? renderSeries(sp.series, chartWidth(document.getElementById('support-body'), 40)) : '')
-    + `<p class="support-foot">Sample data. Every figure is in the Excel download.</p>`;
+    + `<p class="support-foot">Sample data. Every figure is in the Excel download.${document.getElementById('assumptions-dialog') ? ' <button type="button" class="link-btn" data-open-assumptions>See all assumptions</button>' : ''}</p>`;
   const dlg = document.getElementById('support-dialog');
   if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
 }
@@ -522,9 +643,10 @@ function renderDash() {
     chip.textContent = `${rep.label.split(' ')[0]} ${rep.status.toLowerCase()}`;
     chip.title = data.status.map((m) => m.note).join(' ');
   }
-  document.getElementById('dash-xlsx').href = o.exports.xlsx;
-  document.getElementById('dash-pdf').href = o.exports.pdf;
-  if (document.getElementById('dash-pptx')) document.getElementById('dash-pptx').href = o.exports.pptx;
+  if (dash.menu) dash.menu.update({ period: rep.label, filterLabel: o.toggle, exports: o.exports, meta: o.exports_meta });
+  const u = new URL(window.location.href);
+  if (dash.org === data.orgs[0].id) u.searchParams.delete('business'); else u.searchParams.set('business', dash.org);
+  if (u.href !== window.location.href) history.replaceState(null, '', u);
   renderAssumptions(o);
 }
 
@@ -556,6 +678,8 @@ function setupDeliveries() {
   } else {
     document.getElementById('deliv-map').innerHTML = '<p style="padding:1rem">The map could not load. The Excel and PDF downloads have every delivery.</p>';
   }
+  const exportBox = document.getElementById('deliv-export');
+  const menu = exportBox ? mountExportMenu(exportBox, { period: D.periods[0].long, exports: D.exports, meta: D.exports_meta }) : null;
   document.getElementById('deliv-periods').innerHTML = D.periods.map((p) => `<button type="button" data-period="${p.id}" aria-pressed="false">${esc(p.label)}</button>`).join('');
   const pct = (v) => (v == null ? '–' : `${Number(v).toFixed(1)}%`);
   function render() {
@@ -564,6 +688,7 @@ function setupDeliveries() {
     box.querySelectorAll('[data-period]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.period === st.period)));
     document.getElementById('deliv-status').innerHTML = `<span class="dash-status is-${v.status.toLowerCase()}">${esc(v.status)}</span>${esc(v.status_note)}`;
     document.getElementById('deliv-period-label').textContent = `${out ? 'Deliveries out to customers' : 'Deliveries in from suppliers'} · ${D.periods.find((p) => p.id === st.period).long}`;
+    if (menu) menu.update({ period: D.periods.find((p) => p.id === st.period).long, filterLabel: 'In and out: every delivery' });
     document.getElementById('deliv-kpis').innerHTML = [
       [out ? 'Deliveries' : 'Deliveries due', k.total.toLocaleString('en-AU'), ''],
       ['On time', pct(k.on_time_pct), k.on_time_pct != null && k.on_time_pct < 95 ? 'bad' : ''],
@@ -680,11 +805,17 @@ function renderArea(labels, values, status, format, mini, width) {
 
 function renderColumns(labels, values, status, format, width) { return renderArea(labels, values, status, format, true, width); }
 
-function mountReport(root, r, only, simple) {
+function mountReport(root, r, only, simple, opts = {}) {
   // Draws a report into root. One filter per block drives every section ("vary" sections have a version
   // for each filter value; bars and tables highlight it; series follow it). Only sections whose content
   // changed are redrawn, so charts don't re-animate when nothing about them changed.
   const state = { block: 0, filter: {}, views: {} };
+  if (opts.initial) {                                   // e.g. from ?business=services&filter=Installations
+    const bi = r.blocks.findIndex((x) => x.label && x.label.toLowerCase() === String(opts.initial.business || '').toLowerCase());
+    if (bi >= 0) state.block = bi;
+    const fb = r.blocks[state.block].filter;
+    if (fb && opts.initial.filter != null && fb.options.some(([v]) => v === opts.initial.filter)) state.filter[state.block] = opts.initial.filter;
+  }
   const supports = [];
   const cw = () => chartWidth(root, 38);                    // a card's inner width (cards have ~18px padding a side)
   const sup = (sp) => { supports.push(sp); return supports.length - 1; };
@@ -761,11 +892,16 @@ function mountReport(root, r, only, simple) {
       el.dataset.h = h;
     });
     while (slots.length > parts.length) slots.pop().remove();
+    if (opts.onState) {
+      const opt = b.filter ? b.filter.options.find(([v]) => v === fval()) : null;
+      opts.onState({ business: r.blocks.length > 1 ? b.label : null, filter: b.filter ? fval() : null, filterLabel: opt ? opt[1] : null, isDefaultFilter: !b.filter || fval() === b.filter.options[0][0] });
+    }
   }
   root.innerHTML = '';
   // redraw at the new width when the box resizes (no re-animation)
   let lastW = root.clientWidth;
-  if ('ResizeObserver' in window) new ResizeObserver(() => {
+  if ('ResizeObserver' in window) new ResizeObserver((entries, ro) => {
+    if (!root.isConnected) { ro.disconnect(); return; }          // this report was replaced (e.g. a new period): stop
     if (Math.abs(root.clientWidth - lastW) < 8) return;
     lastW = root.clientWidth;
     slots.forEach((el) => el.classList.add('no-anim'));
@@ -820,33 +956,49 @@ function setupReport() {
       s_.onerror = fail;
       document.head.appendChild(s_);
     });
+    const params = new URLSearchParams(window.location.search);
+    let view = { business: params.get('business'), filter: params.get('filter') };     // restored from a copied link
+    let current = base;
+    const exportBox = document.getElementById('report-export');
+    const menu = exportBox ? mountExportMenu(exportBox, { period: base.period_label, exports: base.exports, meta: base.exports_meta }) : null;
+    const syncUrl = () => {
+      const u = new URL(window.location.href);
+      const set = (k, v) => (v ? u.searchParams.set(k, v) : u.searchParams.delete(k));
+      set('period', current.period === base.default_period ? null : current.period);
+      set('business', view.business && current.blocks.length > 1 && view.business !== current.blocks[0].label ? view.business.toLowerCase() : null);
+      set('filter', view.isDefaultFilter ? null : view.filter);
+      history.replaceState(null, '', u);
+    };
     const show = (r) => {
+      current = r;
       const st = r.status[0];
       const later = r.status.slice(1).map((x) => `${x.label} is still in progress`);
       meta.innerHTML = `${metaStart} · <span class="dash-status is-${st.status.toLowerCase()}" title="${esc(r.status.map((x) => x.note).join(' '))}">${esc(r.period_label)}: ${esc(st.status.toLowerCase())}</span>${later.length ? ` · ${esc(later.join(' · '))}` : ''}`;
       document.getElementById('report-period-note').textContent = r.part_note || '';
-      document.getElementById('report-dl-period').textContent = ` (${r.period_label})`;
-      document.querySelectorAll('#report-dl a[data-fmt]').forEach((a) => { a.href = r.exports[a.dataset.fmt]; });
       const root = document.getElementById('report-root');
       root.innerHTML = '';
       const inner = document.createElement('div');
       root.appendChild(inner);
-      mountReport(inner, r);
+      mountReport(inner, r, null, false, {
+        initial: view,
+        onState: (v) => {
+          view = v;
+          if (menu) menu.update({ period: r.period_label, filterLabel: [v.business, v.filterLabel].filter(Boolean).join(' · '), exports: r.exports, meta: r.exports_meta });
+          syncUrl();
+        },
+      });
     };
     const go = (p, push) => {
       sel.disabled = true;
       load(p).then((r) => {
         show(r);
         sel.value = p;
-        const u = new URL(window.location.href);
-        if (p === base.default_period) u.searchParams.delete('period'); else u.searchParams.set('period', p);
-        if (push) history.replaceState(null, '', u);
       }).catch(() => {
         document.getElementById('report-period-note').textContent = 'That period could not load. Try again, or pick another.';
         sel.value = base.period;
       }).finally(() => { sel.disabled = false; });
     };
-    const want = new URLSearchParams(window.location.search).get('period');
+    const want = params.get('period');
     const valid = (p) => base.periods.some((o) => o.value === p);
     if (want && valid(want) && want !== base.period) go(want, false); else show(base);
     if (sel) sel.addEventListener('change', () => go(sel.value, true));
@@ -893,6 +1045,10 @@ function setupHeroDash() {
   const box = document.getElementById('hero-dash');
   const data = window.FOURTH_SHEET_DASHBOARD;
   if (!box || !data) return;
+  const askedFor = new URLSearchParams(window.location.search).get('business');
+  if (data.orgs.some((o) => o.id === askedFor)) dash.org = askedFor;
+  const exportBox = document.getElementById('dash-export');
+  if (exportBox) dash.menu = mountExportMenu(exportBox, { period: data.status[0].label });
   document.getElementById('dash-orgs').innerHTML = data.orgs.map((o) => `<button type="button" data-org="${o.id}" aria-pressed="false">${esc(o.toggle)}</button>`).join('');
   // switching organisation always opens on the fourth sheet
   box.querySelectorAll('[data-org]').forEach((b) => b.addEventListener('click', () => { dash.org = b.dataset.org; dash.tab = 'fourth'; renderDash(); }));
@@ -908,7 +1064,13 @@ function setupHeroDash() {
     });
   });
   const dlg = document.getElementById('assumptions-dialog');
-  document.getElementById('dash-assumptions').addEventListener('click', () => (dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', '')));
+  // "See all assumptions" sits in the workings dialog
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-open-assumptions]')) return;
+    const sd = document.getElementById('support-dialog');
+    if (sd && sd.open) sd.close();
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+  });
   document.getElementById('assumptions-close').addEventListener('click', () => dlg.close());
   // workings: headline numbers, chart bars and the %/$ toggle
   const sdlg = document.getElementById('support-dialog');
@@ -973,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupGameSlot();
   applyPrices();
-  setupHeroDash(); setupDeliveries(); setupReport();
+  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
 });

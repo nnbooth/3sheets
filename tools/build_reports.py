@@ -65,6 +65,7 @@ def page_payload(reports):
             b.pop("table_xl", None)
         base = f"media/exports/reports/{r['period']}/{r['slug']}"
         r["exports"] = {"xlsx": base + ".xlsx", "pdf": base + ".pdf", "pptx": base + ".pptx"}
+        r["exports_meta"] = r.get("exports_meta") or {}
         r["status"] = [{"label": date.fromisoformat(m + "-01").strftime("%B %Y"), "status": ds.month_status(m)[0], "note": ds.month_status(m)[1]}
                        for m in r["status_months"][1:]]
         out[r["slug"]] = strip(r)
@@ -103,15 +104,16 @@ def write_pages(reports):
           <p class="eyebrow"><a href="{page}">{label}</a> · Example report</p>
           <h1>{r['question']}</h1>
           <p class="lead">{r['intro']}</p>
+          <div class="report-head-row">
           <div class="report-period"><label for="report-period">Period</label>
             <select id="report-period">{''.join(f'<option value="{o["value"]}"{" selected" if o["value"] == r["period"] else ""}>{o["label"]}{" (incomplete)" if o["status"] == "Incomplete" else ""}</option>' for o in r["periods"])}</select>
             <span class="report-period-note" id="report-period-note"></span></div>
+          <div class="report-export" id="report-export"><noscript><a href="{dl}.xlsx" download>Excel</a> · <a href="{dl}.pdf" download>PDF</a> · <a href="{dl}.pptx" download>PowerPoint</a></noscript></div>
+          </div>
           <p class="report-meta" id="report-meta"><span class="dash-sample">Sample data</span> {r['business']}</p>
           <div id="report-root"><noscript><p>Turn on JavaScript to see this report, or download it:
             <a href="{dl}.pdf">PDF</a> · <a href="{dl}.xlsx">Excel</a> · <a href="{dl}.pptx">PowerPoint</a>.</p></noscript></div>
-          <div class="report-downloads"><span>Download this report<span id="report-dl-period"> ({r['period_label']})</span>:</span>
-            <span class="dash-actions" id="report-dl"><a href="{dl}.xlsx" download data-fmt="xlsx">Excel</a><a href="{dl}.pdf" download data-fmt="pdf">PDF</a><a href="{dl}.pptx" download data-fmt="pptx">PowerPoint</a></span>
-            <a class="report-back" href="{page}#reports">&larr; Back to {label}</a></div>
+          <p class="report-back-line"><a class="report-back" href="{page}#reports">&larr; Back to {label}</a></p>
         </div>
 {dialog}      </section>
 {contact}    </main>'''

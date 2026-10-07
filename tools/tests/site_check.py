@@ -7,9 +7,10 @@ site_check.py — check the whole website in a real browser. Run it after any ch
 It starts its own local web server, then:
   - every page at desktop, tablet and phone width: no script errors, no sideways scrolling,
     and every local link, image and download resolves;
-  - every report page: the Period dropdown changes the report, puts ?period= in the address,
-    points the downloads at that period's files (which must exist), deep links work, and the
-    "how it's worked out" dialog opens.
+  - every report page, every period: the Period dropdown changes the report; the Export menu's header names the
+    period and its three downloads point at that period's files (which must exist); a copied link (period and
+    filter) restores the same view; ?period= links work; the "how it's worked out" dialog opens;
+  - the Export menu works from the keyboard alone, and the home and deliveries menus point at real files.
 Prints PROBLEMS: [] when everything passes (and exits 1 otherwise).
 """
 
@@ -91,20 +92,45 @@ def main():
                 pg.goto(base + f"report-{s}.html")
                 pg.wait_for_timeout(400)
                 opts = pg.eval_on_selector_all("#report-period option", "o => o.map(x => x.value)")
+                labels = pg.eval_on_selector_all("#report-period option", "o => o.map(x => x.textContent.replace(' (incomplete)', ''))")
                 if len(opts) < 2:
                     probs.append((w, s, "Period dropdown missing"))
                     continue
                 before = pg.inner_text("#report-root")
-                other = [o for o in opts if o != pg.eval_on_selector("#report-period", "e => e.value")][-1]
-                pg.select_option("#report-period", other)
-                pg.wait_for_timeout(600)
-                if pg.inner_text("#report-root") == before:
-                    probs.append((w, s, "report didn't change with the period"))
-                if f"period={other}" not in pg.url:
-                    probs.append((w, s, "address doesn't carry the period"))
-                for u in pg.eval_on_selector_all("#report-dl a", "a => a.map(x => x.getAttribute('href'))"):
-                    if other not in u or not ok(base + u):
-                        probs.append((w, s, "download missing", u))
+                opening = pg.eval_on_selector("#report-period", "e => e.value")     # the period the page opens on
+                if w == 1280:
+                    periods = list(zip(opts, labels))           # every period at desktop width; the oldest elsewhere
+                else:
+                    periods = [(opts[-1], labels[-1])]
+                for per, lab in periods:
+                    pg.select_option("#report-period", per)
+                    pg.wait_for_timeout(450)
+                    if per != opening and pg.inner_text("#report-root") == before:
+                        probs.append((w, s, per, "report didn't change with the period"))
+                    if per != opening and f"period={per}" not in pg.url:
+                        probs.append((w, s, per, "address doesn't carry the period"))
+                    pg.click(".xm-btn")
+                    pg.wait_for_timeout(120)
+                    head = pg.inner_text(".xm-head")
+                    if lab.split(" to date")[0] not in head:
+                        probs.append((w, s, per, "export menu header", head))
+                    hrefs = pg.eval_on_selector_all(".xm-item", "a => a.map(x => x.getAttribute('href'))")
+                    for u in hrefs:
+                        if not u or per not in u or not ok(base + u):
+                            probs.append((w, s, per, "export file missing", u))
+                    pg.keyboard.press("Escape")
+                # copy the link to this exact view (a non-default filter where there is one), reload it, same view back
+                filt = pg.eval_on_selector_all(".report-filter .seg button", "b => b.map(x => x.dataset.filter)")
+                if filt:
+                    pg.click(f'.report-filter .seg button[data-filter="{filt[-1]}"]')
+                    pg.wait_for_timeout(300)
+                link = pg.url
+                pg.goto(link)
+                pg.wait_for_timeout(700)
+                if pg.eval_on_selector("#report-period", "e => e.value") != periods[-1][0]:
+                    probs.append((w, s, "copied link didn't restore the period", link))
+                if filt and pg.eval_on_selector('.report-filter .seg button[aria-pressed="true"]', "b => b.dataset.filter") != filt[-1]:
+                    probs.append((w, s, "copied link didn't restore the filter", link))
                 mid = opts[len(opts) // 2]
                 pg.goto(base + f"report-{s}.html?period={mid}")
                 pg.wait_for_timeout(600)
@@ -115,6 +141,31 @@ def main():
                 if not pg.eval_on_selector("#support-dialog", "d => d.open"):
                     probs.append((w, s, "workings dialog didn't open"))
                 pg.keyboard.press("Escape")
+            if w == 1280:
+                # keyboard only: Tab to Export, Enter opens with focus on the first item, arrows move, Esc closes and returns
+                pg.goto(base + "report-job-margins.html")
+                pg.wait_for_timeout(500)
+                pg.focus(".xm-btn")
+                pg.keyboard.press("Enter")
+                pg.wait_for_timeout(120)
+                f1 = pg.evaluate("document.activeElement.dataset.fmt")
+                pg.keyboard.press("ArrowDown")
+                f2 = pg.evaluate("document.activeElement.dataset.fmt")
+                pg.keyboard.press("Escape")
+                pg.wait_for_timeout(80)
+                back = pg.evaluate("document.activeElement.classList.contains('xm-btn')")
+                closed = pg.eval_on_selector(".xm-menu", "m => m.hidden")
+                if (f1, f2, back, closed) != ("xlsx", "pdf", True, True):
+                    probs.append(("keyboard", f1, f2, back, closed))
+                # home hero and deliveries: the Export menu points at real files
+                for page, sel in (("index.html", "#dash-export"), ("examples.html", "#deliv-export")):
+                    pg.goto(base + page)
+                    pg.wait_for_timeout(600)
+                    pg.click(f"{sel} .xm-btn")
+                    for u in pg.eval_on_selector_all(f"{sel} .xm-item", "a => a.map(x => x.getAttribute('href'))"):
+                        if not u or not ok(base + u):
+                            probs.append((page, "export file missing", u))
+                    pg.keyboard.press("Escape")
         br.close()
     httpd.shutdown()
     print(f"{len(pages)} pages x 3 widths and {len(REPORTS)} reports checked. PROBLEMS: {probs}")

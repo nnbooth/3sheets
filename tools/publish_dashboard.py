@@ -78,7 +78,7 @@ def dashboard_payload(res):
             "columns": fm.COLUMNS, "unit": "$",
             "statements": statements(org, v),
             "fourth": {"kpis": f4["kpis"], "chart": f4["chart"]},
-            "checks": checks(org), "assumptions": v["assumptions"], "exports": export_paths(org),
+            "checks": checks(org), "assumptions": v["assumptions"], "exports": export_paths(org), "exports_meta": ek.export_meta(export_paths(org)),
         })
     status = [{"month": m, "label": date.fromisoformat(m + "-01").strftime("%b %Y"), "status": ds.month_status(m)[0],
                "note": ds.month_status(m)[1]} for m in STATUS_MONTHS]
@@ -662,9 +662,9 @@ def write_pdfs(res):
 def publish():
     res = fm.build()  # runs every check; stops here if anything doesn't add up
     publish.res = res
-    write_dashboard_js(res)
     for org in ORDER:
         write_xlsx(org, res[org])
         write_pptx(org, res[org])
     write_pdfs(res)
+    write_dashboard_js(res)          # after the files, so the Export menu can say how many pages and slides they have
     return csv_tables(res)

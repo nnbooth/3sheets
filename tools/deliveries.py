@@ -649,10 +649,11 @@ def write_pptx(d):
 
 def publish():
     d = build()
-    write_js(d)
     write_xlsx(d)
     write_pdf(d)
     write_pptx(d)
+    d["payload"]["exports_meta"] = ek.export_meta(d["payload"]["exports"])
+    write_js(d)                      # after the files, so the Export menu can say how many pages and slides they have
     return d
 
 

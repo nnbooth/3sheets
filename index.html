@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-29" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-30" />
   </head>
 
   <!--
@@ -115,12 +115,7 @@
             </div>
             <figcaption class="dash-caption">
               <span class="dash-sample">Sample data</span>
-              <span class="dash-actions">
-                <button type="button" id="dash-assumptions">Assumptions</button>
-                <a id="dash-xlsx" href="media/exports/trades-sample-statements.xlsx" download>Excel</a>
-                <a id="dash-pdf" href="media/exports/trades-sample-statements.pdf" download>PDF</a>
-                <a id="dash-pptx" href="media/exports/trades-sample-statements.pptx" download>PowerPoint</a>
-              </span>
+              <div class="dash-export" id="dash-export"><noscript><a href="media/exports/trades-sample-statements.xlsx" download>Excel</a> · <a href="media/exports/trades-sample-statements.pdf" download>PDF</a> · <a href="media/exports/trades-sample-statements.pptx" download>PowerPoint</a></noscript></div>
             </figcaption>
           </figure>
 
@@ -261,7 +256,7 @@
       </div>
     </footer>
 
-    <script src="data/dashboard-data.js?v=2026-10-29"></script>
-    <script src="script.js?v=2026-10-29"></script>
+    <script src="data/dashboard-data.js?v=2026-10-30"></script>
+    <script src="script.js?v=2026-10-30"></script>
   </body>
 </html>

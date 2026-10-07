@@ -96,9 +96,12 @@ def write_site(all_runs):
     """data/reports-data.js (each report at its default period, plus the list of periods) and
     data/reports/<slug>/<period>.js (every other period, loaded when someone picks it)."""
     import build_reports as br
+    import exportkit as ek
     base = {}
     for slug, runs in all_runs.items():
         for r in runs:
+            base_path = f"media/exports/reports/{r['period']}/{r['slug']}"
+            r["exports_meta"] = ek.export_meta({"pdf": base_path + ".pdf", "pptx": base_path + ".pptx"})
             p = site_payload(r)
             if r["period"] == r["default_period"]:
                 base[slug] = p
@@ -124,7 +127,6 @@ def build_all(formats=("xlsx", "pdf", "pptx"), quiet=False):
     D = load_data()
     runs = {slug: [run_report(slug, p, D) for p in periods_for(slug, D)] for slug in REPORTS}
     defaults = [next(r for r in rs if r["period"] == r["default_period"]) for rs in runs.values()]
-    size = write_site(runs)
     br.write_pages(defaults)
     br.write_cards(defaults)
     br.write_explainer()
@@ -138,6 +140,7 @@ def build_all(formats=("xlsx", "pdf", "pptx"), quiet=False):
             br.write_pptx(r, out_dir(r))
     if "pdf" in formats:
         br.write_pdfs(flat)
+    size = write_site(runs)          # after the files, so the Export menu can say how many pages and slides they have
     print(f"  {len(runs)} reports × their periods = {len(flat)} runs, each as Excel, PDF and PowerPoint (media/exports/reports/<period>/); "
           f"data/reports-data.js {size // 1024} KB + one file per period")
     return defaults
