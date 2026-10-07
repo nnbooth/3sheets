@@ -162,6 +162,29 @@ function buildReportCard(report, index) {
   return card;
 }
 
+function setupLightbox() {
+  // Mock-up images open in a <dialog> on the page (Esc or the close button shuts it); the link still works without JS.
+  const links = document.querySelectorAll('a.display-link');
+  if (!links.length) return;
+  const dlg = document.createElement('dialog');
+  dlg.className = 'lightbox';
+  dlg.innerHTML = '<button type="button" class="lightbox-close" aria-label="Close">&times;</button><img alt="" /><p class="lightbox-cap"></p>';
+  document.body.appendChild(dlg);
+  const img = dlg.querySelector('img'), cap = dlg.querySelector('.lightbox-cap');
+  links.forEach((a) => a.addEventListener('click', (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;            // let a new-tab click through
+    e.preventDefault();
+    const src = a.querySelector('img');
+    img.src = a.getAttribute('href');
+    img.alt = src ? src.alt : '';
+    const fc = a.closest('figure') && a.closest('figure').querySelector('figcaption');
+    cap.textContent = fc ? fc.textContent : '';
+    dlg.showModal();
+  }));
+  dlg.querySelector('.lightbox-close').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+}
+
 function renderReports() {
   const grid = document.getElementById('report-grid');
   if (!grid) return;
@@ -697,7 +720,7 @@ function renderDash() {
    tools/deliveries.py (don't type numbers in here). Map: Leaflet with
    OpenStreetMap tiles. Dot colour = share on time; red if anything overdue.
 --------------------------------------------------------------------------- */
-const DELIV_COL = { good: '#0E9F6E', some: '#b28a92', bad: '#8f4a3e', open: '#8e9cab' };
+const DELIV_COL = { good: '#0E9F6E', some: '#8a6d3b', bad: '#8f4a3e', open: '#8e9cab' };
 function delivBand(p) {
   const done = p.on_time + p.late + p.very_late;
   if (p.overdue) return 'bad';
@@ -1202,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupGameSlot();
   applyPrices();
-  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm();
+  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
 });

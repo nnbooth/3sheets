@@ -123,7 +123,7 @@ SUPPLIERS = [
     ("S14", "Supplier N", "Bundamba", "QLD", -27.610, 152.800, 1, "Supplier's own truck", 0.04),
 ]
 IN_REASONS = [("Line-haul delay", 4), ("Supplier stock shortage", 3), ("Booking slot missed", 2), ("Port / customs hold", 1)]
-COLOURS = {"On time": "#0E9F6E", "Late": "#b28a92", "Very late": "#8f4a3e", "Overdue": "#8f4a3e", "In transit": "#8e9cab",
+COLOURS = {"On time": "#0E9F6E", "Late": "#8a6d3b", "Very late": "#8f4a3e", "Overdue": "#8f4a3e", "In transit": "#8e9cab",
            "Due": "#8e9cab"}
 
 
@@ -561,7 +561,7 @@ def html_report(d):
 <div class=kpis><div><span>Deliveries</span><b>{k['total']:,}</b></div><div><span>On time</span><b>{k['on_time_pct']:.1f}%</b></div>
 <div><span>Late</span><b>{k['late']}</b></div><div><span>Overdue now</span><b>{k['overdue']}</b></div><div><span>In full</span><b>{k['in_full_pct']:.1f}%</b></div></div>
 <div class=row><div id=map-{s} class=map></div><div class=side><h3>Where it's going wrong</h3><ul>{hot}</ul>
-<p class=legend><i style="background:#0E9F6E"></i>95%+ on time <i style="background:#b28a92"></i>80–95% <i style="background:#8f4a3e"></i>under 80% or overdue</p>
+<p class=legend><i style="background:#0E9F6E"></i>95%+ on time <i style="background:#8a6d3b"></i>80–95% <i style="background:#8f4a3e"></i>under 80% or overdue</p>
 <p class=note>Dot size = number of deliveries. Every delivery is in the Excel download.</p></div></div></section>"""
 
     return f"""<!doctype html><html><head><meta charset=utf-8>
@@ -591,7 +591,7 @@ h1 {{ font-size: 15pt; margin: 4px 0; }} h2 {{ font-size: 12pt; color: #2f7a5d; 
 <script>
 const D = {json.dumps(p)};
 function band(pt) {{ const done = pt.on_time + pt.late + pt.very_late; if (pt.overdue) return '#8f4a3e'; if (!done) return '#8e9cab';
-  const r = pt.on_time / done; return r >= 0.95 ? '#0E9F6E' : r >= 0.8 ? '#b28a92' : '#8f4a3e'; }}
+  const r = pt.on_time / done; return r >= 0.95 ? '#0E9F6E' : r >= 0.8 ? '#8a6d3b' : '#8f4a3e'; }}
 window.tilesLoaded = 0;
 for (const s of ['out', 'in']) {{
   const m = L.map('map-' + s, {{ zoomControl: false, attributionControl: true }});
