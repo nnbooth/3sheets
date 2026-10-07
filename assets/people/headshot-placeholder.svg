@@ -1,0 +1,6 @@
+<!-- Neutral headshot placeholder. Replace with your photo: see the project notes in OneDrive (PHOTO). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Headshot placeholder">
+  <rect width="120" height="120" rx="60" fill="#eaf6ee"/>
+  <circle cx="60" cy="47" r="21" fill="#cfe3d5"/>
+  <path d="M22 106c4-21 20-33 38-33s34 12 38 33" fill="#cfe3d5"/>
+</svg>
