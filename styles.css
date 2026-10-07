@@ -569,6 +569,32 @@ body.dev-notes .devnote { display: flex; }
 .hero-dash > .dash-caption { border-radius: 0 0 var(--r-md) var(--r-md); }
 .link-btn { padding: 0; font: inherit; font-weight: 600; color: var(--accent); background: none; border: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
+/* CONTACT PAGE — the form and the booking panel */
+.contact-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--sp-6); align-items: start; margin-top: var(--sp-6); }
+.contact-form, .contact-book { padding: var(--sp-6); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); }
+.contact-form { display: grid; gap: var(--sp-4); }
+.contact-book { background: var(--accent-soft); }
+.contact-book h2 { font-size: var(--fs-lg); }
+.contact-request { margin: 0; padding: var(--sp-3) var(--sp-4); background: var(--accent-tint); border: 1px solid var(--accent-tint-border); border-radius: var(--r-sm); }
+.contact-topic { display: grid; gap: var(--sp-2); margin: 0; padding: 0; border: 0; }
+.contact-topic legend { margin-bottom: var(--sp-2); font-weight: 700; }
+.contact-topic label, .field-check { display: flex; align-items: flex-start; gap: var(--sp-2); min-height: 32px; }
+.contact-topic input, .field-check input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--accent); flex: none; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+.field { display: grid; gap: var(--sp-1); }
+.field > span { font-size: var(--fs-sm); font-weight: 700; }
+.field small { font-weight: 400; color: var(--muted); }
+.field input, .field textarea { min-height: 44px; padding: var(--sp-2) var(--sp-3); font: inherit; color: var(--text); background: var(--paper); border: 1px solid var(--border-strong); border-radius: var(--r-sm); }
+.field input:focus-visible, .field textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.field-check { font-size: var(--fs-sm); color: var(--muted); }
+.field-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.contact-form .button { justify-self: start; border: 0; font: inherit; font-weight: 600; cursor: pointer; }
+.form-status { margin: 0; font-weight: 600; color: var(--accent); }
+.form-status:empty { display: none; }
+.contact-form-link { margin: var(--sp-2) 0 0; }
+.contact-form-link a { font-weight: 700; color: var(--accent); }
+@media (max-width: 900px) { .contact-grid, .field-row { grid-template-columns: 1fr; } }
+
 /* ASSUMPTIONS POP-UP */
 .assumptions { width: min(40rem, calc(100vw - 2rem)); max-height: calc(100vh - 3rem); padding: 0; border: 1px solid var(--border); border-radius: var(--r-md); color: var(--text); background: var(--paper); box-shadow: var(--shadow-md); }
 .assumptions::backdrop { background: var(--backdrop); }

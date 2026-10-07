@@ -32,3 +32,8 @@
 - SME services: three September engagements now sit below the 40% target, each for a stated reason in `financial_model.py`. The Hospitality payroll retainer has scope creep (52 hours in September and 48 in August on the same fee: 25.7%). The Logistics systems rollout leans on contractors (35.2%). Excel for managers carries a venue and co-trainer (27.7%). Every CSV, `schema.sql`, the table guide, the Power BI prompts and all downloads are rebuilt from the model.
 - Grant budget chart: under budget is red, the same as over budget; within 1% is amber; on budget is neutral. Same on the site, in the PDF and in PowerPoint.
 - Export menu: "Copy a link to this exact view" removed sitewide; the menu is narrower. The hero's menu opens upwards and is no longer clipped by the card.
+
+## Contact page (7 Oct, on `export-menu`)
+- New `contact.html`. A form (what you'd like: a monthly report on the 3rd business day, a numbers check, or something else; name, email, organisation, phone, message, consent) posts to a form service that emails Nathan. Its address is a new placeholder, `[[FORM_ENDPOINT]]` (e.g. Formspree), and until it's set the form says nothing has been sent. Beside it is "Or book a time" (`[[BOOKING_URL]]`, which also says it isn't live yet). A hidden trap field catches spam bots.
+- The Export menu's "Send this to me on the 3rd business day each month →" now opens the contact page with the report, period and view filled in. This replaces the `[[SUBSCRIBE_URL]]` placeholder added earlier today.
+- "Contact" in the menu now opens the contact page on every page, and each page's contact block gains "Or send me your details →".

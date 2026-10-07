@@ -248,13 +248,15 @@ function mountExportMenu(container, opts) {
     + `<p class="xm-head"></p>`
     + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
     // (An "Include the workings" option would go here. Every export includes the workings for now.)
-    + `<div class="xm-foot"><a class="xm-sub" role="menuitem" href="#contact" data-placeholder="[[SUBSCRIBE_URL]]">Send this to me on the 3rd business day each month &rarr;</a></div>`
+    + `<div class="xm-foot"><a class="xm-sub" role="menuitem" href="contact.html?topic=monthly">Send this to me on the 3rd business day each month &rarr;</a></div>`
     + `</div>`;
   const btn = container.querySelector('.xm-btn');
   const menu = container.querySelector('.xm-menu');
   const items = () => [...menu.querySelectorAll('[role="menuitem"]')].filter((x) => !x.hasAttribute('aria-disabled'));
 
   function paint() {
+    const q = new URLSearchParams({ topic: 'monthly', report: state.report || document.title.split(' | ')[0], period: state.period || '', view: state.filterLabel || '' });
+    menu.querySelector('.xm-sub').href = `contact.html?${q}`;
     const bits = [state.filterLabel, 'sample data'].filter(Boolean).map(esc).join(' · ');
     menu.querySelector('.xm-head').innerHTML = `Export <strong>${esc(state.period || '')}</strong>${bits ? ` · ${bits}` : ''}`;
     menu.querySelectorAll('.xm-item').forEach((a) => {
@@ -324,6 +326,48 @@ function mountStaticExportMenus() {
       exports: d.exportXlsx || d.exportPdf || d.exportPptx ? { xlsx: d.exportXlsx, pdf: d.exportPdf, pptx: d.exportPptx } : null,
       meta: { pdf_pages: Number(d.exportPdfPages) || 0, pptx_slides: Number(d.exportPptxSlides) || 0 },
     });
+  });
+}
+
+/* ---------------------------------------------------------------------------
+   CONTACT PAGE (contact.html) — the form posts to a form service that emails Nathan (the form's action, still the
+   placeholder [[FORM_ENDPOINT]]). Until that's set the form says so rather than pretending to send. A link from a
+   report's Export menu (?topic=monthly&report=…&period=…&view=…) fills in what's being asked for.
+--------------------------------------------------------------------------- */
+function setupContactForm() {
+  const form = document.getElementById('contact-form');
+  if (!form) return;
+  const q = new URLSearchParams(location.search);
+  const status = document.getElementById('form-status');
+  if (q.get('topic')) {
+    const radio = form.querySelector(`input[name="topic"][value="${CSS.escape(q.get('topic'))}"]`);
+    if (radio) radio.checked = true;
+  }
+  ['report', 'period', 'view'].forEach((k) => { form.elements[k].value = q.get(k) || ''; });
+  if (q.get('topic') === 'monthly' && q.get('report')) {
+    const req = document.getElementById('contact-request');
+    req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''}, sent to you on the 3rd business day of each month${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
+    req.hidden = false;
+  }
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+    const action = form.getAttribute('action') || '';
+    if (!/^https?:\/\//.test(action)) {                    // still the [[FORM_ENDPOINT]] placeholder
+      status.textContent = "Thanks. This form goes live with the business email, so nothing has been sent yet. Please try again soon.";
+      return;
+    }
+    status.textContent = 'Sending…';
+    fetch(action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } })
+      .then((r) => { if (!r.ok) throw new Error(); form.reset(); status.textContent = "Thanks: that's with me. I'll be in touch within one business day."; })
+      .catch(() => { status.textContent = "That didn't send. Please try again in a moment."; });
+  });
+  // the booking link is still a placeholder ([[BOOKING_URL]]): say so rather than jumping nowhere
+  const book = document.querySelector('[data-booking]');
+  if (book) book.addEventListener('click', (e) => {
+    if (/^https?:\/\//.test(book.getAttribute('href'))) return;
+    e.preventDefault();
+    document.getElementById('book-status').textContent = 'Online booking opens soon.';
   });
 }
 
@@ -1125,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupGameSlot();
   applyPrices();
-  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus();
+  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
 });

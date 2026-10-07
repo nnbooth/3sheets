@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>About | The Fourth Sheet</title>
-    <meta name="description" content="Nathan Booth: an accountant who also builds the dashboards. Brisbane-based, working with SMEs and not-for-profits." />
+    <title>Contact | The Fourth Sheet</title>
+    <meta name="description" content="Send Nathan your details, ask for a report each month, or book a free 20-minute numbers check." />
 
     <!-- Favicon: SVG for modern browsers, PNG fallbacks for older ones / iOS. -->
     <link rel="icon" href="assets/brand/mark-4th.svg?v=roboto" type="image/svg+xml" />
@@ -16,19 +16,19 @@
          [[DOMAIN]]: replace with your final domain, e.g. thefourthsheet.com.au.
          These must be full https:// addresses for LinkedIn to show the image.
          Check the result with https://www.linkedin.com/post-inspector/ -->
-    <link rel="canonical" href="https://[[DOMAIN]]/about.html" />
+    <link rel="canonical" href="https://[[DOMAIN]]/contact.html" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="The Fourth Sheet" />
     <meta property="og:locale" content="en_AU" />
-    <meta property="og:title" content="About | The Fourth Sheet" />
+    <meta property="og:title" content="Contact | The Fourth Sheet" />
     <meta property="og:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
-    <meta property="og:url" content="https://[[DOMAIN]]/about.html" />
+    <meta property="og:url" content="https://[[DOMAIN]]/contact.html" />
     <meta property="og:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="The Fourth Sheet: your accountant gives you three sheets. I give you the fourth." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="About | The Fourth Sheet" />
+    <meta name="twitter:title" content="Contact | The Fourth Sheet" />
     <meta name="twitter:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
     <meta name="twitter:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
 
@@ -64,72 +64,54 @@
           <a href="not-for-profit.html">Not-for-profit</a>
           <a href="examples.html">Examples</a>
           <a href="services.html">Services</a>
-          <a href="about.html" aria-current="page">About</a>
-          <a href="contact.html">Contact</a>
+          <a href="about.html">About</a>
+          <a href="contact.html" aria-current="page">Contact</a>
         </nav>
       </div>
     </header>
 
     <main id="main">
-      <!-- ABOUT -->
-      <section id="experience" class="section page-top section-alt">
+      <!-- CONTACT PAGE: the form posts to a form service that emails Nathan ([[FORM_ENDPOINT]] below, e.g. a
+           Formspree address). Until it's set, the form says it isn't connected yet instead of sending.
+           ?topic=monthly&report=…&period=…&view=… (from a report's Export menu) fills in the request. -->
+      <section class="section page-top">
         <div class="container">
-          <div class="section-heading">
-            <p class="eyebrow">About</p>
-            <h1>An accountant who also builds the dashboards.</h1>
-            <p class="lead">
-              Dashboard builders often don't understand the numbers, and accountants often can't build the dashboards. I do both.
-              Most of my 20 years has been spent in sales and operational reporting, tying non-financial data back to financial
-              performance to work out what's really driving revenue and cost.
-            </p>
-          </div>
-
-          <div class="card-grid card-grid--two">
-            <article class="info-card">
-              <h3>20 years, across the business</h3>
-              <p>
-                I've worked in mining and civil construction, property, engineering, insurance, healthcare diagnostics,
-                manufacturing, auctions and legal services, for NYSE-listed and ASX-listed companies and for SMEs.
-              </p>
-            </article>
-
-            <article class="info-card">
-              <h3>Part-time, not full-time</h3>
-              <p>
-                Most SMEs need what a management accountant brings, but not 40 hours a week of it.
-                I work a piece at a time: a costing review this quarter, a forecast next, ongoing reporting if it helps,
-                and you swap pieces in and out as the business changes.
-              </p>
-            </article>
+          <p class="eyebrow">Contact</p>
+          <h1>Let's talk numbers.</h1>
+          <p class="lead">Send me your details and what you're after, or book a free 20-minute numbers check. Either way it comes straight to me.</p>
+          <div class="contact-grid">
+            <form class="contact-form" id="contact-form" action="[[FORM_ENDPOINT]]" method="post" data-placeholder="[[FORM_ENDPOINT]]" novalidate>
+              <p class="contact-request" id="contact-request" hidden></p>
+              <fieldset class="contact-topic">
+                <legend>What would you like?</legend>
+                <label><input type="radio" name="topic" value="monthly" /> A report each month, on the 3rd business day</label>
+                <label><input type="radio" name="topic" value="numbers-check" checked /> A free 20-minute numbers check</label>
+                <label><input type="radio" name="topic" value="other" /> Something else</label>
+              </fieldset>
+              <div class="field-row">
+                <label class="field"><span>Name</span><input type="text" name="name" autocomplete="name" required /></label>
+                <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" required /></label>
+              </div>
+              <div class="field-row">
+                <label class="field"><span>Organisation <small>(optional)</small></span><input type="text" name="organisation" autocomplete="organization" /></label>
+                <label class="field"><span>Phone <small>(optional)</small></span><input type="tel" name="phone" autocomplete="tel" /></label>
+              </div>
+              <label class="field"><span>What would you like your numbers to tell you? <small>(optional)</small></span><textarea name="message" rows="4"></textarea></label>
+              <input type="hidden" name="report" /><input type="hidden" name="period" /><input type="hidden" name="view" />
+              <input type="text" name="_gotcha" class="field-trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <label class="field-check"><input type="checkbox" name="consent" required /> I'm happy for Nathan to contact me about this. (My details go to him by email; they aren't stored on this website.)</label>
+              <button type="submit" class="button primary">Send</button>
+              <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+            </form>
+            <aside class="contact-book" id="book">
+              <h2>Or book a time</h2>
+              <p>A free 20-minute numbers check: bring one question your numbers can't answer yet, and I'll tell you what's possible.</p>
+              <a class="button primary" href="#book" data-placeholder="[[BOOKING_URL]]" data-booking>Book a free 20-minute numbers check</a>
+              <p class="form-status" id="book-status" role="status" aria-live="polite"></p>
+            </aside>
           </div>
         </div>
       </section>
-
-      <!-- CONTACT -->
-      <section id="contact" class="section">
-        <div class="container contact-box">
-          <div>
-            <p class="eyebrow">Contact</p>
-            <h2>The fourth sheet, without the full-time hire.</h2>
-            <p>
-              For SMEs and not-for-profits that want what a seasoned finance professional does, without hiring one.
-              No new systems and no major IT project: I work from the spreadsheets and systems you already have.
-              Book a free 20-minute numbers check and I'll tell you what's possible.
-            </p>
-            <!-- [[EMAIL]] and [[LINKEDIN_URL]]: replace each chip with a link,
-                 e.g. <a href="mailto:you@example.com">you@example.com</a>. -->
-            <p class="contact-secondary">
-              Prefer email or LinkedIn?
-              <span class="tbc" data-placeholder="[[EMAIL]]">Email TBC</span>
-              <span class="tbc" data-placeholder="[[LINKEDIN_URL]]">LinkedIn TBC</span>
-            </p>
-            <p class="contact-form-link"><a href="contact.html">Or send me your details &rarr;</a></p>
-          </div>
-          <!-- [[BOOKING_URL]]: replace href="#contact" with your booking link. -->
-          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
-        </div>
-      </section>
-
     </main>
 
     <footer class="site-footer">
