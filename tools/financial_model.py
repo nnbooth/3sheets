@@ -1,538 +1,883 @@
 #!/usr/bin/env python3
 """
-financial_model.py — a small driver-based model for the home-page dashboard.
+financial_model.py — month-end sample model behind the home-page dashboard.
 
-Three invented sample organisations:
-  trades    SME: a field/trade services business (about $2.4M revenue)
-  services  SME: a professional services consultancy (about $1.8M revenue)
-  nfp       Not-for-profit: a community services charity (about $2.4M income)
+MONTH-END REPORTING, BUILT FROM THE TRANSACTIONS UP. We report September 2026
+(the last closed month) against the PRIOR MONTH, August 2026. Three invented
+organisations, each modelled at the most granular level:
 
-For each: a P&L (income and expenditure for the NFP), balance sheet and
-cash flow for FY2026 with FY2025 comparatives, plus "the fourth sheet"
-(the numbers underneath). EVERY figure is calculated from the ASSUMPTIONS
-below, in whole $'000, so every total adds up exactly as shown.
+  trades    SME: field/trade services. Every JOB (maintenance contract,
+            installation, call-out) with its own revenue, materials,
+            subcontractors, technician hours, invoice date and payment date.
+  services  SME: professional services. Every client ENGAGEMENT (projects
+            billed on milestones, monthly retainers, training) with hours,
+            rates, contractors, billing, work in progress and invoices.
+  nfp       Not-for-profit: community services charity. Every GRANT (funder,
+            program, period, instalments, monthly spend against budget),
+            plus donations, events and program fees.
 
-run_checks() proves it before anything is published:
-  - every subtotal and total equals the sum of its lines
-  - assets = liabilities + equity, at every balance date
-  - opening cash + cash flow = closing cash on the balance sheet
-  - profit (surplus) for the year = the movement in retained earnings
-    (accumulated funds), after dividends
-  - the "profit to cash" bridge ends at the change in cash
-  - fourth-sheet metrics recalculate from the statements
+The P&L, balance sheet and cash flow are ADDED UP FROM those records, in
+whole dollars, so everything ties. run_checks() proves it before anything is
+published (subtotals, balance sheet balances, cash ties, profit rolls into
+equity, job/engagement/grant detail ties to the statements, debtors equal the
+unpaid invoices, unspent grants equal grants received less income recognised).
 
-Used by tools/sample_data.py (which writes the CSVs, dashboard-data.js and
-the Excel/PDF exports). Australian financial years end 30 June.
+Australian financial year: FY2027 runs 1 July 2026 to 30 June 2027. GST is
+excluded for simplicity. All data is invented.
+
+Used by tools/publish_dashboard.py (via tools/sample_data.py).
 """
 
-FY = ["FY2026", "FY2025"]          # display order: current, then prior
-YEARS = ["FY2025", "FY2026"]       # calculation order
-MONTHS = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+import random
+import data_status as ds
+from datetime import date, timedelta
+
+PERIODS = ["2026-09", "2026-08"]           # display order: this month, prior month
+COLUMNS = ["Sep 2026", "Aug 2026"]
+ALL_MONTHS = ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09"]   # generated history (for invoices)
+MONTH_END = {"2026-05": date(2026, 5, 31), "2026-06": date(2026, 6, 30), "2026-07": date(2026, 7, 31),
+             "2026-08": date(2026, 8, 31), "2026-09": date(2026, 9, 30)}
+WORKING_DAYS = {"2026-08": 20, "2026-09": 22}   # Brisbane: Ekka show holiday Wed 12 Aug 2026
+HOURS_PER_DAY = 7.6
+
+
+def ym(d):
+    return d.strftime("%Y-%m")
+
+
+def month_start(m):
+    y, mm = map(int, m.split("-"))
+    return date(y, mm, 1)
+
+
+def prev_month(m):
+    i = ALL_MONTHS.index(m)
+    return ALL_MONTHS[i - 1]
 
 
 def half_up(x):
     return int(x + 0.5) if x >= 0 else -int(-x + 0.5)
 
 
-def allocate(total, weights):
-    """Split an integer total into integer parts that add back exactly (largest remainder)."""
-    raw = [total * w / sum(weights) for w in weights]
-    parts = [int(r) for r in raw]
+def split(total, weights):
+    """Split an integer total in proportion to weights; the parts always add back exactly."""
+    tw = sum(weights)
+    raw = [total * w / tw for w in weights]
+    parts = [int(x) for x in raw]
     for i in sorted(range(len(raw)), key=lambda i: raw[i] - parts[i], reverse=True)[: total - sum(parts)]:
         parts[i] += 1
     return parts
 
 
-# =============================================================== ASSUMPTIONS
-# Money in $'000 unless the name says otherwise. Edit here, then run
-# python3 tools/sample_data.py to regenerate everything.
-
-TRADES = {
-    "name": "SME · trades", "long_name": "Sample Trade Services Pty Ltd",
-    "about": "A field/trade services business: maintenance contracts, installations and call-outs. About 14 staff.",
-    "opening": {  # balance sheet at 30 June 2024
-        "cash": 145, "debtors": 212, "stock": 58, "prepayments": 18, "fixed_assets": 240,
-        "creditors": 128, "provisions": 96, "tax_payable": 4, "loan": 230, "share_capital": 10, "retained": 205,
-    },
-    "lines": ["Maintenance contracts", "Installations", "Call-outs and repairs"],
-    "years": {
-        "FY2025": {
-            "revenue": [660, 1060, 490],
-            "materials": [60, 350, 66], "subcontractors": [18, 125, 9], "direct_labour": [310, 280, 196],
-            "opex": {"Office and admin wages": 310, "Marketing": 104, "Vehicles and fuel": 110, "Rent and occupancy": 80,
-                     "Insurance": 33, "IT and software": 24, "Other overheads": 45},
-            "depreciation": 48, "interest": 18,
-            "debtor_days": 38, "stock": 62, "prepayments": 20, "creditor_days": 42, "provision_pct": 9,
-            "capex": 70, "loan_drawn": 0, "loan_repaid": 60, "dividends": 0,
-            "new_customers": 436, "staff_fte": 13,
-        },
-        "FY2026": {
-            "revenue": [720, 1180, 540],
-            "materials": [60, 380, 70], "subcontractors": [20, 140, 10], "direct_labour": [330, 300, 210],
-            "opex": {"Office and admin wages": 330, "Marketing": 96, "Vehicles and fuel": 118, "Rent and occupancy": 84,
-                     "Insurance": 36, "IT and software": 28, "Other overheads": 48},
-            "depreciation": 52, "interest": 14,
-            "debtor_days": 34, "stock": 66, "prepayments": 22, "creditor_days": 42, "provision_pct": 9,
-            "capex": 40, "loan_drawn": 0, "loan_repaid": 60, "dividends": 40,
-            "new_customers": 522, "staff_fte": 14,
-        },
-    },
-    "tax_rate": 25,
-    # how FY2026 marketing spend and new customers fall across the months (for the monthly chart)
-    "monthly_marketing_weights": [9, 9, 8, 8, 8, 7, 9, 8, 8, 8, 7, 7],
-    "monthly_customer_weights": [34, 36, 38, 40, 42, 40, 44, 46, 48, 50, 52, 52],
-    "cac_target": 200,
-}
-
-SERVICES = {
-    "name": "SME · professional services", "long_name": "Sample Advisory Pty Ltd",
-    "about": "A professional services consultancy: projects, monthly retainers and training. About 12 staff.",
-    "opening": {
-        "cash": 96, "debtors": 248, "stock": 104, "prepayments": 14, "fixed_assets": 60,
-        "creditors": 52, "provisions": 118, "tax_payable": 10, "loan": 40, "share_capital": 20, "retained": 282,
-    },
-    "lines": ["Projects", "Retainers", "Training"],
-    "years": {
-        "FY2025": {
-            "revenue": [900, 560, 160],
-            "materials": [0, 0, 0], "subcontractors": [110, 12, 28], "direct_labour": [450, 275, 60],
-            "opex": {"Management and admin wages": 280, "Marketing and business development": 80, "Rent and occupancy": 92,
-                     "IT and software": 48, "Professional indemnity insurance": 28, "Travel": 30, "Other overheads": 38},
-            "depreciation": 22, "interest": 6,
-            "debtor_days": 52, "stock": 98, "prepayments": 15, "creditor_days": 30, "provision_pct": 11,
-            "capex": 20, "loan_drawn": 0, "loan_repaid": 20, "dividends": 30,
-            "new_customers": 41, "staff_fte": 11.5,
-            "billable_fte": 8.5, "available_hours_per_fte": 1600, "billable_hours": 9950,
-        },
-        "FY2026": {
-            "revenue": [980, 620, 200],
-            "materials": [0, 0, 0], "subcontractors": [90, 10, 30], "direct_labour": [470, 290, 70],
-            "opex": {"Management and admin wages": 290, "Marketing and business development": 72, "Rent and occupancy": 96,
-                     "IT and software": 54, "Professional indemnity insurance": 30, "Travel": 26, "Other overheads": 40},
-            "depreciation": 24, "interest": 4,
-            "debtor_days": 45, "stock": 89, "prepayments": 16, "creditor_days": 30, "provision_pct": 11,
-            "capex": 30, "loan_drawn": 0, "loan_repaid": 20, "dividends": 80,
-            "new_customers": 48, "staff_fte": 12,
-            "billable_fte": 9, "available_hours_per_fte": 1600, "billable_hours": 10800,
-        },
-    },
-    "tax_rate": 25,
-    "monthly_billable_weights": [8, 9, 9, 9, 9, 6, 5, 9, 9, 8, 9, 10],
-    "monthly_available_weights": [9, 9, 8, 9, 8, 7, 7, 8, 9, 8, 9, 9],
-    "utilisation_target": 75,
-    "stock_label": "Work in progress (unbilled)",
-}
-
-NFP = {
-    "name": "Not-for-profit", "long_name": "Sample Community Services Ltd",
-    "about": "A community services charity: government-funded programs, donations, events and program fees. About 18 staff. Registered charity, income-tax exempt.",
-    "opening": {"cash": 820, "receivables": 64, "prepayments": 22, "fixed_assets": 150,
-                "payables": 88, "grants_in_advance": 260, "provisions": 168, "accumulated": 540},
-    "years": {
-        "FY2025": {
-            "income": {"Government grants": 1310, "Donations": 352, "Fundraising events": 188, "Program fees": 300, "Interest": 12},
-            "program": {"Program delivery wages": 1120, "Program costs": 240},
-            "fundraising": {"Grant writing and reporting": 80, "Event costs": 120, "Donor campaigns": 50},
-            "admin": {"Administration wages": 230, "Occupancy": 116, "Other administration": 90},
-            "depreciation": 30,
-            "receivables": 70, "prepayments": 24, "payables": 92, "grants_in_advance": 300, "provision_pct": 12,
-            "capex": 40, "program_hours": 22600, "staff_fte": 17,
-        },
-        "FY2026": {
-            "income": {"Government grants": 1420, "Donations": 380, "Fundraising events": 210, "Program fees": 340, "Interest": 18},
-            "program": {"Program delivery wages": 1180, "Program costs": 260},
-            "fundraising": {"Grant writing and reporting": 85, "Event costs": 113, "Donor campaigns": 46},
-            "admin": {"Administration wages": 220, "Occupancy": 120, "Other administration": 96},
-            "depreciation": 34,
-            "receivables": 76, "prepayments": 26, "payables": 101, "grants_in_advance": 340, "provision_pct": 12,
-            "capex": 60, "program_hours": 23200, "staff_fte": 18,
-        },
-    },
-    "reserves_target_months": 3,
-}
-
-
-# =============================================================== statement helpers
-
 def row(label, level, values, note=None):
-    """level: 'heading' (no numbers), 'detail', 'subtotal', 'total', 'key'."""
+    """level: heading (no numbers) / detail / subtotal / total / key. values = [Sep, Aug]."""
     return {"label": label, "level": level, "values": values, "note": note}
 
 
-def by_year(fn):
-    return [fn("FY2026"), fn("FY2025")]
+def per(fn):
+    return [fn(m) for m in PERIODS]
 
 
-# =============================================================== SME model
+def unpaid_at(invoices, d):
+    return sum(i["amount"] for i in invoices if i["invoice_date"] <= d and (i["paid_date"] is None or i["paid_date"] > d))
 
-def sme(model):
-    a = model["years"]
-    o = model["opening"]
-    rate = model["tax_rate"] / 100
+
+def paid_in(invoices, m):
+    return sum(i["amount"] for i in invoices if i["paid_date"] is not None and ym(i["paid_date"]) == m)
+
+
+# ======================================================================= TRADES
+
+TRADES = {
+    "name": "SME · trades", "long_name": "Sample Electrical & Air Pty Ltd",
+    "about": "An electrical and air-conditioning contractor in Brisbane: maintenance contracts, installations and call-outs. 7 technicians, 3 office staff.",
+    "technicians": 7, "tech_wages": {"2026-08": 54600, "2026-09": 54600}, "tech_cost_rate": 68,
+    "callout_rate": 145, "materials_markup": 1.3, "target_margin": 35,
+    "contracts": [  # [customer, monthly fee, technician hours a month, materials a month]
+        ["Riverside Apartments (strata)", 3200, 18, 60], ["Southbank cafe group", 1800, 10, 40], ["Milton office tower", 4200, 24, 90],
+        ["Ashgrove aged care", 3600, 20, 80], ["Newstead gym", 1600, 9, 30], ["Kangaroo Point townhouses", 2400, 14, 50],
+        ["Rocklea factory", 3900, 22, 110], ["Wynnum medical centre", 2200, 12, 40], ["Bulimba school", 2800, 16, 60],
+        ["Fortitude Valley hotel", 3400, 19, 70], ["Chermside retail centre", 4100, 23, 100], ["West End brewery", 2600, 15, 50],
+        ["Carindale vet clinic", 1700, 9, 30], ["Wacol logistics depot", 3000, 17, 70],
+    ],
+    "contract_pay_days": 30,
+    "installs": {  # [job id, job name, completion day, revenue, materials, subcontractors, tech hours, days to pay]
+        "2026-08": [["J-2588", "Rocklea factory switchboard", 7, 38500, 15600, 4800, 92, 30],
+                    ["J-2591", "Ashgrove hall LED lighting", 14, 21300, 8100, 0, 70, 30],
+                    ["J-2594", "Newstead gym air-con", 19, 16800, 6700, 1200, 44, 21],
+                    ["J-2597", "Wynnum house solar", 24, 19600, 9400, 2200, 36, 14],
+                    ["J-2599", "Valley office cabling", 28, 13400, 3900, 1100, 48, 30]],
+        "2026-09": [["J-2604", "Wacol warehouse switchboard", 4, 46800, 22900, 7400, 150, 45],
+                    ["J-2607", "Milton office LED lighting", 9, 18600, 6900, 0, 64, 30],
+                    ["J-2611", "Carindale solar and battery", 15, 27400, 13800, 3100, 46, 14],
+                    ["J-2615", "West End cafe air-con", 18, 12900, 5100, 900, 38, 21],
+                    ["J-2618", "Bulimba EV chargers", 23, 9800, 3600, 0, 26, 30],
+                    ["J-2620", "Chermside clinic cabling", 29, 15200, 4300, 1800, 52, 30]],
+    },
+    "callouts": {"2026-05": 55, "2026-06": 57, "2026-07": 54, "2026-08": 58, "2026-09": 64},
+    "history_installs": {"2026-05": 4, "2026-06": 5, "2026-07": 4},
+    "opex": {"Office and admin wages": {"2026-08": 21900, "2026-09": 21900},
+             "Marketing": {"2026-08": 8400, "2026-09": 7600},
+             "Vehicles and fuel": {"2026-08": 7900, "2026-09": 8300},
+             "Rent and occupancy": {"2026-08": 7000, "2026-09": 7000},
+             "Insurance": {"2026-08": 3000, "2026-09": 3000},
+             "IT and software": {"2026-08": 2300, "2026-09": 2300},
+             "Other overheads": {"2026-08": 3600, "2026-09": 3900}},
+    "new_customers": {"2026-08": 41, "2026-09": 47},
+    "depreciation": {"2026-08": 4300, "2026-09": 4500}, "interest": {"2026-08": 1100, "2026-09": 1080},
+    "loan_repaid": {"2026-08": 5000, "2026-09": 5000}, "capex": {"2026-08": 0, "2026-09": 12000},
+    "provision_change": {"2026-08": 1100, "2026-09": 900}, "tax_rate": 25,
+    "opening": {"cash": 88000, "stock": 66000, "prepayments": 21000, "fixed_assets": 252000,
+                "provisions": 104000, "tax_payable": 31500, "loan": 105000, "share_capital": 10000},
+}
+
+
+def trades_jobs(m):
+    """Every job and invoice for May-Sep (seeded, so it's identical every run)."""
+    rng = random.Random(2604)
+    jobs = []
+    for month in ALL_MONTHS:
+        start = month_start(month)
+        for i, (cust, fee, hrs, mat) in enumerate(m["contracts"]):
+            jobs.append({"month": month, "job": f"MC-{i + 1:02d}", "type": "Maintenance contract", "description": cust,
+                         "revenue": fee, "materials": mat, "subcontractors": 0, "hours": hrs,
+                         "invoice_date": start, "days_to_pay": m["contract_pay_days"] + rng.choice([-5, 0, 0, 3, 8])})
+        if month in m["installs"]:
+            for j, desc, day, rev, mat, sub, hrs, pay in m["installs"][month]:
+                jobs.append({"month": month, "job": j, "type": "Installation", "description": desc, "revenue": rev, "materials": mat,
+                             "subcontractors": sub, "hours": hrs, "invoice_date": start + timedelta(days=day - 1), "days_to_pay": pay})
+        else:
+            for k in range(m["history_installs"][month]):
+                rev = rng.randrange(9000, 42000, 100)
+                jobs.append({"month": month, "job": f"J-{2500 + ALL_MONTHS.index(month) * 20 + k}", "type": "Installation",
+                             "description": f"Installation {k + 1}, {month_start(month).strftime('%B')}", "revenue": rev, "materials": int(rev * 0.38) // 100 * 100,
+                             "subcontractors": int(rev * 0.08) // 100 * 100, "hours": rev // 260,
+                             "invoice_date": start + timedelta(days=rng.randrange(0, 27)), "days_to_pay": rng.choice([14, 21, 30, 30, 45])})
+        for k in range(m["callouts"][month]):
+            hrs = rng.choice([1, 1.5, 2, 2, 2.5, 3, 3, 4])
+            mat = rng.randrange(20, 240, 10)
+            rev = half_up(hrs * m["callout_rate"] + mat * m["materials_markup"])
+            mat_rev = half_up(mat * m["materials_markup"])          # materials charged: cost + the mark-up
+            jobs.append({"month": month, "job": f"C-{month[5:]}{k + 1:02d}", "type": "Call-out", "description": f"Call-out {k + 1}, {month_start(month).strftime('%B')}",
+                         "revenue": rev, "labour_revenue": rev - mat_rev, "materials_revenue": mat_rev, "materials": mat, "subcontractors": 0, "hours": hrs,
+                         "invoice_date": start + timedelta(days=rng.randrange(0, 28)), "days_to_pay": rng.choice([0, 0, 0, 2, 7, 7, 14, 30])})
+    for j in jobs:
+        j.setdefault("labour_revenue", None)      # only call-outs bill time and materials separately
+        j.setdefault("materials_revenue", None)
+        j["paid_date"] = j["invoice_date"] + timedelta(days=j["days_to_pay"])
+        j["labour_cost"] = half_up(j["hours"] * m["tech_cost_rate"])
+        j["gross_profit"] = j["revenue"] - j["materials"] - j["subcontractors"] - j["labour_cost"]
+        j["amount"] = j["revenue"]
+    return jobs
+
+
+def trades(m):
+    jobs = trades_jobs(m)
+    inv = jobs
+    purchases = {mo: sum(j["materials"] + j["subcontractors"] for j in jobs if j["month"] == mo) for mo in ALL_MONTHS}
+    o = m["opening"]
+    bs = {"2026-07": {**o, "debtors": unpaid_at(inv, MONTH_END["2026-07"]), "creditors": purchases["2026-07"]}}
+    bs["2026-07"]["retained"] = (o["cash"] + bs["2026-07"]["debtors"] + o["stock"] + o["prepayments"] + o["fixed_assets"]
+                                 - bs["2026-07"]["creditors"] - o["provisions"] - o["tax_payable"] - o["loan"] - o["share_capital"])
     r = {}
-    bs = {"FY2024": dict(o)}
-    for y in YEARS:
-        d = a[y]
-        rev = sum(d["revenue"])
-        mat, sub, lab = sum(d["materials"]), sum(d["subcontractors"]), sum(d["direct_labour"])
-        cos = mat + sub + lab
-        gp = rev - cos
-        opex = sum(d["opex"].values())
-        ebitda = gp - opex
-        pbt = ebitda - d["depreciation"] - d["interest"]
-        tax = half_up(pbt * rate) if pbt > 0 else 0
+    for mo in ["2026-08", "2026-09"]:
+        mj = [j for j in jobs if j["month"] == mo]
+        by = lambda t, k: sum(j[k] for j in mj if j["type"] == t)
+        rev = {t: by(t, "revenue") for t in ["Maintenance contract", "Installation", "Call-out"]}
+        rev["Call-out time"] = sum(j["labour_revenue"] for j in mj if j["type"] == "Call-out")
+        rev["Call-out materials"] = sum(j["materials_revenue"] for j in mj if j["type"] == "Call-out")
+        revenue = sum(rev[t] for t in ["Maintenance contract", "Installation", "Call-out"])
+        mat, sub = sum(j["materials"] for j in mj), sum(j["subcontractors"] for j in mj)
+        techw = m["tech_wages"][mo]
+        cos = mat + sub + techw
+        gp = revenue - cos
+        opex = {k: v[mo] for k, v in m["opex"].items()}
+        ebitda = gp - sum(opex.values())
+        pbt = ebitda - m["depreciation"][mo] - m["interest"][mo]
+        tax = half_up(pbt * m["tax_rate"] / 100)
         npat = pbt - tax
-        wages = lab + sum(v for k, v in d["opex"].items() if "wages" in k.lower())
-        purchases = mat + sub + sum(v for k, v in d["opex"].items() if "wages" not in k.lower())
-        prev = bs["FY2024" if y == "FY2025" else "FY2025"]
-        cur = {
-            "debtors": half_up(rev * d["debtor_days"] / 365),
-            "stock": d["stock"],
-            "prepayments": d["prepayments"],
-            "fixed_assets": prev["fixed_assets"] + d["capex"] - d["depreciation"],
-            "creditors": half_up(purchases * d["creditor_days"] / 365),
-            "provisions": half_up(wages * d["provision_pct"] / 100),
-            "tax_payable": tax,
-            "loan": prev["loan"] + d["loan_drawn"] - d["loan_repaid"],
-            "share_capital": prev["share_capital"],
-            "retained": prev["retained"] + npat - d["dividends"],
-        }
-        # cash flow (direct method)
-        wip = model.get("stock_label")  # services: unbilled work is a receipt timing item
-        d_debt = cur["debtors"] - prev["debtors"]
-        d_stock = cur["stock"] - prev["stock"]
-        receipts = rev - d_debt - (d_stock if wip else 0)
-        payments = cos + opex + (0 if wip else d_stock) + (cur["prepayments"] - prev["prepayments"]) \
-            - (cur["creditors"] - prev["creditors"]) - (cur["provisions"] - prev["provisions"])
-        tax_paid = prev["tax_payable"]
-        operating = receipts - payments - d["interest"] - tax_paid
-        investing = -d["capex"]
-        financing = d["loan_drawn"] - d["loan_repaid"] - d["dividends"]
-        cur["cash"] = prev["cash"] + operating + investing + financing
-        bs[y] = cur
-        r[y] = dict(rev=rev, mat=mat, sub=sub, lab=lab, cos=cos, gp=gp, opex=opex, ebitda=ebitda, pbt=pbt, tax=tax,
-                    npat=npat, receipts=receipts, payments=payments, tax_paid=tax_paid, operating=operating,
-                    investing=investing, financing=financing, wages=wages)
+        prev = bs[prev_month(mo)]
+        wages = techw + opex["Office and admin wages"]
+        nonwage = sum(v for k, v in opex.items() if "wages" not in k)
+        receipts = paid_in(inv, mo)
+        pay_sup = purchases[prev_month(mo)] + nonwage
+        pay_emp = wages - m["provision_change"][mo]
+        operating = receipts - pay_sup - pay_emp - m["interest"][mo]
+        cur = {"cash": prev["cash"] + operating - m["capex"][mo] - m["loan_repaid"][mo],
+               "debtors": unpaid_at(inv, MONTH_END[mo]), "stock": prev["stock"], "prepayments": prev["prepayments"],
+               "fixed_assets": prev["fixed_assets"] + m["capex"][mo] - m["depreciation"][mo],
+               "creditors": purchases[mo], "provisions": prev["provisions"] + m["provision_change"][mo],
+               "tax_payable": prev["tax_payable"] + tax, "loan": prev["loan"] - m["loan_repaid"][mo],
+               "share_capital": prev["share_capital"], "retained": prev["retained"] + npat}
+        bs[mo] = cur
+        hours = sum(j["hours"] for j in mj)
+        avail = m["technicians"] * WORKING_DAYS[mo] * HOURS_PER_DAY
+        r[mo] = dict(rev=rev, revenue=revenue, mat=mat, sub=sub, techw=techw, cos=cos, gp=gp, opex=opex, ebitda=ebitda, pbt=pbt,
+                     tax=tax, npat=npat, receipts=receipts, pay_sup=pay_sup, pay_emp=pay_emp, operating=operating,
+                     jobs_gp=sum(j["gross_profit"] for j in mj), allocated=sum(j["labour_cost"] for j in mj),
+                     hours=hours, available=avail)
 
-    def ca(y): b = bs[y]; return b["cash"] + b["debtors"] + b["stock"] + b["prepayments"]
-    def cl(y): b = bs[y]; return b["creditors"] + b["provisions"] + b["tax_payable"]
-    stock_label = model.get("stock_label", "Materials on hand")
+    pnl = [row("Revenue", "heading", None),
+           row(f"Maintenance contracts ({len(m['contracts'])})", "detail", per(lambda mo: r[mo]["rev"]["Maintenance contract"])),
+           row("Installations (jobs)", "detail", per(lambda mo: r[mo]["rev"]["Installation"])),
+           row("Call-outs: technician time", "detail", per(lambda mo: r[mo]["rev"]["Call-out time"])),
+           row("Call-outs: materials charged", "detail", per(lambda mo: r[mo]["rev"]["Call-out materials"])),
+           row("Total revenue", "subtotal", per(lambda mo: r[mo]["revenue"])),
+           row("Cost of sales", "heading", None),
+           row("Materials", "detail", per(lambda mo: -r[mo]["mat"])),
+           row("Subcontractors", "detail", per(lambda mo: -r[mo]["sub"])),
+           row("Technician wages (incl. on-costs)", "detail", per(lambda mo: -r[mo]["techw"])),
+           row("Total cost of sales", "subtotal", per(lambda mo: -r[mo]["cos"])),
+           row("Gross profit", "total", per(lambda mo: r[mo]["gp"])),
+           row("Operating expenses", "heading", None)]
+    for k in m["opex"]:
+        pnl.append(row(k, "detail", per(lambda mo, k=k: -r[mo]["opex"][k])))
+    pnl += [row("Total operating expenses", "subtotal", per(lambda mo: -sum(r[mo]["opex"].values()))),
+            row("EBITDA", "total", per(lambda mo: r[mo]["ebitda"])),
+            row("Depreciation", "subtotal", per(lambda mo: -m["depreciation"][mo])),
+            row("Interest", "subtotal", per(lambda mo: -m["interest"][mo])),
+            row("Profit before tax", "total", per(lambda mo: r[mo]["pbt"])),
+            row(f"Income tax provision ({m['tax_rate']}%)", "subtotal", per(lambda mo: -r[mo]["tax"])),
+            row("Net profit after tax", "key", per(lambda mo: r[mo]["npat"]))]
+    bsr, cfr = sme_bs_cf(bs, r, m, "Materials on hand", "Vehicles and equipment", "Purchase of vehicles and equipment",
+                         "Payments to suppliers", "Payments to employees")
+    return dict(jobs=jobs, r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr)
 
-    pnl = [row("Revenue", "heading", None)]
-    for i, line in enumerate(model["lines"]):
-        pnl.append(row(line, "detail", by_year(lambda y: a[y]["revenue"][i])))
-    pnl.append(row("Total revenue", "subtotal", by_year(lambda y: r[y]["rev"])))
-    pnl.append(row("Cost of sales", "heading", None))
-    if any(r[y]["mat"] for y in YEARS):
-        pnl.append(row("Materials", "detail", by_year(lambda y: -r[y]["mat"])))
-    pnl.append(row("Subcontractors", "detail", by_year(lambda y: -r[y]["sub"])))
-    pnl.append(row("Direct labour (incl. super)" if not model.get("stock_label") else "Consultant salaries (incl. super)", "detail", by_year(lambda y: -r[y]["lab"])))
-    pnl.append(row("Total cost of sales", "subtotal", by_year(lambda y: -r[y]["cos"])))
-    pnl.append(row("Gross profit", "total", by_year(lambda y: r[y]["gp"])))
-    pnl.append(row("Operating expenses", "heading", None))
-    for k in a["FY2026"]["opex"]:
-        pnl.append(row(k, "detail", by_year(lambda y, k=k: -a[y]["opex"][k])))
-    pnl.append(row("Total operating expenses", "subtotal", by_year(lambda y: -r[y]["opex"])))
-    pnl.append(row("EBITDA", "total", by_year(lambda y: r[y]["ebitda"])))
-    pnl.append(row("Depreciation", "subtotal", by_year(lambda y: -a[y]["depreciation"])))
-    pnl.append(row("Interest", "subtotal", by_year(lambda y: -a[y]["interest"])))
-    pnl.append(row("Profit before tax", "total", by_year(lambda y: r[y]["pbt"])))
-    pnl.append(row(f"Income tax ({model['tax_rate']}%)", "subtotal", by_year(lambda y: -r[y]["tax"])))
-    pnl.append(row("Net profit after tax", "key", by_year(lambda y: r[y]["npat"])))
 
+def sme_bs_cf(bs, r, m, stock_label, fa_label, capex_label, sup_label, emp_label):
+    def ca(mo): b = bs[mo]; return b["cash"] + b["debtors"] + b["stock"] + b["prepayments"]
+    def cl(mo): b = bs[mo]; return b["creditors"] + b["provisions"] + b["tax_payable"]
     bsr = [row("Current assets", "heading", None),
-           row("Cash at bank", "detail", by_year(lambda y: bs[y]["cash"])),
-           row("Trade debtors", "detail", by_year(lambda y: bs[y]["debtors"])),
-           row(stock_label, "detail", by_year(lambda y: bs[y]["stock"])),
-           row("Prepayments", "detail", by_year(lambda y: bs[y]["prepayments"])),
-           row("Total current assets", "subtotal", by_year(ca)),
-           row("Vehicles and equipment" if not model.get("stock_label") else "Office equipment", "subtotal", by_year(lambda y: bs[y]["fixed_assets"])),
-           row("Total assets", "total", by_year(lambda y: ca(y) + bs[y]["fixed_assets"])),
+           row("Cash at bank", "detail", per(lambda mo: bs[mo]["cash"])),
+           row("Trade debtors (unpaid invoices)", "detail", per(lambda mo: bs[mo]["debtors"])),
+           row(stock_label, "detail", per(lambda mo: bs[mo]["stock"])),
+           row("Prepayments", "detail", per(lambda mo: bs[mo]["prepayments"])),
+           row("Total current assets", "subtotal", per(ca)),
+           row(fa_label, "subtotal", per(lambda mo: bs[mo]["fixed_assets"])),
+           row("Total assets", "total", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"])),
            row("Current liabilities", "heading", None),
-           row("Trade creditors", "detail", by_year(lambda y: bs[y]["creditors"])),
-           row("Employee leave provisions", "detail", by_year(lambda y: bs[y]["provisions"])),
-           row("Income tax payable", "detail", by_year(lambda y: bs[y]["tax_payable"])),
-           row("Total current liabilities", "subtotal", by_year(cl)),
-           row("Equipment finance", "subtotal", by_year(lambda y: bs[y]["loan"])),
-           row("Total liabilities", "total", by_year(lambda y: cl(y) + bs[y]["loan"])),
-           row("Net assets", "key", by_year(lambda y: ca(y) + bs[y]["fixed_assets"] - cl(y) - bs[y]["loan"])),
+           row("Trade creditors (bills due next month)", "detail", per(lambda mo: bs[mo]["creditors"])),
+           row("Employee leave provisions", "detail", per(lambda mo: bs[mo]["provisions"])),
+           row("Income tax payable", "detail", per(lambda mo: bs[mo]["tax_payable"])),
+           row("Total current liabilities", "subtotal", per(cl)),
+           row("Equipment finance", "subtotal", per(lambda mo: bs[mo]["loan"])),
+           row("Total liabilities", "total", per(lambda mo: cl(mo) + bs[mo]["loan"])),
+           row("Net assets", "key", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"] - cl(mo) - bs[mo]["loan"])),
            row("Equity", "heading", None),
-           row("Share capital", "detail", by_year(lambda y: bs[y]["share_capital"])),
-           row("Retained earnings", "detail", by_year(lambda y: bs[y]["retained"])),
-           row("Total equity", "key", by_year(lambda y: bs[y]["share_capital"] + bs[y]["retained"]))]
-
-    prevy = lambda y: "FY2024" if y == "FY2025" else "FY2025"
+           row("Share capital", "detail", per(lambda mo: bs[mo]["share_capital"])),
+           row("Retained earnings", "detail", per(lambda mo: bs[mo]["retained"])),
+           row("Total equity", "key", per(lambda mo: bs[mo]["share_capital"] + bs[mo]["retained"]))]
     cfr = [row("Operating activities", "heading", None),
-           row("Receipts from customers", "detail", by_year(lambda y: r[y]["receipts"])),
-           row("Payments to suppliers and employees", "detail", by_year(lambda y: -r[y]["payments"])),
-           row("Interest paid", "detail", by_year(lambda y: -a[y]["interest"])),
-           row("Income tax paid", "detail", by_year(lambda y: -r[y]["tax_paid"])),
-           row("Net cash from operating activities", "subtotal", by_year(lambda y: r[y]["operating"])),
+           row("Receipts from customers (invoices paid)", "detail", per(lambda mo: r[mo]["receipts"])),
+           row(sup_label, "detail", per(lambda mo: -r[mo]["pay_sup"])),
+           row(emp_label, "detail", per(lambda mo: -r[mo]["pay_emp"])),
+           row("Interest paid", "detail", per(lambda mo: -m["interest"][mo])),
+           row("Income tax paid", "detail", per(lambda mo: 0), note="Next PAYG instalment is due in October."),
+           row("Net cash from operating activities", "subtotal", per(lambda mo: r[mo]["operating"])),
            row("Investing activities", "heading", None),
-           row("Purchase of vehicles and equipment" if not model.get("stock_label") else "Purchase of equipment", "detail", by_year(lambda y: -a[y]["capex"])),
-           row("Net cash from investing activities", "subtotal", by_year(lambda y: r[y]["investing"])),
+           row(capex_label, "detail", per(lambda mo: -m["capex"][mo])),
+           row("Net cash from investing activities", "subtotal", per(lambda mo: -m["capex"][mo])),
            row("Financing activities", "heading", None),
-           row("Equipment finance repaid", "detail", by_year(lambda y: -a[y]["loan_repaid"])),
-           row("Dividends paid", "detail", by_year(lambda y: -a[y]["dividends"])),
-           row("Net cash from financing activities", "subtotal", by_year(lambda y: r[y]["financing"])),
-           row("Net change in cash", "total", by_year(lambda y: r[y]["operating"] + r[y]["investing"] + r[y]["financing"])),
-           row("Cash at 1 July", "subtotal", by_year(lambda y: bs[prevy(y)]["cash"])),
-           row("Cash at 30 June", "key", by_year(lambda y: bs[y]["cash"]))]
-
-    # profit to cash bridge (FY2026)
-    y, p = "FY2026", "FY2025"
-    wc = -(bs[y]["debtors"] - bs[p]["debtors"]) - (bs[y]["stock"] - bs[p]["stock"]) - (bs[y]["prepayments"] - bs[p]["prepayments"]) \
-        + (bs[y]["creditors"] - bs[p]["creditors"]) + (bs[y]["provisions"] - bs[p]["provisions"])
-    taxt = bs[y]["tax_payable"] - bs[p]["tax_payable"]
-    bridge = [["Net profit after tax", r[y]["npat"]], ["Add back depreciation", a[y]["depreciation"]],
-              ["Working capital (debtors, stock, creditors)", wc], ["Tax owed but not yet paid", taxt],
-              ["Vehicles and equipment bought", -a[y]["capex"]], ["Finance repaid", -a[y]["loan_repaid"]],
-              ["Dividends paid", -a[y]["dividends"]]]
-    change = bs[y]["cash"] - bs[p]["cash"]
-    return dict(r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr, bridge=bridge, change=change)
+           row("Equipment finance repaid", "detail", per(lambda mo: -m["loan_repaid"][mo])),
+           row("Net cash from financing activities", "subtotal", per(lambda mo: -m["loan_repaid"][mo])),
+           row("Net change in cash", "total", per(lambda mo: r[mo]["operating"] - m["capex"][mo] - m["loan_repaid"][mo])),
+           row("Cash at start of month", "subtotal", per(lambda mo: bs[prev_month(mo)]["cash"])),
+           row("Cash at end of month", "key", per(lambda mo: bs[mo]["cash"]))]
+    return bsr, cfr
 
 
-# =============================================================== NFP model
+# ===================================================================== SERVICES
 
-def nfp(model):
-    a = model["years"]
-    bs = {"FY2024": dict(model["opening"])}
+SERVICES = {
+    "name": "SME · services", "long_name": "Sample Advisory Pty Ltd",
+    "about": "A Brisbane finance and operations consultancy: projects billed on milestones, monthly retainers and training. 6 consultants, 3 management and admin staff.",
+    "consultants": 6, "salaries": {"2026-08": 46500, "2026-09": 46500}, "cost_rate": 60, "target_margin": 40,
+    # [code, type, client / description, rate or fee, days to pay]
+    "engagements": [
+        ["E-311", "Project", "Logistics systems rollout", 175, 30],
+        ["E-314", "Project", "Retail pricing review", 190, 30],
+        ["E-316", "Project", "Distributor cost-to-serve", 180, 45],
+        ["E-318", "Project", "Health charity board pack", 165, 30],
+        ["E-320", "Project", "Manufacturer process mapping", 170, 45],
+        ["R-102", "Retainer", "Construction firm finance", 9500, 14],
+        ["R-105", "Retainer", "Dental group reporting", 6800, 14],
+        ["R-108", "Retainer", "Agribusiness CFO support", 12000, 30],
+        ["R-110", "Retainer", "Hospitality payroll", 4200, 14],
+        ["T-205", "Training", "Budgeting workshop", 6400, 30],
+        ["T-207", "Training", "Excel for managers", 8800, 30],
+        ["T-209", "Training", "Power BI basics", 4600, 30],
+    ],
+    # month -> code -> [hours, amount billed (projects only), contractors]
+    "activity": {
+        "2026-08": {"E-311": [180, 0, 4200], "E-314": [60, 0, 0], "E-316": [88, 15840, 0], "E-320": [100, 0, 1800],
+                    "R-102": [56, 0, 0], "R-105": [42, 0, 0], "R-108": [68, 0, 0], "R-110": [34, 0, 0], "T-205": [20, 0, 900]},
+        "2026-09": {"E-311": [210, 30000, 4800], "E-314": [96, 0, 0], "E-318": [64, 10560, 0], "E-320": [120, 24000, 2200],
+                    "R-102": [58, 0, 0], "R-105": [44, 0, 0], "R-108": [70, 0, 0], "R-110": [36, 0, 0],
+                    "T-207": [30, 0, 1500], "T-209": [14, 0, 0]},
+    },
+    "opening_wip": {"E-311": 12000, "E-314": 0, "E-316": 0, "E-318": 0, "E-320": 6000},
+    "history_billing": {"2026-05": 118000, "2026-06": 126000, "2026-07": 121000},   # earlier months' invoices (for debtors)
+    "history_contractors": {"2026-07": 3900},
+    "opex": {"Management and admin wages": {"2026-08": 24000, "2026-09": 24000},
+             "Marketing and business development": {"2026-08": 6500, "2026-09": 5800},
+             "Rent and occupancy": {"2026-08": 8000, "2026-09": 8000},
+             "IT and software": {"2026-08": 4500, "2026-09": 4500},
+             "Professional indemnity insurance": {"2026-08": 2500, "2026-09": 2500},
+             "Travel": {"2026-08": 2600, "2026-09": 1800},
+             "Other overheads": {"2026-08": 3300, "2026-09": 3300}},
+    "new_clients": {"2026-08": 3, "2026-09": 4},
+    "depreciation": {"2026-08": 2000, "2026-09": 2000}, "interest": {"2026-08": 250, "2026-09": 240},
+    "loan_repaid": {"2026-08": 1700, "2026-09": 1700}, "capex": {"2026-08": 0, "2026-09": 3200},
+    "provision_change": {"2026-08": 700, "2026-09": 600}, "tax_rate": 25,
+    "opening": {"cash": 158000, "prepayments": 15000, "fixed_assets": 61000,
+                "provisions": 121000, "tax_payable": 48500, "loan": 18000, "share_capital": 20000},
+}
+
+
+def services_engagements(m):
+    rng = random.Random(311)
+    eng = {e[0]: e for e in m["engagements"]}
+    rows, invoices = [], []
+    for mo in ["2026-08", "2026-09"]:
+        for code, (hours, billed, contractors) in m["activity"][mo].items():
+            _, typ, desc, rate, pay = eng[code]
+            if typ == "Project":
+                revenue, bill = hours * rate, billed
+            else:  # retainers and training: billed as delivered
+                revenue = bill = rate
+            rows.append({"month": mo, "code": code, "type": typ, "description": desc, "hours": hours,
+                         "revenue": revenue, "billed": bill, "contractors": contractors,
+                         "allocated_cost": hours * m["cost_rate"],
+                         "contribution": revenue - contractors - hours * m["cost_rate"]})
+            if bill:
+                d = month_start(mo) + timedelta(days=(27 if typ == "Project" else rng.randrange(0, 20)))
+                invoices.append({"invoice": f"INV-{mo[5:]}{code}", "code": code, "amount": bill, "invoice_date": d,
+                                 "paid_date": d + timedelta(days=pay + rng.choice([-3, 0, 0, 5, 12]))})
+    for mo, total in m["history_billing"].items():  # earlier months, in a few invoices each
+        parts = [total // 4] * 3 + [total - 3 * (total // 4)]
+        for k, amt in enumerate(parts):
+            d = month_start(mo) + timedelta(days=6 + 6 * k)
+            invoices.append({"invoice": f"INV-{mo[5:]}H{k}", "code": "earlier", "amount": amt, "invoice_date": d,
+                             "paid_date": d + timedelta(days=rng.choice([14, 30, 30, 45, 52]))})
+    return rows, invoices
+
+
+def services(m):
+    rows, invoices = services_engagements(m)
+    o = m["opening"]
+    wip0 = sum(m["opening_wip"].values())
+    bs = {"2026-07": {**o, "debtors": unpaid_at(invoices, MONTH_END["2026-07"]), "stock": wip0,
+                      "creditors": m["history_contractors"]["2026-07"]}}
+    b0 = bs["2026-07"]
+    b0["retained"] = (o["cash"] + b0["debtors"] + wip0 + o["prepayments"] + o["fixed_assets"]
+                      - b0["creditors"] - o["provisions"] - o["tax_payable"] - o["loan"] - o["share_capital"])
+    wip = dict(m["opening_wip"])
     r = {}
-    for y in YEARS:
-        d = a[y]
-        prev = bs["FY2024" if y == "FY2025" else "FY2025"]
-        income = sum(d["income"].values())
-        program, fund, admin = sum(d["program"].values()), sum(d["fundraising"].values()), sum(d["admin"].values())
-        expenses = program + fund + admin + d["depreciation"]
+    for mo in ["2026-08", "2026-09"]:
+        mr = [x for x in rows if x["month"] == mo]
+        rev = {t: sum(x["revenue"] for x in mr if x["type"] == t) for t in ["Project", "Retainer", "Training"]}
+        revenue = sum(rev.values())
+        contractors = sum(x["contractors"] for x in mr)
+        sal = m["salaries"][mo]
+        cos = sal + contractors
+        gp = revenue - cos
+        opex = {k: v[mo] for k, v in m["opex"].items()}
+        ebitda = gp - sum(opex.values())
+        pbt = ebitda - m["depreciation"][mo] - m["interest"][mo]
+        tax = half_up(pbt * m["tax_rate"] / 100)
+        npat = pbt - tax
+        for x in mr:
+            if x["type"] == "Project":
+                wip[x["code"]] = wip.get(x["code"], 0) + x["revenue"] - x["billed"]
+        prev = bs[prev_month(mo)]
+        wages = sal + opex["Management and admin wages"]
+        nonwage = sum(v for k, v in opex.items() if "wages" not in k)
+        receipts = paid_in(invoices, mo)
+        pay_sup = prev["creditors"] + nonwage           # last month's contractor bills + this month's overheads
+        pay_emp = wages - m["provision_change"][mo]
+        operating = receipts - pay_sup - pay_emp - m["interest"][mo]
+        bs[mo] = {"cash": prev["cash"] + operating - m["capex"][mo] - m["loan_repaid"][mo],
+                  "debtors": unpaid_at(invoices, MONTH_END[mo]), "stock": sum(wip.values()), "prepayments": prev["prepayments"],
+                  "fixed_assets": prev["fixed_assets"] + m["capex"][mo] - m["depreciation"][mo],
+                  "creditors": contractors, "provisions": prev["provisions"] + m["provision_change"][mo],
+                  "tax_payable": prev["tax_payable"] + tax, "loan": prev["loan"] - m["loan_repaid"][mo],
+                  "share_capital": prev["share_capital"], "retained": prev["retained"] + npat}
+        hours = sum(x["hours"] for x in mr)
+        r[mo] = dict(rev=rev, revenue=revenue, contractors=contractors, sal=sal, cos=cos, gp=gp, opex=opex, ebitda=ebitda,
+                     pbt=pbt, tax=tax, npat=npat, receipts=receipts, pay_sup=pay_sup, pay_emp=pay_emp, operating=operating,
+                     hours=hours, available=m["consultants"] * WORKING_DAYS[mo] * HOURS_PER_DAY,
+                     contribution=sum(x["contribution"] for x in mr), allocated=sum(x["allocated_cost"] for x in mr),
+                     wip=dict(wip))
+    pnl = [row("Revenue", "heading", None),
+           row("Projects (hours worked)", "detail", per(lambda mo: r[mo]["rev"]["Project"])),
+           row("Retainers", "detail", per(lambda mo: r[mo]["rev"]["Retainer"])),
+           row("Training", "detail", per(lambda mo: r[mo]["rev"]["Training"])),
+           row("Total revenue", "subtotal", per(lambda mo: r[mo]["revenue"])),
+           row("Cost of sales", "heading", None),
+           row("Consultant salaries (incl. on-costs)", "detail", per(lambda mo: -r[mo]["sal"])),
+           row("Contractors", "detail", per(lambda mo: -r[mo]["contractors"])),
+           row("Total cost of sales", "subtotal", per(lambda mo: -r[mo]["cos"])),
+           row("Gross profit", "total", per(lambda mo: r[mo]["gp"])),
+           row("Operating expenses", "heading", None)]
+    for k in m["opex"]:
+        pnl.append(row(k, "detail", per(lambda mo, k=k: -r[mo]["opex"][k])))
+    pnl += [row("Total operating expenses", "subtotal", per(lambda mo: -sum(r[mo]["opex"].values()))),
+            row("EBITDA", "total", per(lambda mo: r[mo]["ebitda"])),
+            row("Depreciation", "subtotal", per(lambda mo: -m["depreciation"][mo])),
+            row("Interest", "subtotal", per(lambda mo: -m["interest"][mo])),
+            row("Profit before tax", "total", per(lambda mo: r[mo]["pbt"])),
+            row(f"Income tax provision ({m['tax_rate']}%)", "subtotal", per(lambda mo: -r[mo]["tax"])),
+            row("Net profit after tax", "key", per(lambda mo: r[mo]["npat"]))]
+    bsr, cfr = sme_bs_cf(bs, r, m, "Work in progress (unbilled project time)", "Office equipment", "Purchase of equipment",
+                         "Payments to contractors and suppliers", "Payments to employees")
+    return dict(engagements=rows, invoices=invoices, r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr)
+
+
+# ========================================================================== NFP
+
+NFP = {
+    "name": "Not-for-profit", "long_name": "Sample Community Services Ltd",
+    "about": "A Brisbane community services charity funded by six grants, donations, events and program fees. About 18 staff. Registered charity, income-tax exempt.",
+    # [code, short name, program, funder, total, start, end, instalments [(date, amount)], received to 31 Jul, recognised to 31 Jul, spend Aug, spend Sep]
+    "grants": [
+        ["G-101", "Youth", "Youth outreach", "State Department of Families", 480000, date(2025, 7, 1), date(2027, 6, 30),
+         [(date(2025, 7, 15), 60000), (date(2025, 10, 15), 60000), (date(2026, 1, 15), 60000), (date(2026, 4, 15), 60000), (date(2026, 7, 15), 60000), (date(2026, 10, 15), 60000)],
+         262000, 21500, 22800],
+        ["G-102", "Housing", "Housing support", "State Housing Program", 360000, date(2026, 1, 1), date(2026, 12, 31),
+         [(date(2026, 1, 8), 180000), (date(2026, 7, 6), 180000)], 196000, 30500, 31200],
+        ["G-103", "Meals", "Community meals", "Local council community grant", 48000, date(2026, 7, 1), date(2027, 6, 30),
+         [(date(2026, 7, 10), 48000)], 3600, 4100, 4300],
+        ["G-104", "Digital", "Digital literacy", "Philanthropic foundation", 90000, date(2025, 10, 1), date(2027, 3, 31),
+         [(date(2025, 10, 20), 45000), (date(2026, 10, 20), 45000)], 49500, 5200, 4900],
+        ["G-105", "Mind", "Mental health first aid", "Federal health program", 120000, date(2026, 4, 1), date(2027, 3, 31),
+         [(date(2026, 4, 9), 60000), (date(2026, 10, 9), 60000)], 37000, 9400, 10800],
+        ["G-106", "Volunteer", "Volunteer coordinator", "State volunteering grant", 36000, date(2026, 3, 1), date(2027, 2, 28),
+         [(date(2026, 3, 3), 36000)], 15000, 3000, 3000],
+    ],
+    "grant_wage_share": 0.75,
+    "untied_program": {"Program delivery wages (untied)": {"2026-08": 14000, "2026-09": 14500},
+                       "Program costs (untied)": {"2026-08": 5500, "2026-09": 6100}},
+    "income": {"Donations": {"2026-08": 18400, "2026-09": 27900},
+               "Fundraising events": {"2026-08": 0, "2026-09": 41600},
+               "Program fees": {"2026-08": 26800, "2026-09": 28300},
+               "Interest": {"2026-08": 1450, "2026-09": 1380}},
+    "fundraising": {"Grant writing and reporting": {"2026-08": 7100, "2026-09": 7100},
+                    "Donor campaigns": {"2026-08": 2200, "2026-09": 5400},
+                    "Event costs": {"2026-08": 2400, "2026-09": 16900}},
+    "admin": {"Administration wages": {"2026-08": 18300, "2026-09": 18300},
+              "Occupancy": {"2026-08": 10000, "2026-09": 10000},
+              "Other administration": {"2026-08": 8000, "2026-09": 7600}},
+    "depreciation": {"2026-08": 2900, "2026-09": 2900}, "capex": {"2026-08": 0, "2026-09": 0},
+    "fees_receivable": {"2026-07": 9100, "2026-08": 9800, "2026-09": 10400},
+    "provision_change": {"2026-08": 900, "2026-09": 700},
+    "opening": {"cash": 610000, "prepayments": 21000, "fixed_assets": 178000, "payables": 36500, "provisions": 165000},
+    "reserves_target_months": 3, "ending_within_months": 6,
+}
+
+
+def nfp(m):
+    a = m
+    g = a["grants"]
+    received = lambda gr, d: sum(amt for dt, amt in gr[7] if dt <= d)
+    recog = {gr[0]: {"2026-07": gr[8]} for gr in g}
+    for gr in g:
+        recog[gr[0]]["2026-08"] = gr[8] + gr[9]
+        recog[gr[0]]["2026-09"] = gr[8] + gr[9] + gr[10]
+    def grant_bal(mo):  # positive = received in advance (liability); negative = spent ahead (receivable)
+        return {gr[0]: received(gr, MONTH_END[mo]) - recog[gr[0]][mo] for gr in g}
+    def adv(mo): return sum(v for v in grant_bal(mo).values() if v > 0)
+    def grec(mo): return -sum(v for v in grant_bal(mo).values() if v < 0)
+    o = a["opening"]
+    bs = {"2026-07": {**o, "grants_in_advance": adv("2026-07"), "grants_receivable": grec("2026-07"),
+                      "fees_receivable": a["fees_receivable"]["2026-07"]}}
+    b0 = bs["2026-07"]
+    b0["accumulated"] = (o["cash"] + b0["fees_receivable"] + b0["grants_receivable"] + o["prepayments"] + o["fixed_assets"]
+                         - o["payables"] - b0["grants_in_advance"] - o["provisions"])
+    r = {}
+    for mo in ["2026-08", "2026-09"]:
+        k = 9 if mo == "2026-08" else 10
+        gspend = {gr[0]: gr[k] for gr in g}
+        grant_income = sum(gspend.values())
+        other_income = {kk: v[mo] for kk, v in a["income"].items()}
+        income = grant_income + sum(other_income.values())
+        grant_wages = half_up(grant_income * a["grant_wage_share"])
+        grant_costs = grant_income - grant_wages
+        untied = {kk: v[mo] for kk, v in a["untied_program"].items()}
+        program = grant_income + sum(untied.values())
+        fund = {kk: v[mo] for kk, v in a["fundraising"].items()}
+        admin = {kk: v[mo] for kk, v in a["admin"].items()}
+        expenses = program + sum(fund.values()) + sum(admin.values()) + a["depreciation"][mo]
         surplus = income - expenses
-        wages = sum(v for k, v in {**d["program"], **d["admin"]}.items() if "wages" in k.lower())
-        cur = {"receivables": d["receivables"], "prepayments": d["prepayments"],
-               "fixed_assets": prev["fixed_assets"] + d["capex"] - d["depreciation"],
-               "payables": d["payables"], "grants_in_advance": d["grants_in_advance"],
-               "provisions": half_up(wages * d["provision_pct"] / 100),
-               "accumulated": prev["accumulated"] + surplus}
-        grants_rec = d["income"]["Government grants"] + (cur["grants_in_advance"] - prev["grants_in_advance"]) - (cur["receivables"] - prev["receivables"])
-        don_rec = d["income"]["Donations"] + d["income"]["Fundraising events"]
-        fees_rec = d["income"]["Program fees"]
-        int_rec = d["income"]["Interest"]
-        payments = (expenses - d["depreciation"]) + (cur["prepayments"] - prev["prepayments"]) \
-            - (cur["payables"] - prev["payables"]) - (cur["provisions"] - prev["provisions"])
-        operating = grants_rec + don_rec + fees_rec + int_rec - payments
-        investing = -d["capex"]
-        cur["cash"] = prev["cash"] + operating + investing
-        bs[y] = cur
-        r[y] = dict(income=income, program=program, fund=fund, admin=admin, expenses=expenses, surplus=surplus,
-                    grants_rec=grants_rec, don_rec=don_rec, fees_rec=fees_rec, int_rec=int_rec, payments=payments,
-                    operating=operating, investing=investing, cash_expenses=expenses - d["depreciation"])
-
+        prev = bs[prev_month(mo)]
+        wages = grant_wages + untied["Program delivery wages (untied)"] + fund["Grant writing and reporting"] + admin["Administration wages"]
+        nonwage = expenses - a["depreciation"][mo] - wages
+        grants_received = sum(amt for gr in g for dt, amt in gr[7] if ym(dt) == mo)
+        fees_received = other_income["Program fees"] - (a["fees_receivable"][mo] - a["fees_receivable"][prev_month(mo)])
+        don_received = other_income["Donations"] + other_income["Fundraising events"]
+        pay_sup = prev["payables"]                 # suppliers are paid the following month
+        pay_emp = wages - a["provision_change"][mo]
+        operating = grants_received + don_received + fees_received + other_income["Interest"] - pay_sup - pay_emp
+        bs[mo] = {"cash": prev["cash"] + operating - a["capex"][mo], "fees_receivable": a["fees_receivable"][mo],
+                  "grants_receivable": grec(mo), "prepayments": prev["prepayments"],
+                  "fixed_assets": prev["fixed_assets"] + a["capex"][mo] - a["depreciation"][mo],
+                  "payables": nonwage, "grants_in_advance": adv(mo), "provisions": prev["provisions"] + a["provision_change"][mo],
+                  "accumulated": prev["accumulated"] + surplus}
+        r[mo] = dict(gspend=gspend, grant_income=grant_income, other_income=other_income, income=income,
+                     grant_wages=grant_wages, grant_costs=grant_costs, untied=untied, program=program, fund=fund, admin=admin,
+                     expenses=expenses, surplus=surplus, wages=wages, nonwage=nonwage, grants_received=grants_received,
+                     fees_received=fees_received, don_received=don_received, pay_sup=pay_sup, pay_emp=pay_emp,
+                     operating=operating, cash_expenses=expenses - a["depreciation"][mo])
     pnl = [row("Income", "heading", None)]
-    for k in a["FY2026"]["income"]:
-        pnl.append(row(k, "detail", by_year(lambda y, k=k: a[y]["income"][k])))
-    pnl.append(row("Total income", "subtotal", by_year(lambda y: r[y]["income"])))
-    for head, key, total in [("Programs", "program", "Total program spend"), ("Fundraising", "fundraising", "Total fundraising costs"),
-                             ("Administration", "admin", "Total administration")]:
+    for gr in g:
+        pnl.append(row(f"{gr[2]} grant", "detail", per(lambda mo, c=gr[0]: r[mo]["gspend"][c])))
+    for kk in a["income"]:
+        pnl.append(row(kk, "detail", per(lambda mo, kk=kk: r[mo]["other_income"][kk])))
+    pnl += [row("Total income", "subtotal", per(lambda mo: r[mo]["income"])),
+            row("Programs", "heading", None),
+            row("Grant-funded program wages", "detail", per(lambda mo: -r[mo]["grant_wages"])),
+            row("Grant-funded program costs", "detail", per(lambda mo: -r[mo]["grant_costs"]))]
+    for kk in a["untied_program"]:
+        pnl.append(row(kk, "detail", per(lambda mo, kk=kk: -r[mo]["untied"][kk])))
+    pnl.append(row("Total program spend", "subtotal", per(lambda mo: -r[mo]["program"])))
+    for head, key, total in [("Fundraising", "fund", "Total fundraising costs"), ("Administration", "admin", "Total administration")]:
         pnl.append(row(head, "heading", None))
-        for k in a["FY2026"][key]:
-            pnl.append(row(k, "detail", by_year(lambda y, k=k, key=key: -a[y][key][k])))
-        rk = {"program": "program", "fundraising": "fund", "admin": "admin"}[key]
-        pnl.append(row(total, "subtotal", by_year(lambda y, rk=rk: -r[y][rk])))
-    pnl.append(row("Depreciation", "subtotal", by_year(lambda y: -a[y]["depreciation"])))
-    pnl.append(row("Total expenses", "total", by_year(lambda y: -r[y]["expenses"])))
-    pnl.append(row("Surplus for the year", "key", by_year(lambda y: r[y]["surplus"]), note="Income-tax exempt charity: no income tax."))
+        for kk in a["fundraising" if key == "fund" else "admin"]:
+            pnl.append(row(kk, "detail", per(lambda mo, kk=kk, key=key: -r[mo][key][kk])))
+        pnl.append(row(total, "subtotal", per(lambda mo, key=key: -sum(r[mo][key].values()))))
+    pnl += [row("Depreciation", "subtotal", per(lambda mo: -a["depreciation"][mo])),
+            row("Total expenses", "total", per(lambda mo: -r[mo]["expenses"])),
+            row("Surplus for the month", "key", per(lambda mo: r[mo]["surplus"]), note="Income-tax exempt charity: no income tax.")]
 
-    def ca(y): b = bs[y]; return b["cash"] + b["receivables"] + b["prepayments"]
-    def cl(y): b = bs[y]; return b["payables"] + b["grants_in_advance"] + b["provisions"]
+    def ca(mo): b = bs[mo]; return b["cash"] + b["fees_receivable"] + b["grants_receivable"] + b["prepayments"]
+    def cl(mo): b = bs[mo]; return b["payables"] + b["grants_in_advance"] + b["provisions"]
     bsr = [row("Current assets", "heading", None),
-           row("Cash at bank", "detail", by_year(lambda y: bs[y]["cash"])),
-           row("Grants and fees receivable", "detail", by_year(lambda y: bs[y]["receivables"])),
-           row("Prepayments", "detail", by_year(lambda y: bs[y]["prepayments"])),
-           row("Total current assets", "subtotal", by_year(ca)),
-           row("Vehicles and equipment", "subtotal", by_year(lambda y: bs[y]["fixed_assets"])),
-           row("Total assets", "total", by_year(lambda y: ca(y) + bs[y]["fixed_assets"])),
+           row("Cash at bank", "detail", per(lambda mo: bs[mo]["cash"])),
+           row("Program fees receivable", "detail", per(lambda mo: bs[mo]["fees_receivable"])),
+           row("Grants receivable (spent ahead of instalment)", "detail", per(lambda mo: bs[mo]["grants_receivable"])),
+           row("Prepayments", "detail", per(lambda mo: bs[mo]["prepayments"])),
+           row("Total current assets", "subtotal", per(ca)),
+           row("Vehicles and equipment", "subtotal", per(lambda mo: bs[mo]["fixed_assets"])),
+           row("Total assets", "total", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"])),
            row("Current liabilities", "heading", None),
-           row("Payables", "detail", by_year(lambda y: bs[y]["payables"])),
-           row("Grants received in advance (unspent)", "detail", by_year(lambda y: bs[y]["grants_in_advance"])),
-           row("Employee leave provisions", "detail", by_year(lambda y: bs[y]["provisions"])),
-           row("Total liabilities", "total", by_year(cl)),
-           row("Net assets", "key", by_year(lambda y: ca(y) + bs[y]["fixed_assets"] - cl(y))),
+           row("Payables (bills due next month)", "detail", per(lambda mo: bs[mo]["payables"])),
+           row("Grants received in advance (unspent)", "detail", per(lambda mo: bs[mo]["grants_in_advance"])),
+           row("Employee leave provisions", "detail", per(lambda mo: bs[mo]["provisions"])),
+           row("Total liabilities", "total", per(cl)),
+           row("Net assets", "key", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"] - cl(mo))),
            row("Equity", "heading", None),
-           row("Accumulated funds", "key", by_year(lambda y: bs[y]["accumulated"]))]
-
-    prevy = lambda y: "FY2024" if y == "FY2025" else "FY2025"
+           row("Accumulated funds", "key", per(lambda mo: bs[mo]["accumulated"]))]
     cfr = [row("Operating activities", "heading", None),
-           row("Grants received", "detail", by_year(lambda y: r[y]["grants_rec"])),
-           row("Donations and fundraising received", "detail", by_year(lambda y: r[y]["don_rec"])),
-           row("Program fees received", "detail", by_year(lambda y: r[y]["fees_rec"])),
-           row("Interest received", "detail", by_year(lambda y: r[y]["int_rec"])),
-           row("Payments to suppliers and employees", "detail", by_year(lambda y: -r[y]["payments"])),
-           row("Net cash from operating activities", "subtotal", by_year(lambda y: r[y]["operating"])),
+           row("Grant instalments received", "detail", per(lambda mo: r[mo]["grants_received"]), note="Next instalments arrive in October."),
+           row("Donations and fundraising received", "detail", per(lambda mo: r[mo]["don_received"])),
+           row("Program fees received", "detail", per(lambda mo: r[mo]["fees_received"])),
+           row("Interest received", "detail", per(lambda mo: r[mo]["other_income"]["Interest"])),
+           row("Payments to suppliers", "detail", per(lambda mo: -r[mo]["pay_sup"])),
+           row("Payments to employees", "detail", per(lambda mo: -r[mo]["pay_emp"])),
+           row("Net cash from operating activities", "subtotal", per(lambda mo: r[mo]["operating"])),
            row("Investing activities", "heading", None),
-           row("Purchase of vehicles and equipment", "detail", by_year(lambda y: -a[y]["capex"])),
-           row("Net cash from investing activities", "subtotal", by_year(lambda y: r[y]["investing"])),
-           row("Net change in cash", "total", by_year(lambda y: r[y]["operating"] + r[y]["investing"])),
-           row("Cash at 1 July", "subtotal", by_year(lambda y: bs[prevy(y)]["cash"])),
-           row("Cash at 30 June", "key", by_year(lambda y: bs[y]["cash"]))]
+           row("Purchase of vehicles and equipment", "detail", per(lambda mo: -a["capex"][mo])),
+           row("Net cash from investing activities", "subtotal", per(lambda mo: -a["capex"][mo])),
+           row("Net change in cash", "total", per(lambda mo: r[mo]["operating"] - a["capex"][mo])),
+           row("Cash at start of month", "subtotal", per(lambda mo: bs[prev_month(mo)]["cash"])),
+           row("Cash at end of month", "key", per(lambda mo: bs[mo]["cash"]))]
+    grant_rows = []
+    hist_rng = random.Random(102)
+    for gr in g:
+        months = []
+        d = gr[5]
+        while d <= gr[6]:
+            months.append(d.strftime("%Y-%m"))
+            d = date(d.year + (d.month == 12), d.month % 12 + 1, 1)
+        budget = dict(zip(months, split(gr[4], [1] * len(months))))      # even monthly budget, adds to the grant
+        before = [mo for mo in months if mo < "2026-08"]
+        spend = dict(zip(before, split(gr[8], [hist_rng.uniform(0.8, 1.2) for _ in before]))) if before else {}
+        spend["2026-08"], spend["2026-09"] = gr[9], gr[10]
+        to_date = [mo for mo in months if mo <= "2026-09"]
+        budget_to_date = sum(budget[mo] for mo in to_date)
+        grant_rows.append({"code": gr[0], "short": gr[1], "program": gr[2], "funder": gr[3], "total": gr[4],
+                           "start": gr[5].isoformat(), "end": gr[6].isoformat(),
+                           "received_to_date": received(gr, MONTH_END["2026-09"]), "spent_to_date": recog[gr[0]]["2026-09"],
+                           "spent_aug": gr[9], "spent_sep": gr[10], "budget_to_date": budget_to_date,
+                           "spend_vs_budget_pct": round(100 * recog[gr[0]]["2026-09"] / budget_to_date, 1),
+                           "unspent": gr[4] - recog[gr[0]]["2026-09"],
+                           "balance_30_sep": grant_bal("2026-09")[gr[0]],
+                           "months_left": max(0, (gr[6].year - 2026) * 12 + gr[6].month - 9),
+                           "monthly": [{"month": mo, "spend": spend[mo], "budget": budget[mo]} for mo in to_date],
+                           "budget_by_month": budget})
+    return dict(r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr, grants=grant_rows, grant_bal=grant_bal)
 
-    y, p = "FY2026", "FY2025"
-    wc = -(bs[y]["receivables"] - bs[p]["receivables"]) - (bs[y]["prepayments"] - bs[p]["prepayments"]) \
-        + (bs[y]["payables"] - bs[p]["payables"]) + (bs[y]["provisions"] - bs[p]["provisions"])
-    bridge = [["Surplus for the year", r[y]["surplus"]], ["Add back depreciation", a[y]["depreciation"]],
-              ["Grants received in advance (unspent)", bs[y]["grants_in_advance"] - bs[p]["grants_in_advance"]],
-              ["Working capital (receivables, payables)", wc], ["Vehicles and equipment bought", -a[y]["capex"]]]
-    change = bs[y]["cash"] - bs[p]["cash"]
-    return dict(r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr, bridge=bridge, change=change)
+
+# ============================================================ the fourth sheet
+# Three headline numbers (this month vs last month) and one chart that drills
+# into the detail. The full detail lists go to the Excel/PDF downloads and CSVs.
+
+def chg(cur, prev, fmt, better="up"):
+    up = cur > prev
+    good = (up and better == "up") or (not up and better == "down")
+    arrow = "▲" if up else ("▼" if cur < prev else "■")
+    return f"{arrow} from {fmt(prev)} in Aug", "good" if (good and cur != prev) else ("" if cur == prev else "bad")
 
 
-# =============================================================== the fourth sheet
-# The FIRST THREE KPIs in each list are the ones shown on the home page;
-# the rest appear in the Excel and PDF downloads.
+def money(v):
+    """$1,234, with negatives in accounting brackets: ($1,234)."""
+    v = half_up(v)
+    return f"(${-v:,})" if v < 0 else f"${v:,}"
 
-def pct(n, d, places=1):
-    return round(100 * n / d, places)
+
+# ---- number formats: ONE rule per kind, used on the site, in PDFs and in Excel
+# money: whole dollars, negatives in brackets · pct: 1 decimal place (stored as a
+# fraction) · hours: 1 dp · int: whole · months: 1 dp · cents: whole cents
+FMT = {
+    "money": lambda v: money(v),
+    "pct": lambda v: f"({-v * 100:.1f}%)" if v < 0 else f"{v * 100:.1f}%",
+    "hours": lambda v: f"({-v:,.1f} h)" if v < 0 else f"{v:,.1f} h",
+    "int": lambda v: f"{v:,.0f}",
+    "months": lambda v: f"({-v:.1f} months)" if v < 0 else f"{v:.1f} months",
+    "cents": lambda v: f"({-half_up(v)}¢)" if v < 0 else f"{half_up(v)}¢",
+    "date": lambda v: v,
+    "text": lambda v: v,
+}
+
+
+def inp(label, kind, values):
+    """An input row (data): one value per column."""
+    return {"label": label, "kind": kind, "values": list(values), "calc": None}
+
+
+def calc(label, kind, expr):
+    """A calculated row: expr uses r0, r1… for earlier rows, e.g. 'r4/r0'. Becomes an Excel formula."""
+    return {"label": label, "kind": kind, "values": None, "calc": expr}
+
+
+def support(title, formula, rows, note=None, series=None, cols=("Sep 2026", "Aug 2026")):
+    """The workings behind a number. Calculated rows are worked out here (for the site and
+    PDF) and written as formulas in Excel, from the same expressions."""
+    import re
+    def ev(expr, c):
+        try:
+            return eval(re.sub(r"r(\d+)", lambda m: f"rows[{m.group(1)}]['values'][{c}]", expr), {}, {"rows": rows})
+        except (ZeroDivisionError, TypeError):
+            return None          # nothing to divide by (e.g. no revenue that month): shown as "–", and IFERROR in Excel
+    for r_ in rows:
+        if r_["calc"]:
+            r_["values"] = [ev(r_["calc"], c) for c in range(len(cols))]
+    shown = [[r_["label"], *["–" if v is None else FMT[r_["kind"]](v) for v in r_["values"]]] + ([""] if len(cols) == 1 else []) for r_ in rows]
+    return {"title": title, "formula": formula, "head": ["", *cols], "rows": shown, "note": note, "series": series,
+            "xl": {"cols": list(cols), "rows": rows}}
 
 
 def fourth_trades(m, out):
-    a, r, bs = m["years"], out["r"], out["bs"]
-    cac = {y: a[y]["opex"]["Marketing"] * 1000 / a[y]["new_customers"] for y in YEARS}
-    gm = {y: pct(r[y]["gp"], r[y]["rev"]) for y in YEARS}
-    ddays = {y: half_up(bs[y]["debtors"] * 365 / r[y]["rev"]) for y in YEARS}
-    fixed = {y: r[y]["opex"] + a[y]["depreciation"] + a[y]["interest"] for y in YEARS}
-    breakeven = {y: fixed[y] / (r[y]["gp"] / r[y]["rev"]) for y in YEARS}
-    mk = allocate(a["FY2026"]["opex"]["Marketing"] * 1000, m["monthly_marketing_weights"])
-    cu = allocate(a["FY2026"]["new_customers"], m["monthly_customer_weights"])
-    lines = [[ln, a["FY2026"]["revenue"][i], a["FY2026"]["revenue"][i] - a["FY2026"]["materials"][i] - a["FY2026"]["subcontractors"][i] - a["FY2026"]["direct_labour"][i]]
-             for i, ln in enumerate(m["lines"])]
+    r = out["r"]
+    S = lambda f: [f(mo) for mo in PERIODS]
+    installs = sorted([j for j in out["jobs"] if j["month"] == "2026-09" and j["type"] == "Installation"],
+                      key=lambda j: -j["gross_profit"] / j["revenue"])     # bars sorted by value
+    s_gm = support("Gross margin (P&L)", "Gross profit ÷ revenue. All technician wages and on-costs included; overheads are not.", [
+        inp("Revenue (every job invoiced in the month)", "money", S(lambda mo: r[mo]["revenue"])),
+        inp("Materials", "money", S(lambda mo: -r[mo]["mat"])), inp("Subcontractors", "money", S(lambda mo: -r[mo]["sub"])),
+        inp("Technician wages", "money", S(lambda mo: -r[mo]["techw"])),
+        calc("Gross profit", "money", "r0+r1+r2+r3"), calc("Gross margin (P&L)", "pct", "r4/r0")],
+        "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include all on-costs (super, payroll tax, workers' compensation, leave). Technicians are on salary, so a quiet month for jobs lowers gross margin even if every job is priced well.")
+    s_cac = support("Cost to win a customer", "Marketing spend ÷ new customers", [
+        inp("Marketing spend", "money", S(lambda mo: m["opex"]["Marketing"][mo])),
+        inp("New customers (first job ever)", "int", S(lambda mo: m["new_customers"][mo])),
+        calc("Cost per new customer", "money", "r0/r1")])
+    s_ut = support("Technician time on jobs", "Hours charged to jobs ÷ hours available", [
+        inp("Hours charged to jobs (timesheets)", "hours", S(lambda mo: r[mo]["hours"])),
+        inp("Technicians", "int", S(lambda mo: m["technicians"])), inp("Working days", "int", S(lambda mo: WORKING_DAYS[mo])),
+        inp("Hours per day", "hours", S(lambda mo: HOURS_PER_DAY)),
+        calc("Hours available", "hours", "r1*r2*r3"), calc("Time on jobs", "pct", "r0/r4")],
+        "August had one fewer working day for the Ekka show holiday. The rest is travel, training, quoting and waiting time.")
+    kp = lambda sp, i=-1: sp["xl"]["rows"][i]["values"]
+    gm, cac, util = kp(s_gm), kp(s_cac), kp(s_ut)
+    k1, c1 = chg(gm[0], gm[1], FMT["pct"])
+    k2, c2 = chg(cac[0], cac[1], FMT["money"], "down")
+    k3, c3 = chg(util[0], util[1], FMT["pct"])
+    details = [support(j["description"], "Job gross margin ÷ revenue for this job (before overheads)", [
+        inp("Revenue", "money", [j["revenue"]]), inp("Materials", "money", [-j["materials"]]),
+        inp("Subcontractors", "money", [-j["subcontractors"]]), inp("Technician hours", "hours", [j["hours"]]),
+        inp("Technician cost rate ($/hour, wages and all on-costs)", "money", [m["tech_cost_rate"]]), calc("Technician time", "money", "-r3*r4"),
+        calc("Job gross margin", "money", "r0+r1+r2+r5"), calc("Job gross margin %", "pct", "r6/r0")], cols=("This job",)) for j in installs]
     return {
-        "kpis": [
-            {"label": "Cost to win a customer", "value": f"${half_up(cac['FY2026'])}", "sub": f"FY2025: ${half_up(cac['FY2025'])}", "cls": "good", "spine": True},
-            {"label": "Gross margin", "value": f"{gm['FY2026']}%", "sub": f"FY2025: {gm['FY2025']}%", "cls": "good"},
-            {"label": "Debtor days", "value": str(ddays["FY2026"]), "sub": f"FY2025: {ddays['FY2025']}", "cls": "good"},
-            {"label": "Break-even revenue", "value": f"${breakeven['FY2026'] / 1000:.2f}M", "sub": f"{pct(breakeven['FY2026'], r['FY2026']['rev'], 0):.0f}% of revenue", "cls": ""},  # downloads only
-        ],
-        "chart": {"title": "Cost to win a customer, by month (FY2026)", "labels": MONTHS,
-                  "values": [round(mk[i] / cu[i], 2) for i in range(12)], "target": m["cac_target"], "format": "money0",
-                  "what": "cost to win a customer"},
-        "table": {"title": "Profit by service line, FY2026 ($'000)", "head": ["Service line", "Revenue", "Gross profit", "Margin"],
-                  "rows": [[ln, rv, g, f"{pct(g, rv)}%"] for ln, rv, g in lines],
-                  "total": ["Total", r["FY2026"]["rev"], r["FY2026"]["gp"], f"{gm['FY2026']}%"]},
-        "monthly": {"marketing_aud": mk, "new_customers": cu},
-        "facts": dict(cac=cac, gm=gm, ddays=ddays, breakeven=breakeven, lines=lines),
+        "kpis": [{"label": "Gross margin (P&L), September", "value": FMT["pct"](gm[0]), "sub": k1, "cls": c1, "spine": True, "support": s_gm},
+                 {"label": "Cost to win a customer", "value": FMT["money"](cac[0]), "sub": k2, "cls": c2, "support": s_cac},
+                 {"label": "Technician time on jobs", "value": FMT["pct"](util[0]), "sub": k3, "cls": c3, "support": s_ut}],
+        "chart": {"title": "Job gross margin on each installation invoiced in September 2026",
+                  "subtitle": f"Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at ${m['tech_cost_rate']}/hour. Before overheads: not profit. One {m['target_margin']}.0% target for every job for now.",
+                  "labels": [j["description"] for j in installs],
+                  "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                  "target": float(m["target_margin"]), "format": "pct1", "what": "job margin", "details": details,
+                  "views": [{"id": "pct", "label": "Gross margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                             "format": "pct1", "target": float(m["target_margin"])},
+                            {"id": "dollars", "label": "Gross margin $", "values": [j["gross_profit"] for j in installs], "format": "money0",
+                             "marks": [half_up(j["revenue"] * m["target_margin"] / 100) for j in installs],
+                             "mark_label": f"Target gross margin ({m['target_margin']}.0% of the job's revenue)", "below_marks": True}]},
+        "facts": dict(gm=gm, cac=cac, util=util),
     }
 
 
 def fourth_services(m, out):
-    a, r, bs = m["years"], out["r"], out["bs"]
-    util = {y: pct(a[y]["billable_hours"], a[y]["billable_fte"] * a[y]["available_hours_per_fte"]) for y in YEARS}
-    rate = {y: r[y]["rev"] * 1000 / a[y]["billable_hours"] for y in YEARS}
-    lockup = {y: half_up((bs[y]["debtors"] + bs[y]["stock"]) * 365 / r[y]["rev"]) for y in YEARS}
-    cac = {y: a[y]["opex"]["Marketing and business development"] * 1000 / a[y]["new_customers"] for y in YEARS}
-    bh = allocate(a["FY2026"]["billable_hours"], m["monthly_billable_weights"])
-    av = allocate(int(a["FY2026"]["billable_fte"] * a["FY2026"]["available_hours_per_fte"]), m["monthly_available_weights"])
-    lines = [[ln, a["FY2026"]["revenue"][i], a["FY2026"]["revenue"][i] - a["FY2026"]["subcontractors"][i] - a["FY2026"]["direct_labour"][i]]
-             for i, ln in enumerate(m["lines"])]
+    r = out["r"]
+    S = lambda f: [f(mo) for mo in PERIODS]
+    sep = sorted([x for x in out["engagements"] if x["month"] == "2026-09"], key=lambda x: -x["contribution"] / x["revenue"])
+    s_ut = support("Consultant utilisation", "Billable hours ÷ hours available", [
+        inp("Billable hours (timesheets)", "hours", S(lambda mo: r[mo]["hours"])),
+        inp("Consultants", "int", S(lambda mo: m["consultants"])), inp("Working days", "int", S(lambda mo: WORKING_DAYS[mo])),
+        inp("Hours per day", "hours", S(lambda mo: HOURS_PER_DAY)),
+        calc("Hours available", "hours", "r1*r2*r3"), calc("Utilisation", "pct", "r0/r4")])
+    s_rate = support("Revenue per billable hour", "Revenue ÷ billable hours", [
+        inp("Revenue", "money", S(lambda mo: r[mo]["revenue"])), inp("Billable hours", "hours", S(lambda mo: r[mo]["hours"])),
+        calc("Revenue per hour", "money", "r0/r1")],
+        "Retainers and training are fixed fees, so fewer hours on them raises the hourly figure.")
+    s_lock = support("Cash tied up in work", "Work in progress + unpaid invoices at month end", [
+        inp("Work in progress (project time not yet billed)", "money", S(lambda mo: out["bs"][mo]["stock"])),
+        inp("Unpaid client invoices", "money", S(lambda mo: out["bs"][mo]["debtors"])),
+        calc("Total tied up", "money", "r0+r1")],
+        "Milestone billing on the logistics and manufacturer projects landed at the end of September, so it moved from unbilled to unpaid.")
+    kp = lambda sp: sp["xl"]["rows"][-1]["values"]
+    util, rate, lock = kp(s_ut), kp(s_rate), kp(s_lock)
+    k1, c1 = chg(util[0], util[1], FMT["pct"])
+    k2, c2 = chg(rate[0], rate[1], FMT["money"])
+    k3, c3 = chg(lock[0], lock[1], FMT["money"], "down")
+    details = [support(x["description"], "Gross margin ÷ revenue for this engagement (before overheads)", [
+        inp("Revenue", "money", [x["revenue"]]), inp("Contractors", "money", [-x["contractors"]]),
+        inp("Consultant hours", "hours", [x["hours"]]), inp("Consultant cost rate ($/hour, wages and all on-costs)", "money", [m["cost_rate"]]),
+        calc("Consultant time", "money", "-r2*r3"), calc("Gross margin", "money", "r0+r1+r4"), calc("Gross margin %", "pct", "r5/r0")],
+        cols=("This engagement",)) for x in sep]
     return {
-        "kpis": [
-            {"label": "Utilisation", "value": f"{util['FY2026']:.0f}%", "sub": f"FY2025: {util['FY2025']:.0f}%", "cls": "good", "spine": True},
-            {"label": "Revenue per billable hour", "value": f"${half_up(rate['FY2026'])}", "sub": f"FY2025: ${half_up(rate['FY2025'])}", "cls": "good"},
-            {"label": "Lock-up days (debtors + WIP)", "value": str(lockup["FY2026"]), "sub": f"FY2025: {lockup['FY2025']}", "cls": "good"},
-            {"label": "Cost to win a client", "value": f"${half_up(cac['FY2026']):,}", "sub": f"FY2025: ${half_up(cac['FY2025']):,}", "cls": "good"},
-        ],
-        "chart": {"title": "Utilisation by month (FY2026)", "labels": MONTHS,
-                  "values": [round(100 * bh[i] / av[i], 1) for i in range(12)], "target": m["utilisation_target"], "format": "pct0",
-                  "what": "utilisation"},
-        "table": {"title": "Profit by service line, FY2026 ($'000)", "head": ["Service line", "Revenue", "Gross profit", "Margin"],
-                  "rows": [[ln, rv, g, f"{pct(g, rv)}%"] for ln, rv, g in lines],
-                  "total": ["Total", r["FY2026"]["rev"], r["FY2026"]["gp"], f"{pct(r['FY2026']['gp'], r['FY2026']['rev'])}%"]},
-        "monthly": {"billable_hours": bh, "available_hours": av},
-        "facts": dict(util=util, rate=rate, lockup=lockup, cac=cac, lines=lines),
+        "kpis": [{"label": "Consultant utilisation, September", "value": FMT["pct"](util[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ut},
+                 {"label": "Revenue per billable hour", "value": FMT["money"](rate[0]), "sub": k2, "cls": c2, "support": s_rate},
+                 {"label": "Unbilled work + unpaid invoices", "value": FMT["money"](lock[0]), "sub": k3, "cls": c3, "support": s_lock}],
+        "chart": {"title": "Gross margin on each client engagement, September 2026 work only",
+                  "subtitle": f"September's revenue less contractors and consultant time at ${m['cost_rate']}/hour. Before overheads: not profit. Not the whole engagement to date. One {m['target_margin']}.0% target for every engagement for now.",
+                  "labels": [x["description"] for x in sep],
+                  "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                  "target": float(m["target_margin"]), "format": "pct1", "what": "engagement margin", "details": details,
+                  "views": [{"id": "pct", "label": "Gross margin %", "values": [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details],
+                             "format": "pct1", "target": float(m["target_margin"])},
+                            {"id": "dollars", "label": "Gross margin $", "values": [x["contribution"] for x in sep], "format": "money0",
+                             "marks": [half_up(x["revenue"] * m["target_margin"] / 100) for x in sep],
+                             "mark_label": f"Target gross margin ({m['target_margin']}.0% of revenue)", "below_marks": True}]},
+        "facts": dict(util=util, rate=rate, lock=lock),
     }
 
 
 def fourth_nfp(m, out):
-    a, r, bs = m["years"], out["r"], out["bs"]
-    raised = {y: a[y]["income"]["Government grants"] + a[y]["income"]["Donations"] + a[y]["income"]["Fundraising events"] for y in YEARS}
-    ctr = {y: r[y]["fund"] / raised[y] for y in YEARS}
-    cph = {y: r[y]["program"] * 1000 / a[y]["program_hours"] for y in YEARS}
-    unrestricted = {y: bs[y]["cash"] - bs[y]["grants_in_advance"] for y in YEARS}
-    runway = {y: unrestricted[y] / (r[y]["cash_expenses"] / 12) for y in YEARS}
-    d = a["FY2026"]
-    sources = [["Government grants", d["income"]["Government grants"], d["fundraising"]["Grant writing and reporting"]],
-               ["Donations", d["income"]["Donations"], d["fundraising"]["Donor campaigns"]],
-               ["Fundraising events", d["income"]["Fundraising events"], d["fundraising"]["Event costs"]]]
-    shares = allocate(100, [s[1] for s in sources])
-    spend = [r["FY2026"]["program"], r["FY2026"]["fund"], sum(v for k, v in d["admin"].items() if k != "Occupancy"),
-             d["admin"]["Occupancy"] + d["depreciation"]]
-    cents = allocate(100, spend)
+    r, bs = out["r"], out["bs"]
+    S = lambda f: [f(mo) for mo in PERIODS]
+    fund_rows = [inp(k, "money", S(lambda mo, k=k: r[mo]["fund"][k])) for k in m["fundraising"]]
+    nf = len(fund_rows)
+    s_ctr = support("Cost to raise a dollar", "Fundraising costs ÷ money raised (grants, donations, events), in cents", fund_rows + [
+        calc("Fundraising costs", "money", "+".join(f"r{i}" for i in range(nf))),
+        inp("Grant income", "money", S(lambda mo: r[mo]["grant_income"])),
+        inp("Donations", "money", S(lambda mo: r[mo]["other_income"]["Donations"])),
+        inp("Fundraising events", "money", S(lambda mo: r[mo]["other_income"]["Fundraising events"])),
+        calc("Money raised", "money", f"r{nf + 1}+r{nf + 2}+r{nf + 3}"),
+        calc("Cost per dollar raised", "cents", f"r{nf}/r{nf + 4}*100")],
+        "September's gala raised $41,600 but cost $16,900 to run, which lifts the month's figure.")
+    s_run = support("Unrestricted cash runway", "(Cash at bank − unspent grant money) ÷ this month's cash spending", [
+        inp("Cash at bank", "money", S(lambda mo: bs[mo]["cash"])),
+        inp("Less unspent grant money (belongs to funders' programs)", "money", S(lambda mo: -bs[mo]["grants_in_advance"])),
+        calc("Unrestricted cash", "money", "r0+r1"),
+        inp("Cash spending in the month (expenses less depreciation)", "money", S(lambda mo: r[mo]["cash_expenses"])),
+        calc("Runway", "months", "r2/r3")], f"Reserves target: {m['reserves_target_months']}.0 months.")
+    ending = [gr for gr in out["grants"] if gr["months_left"] < m["ending_within_months"]]
+    s_end = support(f"Grants ending in the next {m['ending_within_months']} months", "Grant total − spent to date, for each grant ending soon",
+                    [inp(f"{gr['program']} (ends {ds.strf(date.fromisoformat(gr['end']), '%-d %b %Y')})", "money", [gr["unspent"]]) for gr in ending]
+                    + [calc("Total still to spend", "money", "+".join(f"r{i}" for i in range(len(ending))))],
+                    "Unspent money usually has to be returned, or an extension negotiated, so plan the spending now.", cols=("Still to spend",))
+    ctr, run = s_ctr["xl"]["rows"][-1]["values"], s_run["xl"]["rows"][-1]["values"]
+    k1, c1 = chg(ctr[0], ctr[1], FMT["cents"], "down")
+    k2, c2 = chg(run[0], run[1], FMT["months"])
+    G = sorted(out["grants"], key=lambda gr: -gr["total"])     # biggest grants first, same order in both views
+    mname = lambda mo: date(int(mo[:4]), int(mo[5:]), 1).strftime("%b %y")
+    details = [support(gr["program"], f"{gr['funder']} · {money(gr['total'])} · {date.fromisoformat(gr['start']).strftime('%b %Y')} to {date.fromisoformat(gr['end']).strftime('%b %Y')}", [
+        inp("Grant total", "money", [gr["total"]]), inp("Received from the funder", "money", [gr["received_to_date"]]),
+        inp("Spent to date", "money", [gr["spent_to_date"]]), inp("Budget to date", "money", [gr["budget_to_date"]]),
+        inp("Months left", "int", [gr["months_left"]]), calc("Still to spend", "money", "r0-r2"),
+        calc("Spent against budget", "pct", "r2/r3")], None,
+        {"title": "Spend by month against budget", "labels": [mname(x["month"]) for x in gr["monthly"]],
+         "values": [x["spend"] for x in gr["monthly"]], "budget": [x["budget"] for x in gr["monthly"]], "format": "money0"},
+        cols=("This grant",)) for gr in G]
+    pcts = [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details]
     return {
-        "kpis": [
-            {"label": "Cost to raise a dollar", "value": f"${ctr['FY2026']:.2f}", "sub": f"FY2025: ${ctr['FY2025']:.2f}", "cls": "good", "spine": True},
-            {"label": "Spent on programs", "value": f"{cents[0]}c in $1", "sub": "of every dollar spent", "cls": ""},
-            {"label": "Cash runway (unrestricted)", "value": f"{runway['FY2026']:.1f} months", "sub": f"Target {m['reserves_target_months']} months", "cls": "good"},
-            {"label": "Cost per program hour", "value": f"${half_up(cph['FY2026'])}", "sub": f"FY2025: ${half_up(cph['FY2025'])}", "cls": ""},  # downloads only
-        ],
-        "chart": {"title": "Where each dollar goes (FY2026, cents)", "labels": ["Programs", "Fundraising", "Admin", "Occupancy"],
-                  "values": cents, "target": None, "format": "cents_int", "what": "spending per dollar"},
-        "table": {"title": "Funding sources, FY2026 ($'000)", "head": ["Source", "Raised", "Share", "Cost per $1"],
-                  "rows": [[s[0], s[1], f"{shares[i]}%", f"${s[2] / s[1]:.2f}"] for i, s in enumerate(sources)],
-                  "total": ["Total", raised["FY2026"], "100%", f"${ctr['FY2026']:.2f}"]},
-        "monthly": {},
-        "facts": dict(ctr=ctr, cph=cph, runway=runway, unrestricted=unrestricted, cents=cents, shares=shares, sources=sources),
+        "kpis": [{"label": "Cost to raise a dollar, September", "value": FMT["cents"](ctr[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ctr},
+                 {"label": "Unrestricted cash runway", "value": FMT["months"](run[0]), "sub": k2, "cls": c2, "support": s_run},
+                 {"label": f"Grants ending in {m['ending_within_months']} months", "value": f"{len(ending)} · {money(sum(gr['unspent'] for gr in ending))}",
+                  "sub": "still to spend before they end", "cls": "bad" if ending else "", "support": s_end}],
+        "chart": {"title": "Each grant: spent to 30 September 2026 against budget to the same date",
+                  "subtitle": "Whole grant from its start date. Budget to date = the grant spread evenly over its months.",
+                  "labels": [gr["program"] for gr in G],
+                  "values": pcts, "target": 100.0, "format": "pct1", "what": "grant spend against budget", "plain": True,
+                  "views": [{"id": "pct", "label": "% of budget", "values": pcts, "format": "pct1", "target": 100.0},
+                            {"id": "dollars", "label": "$ spent", "values": [gr["spent_to_date"] for gr in G], "format": "money0",
+                             "marks": [gr["budget_to_date"] for gr in G], "mark_label": "Budget to date"}],
+                  "details": details},
+        "facts": dict(ctr=ctr, runway=run, ending=ending),
     }
 
 
-# =============================================================== assumptions (shown in the pop-up)
+# ============================================================== assumptions
 
-def sme_assumptions(m):
-    a = m["years"]
-    y, p = a["FY2026"], a["FY2025"]
-    def both(k, fmt="{}"): return f"{fmt.format(y[k])} (FY2025: {fmt.format(p[k])})"
-    groups = [
-        ["The organisation", [["What it is", m["about"]], ["Staff (full-time equivalent)", both("staff_fte")],
-                              ["Financial year", "1 July to 30 June; FY2026 = year to 30 June 2026"]]],
-        ["Revenue", [[ln, f"${y['revenue'][i]:,}k (FY2025: ${p['revenue'][i]:,}k)"] for i, ln in enumerate(m["lines"])]
-                    + [["New customers won", both("new_customers")]]],
-        ["Costs", [["Direct costs by service line", "materials, subcontractors and labour set per line (see the P&L)"],
-                   ["Overheads", "as listed in the P&L, set directly"],
-                   ["Income tax", f"{m['tax_rate']}% of profit before tax (base rate entity); paid the following year"],
-                   ["Superannuation", "included in wages"]]],
-        ["Cash and balance sheet", [["Debtor days", both("debtor_days")],
-                                    ["Creditor days", f"{y['creditor_days']} days of non-wage costs"],
-                                    [m.get("stock_label", "Materials on hand"), f"${y['stock']}k at 30 June (FY2025: ${p['stock']}k)"],
-                                    ["Employee leave provisions", f"{y['provision_pct']}% of wages"],
-                                    ["Equipment bought", f"${y['capex']}k (FY2025: ${p['capex']}k)"],
-                                    ["Equipment finance repaid", f"${y['loan_repaid']}k a year"],
-                                    ["Dividends paid", f"${y['dividends']}k (FY2025: ${p['dividends']}k)"],
+def trades_assumptions(m, out):
+    sep = [j for j in out["jobs"] if j["month"] == "2026-09"]
+    return [
+        ["The business", [["What it is", m["about"]], ["Reporting month", "September 2026 (the last closed month), compared with August 2026"],
+                          ["Financial year", "FY2027: 1 July 2026 to 30 June 2027"]]],
+        ["Jobs (September)", [["Maintenance contracts", f"{len(m['contracts'])} customers, invoiced on the 1st, paid in about {m['contract_pay_days']} days"],
+                              ["Installations", f"{len(m['installs']['2026-09'])} named jobs, each with its own quote, materials, subcontractors and hours"],
+                              ["Call-outs", f"{m['callouts']['2026-09']} jobs at ${m['callout_rate']}/hour plus materials marked up {round((m['materials_markup'] - 1) * 100)}%"],
+                              ["Jobs in September", f"{len(sep)} in total (every one is in the Excel download and CSV)"]]],
+        ["Costs", [["Technicians", f"{m['technicians']} on salary: ${m['tech_wages']['2026-09']:,} a month incl. on-costs"],
+                   ["Job costing rate", f"${m['tech_cost_rate']}/hour for technician time charged to a job"],
+                   ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
+                   ["Overheads", "set month by month, as shown in the P&L"],
+                   ["Income tax", f"{m['tax_rate']}% of profit, provided monthly; next PAYG instalment due October"]]],
+        ["Cash and balance sheet", [["Customer payments", "each invoice is paid on its own date; unpaid invoices at month end = debtors"],
+                                    ["Supplier bills", "materials and subcontractors are paid the following month"],
+                                    ["Equipment finance", f"${m['loan_repaid']['2026-09']:,} repaid each month"],
+                                    ["New equipment", f"a ${m['capex']['2026-09']:,} trailer bought in September"],
                                     ["GST", "excluded throughout, for simplicity"]]],
     ]
-    if "billable_hours" in y:
-        groups.append(["Utilisation", [["Billable staff", both("billable_fte")], ["Available hours per person", f"{y['available_hours_per_fte']:,} a year"],
-                                       ["Billable hours", f"{y['billable_hours']:,} (FY2025: {p['billable_hours']:,})"]]])
-    return groups
 
 
-def nfp_assumptions(m):
-    y, p = m["years"]["FY2026"], m["years"]["FY2025"]
+def services_assumptions(m, out):
     return [
-        ["The organisation", [["What it is", m["about"]], ["Staff (full-time equivalent)", f"{y['staff_fte']} (FY2025: {p['staff_fte']})"],
-                              ["Financial year", "1 July to 30 June; FY2026 = year to 30 June 2026"]]],
-        ["Income", [[k, f"${v:,}k (FY2025: ${p['income'][k]:,}k)"] for k, v in y["income"].items()]],
-        ["Spending", [["Program, fundraising and admin costs", "set directly (see Income and expenditure)"],
-                      ["Program hours delivered", f"{y['program_hours']:,} (FY2025: {p['program_hours']:,})"],
-                      ["Income tax", "none: registered charity, income-tax exempt"]]],
-        ["Cash and balance sheet", [["Grants received in advance (unspent)", f"${y['grants_in_advance']}k at 30 June (FY2025: ${p['grants_in_advance']}k)"],
-                                    ["Receivables / prepayments / payables", f"${y['receivables']}k / ${y['prepayments']}k / ${y['payables']}k at 30 June"],
-                                    ["Employee leave provisions", f"{y['provision_pct']}% of wages"],
-                                    ["Equipment bought", f"${y['capex']}k (FY2025: ${p['capex']}k)"],
-                                    ["Unrestricted cash", "cash at bank less grants received in advance"],
+        ["The business", [["What it is", m["about"]], ["Reporting month", "September 2026, compared with August 2026"],
+                          ["Financial year", "FY2027: 1 July 2026 to 30 June 2027"]]],
+        ["Engagements (September)", [["Projects", "hours worked at each project's rate; billed on milestones (unbilled time = work in progress)"],
+                                     ["Retainers", "fixed monthly fee, billed monthly"], ["Training", "fixed fee, billed on delivery"],
+                                     ["Engagements in September", f"{len(m['activity']['2026-09'])} (every one is in the Excel download and CSV)"]]],
+        ["Costs", [["Consultants", f"{m['consultants']} on salary: ${m['salaries']['2026-09']:,} a month incl. on-costs"],
+                   ["Engagement costing rate", f"${m['cost_rate']}/hour for consultant time"],
+                   ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
+                   ["Income tax", f"{m['tax_rate']}% of profit, provided monthly"]]],
+        ["Cash and balance sheet", [["Client payments", "each invoice is paid on its own date; unpaid invoices at month end = debtors"],
+                                    ["Contractors", "paid the following month"], ["GST", "excluded throughout, for simplicity"]]],
+    ]
+
+
+def nfp_assumptions(m, out):
+    return [
+        ["The organisation", [["What it is", m["about"]], ["Reporting month", "September 2026, compared with August 2026"],
+                              ["Financial year", "FY2027: 1 July 2026 to 30 June 2027"]]],
+        ["Grants", [[gr['program'], f"{gr['funder']}: ${gr['total']:,}, {gr['start'][:7]} to {gr['end'][:7]}"] for gr in out["grants"]]
+                   + [["Grant income", "recognised as the money is spent on the program"],
+                      ["Unspent grants", "instalments received but not yet spent are a liability (grants received in advance)"]]],
+        ["Other income and costs", [["Donations", "including the spring appeal in September"],
+                                    ["Fundraising event", "September gala: income and costs in the same month"],
+                                    ["Grant-funded spending", f"{round(m['grant_wage_share'] * 100)}% wages, the rest program costs"],
+                                    ["Income tax", "none: registered charity, income-tax exempt"]]],
+        ["Cash and balance sheet", [["Suppliers", "paid the following month"],
+                                    ["Unrestricted cash", "cash at bank less unspent grant money"],
+                                    ["Cash runway", "unrestricted cash ÷ this month's cash spending"],
                                     ["Reserves target", f"{m['reserves_target_months']} months of spending"],
                                     ["GST", "excluded throughout, for simplicity"]]],
     ]
 
 
-# =============================================================== checks
+# =================================================================== checks
 
 def check_sections(rows, name):
-    """Each subtotal/total must equal the sum of the lines above it in its block."""
     pending, problems = [], []
     for rw in rows:
         if rw["level"] == "heading":
@@ -542,72 +887,234 @@ def check_sections(rows, name):
         elif rw["level"] == "subtotal" and pending:
             for i in range(2):
                 if sum(p["values"][i] for p in pending) != rw["values"][i]:
-                    problems.append(f"{name}: {rw['label']} {FY[i]}")
+                    problems.append(f"{name}: {rw['label']} {COLUMNS[i]}")
             pending = []
     return problems
 
 
 def run_checks(org, model, out):
-    bs, r, problems = out["bs"], out["r"], []
-    problems += check_sections(out["pnl"], f"{org} P&L") + check_sections(out["bsr"], f"{org} BS") + check_sections(out["cfr"], f"{org} CF")
-    rows = {rw["label"]: rw["values"] for rw in out["bsr"] if rw["values"]}
-    cf = {rw["label"]: rw["values"] for rw in out["cfr"] if rw["values"]}
-    pnl = {rw["label"]: rw["values"] for rw in out["pnl"] if rw["values"]}
-    for i in range(2):
+    problems = []
+    for key in ("pnl", "bsr", "cfr"):
+        problems += check_sections(out[key], f"{org} {key}")
+    v = lambda key, label: next(rw["values"] for rw in out[key] if rw["label"] == label)
+    pnl_labels = [rw["label"] for rw in out["pnl"]]
+    for i, mo in enumerate(PERIODS):
+        bs, prev = out["bs"][mo], out["bs"][prev_month(mo)]
         if org == "nfp":
-            if rows["Net assets"][i] != rows["Accumulated funds"][i]: problems.append(f"{org} balance {FY[i]}")
-            if rows["Total current assets"][i] + rows["Vehicles and equipment"][i] != rows["Total assets"][i]: problems.append("nfp total assets")
-            if rows["Total assets"][i] - rows["Total liabilities"][i] != rows["Net assets"][i]: problems.append("nfp net assets")
-            if pnl["Total income"][i] + pnl["Total expenses"][i] != pnl["Surplus for the year"][i]: problems.append("nfp surplus")
-            if (pnl["Total program spend"][i] + pnl["Total fundraising costs"][i] + pnl["Total administration"][i] + pnl["Depreciation"][i]) != pnl["Total expenses"][i]: problems.append("nfp expenses")
+            if v("bsr", "Net assets")[i] != v("bsr", "Accumulated funds")[i]: problems.append(f"nfp balance {mo}")
+            if bs["accumulated"] - prev["accumulated"] != out["r"][mo]["surplus"]: problems.append(f"nfp surplus roll {mo}")
+            if v("pnl", "Total income")[i] + v("pnl", "Total expenses")[i] != v("pnl", "Surplus for the month")[i]: problems.append("nfp surplus")
+            grant_labels = {f"{gr[2]} grant" for gr in model["grants"]}
+            grant_lines = sum(rw["values"][i] for rw in out["pnl"] if rw["label"] in grant_labels)
+            if grant_lines != sum(out["r"][mo]["gspend"].values()): problems.append(f"nfp grant income {mo}")
+            for gr_ in out["grants"]:
+                if sum(x["spend"] for x in gr_["monthly"]) != gr_["spent_to_date"]: problems.append(f"nfp grant history {gr_['program']}")
+                if sum(gr_["budget_by_month"].values()) != gr_["total"]: problems.append(f"nfp grant budget {gr_['program']}")
+            bal = out["grant_bal"](mo)
+            if bs["grants_in_advance"] - bs["grants_receivable"] != sum(bal.values()): problems.append(f"nfp grants in advance {mo}")
         else:
-            if rows["Net assets"][i] != rows["Total equity"][i]: problems.append(f"{org} balance {FY[i]}")
-            fa = [k for k in rows if k in ("Vehicles and equipment", "Office equipment")][0]
-            if rows["Total current assets"][i] + rows[fa][i] != rows["Total assets"][i]: problems.append(f"{org} total assets")
-            if rows["Total current liabilities"][i] + rows["Equipment finance"][i] != rows["Total liabilities"][i]: problems.append(f"{org} total liabilities")
-            if rows["Total assets"][i] - rows["Total liabilities"][i] != rows["Net assets"][i]: problems.append(f"{org} net assets")
-            chain = [("Total revenue", "Total cost of sales", "Gross profit"), ("Gross profit", "Total operating expenses", "EBITDA")]
-            for x, yv, z in chain:
-                if pnl[x][i] + pnl[yv][i] != pnl[z][i]: problems.append(f"{org} {z}")
-            if pnl["EBITDA"][i] + pnl["Depreciation"][i] + pnl["Interest"][i] != pnl["Profit before tax"][i]: problems.append(f"{org} PBT")
-            tax_label = [k for k in pnl if k.startswith("Income tax")][0]
-            if pnl["Profit before tax"][i] + pnl[tax_label][i] != pnl["Net profit after tax"][i]: problems.append(f"{org} NPAT")
-        # cash flow ties to the balance sheet
-        if cf["Cash at 1 July"][i] + cf["Net change in cash"][i] != cf["Cash at 30 June"][i]: problems.append(f"{org} cash roll {FY[i]}")
-        if cf["Cash at 30 June"][i] != rows["Cash at bank"][i]: problems.append(f"{org} cash ties to BS {FY[i]}")
-        subs = [k for k in cf if k.startswith("Net cash from")]
-        if sum(cf[k][i] for k in subs) != cf["Net change in cash"][i]: problems.append(f"{org} CF total")
-    # profit ties to equity movement
-    for y in YEARS:
-        prev = "FY2024" if y == "FY2025" else "FY2025"
-        if org == "nfp":
-            if bs[y]["accumulated"] - bs[prev]["accumulated"] != r[y]["surplus"]: problems.append(f"nfp surplus to funds {y}")
-        else:
-            if bs[y]["retained"] - bs[prev]["retained"] != r[y]["npat"] - model["years"][y]["dividends"]: problems.append(f"{org} profit to RE {y}")
-    # bridge ends at the change in cash
-    if sum(v for _, v in out["bridge"]) != out["change"]: problems.append(f"{org} bridge")
-    # cash never negative (it's a sample, keep it sensible)
-    if min(bs[y]["cash"] for y in YEARS) < 0: problems.append(f"{org} negative cash")
+            if v("bsr", "Net assets")[i] != v("bsr", "Total equity")[i]: problems.append(f"{org} balance {mo}")
+            if bs["retained"] - prev["retained"] != out["r"][mo]["npat"]: problems.append(f"{org} profit roll {mo}")
+            for a, b, c in [("Total revenue", "Total cost of sales", "Gross profit"), ("Gross profit", "Total operating expenses", "EBITDA")]:
+                if v("pnl", a)[i] + v("pnl", b)[i] != v("pnl", c)[i]: problems.append(f"{org} {c} {mo}")
+            if v("pnl", "EBITDA")[i] + v("pnl", "Depreciation")[i] + v("pnl", "Interest")[i] != v("pnl", "Profit before tax")[i]: problems.append(f"{org} PBT")
+            tax = next(l for l in pnl_labels if l.startswith("Income tax"))
+            if v("pnl", "Profit before tax")[i] + v("pnl", tax)[i] != v("pnl", "Net profit after tax")[i]: problems.append(f"{org} NPAT")
+            r = out["r"][mo]
+            if org == "trades":
+                mj = [j for j in out["jobs"] if j["month"] == mo]
+                if sum(j["revenue"] for j in mj) != r["revenue"]: problems.append(f"trades job revenue {mo}")
+                if sum(j["materials"] for j in mj) != r["mat"] or sum(j["subcontractors"] for j in mj) != r["sub"]: problems.append(f"trades job costs {mo}")
+                if r["jobs_gp"] - (r["techw"] - r["allocated"]) != r["gp"]: problems.append(f"trades job GP to P&L {mo}")
+                if bs["debtors"] != unpaid_at(out["jobs"], MONTH_END[mo]): problems.append(f"trades debtors {mo}")
+            if org == "services":
+                me = [x for x in out["engagements"] if x["month"] == mo]
+                if sum(x["revenue"] for x in me) != r["revenue"]: problems.append(f"services engagement revenue {mo}")
+                if r["contribution"] - (r["sal"] - r["allocated"]) != r["gp"]: problems.append(f"services engagement GP {mo}")
+                if bs["stock"] != sum(r["wip"].values()): problems.append(f"services WIP {mo}")
+                if bs["debtors"] != unpaid_at(out["invoices"], MONTH_END[mo]): problems.append(f"services debtors {mo}")
+        cf = lambda label: v("cfr", label)[i]
+        if cf("Cash at start of month") + cf("Net change in cash") != cf("Cash at end of month"): problems.append(f"{org} cash roll {mo}")
+        if cf("Cash at end of month") != v("bsr", "Cash at bank")[i]: problems.append(f"{org} cash ties {mo}")
+        if sum(rw["values"][i] for rw in out["cfr"] if rw["label"].startswith("Net cash from")) != cf("Net change in cash"): problems.append(f"{org} cf total {mo}")
+        if bs["cash"] < 0: problems.append(f"{org} negative cash {mo}")
     return problems
+
+
+# ============================================================ worked examples
+# For the SME and not-for-profit pages: a question, the report that answers it,
+# what it shows and what you'd do about it. Every number comes from the model
+# above, and every example carries its workings.
+
+def ex(org, question, visual, shows, action, sp):
+    return {"org": org, "question": question, "visual": visual, "shows": shows, "action": action, "support": sp}
+
+
+def examples_trades(m, out, f4):
+    r, bs = out["r"], out["bs"]
+    ch = f4["chart"]
+    det = {d["title"]: d for d in ch["details"]}
+    worst = min(range(len(ch["values"])), key=lambda i: ch["values"][i])
+    wname = ch["labels"][worst]
+    wj = next(j for j in out["jobs"] if j["month"] == "2026-09" and j["description"] == wname)
+    below = sum(v < ch["target"] for v in ch["values"])
+    e1 = ex("trades", "Which jobs actually make money?",
+            {"type": "bars", "chart": {k: ch[k] for k in ("title", "labels", "values", "target", "format")}},
+            f"{below} of the {len(ch['values'])} installation jobs invoiced in September made less than the {ch['target']:.1f}% job gross margin target. "
+            f"The {wname} made a {ch['values'][worst]:.1f}% job gross margin: {FMT['hours'](wj['hours'])} of technician time ({money(wj['labour_cost'])}) "
+            f"and {money(wj['subcontractors'])} of subcontractors on a {money(wj['revenue'])} job.",
+            "Worth knowing what made this job different (hours, subcontractors, the customer) before quoting the next one.",
+            det[wname])
+    kc = f4["kpis"][1]
+    cr = kc["support"]["xl"]["rows"]
+    e2 = ex("trades", "What does it cost to win a customer?",
+            {"type": "kpis", "kpis": [{"label": "September", "value": FMT["money"](cr[2]["values"][0])},
+                                      {"label": "August", "value": FMT["money"](cr[2]["values"][1])}]},
+            f"{int(cr[1]['values'][0])} new customers came from {money(cr[0]['values'][0])} of marketing in September, "
+            f"against {int(cr[1]['values'][1])} from {money(cr[0]['values'][1])} in August: {money(cr[2]['values'][0])} each, down from {money(cr[2]['values'][1])}.",
+            "Keep September's marketing mix, and record where each new customer came from, so next month's report shows the cost per channel.",
+            kc["support"])
+    # cash against the next pay run and supplier bills: unpaid invoices by age at 30 September
+    end = MONTH_END["2026-09"]
+    unpaid = [j for j in out["jobs"] if j["invoice_date"] <= end and j["paid_date"] > end]
+    buckets = [("Invoiced 0-30 days ago", 0, 30), ("Invoiced 31-60 days ago", 31, 60), ("Invoiced more than 60 days ago", 61, 9999)]
+    aged = [sum(j["amount"] for j in unpaid if lo <= (end - j["invoice_date"]).days <= hi) for _, lo, hi in buckets]
+    if sum(aged) != bs["2026-09"]["debtors"]:
+        raise SystemExit("aged debtors don't add up to trade debtors")
+    sp3 = support("Will cash cover payroll and the bills in October?", "Cash at bank − next pay run − supplier bills due, before any collections", [
+        inp("Cash at bank, 30 September", "money", [bs["2026-09"]["cash"]]),
+        inp("Monthly wages incl. on-costs (technicians + office)", "money", [m["tech_wages"]["2026-09"] + m["opex"]["Office and admin wages"]["2026-09"]]),
+        calc("Next fortnightly pay run (half the month)", "money", "r1/2"),
+        inp("Supplier bills due in October (September's purchases)", "money", [bs["2026-09"]["creditors"]]),
+        calc("Cash left before collections", "money", "r0-r2-r3"),
+        *[inp(f"Unpaid invoices: {b[0].lower()}", "money", [a_]) for b, a_ in zip(buckets, aged)],
+        calc("Unpaid invoices, total", "money", "r5+r6+r7")],
+        "Customers pay on their own dates; every unpaid invoice is in the jobs list in the Excel download.", cols=("30 Sep 2026",))
+    x3 = sp3["xl"]["rows"]
+    over30 = aged[1] + aged[2]
+    top3 = sorted(unpaid, key=lambda j: -j["amount"])[:3]
+    if over30:
+        tail = f"{money(over30)} of it invoiced more than 30 days ago."
+        act = "Chase the invoices more than 30 days old this week, largest first, and time the supplier payment run for after the first collections land."
+    else:
+        tail = "none of it more than 30 days old, so this is about timing, not bad debts."
+        act = (f"Ask the three largest customers ({money(sum(j['amount'] for j in top3))} between them) for their payment dates this week, "
+               "and time the supplier payment run for after the first collections land.")
+    e3 = ex("trades", "Will cash cover payroll next month?",
+            {"type": "bars", "chart": {"title": "Unpaid invoices at 30 September, by age", "labels": [b[0] for b in buckets],
+                                       "values": aged, "format": "money0", "plain": True}},
+            f"Cash at bank is {money(x3[0]['values'][0])}. The next pay run ({money(x3[2]['values'][0])}) and September's supplier bills "
+            f"({money(x3[3]['values'][0])}) come to {money(x3[2]['values'][0] + x3[3]['values'][0])}, so October depends on collecting some of the "
+            f"{money(sum(aged))} customers owe, " + tail,
+            act, sp3)
+    return [e1, e2, e3]
+
+
+def examples_services(m, out, f4):
+    sep = [x for x in out["engagements"] if x["month"] == "2026-09"]
+    types = ["Project", "Retainer", "Training"]
+    plural = {"Project": "projects", "Retainer": "retainers", "Training": "training"}
+    rows = []
+    for t in types:
+        xs = [x for x in sep if x["type"] == t]
+        P = plural[t].capitalize()
+        rows += [inp(f"{P}: revenue", "money", [sum(x["revenue"] for x in xs)]),
+                 inp(f"{P}: contribution (after contractors and consultant time)", "money", [sum(x["contribution"] for x in xs)]),
+                 inp(f"{P}: hours", "hours", [sum(x["hours"] for x in xs)])]
+    rows += [calc(f"{plural[t].capitalize()}: margin", "pct", f"r{3 * i + 1}/r{3 * i}") for i, t in enumerate(types)]
+    rows += [calc(f"{plural[t].capitalize()}: contribution per hour", "money", f"r{3 * i + 1}/r{3 * i + 2}") for i, t in enumerate(types)]
+    sp = support("Gross margin by type of work, September", "Gross margin ÷ revenue, and gross margin ÷ hours, for each type of work", rows,
+                 f"Gross margin = revenue less contractors and consultant time at ${m['cost_rate']}/hour (wages and all on-costs). Before overheads: not profit.", cols=("Sep 2026",))
+    xr = sp["xl"]["rows"]
+    margin = [xr[9 + i]["values"][0] * 100 for i in range(3)]
+    perh = [xr[12 + i]["values"][0] for i in range(3)]
+    low = min(sep, key=lambda x: x["contribution"] / x["revenue"])
+    lowm = 100 * low["contribution"] / low["revenue"]
+    best = max(range(3), key=lambda i: perh[i])
+    all_above = all(v >= m["target_margin"] for v in margin)
+    return [ex("services", "Which services should we drop?",
+               {"type": "bars", "chart": {"title": "Gross margin by type of work, September", "labels": [plural[t].capitalize() for t in types],
+                                          "values": [round(v, 1) for v in margin], "target": float(m["target_margin"]), "format": "pct1"}},
+               ("Every type of work made more than the " if all_above else "Not every type of work made the ") + f"{m['target_margin']:.1f}% target in September: "
+               + ", ".join(f"{plural[t]} {margin[i]:.1f}% ({money(perh[i])} an hour)" for i, t in enumerate(types))
+               + f". The lowest single engagement was {low['description']} at {lowm:.1f}%.",
+               ("Nothing needs dropping this month. " if all_above else "Review the work under target first. ")
+               + f"Worth a look: {low['description']} has the lowest gross margin; {plural[types[best]]} makes the most per hour.",
+               sp)]
+
+
+def examples_nfp(m, out, f4):
+    r, bs = out["r"]["2026-09"], out["bs"]["2026-09"]
+    src = [("Grants", "Grant writing and reporting", r["grant_income"]),
+           ("Donations", "Donor campaigns", r["other_income"]["Donations"]),
+           ("Fundraising events", "Event costs", r["other_income"]["Fundraising events"])]
+    rows = []
+    for name, cost, raised in src:
+        rows += [inp(f"{name}: cost ({cost.lower()})", "money", [r["fund"][cost]]), inp(f"{name}: raised", "money", [raised])]
+    rows += [calc(f"{name}: cost per dollar raised", "cents", f"r{2 * i}/r{2 * i + 1}*100") for i, (name, _, _) in enumerate(src)]
+    sp1 = support("Cost to raise a dollar, by source, September", "Fundraising cost ÷ money raised, for each source, in cents", rows, cols=("Sep 2026",))
+    cents = [sp1["xl"]["rows"][6 + i]["values"][0] for i in range(3)]
+    e1 = ex("nfp", "Which funding is worth chasing?",
+            {"type": "bars", "chart": {"title": "Cost to raise a dollar, by source, September (cents)", "labels": [x[0] for x in src],
+                                       "values": [half_up(c) for c in cents], "format": "cents_int", "plain": True}},
+            f"Grants cost {half_up(cents[0])}¢ to raise each dollar, donations {half_up(cents[1])}¢ and the September gala {half_up(cents[2])}¢ "
+            f"({money(r['fund']['Event costs'])} to raise {money(r['other_income']['Fundraising events'])}).",
+            "Put the next spare hours into grant writing. Keep the gala only if it also brings in new regular donors, and track that from this year's guest list.",
+            sp1)
+    ending = sorted([gr for gr in out["grants"] if gr["months_left"] < m["ending_within_months"]], key=lambda g: g["months_left"])
+    rows = []
+    for gr in ending:
+        rows += [inp(f"{gr['program']}: still to spend", "money", [gr["unspent"]]), inp(f"{gr['program']}: months left", "int", [gr["months_left"]]),
+                 inp(f"{gr['program']}: spent in September", "money", [gr["spent_sep"]])]
+    rows += [calc(f"{gr['program']}: needed each month to finish on time", "money", f"r{3 * i}/r{3 * i + 1}") for i, gr in enumerate(ending)]
+    sp2 = support("Grants ending in the next 6 months", "Still to spend ÷ months left, against what was spent in September", rows, cols=("30 Sep 2026",))
+    need = [sp2["xl"]["rows"][3 * len(ending) + i]["values"][0] for i in range(len(ending))]
+    g0, n0 = ending[0], need[0]
+    e2 = ex("nfp", "Will each grant be spent before it ends?",
+            {"type": "kpis", "kpis": [{"label": f"{gr['program']}: still to spend", "value": money(gr["unspent"]),
+                                       "sub": f"{gr['months_left']} months left · {money(nd)} a month needed"} for gr, nd in zip(ending, need)]},
+            f"{g0['program']} has {money(g0['unspent'])} left to spend in {g0['months_left']} months: {money(n0)} a month, "
+            f"against {money(g0['spent_sep'])} spent in September.",
+            f"Lift {g0['program']} spending by {money(n0 - g0['spent_sep'])} a month from October, or ask the {g0['funder'].replace('State ', 'state ', 1) if False else g0['funder']} now about carrying the balance over.",
+            sp2)
+    kr = f4["kpis"][1]["support"]
+    xr = kr["xl"]["rows"]
+    sp3 = support("Reserves: how far short of 3.0 months?", "Target months × monthly cash spending − unrestricted cash", [
+        inp("Unrestricted cash, 30 September", "money", [xr[2]["values"][0]]), inp("Cash spending in September", "money", [xr[3]["values"][0]]),
+        calc("Runway", "months", "r0/r1"), inp("Reserves target", "months", [float(m["reserves_target_months"])]),
+        calc("Cash needed for the target", "money", "r3*r1"), calc("Gap to the target", "money", "r4-r0")], cols=("30 Sep 2026",))
+    y = sp3["xl"]["rows"]
+    e3 = ex("nfp", "How many months could we run on our own money?",
+            {"type": "kpis", "kpis": [{"label": "Runway now", "value": FMT["months"](y[2]["values"][0])},
+                                      {"label": "Target", "value": FMT["months"](y[3]["values"][0])},
+                                      {"label": "Gap", "value": money(y[5]["values"][0])}]},
+            f"Unrestricted cash ({money(y[0]['values'][0])}, after setting aside unspent grant money) would cover {FMT['months'](y[2]['values'][0])} "
+            f"of spending at September's rate, short of the {FMT['months'](y[3]['values'][0])} target by {money(y[5]['values'][0])}.",
+            "Take a reserves plan to the board: how much of each month's surplus goes to reserves, and by when the gap is closed.",
+            sp3)
+    hs = next(d for d in f4["chart"]["details"] if d["title"] == g0["program"])
+    se = hs["series"]
+    under = sum(v < b for v, b in zip(se["values"], se["budget"]))
+    e4 = ex("nfp", f"How has {g0['program']} spent over time?",
+            {"type": "series", "series": se},
+            f"{g0['program']} spent less than its {money(se['budget'][0])} monthly budget in {under} of its {len(se['values'])} months so far, "
+            f"which is why {money(g0['unspent'])} is left with {g0['months_left']} months to go.",
+            "Worth knowing what held the under-budget months back (staffing, referrals, timing) while there's still time to catch up.",
+            hs)
+    return [e1, e2, e3, e4]
 
 
 def build():
     """Run every model and check it. Returns {org: {...}} ready to publish."""
     result, problems = {}, []
-    for org, m, fn, fourth, assum in [("trades", TRADES, sme, fourth_trades, sme_assumptions),
-                                      ("services", SERVICES, sme, fourth_services, sme_assumptions),
+    for org, m, fn, fourth, assum in [("trades", TRADES, trades, fourth_trades, trades_assumptions),
+                                      ("services", SERVICES, services, fourth_services, services_assumptions),
                                       ("nfp", NFP, nfp, fourth_nfp, nfp_assumptions)]:
         out = fn(m)
         problems += run_checks(org, m, out)
         f4 = fourth(m, out)
-        # fourth-sheet tables add up too
-        t = f4["table"]
-        for col in (1, 2):
-            if isinstance(t["total"][col], int) and sum(rw[col] for rw in t["rows"]) != t["total"][col]:
-                problems.append(f"{org} fourth-sheet table column {col}")
-        if f4["chart"]["format"] == "cents_int" and sum(f4["chart"]["values"]) != 100:
-            problems.append(f"{org} where-each-dollar-goes")
-        result[org] = dict(model=m, out=out, fourth=f4, assumptions=assum(m))
+        exf = {"trades": examples_trades, "services": examples_services, "nfp": examples_nfp}[org]
+        result[org] = dict(model=m, out=out, fourth=f4, assumptions=assum(m, out), examples=exf(m, out, f4))
     if problems:
         raise SystemExit("Financial model checks FAILED:\n  " + "\n  ".join(problems))
     return result
@@ -620,9 +1127,8 @@ if __name__ == "__main__":
         for title, rows in [("P&L", v["out"]["pnl"]), ("Balance sheet", v["out"]["bsr"]), ("Cash flow", v["out"]["cfr"])]:
             print(f"-- {title}")
             for rw in rows:
-                vals = "" if rw["values"] is None else "  ".join(f"{x:>7,}" for x in rw["values"])
-                print(f"   {rw['level'][:3]:3} {rw['label'][:44]:44} {vals}")
-        print("-- bridge", v["out"]["bridge"], "change", v["out"]["change"])
+                vals = "" if rw["values"] is None else "  ".join(f"{x:>10,}" for x in rw["values"])
+                print(f"   {rw['level'][:3]:3} {rw['label'][:46]:46} {vals}")
         print("-- fourth", [(k["label"], k["value"], k["sub"]) for k in v["fourth"]["kpis"]])
-        print("-- chart", v["fourth"]["chart"]["values"])
+        print("-- chart", list(zip(v["fourth"]["chart"]["labels"], v["fourth"]["chart"]["values"])))
     print("\nAll checks passed.")

@@ -43,11 +43,13 @@ import sys
 import tempfile
 import threading
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write characters like ¢ and ▲)
 
 from playwright.sync_api import sync_playwright
 
 REPO = Path(__file__).resolve().parent.parent
-MEDIA = REPO / "media"
+MEDIA = REPO / "media" / "game"
 
 FPS = 30                 # video frame rate
 TICKS_PER_FRAME = 60 // FPS
@@ -214,8 +216,10 @@ def main():
     print(f"  {full.relative_to(REPO)}   {total / FPS:.1f} s")
     print(f"  {short.relative_to(REPO)}    {n / FPS:.1f} s")
     print(f"  {gif.relative_to(REPO)}    {gw}px, {gfps} fps, {gmb:.2f} MB")
-    print("  media/poster.png")
+    print("  media/game/poster.png")
 
 
 if __name__ == "__main__":
     main()
+    import sync_media   # media/ kept identical with OneDrive
+    sync_media.sync()

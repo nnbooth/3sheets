@@ -7,9 +7,9 @@
     <meta name="description" content="Nathan Booth: an accountant who also builds the dashboards. Brisbane-based, working with SMEs and not-for-profits." />
 
     <!-- Favicon: SVG for modern browsers, PNG fallbacks for older ones / iOS. -->
-    <link rel="icon" href="Assets/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="Assets/favicon-32.png" type="image/png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="Assets/apple-touch-icon.png" />
+    <link rel="icon" href="assets/brand/mark-4th.svg?v=4th" type="image/svg+xml" />
+    <link rel="icon" href="assets/brand/mark-4th-32.png?v=4th" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="assets/brand/mark-4th-180.png?v=4th" />
     <meta name="theme-color" content="#2f7a5d" />
 
     <!-- Social sharing previews (LinkedIn, Facebook, X/Twitter).
@@ -23,14 +23,14 @@
     <meta property="og:title" content="About | The Fourth Sheet" />
     <meta property="og:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
     <meta property="og:url" content="https://[[DOMAIN]]/about.html" />
-    <meta property="og:image" content="https://[[DOMAIN]]/Assets/og-image.png" />
+    <meta property="og:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="The Fourth Sheet: your accountant gives you three sheets. I give you the fourth." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="About | The Fourth Sheet" />
     <meta name="twitter:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
-    <meta name="twitter:image" content="https://[[DOMAIN]]/Assets/og-image.png" />
+    <meta name="twitter:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
 
     <!-- Inter, loaded explicitly so every visitor sees the same font (before
          this, each browser fell back to whatever it had installed). -->
@@ -39,32 +39,32 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-09" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-26" />
   </head>
 
   <!--
     PLACEHOLDERS: anything still to be filled in is marked with a
-    data-placeholder attribute. See PLACEHOLDERS.md for the full
+    data-placeholder attribute. See the project notes (OneDrive: Business/Project notes.md) for the full
     list and how to replace each one.
   -->
 
   <!-- DEV NOTES: the orange "TO DO" boxes on this page are reminders for Nathan.
        They only show while the body tag has class="dev-notes". BEFORE GOING LIVE,
-       delete that class (and, if you like, the .devnote elements). See PLACEHOLDERS.md. -->
+       delete that class (and, if you like, the .devnote elements). See the project notes (OneDrive: Business/Project notes.md). -->
   <body class="dev-notes">
     <div class="devnote devnote--bar" role="note">DEV NOTES ARE ON: orange TO DO boxes mark things still to build. Remove class="dev-notes" from the body tag before going live.</div>
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header">
       <div class="container nav-bar">
-        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">4S</span>The Fourth Sheet</a>
+        <a class="brand" href="index.html" aria-label="The Fourth Sheet, home"><span class="brand-mark" aria-hidden="true">4<sup>th</sup></span><span aria-hidden="true">The 4<sup>th</sup> Sheet</span></a>
         <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
         <!-- Keep these links in the same order as the sections below. -->
         <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
           <a href="sme.html">SME</a>
           <a href="not-for-profit.html">Not-for-profit</a>
-          <a href="work.html">Our work</a>
-          <a href="how-we-work.html">How we work</a>
+          <a href="examples.html">Examples</a>
+          <a href="services.html">Services</a>
           <a href="about.html" aria-current="page">About</a>
           <a href="#contact">Contact</a>
         </nav>
@@ -113,9 +113,9 @@
             <p class="eyebrow">Contact</p>
             <h2>The fourth sheet, without the full-time hire.</h2>
             <p>
-              For SMEs and not-for-profits that want what a seasoned finance team gives, without hiring one.
+              For SMEs and not-for-profits that want what a seasoned finance professional does, without hiring one.
               No new systems and no major IT project: I work from the spreadsheets and systems you already have.
-              Book a free 20-minute numbers check and I'll tell you what's possible with what you already have.
+              Book a free 20-minute numbers check and I'll tell you what's possible.
             </p>
             <!-- [[EMAIL]] and [[LINKEDIN_URL]]: replace each chip with a link,
                  e.g. <a href="mailto:you@example.com">you@example.com</a>. -->
@@ -141,6 +141,6 @@
       </div>
     </footer>
 
-    <script src="script.js?v=2026-10-09"></script>
+    <script src="script.js?v=2026-10-26"></script>
   </body>
 </html>
