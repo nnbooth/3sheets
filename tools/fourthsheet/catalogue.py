@@ -144,15 +144,32 @@ def bridge(D, P, org):
     if round(x[4]["values"][0]) != r["gp"] or round(x[6]["values"][0]) != r["pbt"]:
         raise SystemExit(f"bridge for {org} {mo} doesn't tie to the P&L")
     v = lambda i: x[i]["values"][0]
-    line = (f"{P.full_month}'s {work} made {money(v(0))} gross margin ({pct(v(8))}). {who} time not charged to {work} took {money(v(3))} and overheads "
+    pre = (f"{P.month} is still in progress and wages are paid fortnightly, so a part month can't be bridged: this is {P.full_month}, the latest closed month. "
+           if P.incomplete else "")
+    line = (pre + f"{P.full_month}'s {work} made {money(v(0))} gross margin ({pct(v(8))}). {who} time not charged to {work} took {money(v(3))} and overheads "
             f"{money(v(5))}, leaving {money(v(6))} profit before tax ({pct(v(9))} of revenue). To cover overheads, {work} {'need' if work == 'jobs' else 'needs'} a "
             f"{pct(v(10))} gross margin on average.")
-    return {"type": "insight", "title": "From gross margin to profit", "text": line, "support": sp, "period": lab}
+    title = "From gross margin to profit" + (f" · latest closed month: {P.full_month}" if P.incomplete else "")
+    return {"type": "insight", "title": title, "text": line, "support": sp, "period": lab}
 
 
 def break_even(D, P, org):
     r = pnl(D, org, P.full)
     return ((r["wages"] - r["charged"]) + r["overheads"]) / r["revenue"]
+
+
+def quant_flag(name, gm, rev, target, be, when):
+    """A flag, not an instruction: the gross margin against the target, and what the gap is worth in dollars.
+    target and be are fractions; rev is the revenue the margin was earned on; when e.g. 'in September'."""
+    if rev <= 0:
+        return f"{name}: no revenue {when}."
+    if gm < 0:
+        return f"{name}: {pct(gm)} gross margin, {money(-gm * rev)} lost before overheads on {money(rev)} of revenue {when}."
+    if gm < target:
+        tail = f" It's below the {pct(be)} needed to cover overheads, too." if gm < be else ""
+        return (f"{name}: {pct(gm)} gross margin, {100 * (target - gm):.1f} points under the {100 * target:.1f}% target: "
+                f"about {money((target - gm) * rev)} on {money(rev)} of revenue {when}.{tail}")
+    return f"{name}: {pct(gm)} gross margin, {100 * (gm - target):.1f} points over the {100 * target:.1f}% target ({money((gm - target) * rev)} ahead on {money(rev)} {when})."
 
 
 def margin_action(name, gm, be):
@@ -163,11 +180,15 @@ def margin_action(name, gm, be):
     return f"{name}: {pct(gm)} gross margin, {round(100 * (gm - be), 1):.1f} points clear of the {pct(be)} overheads need."
 
 
-def margin_chart(title, subtitle, labels, rev, gp, target, details):
-    """Bars with a gross margin % / $ toggle; the $ view marks each item's target gross margin."""
+def margin_chart(title, subtitle, labels, rev, gp, target, details, be=None):
+    """Bars with a gross margin % / $ toggle; the $ view marks each item's target gross margin. be (a fraction) adds the
+    break-even line (the gross margin that just covers overheads and time not charged) beside the target."""
     pct_ = [round(100 * g / r, 1) if r else 0 for g, r in zip(gp, rev)]
-    return {"title": title, "subtitle": subtitle, "labels": labels, "values": pct_, "target": float(target), "format": "pct1", "details": details,
-            "views": [{"id": "pct", "label": "Gross margin %", "values": pct_, "format": "pct1", "target": float(target)},
+    bev = round(100 * be, 1) if be is not None else None
+    if bev is not None:
+        subtitle = (subtitle + f" Target {float(target):.1f}% is what to price for; break-even {bev:.1f}% only covers overheads and time not charged.").strip()
+    return {"title": title, "subtitle": subtitle, "labels": labels, "values": pct_, "target": float(target), "breakeven": bev, "format": "pct1", "details": details,
+            "views": [{"id": "pct", "label": "Gross margin %", "values": pct_, "format": "pct1", "target": float(target), "breakeven": bev},
                       {"id": "dollars", "label": "Gross margin $", "values": gp, "format": "money0",
                        "marks": [half_up(r * target / 100) for r in rev], "mark_label": f"Target gross margin ({target:.1f}% of revenue)", "below_marks": True}]}
 
@@ -225,7 +246,7 @@ def cost_to_win(D, P):
     action = ("A lower cost per customer with steady spend usually means the marketing mix is working. Recording where each new customer came from shows the cost per channel."
               if cpc <= cpp else "Worth knowing which channels brought this month's customers in: recording the source of each new customer shows the cost per channel.")
     answer = f"{money(cpc)} per new customer in {P.when}: {nc[P.mo]} new customers from {money(mk[P.mo])} of marketing."
-    return report("cost-to-win", "sme", "What does it cost to win a customer?", "trades", D, P,
+    r = report("cost-to-win", "sme", "What does it cost to win a customer?", "trades", D, P,
                   "Marketing spend divided by the customers it actually brought in (a customer's first ever job), month by month.",
                   [{"label": None, "sections": [
                       kpis(items),
@@ -239,6 +260,10 @@ def cost_to_win(D, P):
                   {"head": ["Month", "Status", "Marketing spend", "New customers", "Cost per new customer"],
                    "kinds": ["text", "text", "money", "int", "money"],
                    "rows": [[mlabel(m), P.status_of(m), mk[m], nc[m], "=C{r}/D{r}"] for m in W]}, answer)
+    later = [m for m in o.months if m > max(nc)]
+    if later:      # the month in progress has no count yet
+        r["periods_note"] = f"No {mdate(later[0]).strftime('%B')} yet: new customers are counted at month end."
+    return r
 
 
 def line_kpis(D, P, org, line, lines):
@@ -317,6 +342,7 @@ def growing(D, P):
         tab = line_table(D, P, org, lines)
         tot = tab[-1]
         be = break_even(D, P, org)
+        T = D[org].targets["Installation job margin" if org == "trades" else "Engagement margin"]
         kp, tx = {}, {}
         for line in ["All"] + lines:
             k = line_kpis(D, P, org, line, lines)
@@ -335,9 +361,8 @@ def growing(D, P):
                           if tot[2] else f"Revenue is {money(tot[1])} this financial year to date ({P.fytd_l}). ")
                 tx[line] = text(g_part + f"{rich[0]} {'make' if rich[0].endswith('s') else 'makes'} the highest gross margin ({rich[7]}); {worst[0]} the lowest ({worst[7]}). "
                                 f"The business needs {pct(be)} gross margin just to cover overheads.",
-                                f"{rich[0]}: {rich[7]} gross margin, the most profitable work you do. "
-                                + (f"{worst[0]}: {worst[7]} gross margin, below the {pct(be)} needed to cover overheads."
-                                   if worst[4] / worst[1] < be else f"{worst[0]}: {worst[7]} gross margin, the thinnest, still above the {pct(be)} overheads need."))
+                                quant_flag(worst[0], worst[4] / worst[1], worst[1], T, be, "this financial year to date") + " "
+                                + quant_flag(rich[0], rich[4] / rich[1], rich[1], T, be, "this financial year to date"))
             else:
                 mg, tm = k["m12"] / k["r12"], tot[4] / tot[1]
                 if k["p12"]:
@@ -346,13 +371,13 @@ def growing(D, P):
                 else:
                     gpart = ""
                 tx[line] = text(f"{line} brought in {money(k['r12'])} this financial year to date{gpart}, at a {pct(mg)} gross margin "
-                                f"({'above' if mg > tm else 'below'} the {pct(tm)} overall).", margin_action(line, mg, be))
+                                f"({'above' if mg > tm else 'below'} the {pct(tm)} overall).", quant_flag(line, mg, k["r12"], T, be, "this financial year to date"))
         blocks.append({"label": D[org].about["toggle_name"].split(" · ")[-1].capitalize() if org != "nfp" else "Not-for-profit",
                        "business": D[org].about["legal_name"],
                        "filter": filt(noun.capitalize(), [("All", "All")] + [(l, l) for l in lines]), "sections": [
             definition(D, org), vary(kp),
             series(P, f"Revenue, gross margin and growth by {noun}, by month", views,
-                   note="Gross margin = revenue less direct cost (materials, subcontractors and time at cost for trades; contractors and consultant time for services), before overheads. Growth is year on year: each month against the same month a year earlier. Tap a month for its workings.",
+                   note="Growth is year on year: each month against the same month a year earlier. Tap a month for its workings.",
                    dims={"line": ["All"] + lines, "measure": [("revenue", "Revenue $"), ("margin_pct", "Gross margin %"), ("margin", "Gross margin $"), ("growth", "Growth vs same month last year")]}),
             dict(table(f"By {noun}: financial year to date ({P.fytd_l}) against the same period last year", ["", "Year to date", "Same period last year", "Growth", "Gross margin $", "Gross margin %"],
                        [[r_[0], money(r_[1]), money(r_[2]) if r_[2] else "–", r_[6], money(r_[4]), r_[7]] for r_ in tab], ["text", "money", "money", "pct", "money", "pct"],
@@ -385,46 +410,55 @@ def job_margins(D, P):
     be = break_even(D, P, "trades")
     by = {"kpis": {}, "bars": {}, "text": {}}
     tk = {l: line_kpis(D, P, "trades", l, TRADE_LINES) for l in ["All"] + TRADE_LINES}
+    bridge_sp = bridge(D, P, "trades")["support"]
+    T = tgt / 100
+    tn = lambda m: ek.tone(m, "higher", T, T - be)          # good at target, amber between break-even and target, red below break-even
     for line in ["All"] + TRADE_LINES:
         k = tk[line]
-        by["kpis"][line] = kpis([kpi(f"Job gross margin, {P.when} · {'All jobs' if line == 'All' else line}", pct(k["cur_m"]), f"{P.prev_month} {pct(k['prev_m'])}", k["sp_m"])])
+        nm = "All jobs" if line == "All" else line
+        by["kpis"][line] = kpis([kpi(f"Job gross margin, {P.when} · {nm}", pct(k["cur_m"]), f"target {tgt:.1f}%", k["sp_m"], tone=tn(k["cur_m"])),
+                                 kpi(f"Job gross margin, {P.prev_month} · {nm}", pct(k["prev_m"]), f"target {tgt:.1f}%", k["sp_m"], tone=tn(k["prev_m"])),
+                                 kpi("Gross margin jobs need to break even", pct(be), f"covers overheads and time not charged ({P.full_month})", bridge_sp)])
     det = [support(f"{l}, {P.when}", "Revenue less direct cost (materials, subcontractors, technician time at cost)", [
         inp("Revenue", "money", [tk[l]["cur"]]), inp("Direct cost", "money", [tk[l]["cur_cost"]]),
         calc("Gross margin", "money", "r0-r1"), calc("Gross margin %", "pct", "r2/r0")], cols=(P.short,)) for l in TRADE_LINES]
     by["bars"]["All"] = {"type": "bars", "chart": margin_chart(f"Job gross margin by type of job, {P.label}", f"Revenue less materials, subcontractors and technician time at ${rate}/hour.",
-                                                              TRADE_LINES, [tk[l]["cur"] for l in TRADE_LINES], [d["xl"]["rows"][2]["values"][0] for d in det], tgt, det)}
+                                                              TRADE_LINES, [tk[l]["cur"] for l in TRADE_LINES], [d["xl"]["rows"][2]["values"][0] for d in det], tgt, det, be)}
     worst = min(TRADE_LINES, key=lambda l: tk[l]["cur_m"])
     best = max(TRADE_LINES, key=lambda l: tk[l]["cur_m"])
     by["text"]["All"] = text(f"In {P.when} " + ", ".join(f"{l.lower()} made a {pct(tk[l]['cur_m'])} job gross margin" for l in TRADE_LINES)
                              + f" (technician time at ${rate} an hour, wages and all on-costs). Jobs need {pct(be)} just to cover overheads.",
-                             f"{best}: {pct(tk[best]['cur_m'])} gross margin, the most profitable work you do. "
-                             + (f"{worst}: {pct(tk[worst]['cur_m'])} gross margin, below the {pct(be)} needed to cover overheads."
-                                if tk[worst]["cur_m"] < be else f"Every type of job clears it; {worst.lower()} only just."))
+                             quant_flag(worst, tk[worst]["cur_m"], tk[worst]["cur"], T, be, f"in {P.when}") + " "
+                             + quant_flag(best, tk[best]["cur_m"], tk[best]["cur"], T, be, f"in {P.when}"))
     # Installations: each job invoiced in the period
     inst = sorted([j for j in pj if j["type"] == "Installation"], key=lambda j: -j["gross_profit"] / j["revenue"])
     if inst:
         by["bars"]["Installations"] = {"type": "bars", "chart": margin_chart(
             f"Job gross margin on each installation invoiced in {P.label}",
-            f"Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at ${rate}/hour. Before overheads: not profit. One {tgt:.1f}% target for every job for now.",
-            [j["description"] for j in inst], [j["revenue"] for j in inst], [j["gross_profit"] for j in inst], tgt, [job_support(j, rate) for j in inst])}
+            f"Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at ${rate}/hour. One target for every job for now.",
+            [j["description"] for j in inst], [j["revenue"] for j in inst], [j["gross_profit"] for j in inst], tgt, [job_support(j, rate) for j in inst], be)}
         below = [j for j in inst if j["gross_profit"] / j["revenue"] < tgt / 100]
         w = inst[-1]
         neg = [j for j in inst if j["gross_profit"] < 0]
         under = [j for j in inst if 0 <= j["gross_profit"] / j["revenue"] < be]
         top = inst[0]
+        gapj = max(below, key=lambda j: T * j["revenue"] - j["gross_profit"]) if below else None
         by["text"]["Installations"] = text(
             f"{len(below)} of the {len(inst)} installation jobs invoiced in {P.when} made less than the {tgt:.1f}% job gross margin target. "
             f"The {w['description']} made a {pct(w['gross_profit'] / w['revenue'])} job gross margin: {FMT['hours'](w['hours'])} of technician time "
             f"({money(w['labour_cost'])}) and {money(w['subcontractors'])} of subcontractors on a {money(w['revenue'])} job. Jobs need {pct(be)} gross margin just to cover overheads.",
-            (f"{len(neg)} installation(s) lost money before overheads. " if neg else "")
-            + (f"Below the {pct(be)} overheads need: " + ", ".join(f"{j['description']} ({pct(j['gross_profit'] / j['revenue'])})" for j in under) + ". " if under else "")
-            + f"Most profitable: {top['description']} ({pct(top['gross_profit'] / top['revenue'])}).")
+            (f"{len(below)} installation{'s' if len(below) != 1 else ''} under the {tgt:.1f}% target, worth about "
+             f"{money(sum(T * j['revenue'] - j['gross_profit'] for j in below))} between them on {money(sum(j['revenue'] for j in below))} of revenue. "
+             if below else f"Every installation cleared the {tgt:.1f}% target. ")
+            + (f"{len(neg)} lost money before overheads. " if neg else "")
+            + (quant_flag(f"The biggest gap, {gapj['description']}", gapj["gross_profit"] / gapj["revenue"], gapj["revenue"], T, be, f"in {P.when}") if below else
+               f"Most profitable: {top['description']} ({pct(top['gross_profit'] / top['revenue'])})."))
     # Maintenance contracts: each contract
     mc = sorted([j for j in pj if j["type"] == "Maintenance contract"], key=lambda j: -j["gross_profit"] / j["revenue"])
     if mc:
         by["bars"]["Maintenance contracts"] = {"type": "bars", "chart": margin_chart(
             f"Job gross margin on each maintenance contract, {P.label}", f"The month's fee less materials and technician time at ${rate}/hour.",
-            [j["description"] for j in mc], [j["revenue"] for j in mc], [j["gross_profit"] for j in mc], tgt, [job_support(j, rate) for j in mc])}
+            [j["description"] for j in mc], [j["revenue"] for j in mc], [j["gross_profit"] for j in mc], tgt, [job_support(j, rate) for j in mc], be)}
         lo = mc[-1]
         n_under = sum(j["gross_profit"] / j["revenue"] < tgt / 100 for j in mc)
         by["text"]["Maintenance contracts"] = text(
@@ -432,8 +466,8 @@ def job_margins(D, P):
              f"{pct(lo['gross_profit'] / lo['revenue'])} job gross margin: {FMT['hours'](lo['hours'])} of technician time on a {money(lo['revenue'])} monthly fee.")
             if not n_under else
             f"{n_under} of {len(mc)} contracts made less than the {tgt:.1f}% job gross margin target; the thinnest was {lo['description']} at {pct(lo['gross_profit'] / lo['revenue'])}.",
-            margin_action(f"The {lo['description']} contract", lo["gross_profit"] / lo["revenue"], be)
-            + " Maintenance contracts overall: " + pct(sum(j["gross_profit"] for j in mc) / sum(j["revenue"] for j in mc)) + " gross margin.")
+            quant_flag(f"The thinnest, {lo['description']}", lo["gross_profit"] / lo["revenue"], lo["revenue"], T, be, f"in {P.when}") + " "
+            + quant_flag("All maintenance contracts", sum(j["gross_profit"] for j in mc) / sum(j["revenue"] for j in mc), sum(j["revenue"] for j in mc), T, be, f"in {P.when}"))
     # Call-outs: grouped by length
     co = [j for j in pj if j["type"] == "Call-out"]
     if co:
@@ -462,17 +496,17 @@ def job_margins(D, P):
         by["bars"]["Call-outs and repairs"] = {"type": "bars", "chart": margin_chart(
             f"Job gross margin on call-outs by length, {P.label}",
             f"Charged at ${o.rates['Call-out charge rate']}/hour plus materials at cost × {o.rates['Materials mark-up on call-outs']}; technician time at ${rate}/hour.",
-            labs, rev_, gp_, tgt, det)}
+            labs, rev_, gp_, tgt, det, be)}
         mg = [g / r for g, r in zip(gp_, rev_)]
         by["text"]["Call-outs and repairs"] = text(
             f"{len(co)} call-outs in {P.when} billed {money(lab_rev)} of technician time and {money(mat_rev)} of materials ({money(mat_cost)} at cost plus {round(100 * (mk - 1))}%), "
             f"and made a {pct(sum(gp_) / sum(rev_))} job gross margin between them. Gross margins run from {pct(min(mg))} to {pct(max(mg))} "
             "by length: the hourly rate covers technician time comfortably, so the gross margin mostly moves with how much material goes on the van.",
-            margin_action("Call-outs", sum(gp_) / sum(rev_), be))
+            quant_flag("All call-outs", sum(gp_) / sum(rev_), sum(rev_), T, be, f"in {P.when}"))
     answer = (f"Jobs made a {pct(tk['All']['cur_m'])} gross margin in {P.when}: {best.lower()} the most ({pct(tk[best]['cur_m'])}), "
               f"{worst.lower()} the least ({pct(tk[worst]['cur_m'])}).")
     return report("job-margins", "sme", "Which jobs actually make money?", "trades", D, P,
-                  f"Every job's gross margin: revenue less materials, subcontractors and technician time at ${rate} an hour (fully loaded: wages and all on-costs). Before overheads, so this is not profit. Pick a type of job and every number, chart and note on the page follows it.",
+                  f"Every job's gross margin: revenue less materials, subcontractors and technician time at ${rate} an hour (fully loaded: wages and all on-costs). Pick a type of job and every number, chart and note on the page follows it.",
                   [{"label": None, "filter": filt("Type of job", [("All", "All jobs")] + [(l, l) for l in TRADE_LINES]), "sections": [
                       definition(D, "trades"), vary(by["kpis"]), vary(by["bars"]), bridge(D, P, "trades"), vary(by["text"]),
                       series(P, "Job gross margin by month", keep, note="Tap a month for its workings.",
@@ -808,12 +842,14 @@ def runway(D, P):
     action = ("A reserves plan is the usual next step: how much of each month's surplus goes to reserves, and by when the gap is closed."
               if gap > 0 else "Reserves are above target: worth agreeing with the board how much to hold, and what the rest is for.")
     answer = f"{FMT['months'](run)} of spending in unrestricted cash, against a {FMT['months'](float(tgt))} reserves target."
+    res_tgt = round(float(tgt) * spend + runway_numbers(D, P, P.mo)[1])     # cash at bank that would meet the target: grant money is held as well
     return report("runway", "nfp", "How many months of runway do we have?", "nfp", D, P,
                   "How long the organisation could keep going on its own money: cash at bank, less unspent grant money (which belongs to the funders' programs), divided by a month's spending.",
                   [{"label": None, "sections": [
                       kpis([kpi("Runway now", FMT["months"](run), f"target {FMT['months'](float(tgt))}", s_now, tone=ek.tone(run, "higher", float(tgt), 0.5)),
                             kpi("Target", FMT["months"](float(tgt)), "reserves target", sp3),
-                            kpi("Gap" if gap > 0 else "Above target by", money(abs(gap)), "to reach the target" if gap > 0 else "unrestricted cash over the target", sp3),
+                            kpi("Gap" if gap > 0 else "Above target by", money(abs(gap)), "to reach the target" if gap > 0 else "unrestricted cash over the target", sp3,
+                                tone="bad" if gap > 0 else "good"),
                             kpi(f"Runway in {P.prev_month}", FMT["months"](v(s_prev, 4)), f"at {mdate(runway_numbers(D, P, P.prev)[3]).strftime('%B')}'s rate of spending", s_prev,
                                 tone=ek.tone(v(s_prev, 4), "higher", float(tgt), 0.5))]),
                       text(shows, action),
@@ -825,6 +861,7 @@ def runway(D, P):
                                                                     calc("Cash at bank, end of the day", "money", "r0+r1")], cols=(ds.strf(d, "%-d %b"),))
                                                            for d, prev, cur in zip(lab, [opening] + cashes[:-1], cashes)]}},
                        "dims": {"line": ["All"], "measure": [("cash", "Cash at bank $")]},
+                       "target": {"value": res_tgt, "label": f"Reserves target {money(res_tgt)}: {FMT['months'](float(tgt))} of spending + unspent grant money"},
                        "note": f"Cash at bank includes unspent grant money. The daily cash data starts {ds.strf(lab[0], '%-d %B %Y')} (after the opening balance)."}]}],
                   {"head": ["Date", "Status", "Cash at bank"], "kinds": ["text", "text", "money"],
                    "rows": [[d.isoformat(), s_, c] for d, s_, c in zip(lab, stat, cashes)]}, answer)
@@ -861,7 +898,7 @@ def board(D, P):
     if ending:
         g0 = ending[0]
         need = g0["unspent"] / max(g0["months_left"], 1)
-        notes.append(f"{len(ending)} grant(s) end within {tgt_end} months with {money(sum(g['unspent'] for g in ending))} still to spend. {g0['program']}: "
+        notes.append(f"{len(ending)} grant{'s' if len(ending) != 1 else ''} end{'' if len(ending) != 1 else 's'} within {tgt_end} months with {money(sum(g['unspent'] for g in ending))} still to spend. {g0['program']}: "
                      f"{money(g0['unspent'])} left in {g0['months_left']} months ({money(need)} a month needed, against {money(g0['spent_now'])} spent in {P.when}).")
         decisions.append(f"{g0['program']}: lift spending to {money(need)} a month, or ask {g0['funder']} about carrying the balance over.")
     cheap, dear = min(cpd, key=cpd.get), max(cpd, key=cpd.get)
@@ -874,16 +911,20 @@ def board(D, P):
     return report("board", "nfp", "What does the board need to see?", "nfp", D, P,
                   f"A one-page board summary for {P.label}: the result, the money, the risks, and the decisions to make. The full statements are in the downloads.",
                   [{"label": None, "sections": [
-                      kpis([kpi(f"Surplus, {P.when}", money(surplus(cur)), f"{P.prev_month} {money(surplus(prv))}",
+                      dict(kpis([kpi(f"Surplus, {P.when}", money(surplus(cur)), f"{P.prev_month} {money(surplus(prv))}",
                                 support(f"Surplus, {P.month} and {P.prev_month}", "Income less expenses", [inp("Income", "money", [cur["income"], prv["income"]]),
                                         inp("Expenses", "money", [cur["expenses"], prv["expenses"]]), calc("Surplus", "money", "r0-r1")], P.part_note or None, cols=(mlabel(P.mo), mlabel(P.prev)))),
                             kpi("Surplus (deficit), year to date", money(surplus_ytd), P.fytd_l, sp),
                             kpi("Unrestricted cash runway", FMT["months"](run), f"reserves target {FMT['months'](tgt)}", s_run),
-                            kpi(f"Cost to raise a dollar, {P.when}", cents(cost, raised), f"{P.prev_month} {cents(cost_p, raised_p)}", s_ctr)]),
+                            kpi(f"Cost to raise a dollar, {P.when}", cents(cost, raised), f"{P.prev_month} {cents(cost_p, raised_p)}", s_ctr)]), big=True),
                       {"type": "list", "title": "What the board should note", "items": notes},
-                      table("Grants", ["Program", "Spent to date", "Budget to date", "Against budget", "Still to spend", "Months left"], grants,
-                            ["text", "money", "money", "pct", "money", "int"]),
-                      {"type": "list", "title": "Decisions to make", "items": decisions}]}],
+                      dict(table("Grants", ["Program", "Spent to date", "Budget to date", "Against budget", "Still to spend", "Months left"], grants,
+                                 ["text", "money", "money", "pct", "money", "int"],
+                                 note="Against budget: red when spending is more than 1% over or under budget to date, amber within 1%."),
+                           tones=[["", "", "", ("" if abs(g["spent_to_date"] / g["budget_to_date"] - 1) < 0.0005 else
+                                                "warn" if abs(g["spent_to_date"] / g["budget_to_date"] - 1) < 0.01 else "bad"), "", ""]
+                                  for g in sorted(live, key=lambda g: g["months_left"])]),
+                      {"type": "list", "title": "Decisions to make", "items": decisions, "numbered": True}]}],
                   {"head": ["Program", "Spent to date", "Budget to date", "Against budget", "Still to spend", "Months left"],
                    "kinds": ["text", "money", "money", "pct", "money", "int"],
                    "rows": [[g["program"], g["spent_to_date"], g["budget_to_date"], "=B{r}/C{r}", g["unspent"], g["months_left"]]

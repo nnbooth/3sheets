@@ -85,9 +85,10 @@ def hbar_svg(ch, width=640):
     below_marks = ch.get("below_marks")
     below = lambda v, i: not plain and ((target is not None and v < target) or (below_marks and marks and v < marks[i]))
     any_below = any(below(v, i) for i, v in enumerate(values))
-    height = top + plot_h + (36 if (any_below or marks) else 22 if target is not None else 8)
+    be = ch.get("breakeven")               # break-even gross margin: a second, dotted red line labelled on its own row
+    height = top + plot_h + (14 if be is not None else 0) + (36 if (any_below or marks) else 22 if target is not None else 8)
     variance = ch.get("variance")          # over/under budget: around zero, over = red, under = grey
-    mx = max(values + ([target] if target is not None else []) + (marks or []) + [0]) * 1.08
+    mx = max(values + ([target] if target is not None else []) + ([be] if be is not None else []) + (marks or []) + [0]) * 1.08
     lo = min(values + [0]) * 1.08
     if variance:
         right = width - 90
@@ -111,12 +112,18 @@ def hbar_svg(ch, width=640):
             g.append(f'<line x1="{mxp:.1f}" x2="{mxp:.1f}" y1="{y - 3}" y2="{y + bh + 3}" stroke="{INK}" stroke-width="2"/>')
             if x(v) - 1 <= mxp < lx + len(text) * char + 4:    # marker in the way: label goes after it
                 lx = mxp + 5
+        if be is not None and lx - 4 < x(be) < lx + len(text) * char + 4:
+            lx = x(be) + 5
         if tx is not None and lx - 4 < tx < lx + len(text) * char + 4:   # the label would sit on the target line
             lx = tx + 5
         g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{(NEG if vp >= 1 else INK) if variance else (NEG if v < 0 else INK)}">{esc(text)}</text>')
     if target is not None:
         g.append(f'<line x1="{tx:.1f}" x2="{tx:.1f}" y1="{top - 4}" y2="{top + plot_h + 2}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
         g.append(f'<text x="{tx:.1f}" y="{top + plot_h + 15}" text-anchor="middle" font-size="10" font-weight="600" fill="{INK}">Target {fmt_value(target, f)}</text>')
+    if be is not None:
+        bx = x(be)
+        g.append(f'<line x1="{bx:.1f}" x2="{bx:.1f}" y1="{top - 4}" y2="{top + plot_h + 18}" stroke="{NEG}" stroke-width="1.2" stroke-dasharray="1.5 2.5"/>')
+        g.append(f'<text x="{bx:.1f}" y="{top + plot_h + 29}" text-anchor="middle" font-size="10" font-weight="600" fill="{NEG}">Break-even {fmt_value(be, f)}</text>')
     ky = height - 6
     if variance:
         height += 14

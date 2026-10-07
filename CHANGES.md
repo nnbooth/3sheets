@@ -45,3 +45,15 @@
 - Cards sit 3 across, so the five not-for-profit cards are 3 + 2.
 - Runway's headline is coloured against the reserves target (red at 2.0 months), with "target 3.0 months" beside it. Funding has headline numbers: cheapest and dearest to raise, and the amount raised year to date.
 - Both pages use the question rows from the home page. Downloads read "Excel, PDF and PowerPoint". Both pages end on the booking button and a line on what the 20 minutes covers. The SME fitness example line is deleted (Nathan's call); the not-for-profit example placeholder is untouched.
+
+### Phase 4: report pages
+- **Bug fixed:** in a month still in progress, the "From gross margin to profit" box is now titled "latest closed month: September" and says why: a part month can't be bridged because wages are paid fortnightly.
+- "Gross margin is not profit" is said once, in a collapsible box ("What's the difference?"). The repeats in the job-margins intro, the installation chart subtitle and the Growth note are gone. On phones the box follows the first chart.
+- Job margins has three headline numbers: this month and last month (each coloured against the 35% target) and the break-even gross margin (31.1%, from the bridge).
+- Margin charts draw both thresholds: the target (dashed) and break-even (dotted red, labelled on its own row), with one line on why they differ. Same in the PDF charts. PowerPoint follows in Phase 6.
+- "What you'd do about it" lines are quantified flags, not instructions. For example, "Installations: 27.0% gross margin, 8.0 points under the 35.0% target: about $10,413 on $130,700 of revenue in September." The shortfall is (target − gross margin) × revenue. Growth flags use the year to date.
+- Runway: the Gap is red when short of the target. The cash chart has a reserves target line ($644,800 for September = 3 months of spending + unspent grant money). Day labels no longer collide at either end.
+- Board: bigger headline numbers, numbered decisions and correct plurals ("2 grants end"). The grants table colours "Against budget": red more than 1% over or under, amber within 1% (Youth outreach 102.1%, Housing support 95.4%, Mental health first aid 95.3% red; Digital literacy 99.3% amber).
+- The workings hint names only what can be tapped on that report ("any number for its workings" on the board, "number or day" on runway).
+- Sentence-case breadcrumb; fixed-width Period picker; a single headline number is capped in width. Cost to win explains its missing October: "No October yet: new customers are counted at month end."
+- Embed-ready: `EMBEDS` in `tools/build_reports.py` maps a report to a live report link (`{period}` filled in). When it's set, the charts give way to a lazy-loaded frame with the loading spinner and the slow message, inside the same shell (Period, Export, headline numbers, notes). It's empty for now.

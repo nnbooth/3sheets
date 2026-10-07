@@ -488,6 +488,8 @@ body.dev-notes .devnote { display: flex; }
 .dash-svg .dash-axis { font-size: 11px; fill: var(--muted); }
 .dash-svg .dash-target { stroke: var(--ink-line); stroke-width: 1; stroke-dasharray: 3 2; }
 .dash-svg .dash-target-label { font-size: 11px; font-weight: 600; fill: var(--ink-line); }
+.dash-svg .dash-breakeven { stroke: var(--bad); stroke-width: 1; stroke-dasharray: 1 2; }
+.dash-svg .dash-breakeven-label { font-size: 11px; font-weight: 600; fill: var(--bad); }
 @keyframes dash-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .dash-svg .dash-bar, .dash-svg .dash-value { animation: none; } }
 .dash-table, .st-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
@@ -891,6 +893,9 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 
 /* ---------------------------------------------------------------- REPORT PAGES (report-*.html) */
 .report-page .eyebrow a { color: inherit; }
+.report-crumb { text-transform: none; letter-spacing: 0; font-size: var(--fs-sm); font-weight: 600; }
+.report-embed { position: relative; padding: 0; overflow: hidden; }
+.report-embed iframe { display: block; width: 100%; aspect-ratio: 16 / 10; min-height: 420px; border: 0; }
 .report-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); color: var(--muted); font-size: var(--fs-sm); }
 #report-root { margin-top: var(--sp-4); }
 .report-period { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin: var(--sp-2) 0 var(--sp-2); }
@@ -984,7 +989,16 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 
 /* Definition box and the gross-margin-to-profit insight (report pages) */
 .report-def { margin: 0 0 var(--sp-4); padding: var(--sp-3) var(--sp-4); background: var(--note-bg); border: 1px solid var(--note-border); border-left: 4px solid var(--note-edge); border-radius: var(--r-md); }
-.report-def strong { display: block; margin-bottom: var(--sp-1); }
+.report-def summary { cursor: pointer; min-height: 28px; }
+.report-kpis--one { max-width: 360px; }
+.report-card .st-scroll + .dash-chart-sub { margin-top: var(--sp-2); }
+.report-kpis--big .dash-kpi strong { font-size: var(--fs-2xl); }
+.report-list--num { padding-left: 1.4em; }
+.report-list--num li { font-weight: 500; margin-bottom: var(--sp-2); }
+.report-list--num li::marker { color: var(--accent); font-weight: 700; }
+#report-period { width: 15.5em; max-width: 100%; }
+.report-def summary span { font-size: var(--fs-sm); font-weight: 600; color: var(--accent); }
+.report-def[open] summary { margin-bottom: var(--sp-2); }
 .report-def p { margin: 0 0 var(--sp-1); font-size: var(--fs-sm); color: var(--text); }
 .report-def a { font-size: var(--fs-sm); font-weight: 600; color: var(--accent); }
 .report-insight { display: block; width: 100%; margin: 0 0 var(--sp-4); padding: var(--sp-4) var(--sp-4); font: inherit; text-align: left; color: inherit; background: var(--accent-tint); border: 1px solid var(--accent-tint-border); border-radius: var(--r-md); cursor: pointer; }

@@ -546,9 +546,10 @@ function renderChart(ch, width = 320) {
   const n = ch.values.length, plotH = n * row;
   const below = (v, i) => !ch.plain && ((ch.target != null && v < ch.target) || (ch.below_marks && ch.marks && v < ch.marks[i]));
   const anyBelow = ch.values.some((v, i) => below(v, i));
-  const H = top + plotH + (anyBelow || ch.marks || ch.variance ? 40 : ch.target != null ? 24 : 6);
+  const be = ch.breakeven != null ? 14 : 0;               // a second label row for the break-even line
+  const H = top + plotH + be + (anyBelow || ch.marks || ch.variance ? 40 : ch.target != null ? 24 : 6);
   const lo = Math.min(0, ...ch.values);
-  const max = Math.max(...ch.values, ch.target || 0, ...(ch.marks || [0])) * 1.05;
+  const max = Math.max(...ch.values, ch.target || 0, ch.breakeven || 0, ...(ch.marks || [0])) * 1.05;
   const x = (v) => left + ((v - lo) / (max - lo || 1)) * (right - left);
   const x0 = x(0);
   let g = `<line class="dash-grid" x1="${x0.toFixed(1)}" x2="${x0.toFixed(1)}" y1="${top - 2}" y2="${top + plotH}"/>`;
@@ -572,6 +573,7 @@ function renderChart(ch, width = 320) {
     const txt = fmt(v), tw = textW(txt, 12);
     let lx = Math.max(x(v), x0) + 5;
     if (ch.marks) { const mx = x(ch.marks[i]); if (mx >= x(v) - 1 && mx < lx + tw + 3) lx = mx + 5; }
+    if (ch.breakeven != null && lx - 3 < x(ch.breakeven) && x(ch.breakeven) < lx + tw + 3) lx = x(ch.breakeven) + 5;
     if (ch.target != null && lx - 3 < x(ch.target) && x(ch.target) < lx + tw + 3) lx = x(ch.target) + 5;
     const bad = ch.variance ? vp >= 1 : v < 0;
     g += `<text class="dash-value${bad ? ' neg' : ''}" x="${lx.toFixed(1)}" y="${(y + bh - 3).toFixed(1)}">${txt}</text></g>`;
@@ -581,11 +583,16 @@ function renderChart(ch, width = 320) {
     g += `<line class="dash-target" x1="${tx}" x2="${tx}" y1="${top - 4}" y2="${top + plotH + 2}"/>`;
     g += `<text class="dash-target-label" x="${tx}" y="${top + plotH + 16}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
   }
+  if (ch.breakeven != null) {   // what just covers overheads: below the target, labelled on the row under it
+    const bx = x(ch.breakeven).toFixed(1);
+    g += `<line class="dash-breakeven" x1="${bx}" x2="${bx}" y1="${top - 4}" y2="${top + plotH + 18}"/>`;
+    g += `<text class="dash-breakeven-label" x="${bx}" y="${top + plotH + 30}" text-anchor="middle">Break-even ${fmt(ch.breakeven)}</text>`;
+  }
   if (ch.variance) g += `<rect class="dash-bar--bad" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Over or under budget</text>`
     + `<rect class="dash-bar--warn" x="${left + 168}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 184}" y="${H - 3}">Within 1%</text>`;
   else if (anyBelow && !ch.marks) g += `<rect class="dash-bar--below" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Below target</text>`;
   if (ch.marks) g += `<line class="dash-mark" x1="${left + 4}" x2="${left + 4}" y1="${H - 14}" y2="${H - 1}"/><text class="dash-key" x="${left + 12}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
-  const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}.`;
+  const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}${ch.breakeven != null ? `; break-even ${fmt(ch.breakeven)}` : ''}.`;
   return `<svg class="dash-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
 }
 
@@ -632,7 +639,7 @@ function renderFourth(o) {
   let toggle = '';
   if (ch.views) {
     const v = ch.views.find((x) => x.id === dash.view) || ch.views[0];
-    ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, variancePct: ch.views[0].values };
+    ch = { ...ch, values: v.values, format: v.format, target: v.target, breakeven: v.breakeven, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, variancePct: ch.views[0].values };
     toggle = `<div class="seg" role="group" aria-label="Show as">${ch.views.map((x) => `<button type="button" data-view="${x.id}" aria-pressed="${x.id === v.id}">${esc(x.label)}</button>`).join('')}</div>`;
   }
   const w = chartWidth(document.getElementById('dash-panel'), 32);
@@ -773,7 +780,7 @@ function niceTicks(min, max, n) {
   return out;
 }
 
-function renderArea(labels, values, status, format, mini, width) {
+function renderArea(labels, values, status, format, mini, width, target) {
   // Time series as an area, drawn at its real pixel width: labelled y-axis with light gridlines, a dot per month
   // (tap for the workings), the highest and lowest values labelled (the latest on minis), incomplete or provisional
   // months dashed and lighter. Month labels thin out so they never overlap.
@@ -781,7 +788,8 @@ function renderArea(labels, values, status, format, mini, width) {
   const n = values.length, W = Math.round(width || (mini ? 280 : 720));
   const H = mini ? 96 : Math.round(Math.max(210, Math.min(320, W * 0.3)));
   const vals = values.filter((v) => v != null);
-  const ticks = niceTicks(Math.min(0, ...vals), Math.max(0, ...vals), mini ? 2 : 4);
+  const tv = target && !mini ? target.value : null;      // e.g. the reserves target: a dashed line across
+  const ticks = niceTicks(Math.min(0, ...vals), Math.max(0, ...vals, tv || 0), mini ? 2 : 4);
   const yMin = ticks[0], yMax = ticks[ticks.length - 1];
   const tickW = mini ? 0 : Math.max(...ticks.map((t) => textW(fmt(t)))) + 10;
   const left = mini ? 4 : tickW, right = W - (mini ? 6 : 12), top = mini ? 20 : 22, base = H - (mini ? 6 : 34);
@@ -807,13 +815,17 @@ function renderArea(labels, values, status, format, mini, width) {
     g += `<path class="dash-area dash-area--light" fill="url(#${gid}l)" d="${path(tail)}L${tail[tail.length - 1][0].toFixed(1)},${zeroY.toFixed(1)}L${tail[0][0].toFixed(1)},${zeroY.toFixed(1)}Z"/>`;
     g += `<path class="dash-line dash-line--light" d="${path(tail)}"/>`;
   }
+  if (tv != null) g += `<line class="dash-target" x1="${left}" x2="${right}" y1="${y(tv).toFixed(1)}" y2="${y(tv).toFixed(1)}"/>`
+    + `<text class="dash-target-label" x="${right}" y="${(y(tv) - 5).toFixed(1)}" text-anchor="end">${esc(target.label || `Target ${fmt(tv)}`)}</text>`;
   if (yMin < 0) g += `<line class="dash-grid" x1="${left}" x2="${right}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/>`;
   const idx = values.map((v, i) => (v == null ? null : i)).filter((i) => i != null);
   const hi = idx.reduce((a, i) => (values[i] > values[a] ? i : a), idx[0]);
   const lo = idx.reduce((a, i) => (values[i] < values[a] ? i : a), idx[0]);
   const labelled = mini ? new Set([idx[idx.length - 1]]) : new Set([hi, lo]);   // the y-axis carries the rest: mark only the highest and lowest
   const slot = (right - left) / Math.max(1, n - 1);
-  const every = Math.max(1, Math.ceil((n * 64) / Math.max(1, right - left)));   // a month label every ~64px, never crowded
+  const lw = mini ? 0 : Math.max(...labels.map((l) => textW(l)));           // widest label
+  const every = Math.max(1, Math.ceil((n * Math.max(64, lw + 18)) / Math.max(1, right - left)));   // a label every ~64px, never crowded
+  const clear = 1.5 * lw + 12;    // the first and last labels hang off their point (start / end), so the next one in keeps this far away
   values.forEach((v, i) => {
     const cx = x(i);
     g += `<g class="dash-row" data-point="${i}" tabindex="0" role="button" aria-label="${esc(labels[i])}: ${v == null ? 'no figure' : fmt(v)}${done(i) ? '' : ` (${status[i].toLowerCase()})`}. Show the workings.">`
@@ -829,8 +841,8 @@ function renderArea(labels, values, status, format, mini, width) {
       }
     }
     // month labels: first and last always; others every few so they never collide (minis show none: the value says it)
-    const lastGap = (n - 1 - i) < every && i !== n - 1;
-    if (!mini && ((i % every === 0 && !lastGap) || i === n - 1)) g += `<text class="dash-axis" x="${cx.toFixed(1)}" y="${(base + 17).toFixed(1)}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${esc(labels[i])}</text>`;
+    const crowd = i !== 0 && i !== n - 1 && (cx - x(0) < clear || x(n - 1) - cx < clear);
+    if (!mini && ((i % every === 0 && !crowd) || i === n - 1)) g += `<text class="dash-axis" x="${cx.toFixed(1)}" y="${(base + 17).toFixed(1)}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${esc(labels[i])}</text>`;
     if (!mini && status && status[i] === 'Incomplete') g += `<text class="dash-key dash-key--warn" x="${cx.toFixed(1)}" y="${base + 31}" text-anchor="end">to date</text>`;
     g += '</g>';
   });
@@ -856,14 +868,14 @@ function mountReport(root, r, only, simple, opts = {}) {
   const fval = () => { const b = r.blocks[state.block]; return b.filter ? (state.filter[state.block] ?? b.filter.options[0][0]) : 'All'; };
 
   function kpiHtml(sec) {
-    return `<div class="dash-kpis report-kpis">${sec.items.map((k) => `<button type="button" class="dash-kpi" data-sup="${sup(k.support)}"><span>${esc(k.label)}</span><strong class="${(negCls(k.value) + (k.tone ? ` is-${k.tone}` : '')).trim()}">${esc(k.value)}</strong><em class="${k.cls || ''}">${esc(k.sub || '')}</em><small class="dash-how">How it's worked out</small></button>`).join('')}</div>`;
+    return `<div class="dash-kpis report-kpis${sec.big ? ' report-kpis--big' : ''}${sec.items.length === 1 ? ' report-kpis--one' : ''}">${sec.items.map((k) => `<button type="button" class="dash-kpi" data-sup="${sup(k.support)}"><span>${esc(k.label)}</span><strong class="${(negCls(k.value) + (k.tone ? ` is-${k.tone}` : '')).trim()}">${esc(k.value)}</strong><em class="${k.cls || ''}">${esc(k.sub || '')}</em><small class="dash-how">How it's worked out</small></button>`).join('')}</div>`;
   }
   function barsHtml(sec, key) {
     let ch = sec.chart, toggle = '';
     if (ch.views) {
       const cur = state.views[key] || ch.views[0].id;
       const v = ch.views.find((x) => x.id === cur) || ch.views[0];
-      ch = { ...ch, values: v.values, format: v.format, target: v.target, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, orderBy: sec.chart.views[0].values, variancePct: sec.chart.views[0].values };
+      ch = { ...ch, values: v.values, format: v.format, target: v.target, breakeven: v.breakeven, marks: v.marks, mark_label: v.mark_label, below_marks: v.below_marks, orderBy: sec.chart.views[0].values, variancePct: sec.chart.views[0].values };
       toggle = `<div class="seg" role="group" aria-label="Show as">${sec.chart.views.map((x) => `<button type="button" data-view="${key}" data-id="${x.id}" aria-pressed="${x.id === v.id}">${esc(x.label)}</button>`).join('')}</div>`;
     }
     if (sec.highlight_filter && ch.labels.includes(fval())) ch = { ...ch, highlight: fval() };
@@ -881,7 +893,7 @@ function mountReport(root, r, only, simple, opts = {}) {
     const grp = (name, items, val) => (items.length > 1 ? `<div class="seg" role="group" aria-label="${name}">${items.map(([id, lab]) => `<button type="button" data-series="${key}" data-dim="${name}" data-id="${esc(id)}" aria-pressed="${id === val}">${esc(lab)}</button>`).join('')}</div>` : '');
     const ids = ((sec.supports || {})[line] || []).map((p) => sup(p));
     const s0 = Math.max(0, view.values.findIndex((v) => v != null));
-    const chart = renderArea(sec.labels.slice(s0), view.values.slice(s0), sec.status.slice(s0), view.format, false, cw()).replace(/data-point="(\d+)"/g, (m, i) => (ids.length ? `data-sup="${ids[+i + s0]}"` : ''));
+    const chart = renderArea(sec.labels.slice(s0), view.values.slice(s0), sec.status.slice(s0), view.format, false, cw(), sec.target).replace(/data-point="(\d+)"/g, (m, i) => (ids.length ? `data-sup="${ids[+i + s0]}"` : ''));
     const measures = simple ? dims.measure.filter(([id]) => id !== 'margin') : dims.measure;
     const lineToggle = hasFilter || simple ? '' : grp('line', dims.line.map((l) => [l, l]), cur.line);
     const title = simple ? sec.title.replace(' by line', '').replace(' by type of work', '') : sec.title;
@@ -891,7 +903,7 @@ function mountReport(root, r, only, simple, opts = {}) {
   }
   function tableHtml(sec) {
     const hl = sec.highlight_filter ? fval() : null;
-    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row) => `<tr class="${row[0] === 'Total' ? 'st-total' : ''}${hl && hl !== 'All' && row[0] === hl ? ' st-hl' : ''}">${row.map((c, i) => `<td${i ? ` class="n${negCls(c)}"` : ''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row, ri) => `<tr class="${row[0] === 'Total' ? 'st-total' : ''}${hl && hl !== 'All' && row[0] === hl ? ' st-hl' : ''}">${row.map((c, i) => { const t = sec.tones && sec.tones[ri] && sec.tones[ri][i]; return `<td${i ? ` class="n${negCls(c)}${t ? ` is-${t}` : ''}"` : ''}>${esc(c)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
   }
   function sectionHtml(sec, key, hasFilter) {
     if (sec.type === 'vary') sec = sec.by[fval()] || sec.by.All || Object.values(sec.by)[0];
@@ -901,8 +913,8 @@ function mountReport(root, r, only, simple, opts = {}) {
     if (sec.type === 'series') return seriesHtml(sec, key, hasFilter);
     if (sec.type === 'table') return tableHtml(sec);
     if (sec.type === 'text') return simple ? `<p class="report-feature-line">${esc(sec.shows)}</p>` : `<div class="report-text"><div><h2 class="report-h">What it shows</h2><p>${esc(sec.shows)}</p></div><div class="report-act"><h2 class="report-h">What you'd do about it</h2><p>${esc(sec.action)}</p></div></div>`;
-    if (sec.type === 'list') return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><ul class="report-list">${sec.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-    if (sec.type === 'definition') return `<aside class="report-def"><strong>${esc(sec.title)}</strong><p>${esc(sec.text)}</p>${sec.link ? `<a href="${esc(sec.link)}">The numbers, explained &rarr;</a>` : ''}</aside>`;
+    if (sec.type === 'list') { const tag = sec.numbered ? 'ol' : 'ul'; return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><${tag} class="report-list${sec.numbered ? ' report-list--num' : ''}">${sec.items.map((x) => `<li>${esc(x)}</li>`).join('')}</${tag}></div>`; }
+    if (sec.type === 'definition') return `<details class="report-def"><summary><strong>${esc(sec.title)}</strong> <span>What's the difference?</span></summary><p>${esc(sec.text)}</p>${sec.link ? `<a href="${esc(sec.link)}">The numbers, explained &rarr;</a>` : ''}</details>`;
     if (sec.type === 'insight') return `<button type="button" class="report-insight" data-sup="${sup(sec.support)}"><strong>${esc(sec.title)}</strong><span>${esc(sec.text)}</span><small class="dash-how">How it's worked out</small></button>`;
     return '';
   }
@@ -913,8 +925,17 @@ function mountReport(root, r, only, simple, opts = {}) {
     const parts = [];
     if (r.blocks.length > 1 && !simple) parts.push(`<div class="seg-bar report-blocks"><span class="seg-label">Business</span><div class="seg" role="group" aria-label="Business">${r.blocks.map((x, i) => `<button type="button" data-block="${i}" aria-pressed="${i === state.block}">${esc(x.label)}</button>`).join('')}</div></div>`);
     if (b.filter && !simple) parts.push(`<div class="report-filter seg-bar"><span class="seg-label">${esc(b.filter.label)}</span><div class="seg" role="group" aria-label="${esc(b.filter.label)}">${b.filter.options.map(([v, l]) => `<button type="button" data-filter="${esc(v)}" aria-pressed="${v === fval()}">${esc(l)}</button>`).join('')}</div></div>`);
-    b.sections.forEach((sec, i) => parts.push(sectionHtml(sec, `${state.block}-${i}`, !!b.filter)));
-    if (!simple) parts.push('<p class="dash-hint">Click or tap any number, bar or month for its workings.</p>');
+    // on phones the definition waits until after the first chart, so the numbers come first
+    const order = b.sections.map((sec, i) => i);
+    const di = b.sections.findIndex((sec) => sec.type === 'definition');
+    const fc = b.sections.findIndex((sec) => { const s1 = sec.type === 'vary' ? Object.values(sec.by)[0] : sec; return s1 && (s1.type === 'bars' || s1.type === 'series'); });
+    if (di >= 0 && fc > di && window.matchMedia('(max-width: 640px)').matches) { order.splice(di, 1); order.splice(fc, 0, di); }
+    order.forEach((i) => parts.push(sectionHtml(b.sections[i], `${state.block}-${i}`, !!b.filter)));
+    if (!simple) {
+      const kinds = new Set(b.sections.map((sec) => (sec.type === 'vary' ? (Object.values(sec.by)[0] || {}).type : sec.type)));
+      const what = [kinds.has('kpis') || kinds.has('insight') ? 'number' : '', kinds.has('bars') ? 'bar' : '', kinds.has('series') ? (r.slug === 'runway' ? 'day' : 'month') : ''].filter(Boolean);
+      if (what.length) parts.push(`<p class="dash-hint">Click or tap any ${what.length > 1 ? `${what.slice(0, -1).join(', ')} or ${what[what.length - 1]}` : what[0]} for its workings.</p>`);
+    }
     // only redraw (and so re-animate) sections whose content changed; others just get fresh workings links
     const norm = (h) => h.replace(/data-sup="\d+"/g, '').replace(/ag\d+/g, '');
     parts.forEach((h, i) => {
@@ -1009,12 +1030,12 @@ function setupReport() {
       const st = r.status[0];
       const later = r.status.slice(1).map((x) => `${x.label} is still in progress`);
       meta.innerHTML = `${metaStart} · <span class="dash-status is-${st.status.toLowerCase()}" title="${esc(r.status.map((x) => x.note).join(' '))}">${esc(r.period_label)}: ${esc(st.status.toLowerCase())}</span>${later.length ? ` · ${esc(later.join(' · '))}` : ''}`;
-      document.getElementById('report-period-note').textContent = r.part_note || '';
+      document.getElementById('report-period-note').textContent = r.part_note || r.periods_note || '';
       const root = document.getElementById('report-root');
       root.innerHTML = '';
       const inner = document.createElement('div');
       root.appendChild(inner);
-      mountReport(inner, r, null, false, {
+      mountReport(inner, r, r.embed_url ? ['kpis', 'text', 'insight', 'definition', 'list', 'table'] : null, false, {
         initial: view,
         onState: (v) => {
           view = v;
@@ -1022,6 +1043,17 @@ function setupReport() {
           syncUrl();
         },
       });
+      if (r.embed_url) {      // a live report in place of the charts, same shell (tools/build_reports.py EMBEDS)
+        const frame = document.createElement('div');
+        frame.className = 'report-card report-embed';
+        frame.setAttribute('data-embed', '');
+        frame.dataset.slowMessage = 'This report is taking longer than usual to load. Try refreshing the page in a moment.';
+        frame.innerHTML = `<div class="embed-status" role="status"><span class="spinner"></span><span class="embed-status-msg">Loading report…</span></div>`
+          + `<iframe src="${esc(r.embed_url)}" title="${esc(r.question)}: live report" loading="lazy" allowfullscreen></iframe>`;
+        const after = inner.querySelector('.report-kpis');
+        if (after) after.closest('.report-slot').after(frame); else inner.prepend(frame);
+        watchEmbedLoad(frame);
+      }
     };
     const go = (p, push) => {
       sel.disabled = true;
