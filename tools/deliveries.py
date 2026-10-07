@@ -30,6 +30,8 @@ from pathlib import Path
 
 import data_status as ds
 import exportkit as ek
+
+Font = ek.xl_font       # every Excel font is Roboto (exportkit.XL_FONT)
 from warehouse import QLD_HOLIDAYS, key, working
 
 
@@ -382,7 +384,7 @@ def write_xlsx(d):
     sub = "Sample Distribution · Wacol DC · SAMPLE DATA (invented) · The Fourth Sheet"
     status = (f"Data status (data retrieved {retrieved}): today's deliveries are incomplete; 1–5 October is provisional "
               f"(October locks {ds.strf(ds.lock_date('2026-10'), '%-d %b')}); September and earlier are locked.")
-    wb = Workbook()
+    wb = ek.xl_default_font(Workbook())
     pages = {}
 
     def title(ws, t):
@@ -565,8 +567,8 @@ def html_report(d):
     return f"""<!doctype html><html><head><meta charset=utf-8>
 <link rel=stylesheet href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
-<style>@page {{ size: A4 landscape; margin: 12mm; }} body {{ font-family: Inter, Arial, sans-serif; color: #25342a; font-size: 10pt; margin: 0; }}
+<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+<style>@page {{ size: A4 landscape; margin: 12mm; }} body {{ font-family: Roboto, Arial, sans-serif; color: #25342a; font-size: 10pt; margin: 0; }}
 header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #2f7a5d; padding-bottom: 6px; margin-bottom: 8px; }}
 .mark {{ min-width: 28px; height: 28px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }}
 sup {{ font-size: .55em; }} header small {{ margin-left: auto; color: #5f6f63; }}
@@ -576,9 +578,9 @@ h1 {{ font-size: 15pt; margin: 4px 0; }} h2 {{ font-size: 12pt; color: #2f7a5d; 
 .kpis div {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 5px 8px; }} .kpis span {{ display: block; font-size: 8pt; color: #5f6f63; }} .kpis b {{ font-size: 14pt; color: #2f7a5d; }}
 .row {{ display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }} .map {{ height: 96mm; border: 1px solid #dce8dc; border-radius: 6px; }}
 .side ul {{ padding-left: 16px; }} .side li {{ margin: 4px 0; }} .legend i {{ display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin: 0 3px 0 8px; }}
-.note {{ color: #5f6f63; font-size: 8.5pt; }} .leaflet-control-attribution {{ font-size: 7px; }}
+.note {{ color: #5f6f63; font-size: 8.5pt; }} .leaflet-control-attribution {{ font-size: 7px; }} .leaflet-container {{ font-family: Roboto, Arial, sans-serif; }}
 """ + ek.STATUS_CSS + f"""</style></head><body>
-<header><div class=mark>4<sup>th</sup></div><b>The 4<sup>th</sup> Sheet</b><small>Deliveries in and out · as at {ds.strf(TODAY, '%-d %b %Y')}, 2pm</small></header>
+<header><div class=mark>4<sup>th</sup></div><b>The Fourth Sheet</b><small>Deliveries in and out · as at {ds.strf(TODAY, '%-d %b %Y')}, 2pm</small></header>
 <span class=sample>SAMPLE DATA · invented figures for demonstration</span>
 <h1>Sample Distribution: Wacol DC</h1>
 {ek.status_box_html([("Today (6 Oct)", "Incomplete", f"As at {ds.as_at_text()}: deliveries still on the road are shown as on their way."),

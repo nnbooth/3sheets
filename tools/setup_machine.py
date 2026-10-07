@@ -8,7 +8,7 @@ setup_machine.py — get this machine (Mac or Windows) ready to work on The Four
     Add --no-azure to leave Azure sign-in for later (until the business Microsoft 365 account exists).
 
 It checks, and fixes what it can:
-  1. Python packages (requirements.txt) and the PDF browser engine
+  1. Python packages (requirements.txt) and the PDF browser engine; the Roboto font, installed for this user
   2. the Azure command line (installed into its own folder; no admin rights needed)
   3. git: commits use your private GitHub noreply address, and the leak guard (tools/githooks) is switched on
   4. OneDrive: the data, notes and media folders are found; media/ is synced both ways
@@ -69,6 +69,44 @@ def python_packages():
         print((OK + "PDF browser engine installed (Chromium)") if p.returncode == 0 else (WARN + "couldn't install Chromium: " + p.stderr[-300:]))
     else:
         print(OK + "Google Chrome found (used for the PDFs)")
+
+
+ROBOTO = {"Regular": 400, "Medium": 500, "Bold": 700}
+
+
+def fonts():
+    """Install Roboto for this user (no admin needed): the PDF headers and footers, Excel and PowerPoint use it, and
+    those only see fonts installed on the computer."""
+    step("1b. Roboto font")
+    import net
+    import re
+    if WIN:
+        folder = Path(os.environ["LOCALAPPDATA"]) / "Microsoft" / "Windows" / "Fonts"
+    else:
+        folder = Path.home() / "Library" / "Fonts"
+    folder.mkdir(parents=True, exist_ok=True)
+    added = 0
+    for style, weight in ROBOTO.items():
+        dest = folder / f"Roboto-{style}.ttf"
+        if dest.exists():
+            continue
+        try:
+            css = net.urlopen(urllib_request(f"https://fonts.googleapis.com/css2?family=Roboto:wght@{weight}"), 15).read().decode()
+            dest.write_bytes(net.urlopen(re.search(r"url\((https://[^)]+\.ttf)\)", css).group(1), 30).read())
+        except Exception as e:
+            print(WARN + f"couldn't install Roboto {style} ({e}); PDF headers will use Arial")
+            continue
+        if WIN:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows NT\CurrentVersion\Fonts", 0, winreg.KEY_SET_VALUE) as k:
+                winreg.SetValueEx(k, f"Roboto {style} (TrueType)", 0, winreg.REG_SZ, str(dest))
+        added += 1
+    print(OK + (f"Roboto installed for this user ({added} styles)" if added else "Roboto already installed") + f": {folder}")
+
+
+def urllib_request(url):
+    import urllib.request
+    return urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
 
 
 def az_exe():
@@ -163,6 +201,7 @@ def azure_signin():
 def main():
     print(f"Setting up {platform.node()} ({platform.system()}) for The Fourth Sheet, in {REPO}")
     python_packages()
+    fonts()
     azure_cli()
     git_setup()
     have_onedrive = onedrive()

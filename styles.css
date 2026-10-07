@@ -32,7 +32,7 @@
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
-  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -401,6 +401,11 @@ body.dev-notes .devnote { display: flex; }
 
 /* HERO DASHBOARD — sample statements and "the fourth sheet" on the home page */
 .hero-grid--dash { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; }
+/* The headline with the sheets illustration (assets/brand/sheets-illustration.svg) on a brand-green panel beside it. */
+.hero-headline { display: flex; align-items: center; gap: 1.25rem; }
+.hero-headline h1 { flex: 1; min-width: 0; }
+.hero-sheets { flex: none; background: var(--accent); border-radius: 0.9rem; padding: 0.9rem 1rem; line-height: 0; }
+.hero-sheets img { display: block; width: 104px; height: auto; }
 .h1-accent { color: var(--accent); }
 .hero-byline { display: flex; align-items: center; gap: 0.6rem; margin: 0.25rem 0 0; color: var(--muted); font-size: 0.92rem; }
 .hero-byline strong { color: var(--text); }
@@ -667,6 +672,8 @@ body.dev-notes .devnote { display: flex; }
   .section-heading { margin-bottom: 1.1rem; }
 }
 @media (max-width: 720px) {
+  .hero-sheets { padding: 0.6rem; }
+  .hero-sheets img { width: 64px; }
   .st-table .detail { display: none; }
   .dash-kpis { grid-template-columns: 1fr 1fr; }
   .dash-toggle { flex-wrap: nowrap; }
@@ -703,7 +710,8 @@ body.dev-notes .devnote { display: flex; }
 .deliv-legend li { margin: 0.2rem 0; }
 .deliv-legend i { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.4rem; border-radius: 50%; vertical-align: -1px; }
 .deliv-note { font-size: 0.75rem; color: var(--muted); }
-.deliv-dc { padding: 1px 6px; font: 700 11px Inter, sans-serif; color: #fff; background: #25342a; border-radius: 4px; white-space: nowrap; }
+.leaflet-container { font-family: "Roboto", "Segoe UI", Arial, sans-serif; }   /* the map library uses Helvetica by default */
+.deliv-dc { padding: 1px 6px; font: 700 11px "Roboto", "Segoe UI", Arial, sans-serif; color: #fff; background: #25342a; border-radius: 4px; white-space: nowrap; }
 @media (max-width: 720px) {
   .deliv-kpis { grid-template-columns: repeat(2, 1fr); }
   .deliv-body { grid-template-columns: 1fr; }

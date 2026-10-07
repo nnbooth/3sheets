@@ -22,6 +22,8 @@ from openpyxl.utils import get_column_letter
 
 import data_status as ds
 import exportkit as ek
+
+Font = ek.xl_font       # every Excel font is Roboto (exportkit.XL_FONT)
 import financial_model as fm
 
 STATUS_MONTHS = ["2026-09", "2026-08", "2026-10"]   # the reported month, the comparison, and the month now running
@@ -407,7 +409,7 @@ def xl_list(ws, org, v, status, sub):
 
 
 def write_xlsx(org, v):
-    wb = Workbook()
+    wb = ek.xl_default_font(Workbook())
     name = v["model"]["long_name"]
     filename = f"{org}-sample-statements.xlsx"
     retrieved = ds.as_at_text()
@@ -562,10 +564,10 @@ def html_report(org, v):
     assum = "".join(f"<h3>{esc(g)}</h3><table class=assum>" + "".join(f"<tr><td>{esc(a)}</td><td>{esc(b)}</td></tr>" for a, b in items) + "</table>" for g, items in v["assumptions"])
     st = statements(org, v)
     return f"""<!doctype html><html><head><meta charset=utf-8>
-<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 <style>
 @page {{ size: A4; margin: 16mm 14mm; }}
-body {{ font-family: Inter, Arial, sans-serif; color: #25342a; font-size: 10.5pt; }}
+body {{ font-family: Roboto, Arial, sans-serif; color: #25342a; font-size: 10.5pt; }}
 header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #2f7a5d; padding-bottom: 8px; margin-bottom: 12px; }}
 .mark {{ min-width: 30px; height: 30px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 15px; }} .mark sup, header b sup {{ font-size: 0.55em; }}
 header b {{ font-size: 13pt; }} header small {{ margin-left: auto; color: #5f6f63; }}
@@ -589,7 +591,7 @@ tr.key td {{ font-weight: 800; background: #eaf6ee; border-top: 1px solid #25342
 .assum td:first-child {{ width: 40%; color: #5f6f63; }} .checks li {{ margin: 2px 0; }}
 footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
 </style></head><body>
-<header><div class=mark>4<sup>th</sup></div><b>The 4<sup>th</sup> Sheet</b><small>Your accountant gives you three sheets. I give you the fourth.</small></header>
+<header><div class=mark>4<sup>th</sup></div><b>The Fourth Sheet</b><small>Your accountant gives you three sheets. I give you the fourth.</small></header>
 <span class=sample>SAMPLE DATA · invented figures for demonstration</span>
 <h1>{esc(v['model']['long_name'])}</h1><p class=about>{esc(v['model']['about'])}</p>
 {ek.status_box_html([(date.fromisoformat(m + "-01").strftime("%B %Y"), *ds.month_status(m)) for m in STATUS_MONTHS])}

@@ -27,7 +27,8 @@ with sync_playwright() as p:
         browser = p.chromium.launch()
     page = browser.new_page(viewport={"width": 1600, "height": 900})
     for name, out in NAMES.items():
-        page.goto((SRC / f"{name}.html").as_uri())
+        page.goto((SRC / f"{name}.html").as_uri(), wait_until="networkidle")
+        page.evaluate("document.fonts.ready")          # Roboto loaded before the picture is taken
         page.screenshot(path=str(OUT / out))
         print("wrote", (OUT / out).relative_to(REPO))
     browser.close()

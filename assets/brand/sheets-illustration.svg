@@ -1,0 +1,14 @@
+<!-- The Fourth Sheet illustration: three outlined sheets (what your accountant gives you)
+     and a solid fourth sheet with a rising bar chart (what The Fourth Sheet adds).
+     Designed for use on the brand green (#2f7a5d) background. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="104" height="120" viewBox="0 0 104 120">
+  <rect x="2" y="2" width="56" height="74" rx="4" fill="#2f7a5d" stroke="#eaf6ee" stroke-width="1.5" stroke-opacity="0.55"/>
+  <rect x="14" y="12" width="56" height="74" rx="4" fill="#2f7a5d" stroke="#eaf6ee" stroke-width="1.5" stroke-opacity="0.7"/>
+  <rect x="26" y="22" width="56" height="74" rx="4" fill="#2f7a5d" stroke="#eaf6ee" stroke-width="1.5" stroke-opacity="0.85"/>
+  <rect x="44" y="40" width="56" height="74" rx="4" fill="#fbfdf9"/>
+  <rect x="52" y="50" width="28" height="3" rx="1.5" fill="#2f7a5d"/>
+  <rect x="52" y="58" width="40" height="3" rx="1.5" fill="#dce8dc"/>
+  <rect x="54" y="92" width="7" height="12" rx="1" fill="#2f7a5d" opacity="0.55"/>
+  <rect x="65" y="84" width="7" height="20" rx="1" fill="#2f7a5d" opacity="0.75"/>
+  <rect x="76" y="72" width="7" height="32" rx="1" fill="#2f7a5d"/>
+</svg>

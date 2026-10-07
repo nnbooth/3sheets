@@ -20,6 +20,7 @@ GREEN, GREY, INK, MUTED, BRAND, NEG, LINE = "0E9F6E", "A7B0B8", "25342A", "5F6F6
 FMT = {"money0": '$#,##0;[Red]($#,##0);"-"', "pct1": '0.0"%";[Red](0.0"%")', "cents_int": '0"¢";[Red](0"¢")', "int": '#,##0;[Red](#,##0)'}
 W, H = Inches(13.333), Inches(7.5)
 ROWS_PER_SLIDE = 14
+FONT = "Roboto"         # like the site and the business cards (exportkit.XL_FONT for Excel)
 
 
 def rgb(h):
@@ -47,7 +48,7 @@ class Deck:
             para = tf.paragraphs[0] if k == 0 else tf.add_paragraph()
             run = para.add_run()
             run.text = line
-            run.font.size, run.font.bold, run.font.name = Pt(size), bold, "Arial"
+            run.font.size, run.font.bold, run.font.name = Pt(size), bold, FONT
             run.font.color.rgb = rgb(NEG if is_neg(line) and size >= 18 else colour)
             if align:
                 para.alignment = align
@@ -73,7 +74,26 @@ class Deck:
 
     def save(self, path):
         self.footers()
+        self.fonts()
         self.p.save(str(path))
+
+    def fonts(self):
+        """Roboto everywhere: every run of text, every table cell and every chart (titles, axes, labels, legends)."""
+        def runs(tf):
+            for para in tf.paragraphs:
+                para.font.name = FONT
+                for r in para.runs:
+                    r.font.name = FONT
+        for slide in self.p.slides:
+            for sh in slide.shapes:
+                if sh.has_text_frame:
+                    runs(sh.text_frame)
+                if getattr(sh, "has_table", False) and sh.has_table:
+                    for row in sh.table.rows:
+                        for cell in row.cells:
+                            runs(cell.text_frame)
+                if getattr(sh, "has_chart", False) and sh.has_chart:
+                    sh.chart.font.name = FONT
 
     # ---------------------------------------------------------------- slides
     def title_slide(self, intro, status_lines):
@@ -82,7 +102,7 @@ class Deck:
         box.fill.solid(); box.fill.fore_color.rgb = rgb(BRAND); box.line.fill.background()
         box.text_frame.text = "4th"
         r_ = box.text_frame.paragraphs[0].runs[0]; r_.font.size = Pt(16); r_.font.bold = True; r_.font.color.rgb = rgb("FFFFFF")
-        self.text(s, Inches(1.35), Inches(0.72), Inches(6), Inches(0.5), "The 4th Sheet", 18, bold=True)
+        self.text(s, Inches(1.35), Inches(0.72), Inches(6), Inches(0.5), "The Fourth Sheet", 18, bold=True)
         self.text(s, Inches(0.5), Inches(1.7), Inches(12), Inches(0.4), "SAMPLE DATA · invented figures for demonstration", 11, bold=True, colour="8A7A52")
         self.text(s, Inches(0.5), Inches(2.2), Inches(12.3), Inches(1.2), self.title, 34, bold=True)
         self.text(s, Inches(0.5), Inches(3.45), Inches(12.3), Inches(0.5), self.business, 16, colour=MUTED)

@@ -1,8 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
 /* Shared look for the report mock-ups (a report canvas with slicers, KPI cards
    and visuals). Invented "Sample Co" data. */
 * { box-sizing: border-box; margin: 0; }
 html, body { width: 1600px; height: 900px; overflow: hidden; }
-body { font-family: "Inter","Segoe UI",Helvetica,Arial,sans-serif; background: #eef2ee; color: #25342a; padding: 26px 32px; }
+body { font-family: "Roboto","Segoe UI",Helvetica,Arial,sans-serif; background: #eef2ee; color: #25342a; padding: 26px 32px; }
 .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .head h1 { font-size: 34px; } .head h1 span { color: #5f6f63; font-weight: 500; }
 .slicers { display: flex; gap: 12px; }

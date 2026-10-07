@@ -70,7 +70,8 @@ def machine_rule_name():
 
 
 def public_ip():
-    with urllib.request.urlopen("https://api.ipify.org", timeout=10) as r:
+    import net
+    with net.urlopen("https://api.ipify.org", timeout=10) as r:
         ip = r.read().decode().strip()
     if not re.fullmatch(r"\d{1,3}(\.\d{1,3}){3}", ip):
         raise SystemExit(f"Couldn't work out this machine's internet address (got {ip!r}).")

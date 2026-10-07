@@ -6,3 +6,4 @@ pycel
 mssql-python      # Microsoft's SQL Server driver: no ODBC install needed, signs in with your Microsoft account
 azure-identity
 pandas            # the dataset tools (tools/datasets.py)
+certifi           # trusted certificates for downloads (Python from python.org on a Mac has none)

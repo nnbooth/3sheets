@@ -25,6 +25,8 @@ from openpyxl.utils import get_column_letter
 
 import data_status as ds
 import exportkit as ek
+
+Font = ek.xl_font       # every Excel font is Roboto (exportkit.XL_FONT)
 import publish_dashboard as pd
 
 REPO = Path(__file__).resolve().parent.parent
@@ -149,7 +151,7 @@ def months_status(r, sep=" · "):
 
 
 def write_xlsx(r, out=OUT):
-    wb = Workbook()
+    wb = ek.xl_default_font(Workbook())
     filename = f"{r['slug']}.xlsx"
     retrieved = ds.as_at_text()
     sub = f"{r['business']} · SAMPLE DATA (invented) · The Fourth Sheet"
@@ -357,9 +359,9 @@ def html_report(r):
                              + "".join(f"<tr><td>{esc(r_[0])}</td><td class=n>{ek.neg_html(r_[1])}</td></tr>" for r_ in xr) + "</table></div>")
     status = ek.status_box_html(months_status(r))
     return f"""<!doctype html><html><head><meta charset=utf-8>
-<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 <style>
-@page {{ size: A4; }} body {{ font-family: Inter, Arial, sans-serif; color: #25342a; font-size: 10pt; margin: 0; }}
+@page {{ size: A4; }} body {{ font-family: Roboto, Arial, sans-serif; color: #25342a; font-size: 10pt; margin: 0; }}
 header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #2f7a5d; padding-bottom: 6px; margin-bottom: 8px; }}
 .mark {{ min-width: 28px; height: 28px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }}
 sup {{ font-size: .55em; }} header small {{ margin-left: auto; color: #5f6f63; }}
@@ -375,7 +377,7 @@ h3 {{ font-size: 10.5pt; margin: 12px 0 4px; }} h2.sub {{ font-size: 11.5pt; col
 table {{ width: 100%; border-collapse: collapse; page-break-inside: avoid; font-size: 9pt; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 3px 6px; }}
 td {{ padding: 3px 6px; border-bottom: 1px solid #eef2ee; }} .n {{ text-align: right; font-variant-numeric: tabular-nums; }} ul {{ margin: 4px 0 8px; padding-left: 18px; }} li {{ margin: 3px 0; }}
 """ + ek.STATUS_CSS + f"""</style></head><body>
-<header><div class=mark>4<sup>th</sup></div><b>The 4<sup>th</sup> Sheet</b><small>Example report · {esc(AUDIENCE[r['audience']][1])}</small></header>
+<header><div class=mark>4<sup>th</sup></div><b>The Fourth Sheet</b><small>Example report · {esc(AUDIENCE[r['audience']][1])}</small></header>
 <span class=sample>SAMPLE DATA · invented figures for demonstration</span>
 <h1>{esc(r['question'])}</h1><p class=intro><b>Period: {esc(r['period_label'])}.</b> {esc(r['intro'])}</p>
 {status}

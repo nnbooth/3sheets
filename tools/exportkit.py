@@ -97,7 +97,7 @@ def hbar_svg(ch, width=640):
     if marks:
         g.append(f'<line x1="{left + 4}" x2="{left + 4}" y1="{ky - 11}" y2="{ky + 1}" stroke="{INK}" stroke-width="2"/><text x="{left + 12}" y="{ky}" font-size="10" fill="{MUTED}">{esc(ch.get("mark_label", ""))}</text>')
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%" '
-            f'style="font-family:Inter,Arial,sans-serif" role="img">{"".join(g)}</svg>')
+            f'style="font-family:Roboto,Arial,sans-serif" role="img">{"".join(g)}</svg>')
 
 
 def col_svg(labels, values, status, f, width=700, height=230, target=None):
@@ -136,7 +136,7 @@ def col_svg(labels, values, status, f, width=700, height=230, target=None):
         ty = y(target)
         g.append(f'<line x1="{left}" x2="{right}" y1="{ty:.1f}" y2="{ty:.1f}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%" '
-            f'style="font-family:Inter,Arial,sans-serif" role="img">{"".join(g)}</svg>')
+            f'style="font-family:Roboto,Arial,sans-serif" role="img">{"".join(g)}</svg>')
 
 
 def area_svg(labels, values, status, f, width=700, height=240):
@@ -189,7 +189,7 @@ def area_svg(labels, values, status, f, width=700, height=240):
         if status[i] == "Incomplete":
             g.append(f'<text x="{x(i):.1f}" y="{base + 25}" text-anchor="end" font-size="8" fill="{BAD}">to date</text>')
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="100%" '
-            f'style="font-family:Inter,Arial,sans-serif" role="img">{"".join(g)}</svg>')
+            f'style="font-family:Roboto,Arial,sans-serif" role="img">{"".join(g)}</svg>')
 
 
 def status_box_html(items):
@@ -208,14 +208,19 @@ STATUS_CSS = """
 """
 
 
+# Chrome draws PDF headers and footers separately and only with fonts installed on the computer (web fonts don't load
+# there), so setup_machine.py installs Roboto for the user; Arial is the fallback.
+HEADER_FONT = "Roboto,Arial,sans-serif"
+
+
 def _band(left, right):
-    return (f'<div style="width:100%;font-family:Arial,sans-serif;font-size:7.5px;color:#5f6f63;padding:0 12mm;display:flex;justify-content:space-between;gap:8px">'
+    return (f'<div style="width:100%;font-family:{HEADER_FONT};font-size:7.5px;color:#5f6f63;padding:0 12mm;display:flex;justify-content:space-between;gap:8px">'
             f'<span>{left}</span><span>{right}</span></div>')
 
 
 def pdf_options(business, report_name, filename, retrieved, landscape=False):
     """Every PDF page: header = business and report name; footer = file name, date retrieved, page X of Y."""
-    footer = (f'<div style="width:100%;font-family:Arial,sans-serif;font-size:7.5px;color:#5f6f63;padding:0 12mm;display:flex;justify-content:space-between;gap:8px">'
+    footer = (f'<div style="width:100%;font-family:{HEADER_FONT};font-size:7.5px;color:#5f6f63;padding:0 12mm;display:flex;justify-content:space-between;gap:8px">'
               f'<span>{esc(filename)}</span><span>Data retrieved {esc(retrieved)}</span>'
               f'<span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>')
     return dict(format="A4", landscape=landscape, print_background=True, display_header_footer=True,
@@ -323,6 +328,26 @@ def xl_review(ws, plan, header_row=None):
     return f"{ws.title}: {n} page{'s' if n > 1 else ''}, {round(plan['scale'] * 100)}% scale, no block split"
 
 
+XL_FONT = "Roboto"     # Excel and PowerPoint downloads use Roboto, like the site and the business cards
+
+
+def xl_font(**kw):
+    """openpyxl Font with Roboto unless a font is named."""
+    from openpyxl.styles import Font
+    kw.setdefault("name", XL_FONT)
+    return Font(**kw)
+
+
+def xl_default_font(wb, size=11):
+    """Make Roboto the workbook's default font (every cell without its own font, and new cells)."""
+    from openpyxl.styles import Font
+    for st in wb._named_styles:
+        if st.name == "Normal":
+            st.font = Font(name=XL_FONT, size=size)
+    wb._fonts[0] = Font(name=XL_FONT, size=size)
+    return wb
+
+
 def xl_print(ws, business, filename, retrieved, landscape=True, header_row=None, gridlines=False):
     """Make a worksheet print like a report. Header: business and sheet name.
     Footer: file name, date retrieved (fixed text) and page X of Y."""
@@ -343,6 +368,7 @@ def xl_print(ws, business, filename, retrieved, landscape=True, header_row=None,
                        (ws.oddFooter.right, "Page &P of &N")]:
         part.text = text
         part.size = 8
+        part.font = f"{XL_FONT},Regular"
 
 
 def same_office_file(a, b):
