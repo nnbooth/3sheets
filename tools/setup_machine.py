@@ -4,6 +4,7 @@ setup_machine.py — get this machine (Mac or Windows) ready to work on The Four
 
     Mac:      python3 tools/setup_machine.py
     Windows:  py tools\\setup_machine.py
+    Add --no-azure to leave Azure sign-in for later (until the business Microsoft 365 account exists).
 
 It checks, and fixes what it can:
   1. Python packages (requirements.txt) and the PDF browser engine
@@ -156,7 +157,11 @@ def main():
     azure_cli()
     git_setup()
     have_onedrive = onedrive()
-    azure_signin()
+    if "--no-azure" in sys.argv:
+        step("5. Azure sign-in and the database")
+        print(WARN + "skipped for now (--no-azure). Once your business Microsoft 365 account exists: az login, then run this again.")
+    else:
+        azure_signin()
     print("\nReady. Everyday commands:")
     print("  python3 tools/serve.py                          preview the site at http://127.0.0.1:8765")
     print("  python3 tools/sample_data.py                    rebuild the data, reports and downloads")
