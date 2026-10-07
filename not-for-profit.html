@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-11-02" />
+    <link rel="stylesheet" href="styles.css?v=2026-11-03" />
   </head>
 
   <!--
@@ -80,7 +80,14 @@
             <h1>Show where every dollar goes.</h1>
             <p class="lead">You know your programs and your funders. The fourth sheet answers the questions underneath, for you, your board and your funders.</p>
             <p class="q-intro">Questions like:</p>
-            <ul class="q-chips q-chips--page" aria-label="Example questions"><li><a href="report-cost-to-raise.html">What does it cost to raise a dollar?</a></li><li><a href="report-program-cost.html">What does each program really cost?</a></li><li><a href="report-runway.html">How many months of runway do we have?</a></li><li><a href="report-funding.html">Which funding is worth chasing?</a></li><li><a href="report-board.html">What does the board need to see?</a></li><li class="q-own">…or bring your own</li></ul>
+            <ul class="q-rows q-rows--page" aria-label="Example questions">
+              <li><a href="report-cost-to-raise.html">What does it cost to raise a dollar?</a></li>
+              <li><a href="report-program-cost.html">What does each program really cost?</a></li>
+              <li><a href="report-runway.html">How many months of runway do we have?</a></li>
+              <li><a href="report-funding.html">Which funding is worth chasing?</a></li>
+              <li><a href="report-board.html">What does the board need to see?</a></li>
+            </ul>
+            <p class="q-own-line">Got a different question? <a href="contact.html">Bring your own &rarr;</a></p>
           </div>
 
           <p class="no-data-line"><strong>No data to hand over yet?</strong> I'll help you set up the processes and frameworks to start capturing it, then build the reporting on top.</p>
@@ -98,19 +105,22 @@
           <div class="section-heading">
             <p class="eyebrow">Example reports</p>
             <h2>What each question looks like, answered.</h2>
-            <p class="lead">Built on sample data for an invented community services charity, with every number's workings, 24 months of history, and Excel and PDF downloads.</p>
+            <p class="lead">Built on sample data for an invented community services charity, with every number's workings, 24 months of history, and Excel, PDF and PowerPoint downloads.</p>
           </div>
           <!-- REPORT CARDS:START -->
           <div class="report-feature"><p class="eyebrow">Featured: <a href="report-program-cost.html">What does each program really cost?</a></p><div data-report-feature="program-cost" data-only="bars"><noscript><p>Turn on JavaScript to see the chart, or <a href="report-program-cost.html">open the report</a>.</p></noscript></div></div>
           <ul class="report-cards">
-            <li><h3><a href="report-cost-to-raise.html">What does it cost to raise a dollar?</a></h3><div class="card-chart" data-report-card="cost-to-raise" aria-hidden="true"></div><p>What fundraising costs (grant writing, donor campaigns, events) for every dollar it brings in.</p><a class="report-open" href="report-cost-to-raise.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-program-cost.html">What does each program really cost?</a></h3><div class="card-chart" data-report-card="program-cost" aria-hidden="true"></div><p>Each program&#x27;s full cost: what its grant pays for, plus its fair share of the costs no single grant covers (untied program costs and administration, shared by grant spending).</p><a class="report-open" href="report-program-cost.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-runway.html">How many months of runway do we have?</a></h3><div class="card-chart" data-report-card="runway" aria-hidden="true"></div><p>Unrestricted cash ($324,680, after setting aside unspent grant money) would cover 2.0 months of spending at September&#x27;s rate of spending, short of the 3.0 months target by $164,020.</p><a class="report-open" href="report-runway.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-funding.html">Which funding is worth chasing?</a></h3><div class="card-chart" data-report-card="funding" aria-hidden="true"></div><p>Each source of money compared on what it raises and what it costs to raise.</p><a class="report-open" href="report-funding.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-board.html">What does the board need to see?</a></h3><div class="card-chart" data-report-card="board" aria-hidden="true"></div><p>A one-page board summary for September 2026: the result, the money, the risks, and the decisions to make.</p><a class="report-open" href="report-board.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-cost-to-raise.html">What does it cost to raise a dollar?</a></h3><div class="card-chart" data-report-card="cost-to-raise" aria-hidden="true"></div><p>Each dollar raised cost 20¢ in September, and 15¢ a dollar this financial year to date.</p><a class="report-open" href="report-cost-to-raise.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-program-cost.html">What does each program really cost?</a></h3><div class="card-chart" data-report-card="program-cost" aria-hidden="true"></div><p>Housing support costs $54,094 in full in September: $22,894 more than its grant spending, once its share of shared costs is added.</p><a class="report-open" href="report-program-cost.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-runway.html">How many months of runway do we have?</a></h3><div class="card-chart" data-report-card="runway" aria-hidden="true"></div><p>2.0 months of spending in unrestricted cash, against a 3.0 months reserves target.</p><a class="report-open" href="report-runway.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-funding.html">Which funding is worth chasing?</a></h3><div class="card-chart" data-report-card="funding" aria-hidden="true"></div><p>Grants cost 9¢ to raise each dollar in September; fundraising events 41¢.</p><a class="report-open" href="report-funding.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-board.html">What does the board need to see?</a></h3><div class="card-chart" data-report-card="board" aria-hidden="true"></div><p>A $10,380 surplus in September, 2.0 months of runway, and 2 grants ending within 6 months.</p><a class="report-open" href="report-board.html">Open the report &rarr;</a></li>
           </ul>
           <!-- REPORT CARDS:END -->
-          <p class="more-link"><a href="services.html">Services &rarr;</a></p>
+          <div class="page-end">
+            <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+            <p>Twenty minutes, free: bring one question your numbers can't answer yet, and I'll tell you what it would take to answer it.</p>
+          </div>
         </div>
       </section>
       <dialog class="assumptions" id="support-dialog" aria-labelledby="support-title">
@@ -156,7 +166,7 @@
       </div>
     </footer>
 
-    <script src="data/reports-data.js?v=2026-11-02"></script>
-    <script src="script.js?v=2026-11-02"></script>
+    <script src="data/reports-data.js?v=2026-11-03"></script>
+    <script src="script.js?v=2026-11-03"></script>
   </body>
 </html>

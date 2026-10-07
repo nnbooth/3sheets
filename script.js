@@ -813,7 +813,7 @@ function renderArea(labels, values, status, format, mini, width) {
   const lo = idx.reduce((a, i) => (values[i] < values[a] ? i : a), idx[0]);
   const labelled = mini ? new Set([idx[idx.length - 1]]) : new Set([hi, lo]);   // the y-axis carries the rest: mark only the highest and lowest
   const slot = (right - left) / Math.max(1, n - 1);
-  const every = Math.max(1, Math.ceil((n * 50) / Math.max(1, right - left)));   // a month label every ~50px, never overlapping
+  const every = Math.max(1, Math.ceil((n * 64) / Math.max(1, right - left)));   // a month label every ~64px, never crowded
   values.forEach((v, i) => {
     const cx = x(i);
     g += `<g class="dash-row" data-point="${i}" tabindex="0" role="button" aria-label="${esc(labels[i])}: ${v == null ? 'no figure' : fmt(v)}${done(i) ? '' : ` (${status[i].toLowerCase()})`}. Show the workings.">`
@@ -870,7 +870,7 @@ function mountReport(root, r, only, simple, opts = {}) {
     const det = (sec.chart.details || []).map((d) => sup(d));
     const one = sec.support ? sup(sec.support) : null;
     const svg = renderChart(ch, Math.min(cw(), 860)).replace(/data-detail="(\d+)"/g, (m, i) => `data-sup="${det.length ? det[+i] : one}"`);
-    return `<div class="report-card"><div class="dash-chart-head"><h2 class="report-h">${esc(ch.title)}</h2>${toggle}</div>${ch.subtitle ? `<p class="dash-chart-sub">${esc(ch.subtitle)}</p>` : ''}${svg}</div>`;
+    return `<div class="report-card"><div class="dash-chart-head"><h2 class="report-h">${esc(ch.title)}</h2>${toggle}</div>${ch.subtitle ? `<p class="dash-chart-sub">${esc(ch.subtitle)}</p>` : ''}${svg}${simple ? '<p class="dash-hint">Click or tap any bar for its workings.</p>' : ''}</div>`;
   }
   function seriesHtml(sec, key, hasFilter) {
     const dims = sec.dims || { line: ['All'], measure: [[Object.keys(sec.views)[0].split('|')[1], '']] };
@@ -885,8 +885,9 @@ function mountReport(root, r, only, simple, opts = {}) {
     const measures = simple ? dims.measure.filter(([id]) => id !== 'margin') : dims.measure;
     const lineToggle = hasFilter || simple ? '' : grp('line', dims.line.map((l) => [l, l]), cur.line);
     const title = simple ? sec.title.replace(' by line', '').replace(' by type of work', '') : sec.title;
-    const gmNote = simple && measures.some(([id]) => id.startsWith('margin')) ? '<p class="dash-chart-sub">Gross margin is before overheads, so it is not profit. <a href="numbers-explained.html#gross-margin">What that means</a>.</p>' : '';
-    return `<div class="report-card"><div class="dash-chart-head"><h2 class="report-h">${esc(title)}${hasFilter && line !== 'All' ? ` · ${esc(line)}` : ''}</h2><div class="report-toggles">${lineToggle}${grp('measure', measures, cur.measure)}</div></div>${chart}${sec.note && !simple ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}${gmNote}</div>`;
+    const gmNote = simple && cur.measure.startsWith('margin') ? '<p class="dash-chart-sub">Gross margin is before overheads, so it is not profit. <a href="numbers-explained.html#gross-margin">What that means</a>.</p>' : '';
+    const hint = simple ? '<p class="dash-hint">Click or tap any point for its workings.</p>' : '';
+    return `<div class="report-card"><div class="dash-chart-head"><h2 class="report-h">${esc(title)}${hasFilter && line !== 'All' ? ` · ${esc(line)}` : ''}</h2><div class="report-toggles">${lineToggle}${grp('measure', measures, cur.measure)}</div></div>${chart}${sec.note && !simple ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}${gmNote}${hint}</div>`;
   }
   function tableHtml(sec) {
     const hl = sec.highlight_filter ? fval() : null;
@@ -913,7 +914,7 @@ function mountReport(root, r, only, simple, opts = {}) {
     if (r.blocks.length > 1 && !simple) parts.push(`<div class="seg-bar report-blocks"><span class="seg-label">Business</span><div class="seg" role="group" aria-label="Business">${r.blocks.map((x, i) => `<button type="button" data-block="${i}" aria-pressed="${i === state.block}">${esc(x.label)}</button>`).join('')}</div></div>`);
     if (b.filter && !simple) parts.push(`<div class="report-filter seg-bar"><span class="seg-label">${esc(b.filter.label)}</span><div class="seg" role="group" aria-label="${esc(b.filter.label)}">${b.filter.options.map(([v, l]) => `<button type="button" data-filter="${esc(v)}" aria-pressed="${v === fval()}">${esc(l)}</button>`).join('')}</div></div>`);
     b.sections.forEach((sec, i) => parts.push(sectionHtml(sec, `${state.block}-${i}`, !!b.filter)));
-    parts.push(`<p class="dash-hint">Tap any ${simple ? 'point or bar' : 'number, bar or month'} to see how it's worked out.</p>`);
+    if (!simple) parts.push('<p class="dash-hint">Click or tap any number, bar or month for its workings.</p>');
     // only redraw (and so re-animate) sections whose content changed; others just get fresh workings links
     const norm = (h) => h.replace(/data-sup="\d+"/g, '').replace(/ag\d+/g, '');
     parts.forEach((h, i) => {
@@ -1052,7 +1053,7 @@ function setupReport() {
     const bars = first && first.type === 'bars' ? first : null;
     const ser = first && first.type === 'series' ? first : null;
     let html = '';
-    if (k) html += `<p class="card-kpi"><strong>${esc(k.items[0].value)}</strong> <span>${esc(k.items[0].label)}</span></p>`;
+    if (k) { const k0 = k.items[0]; html += `<p class="card-kpi"><strong class="${k0.tone ? `is-${k0.tone}` : ''}">${esc(k0.value)}</strong> <span>${esc(k0.label)}${k0.tone ? ` · ${esc(k0.sub)}` : ''}</span></p>`; }
     if (ser) {
       const dims = ser.dims || { line: ['All'], measure: [[Object.keys(ser.views)[0].split('|')[1], '']] };
       const v = ser.views[`${dims.line[0]}|${dims.measure[0][0]}`];

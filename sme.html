@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-11-02" />
+    <link rel="stylesheet" href="styles.css?v=2026-11-03" />
   </head>
 
   <!--
@@ -80,12 +80,17 @@
             <h1>What's really making you money?</h1>
             <p class="lead">You already know your business. The fourth sheet answers the questions underneath it, whichever ones matter to you.</p>
             <p class="q-intro">Questions like:</p>
-            <ul class="q-chips q-chips--page" aria-label="Example questions"><li><a href="report-cost-to-win.html">What does it cost to win a customer?</a></li><li><a href="report-job-margins.html">Which jobs actually make money?</a></li><li class="q-later" title="Coming soon: built from your bank and accounting system">Will cash cover payroll next month?</li><li><a href="report-growth.html">Which products and services are growing?</a></li><li class="q-own">…or bring your own</li></ul>
+            <ul class="q-rows q-rows--page" aria-label="Example questions">
+              <li><a href="report-cost-to-win.html">What does it cost to win a customer?</a></li>
+              <li><a href="report-job-margins.html">Which jobs actually make money?</a></li>
+              <li><a href="report-growth.html">Which products and services are growing?</a></li>
+              <li class="q-soon"><span>Will cash cover payroll next month?</span><span class="soon-tag">Coming soon</span></li>
+            </ul>
+            <p class="q-own-line">Got a different question? <a href="contact.html">Bring your own &rarr;</a></p>
           </div>
 
           <p class="no-data-line"><strong>No data to hand over yet?</strong> I'll help you set up the processes and frameworks to start capturing it, then build the reporting on top.</p>
           <div class="audience-foot">
-            <p class="proof"><span class="proof-label">Example</span> <strong>A sole-trader fitness business:</strong> leads and the cost to win each new client, in one view.</p>
             <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
           </div>
         </div>
@@ -97,18 +102,21 @@
           <div class="section-heading">
             <p class="eyebrow">Example reports</p>
             <h2>What each question looks like, answered.</h2>
-            <p class="lead">Built on sample data for invented businesses, with every number's workings, 24 months of history, and Excel and PDF downloads.</p>
+            <p class="lead">Built on sample data for invented businesses, with every number's workings, 24 months of history, and Excel, PDF and PowerPoint downloads.</p>
           </div>
           <!-- REPORT CARDS:START -->
           <div class="report-feature"><p class="eyebrow">Featured: <a href="report-growth.html">Which products and services are growing?</a></p><div data-report-feature="growth" data-only="series"><noscript><p>Turn on JavaScript to see the chart, or <a href="report-growth.html">open the report</a>.</p></noscript></div></div>
           <ul class="report-cards">
-            <li><h3><a href="report-cost-to-win.html">What does it cost to win a customer?</a></h3><div class="card-chart" data-report-card="cost-to-win" aria-hidden="true"></div><p>47 new customers came from $7,600 of marketing in September, against 41 from $8,400 in August: $162 each, down from $205.</p><a class="report-open" href="report-cost-to-win.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-job-margins.html">Which jobs actually make money?</a></h3><div class="card-chart" data-report-card="job-margins" aria-hidden="true"></div><p>Every job&#x27;s gross margin: revenue less materials, subcontractors and technician time at $68 an hour (fully loaded: wages and all on-costs).</p><a class="report-open" href="report-job-margins.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-growth.html">Which products and services are growing?</a></h3><div class="card-chart" data-report-card="growth" aria-hidden="true"></div><p>Revenue, gross margin and growth (year on year) by product or service line over 24 months.</p><a class="report-open" href="report-growth.html">Open the report &rarr;</a></li>
-            <li class="report-later"><h3>Will cash cover payroll next month?</h3><p>A 13-week cash forecast built from your bank and accounting system, with room for what you expect that the systems don't know yet. Coming soon.</p></li>
+            <li><h3><a href="report-cost-to-win.html">What does it cost to win a customer?</a></h3><div class="card-chart" data-report-card="cost-to-win" aria-hidden="true"></div><p>$162 per new customer in September: 47 new customers from $7,600 of marketing.</p><a class="report-open" href="report-cost-to-win.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-job-margins.html">Which jobs actually make money?</a></h3><div class="card-chart" data-report-card="job-margins" aria-hidden="true"></div><p>Jobs made a 36.1% gross margin in September: maintenance contracts the most (59.5%), installations the least (27.0%).</p><a class="report-open" href="report-job-margins.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-growth.html">Which products and services are growing?</a></h3><div class="card-chart" data-report-card="growth" aria-hidden="true"></div><p>Year to date, trades revenue is up 26.5% and services up 77.1% on the same period last year.</p><a class="report-open" href="report-growth.html">Open the report &rarr;</a></li>
           </ul>
+          <p class="cards-soon"><span class="soon-tag">Coming soon</span> <strong>Will cash cover payroll next month?</strong> A 13-week cash forecast built from your bank and accounting system.</p>
           <!-- REPORT CARDS:END -->
-          <p class="more-link"><a href="services.html">Services &rarr;</a></p>
+          <div class="page-end">
+            <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+            <p>Twenty minutes, free: bring one question your numbers can't answer yet, and I'll tell you what it would take to answer it.</p>
+          </div>
         </div>
       </section>
       <dialog class="assumptions" id="support-dialog" aria-labelledby="support-title">
@@ -154,7 +162,7 @@
       </div>
     </footer>
 
-    <script src="data/reports-data.js?v=2026-11-02"></script>
-    <script src="script.js?v=2026-11-02"></script>
+    <script src="data/reports-data.js?v=2026-11-03"></script>
+    <script src="script.js?v=2026-11-03"></script>
   </body>
 </html>

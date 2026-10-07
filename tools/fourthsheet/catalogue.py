@@ -13,6 +13,7 @@ and every sentence is written from those numbers. Each report carries:
 from datetime import date
 
 import data_status as ds
+import exportkit as ek
 from financial_model import FMT, calc, half_up, inp, money, support
 
 from .period import add_months, mdate, mlabel
@@ -28,8 +29,9 @@ def kpis(items):
     return {"type": "kpis", "items": items}
 
 
-def kpi(label, value, sub, sp, cls=""):
-    return {"label": label, "value": value, "sub": sub, "cls": cls, "support": sp}
+def kpi(label, value, sub, sp, cls="", tone=""):
+    """tone: 'good' / 'warn' / 'bad' when the value is judged against a target (colour by meaning, not sign)."""
+    return {"label": label, "value": value, "sub": sub, "cls": cls, "support": sp, "tone": tone}
 
 
 def text(shows, action):
@@ -177,8 +179,9 @@ def job_support(j, rate):
         calc("Technician time", "money", "-r3*r4"), calc("Job gross margin", "money", "r0+r1+r2+r5"), calc("Job gross margin %", "pct", "r6/r0")], cols=("This job",))
 
 
-def report(slug, audience, question, org, D, P, intro, blocks, data=None):
-    return {"slug": slug, "audience": audience, "question": question, "org": org,
+def report(slug, audience, question, org, D, P, intro, blocks, data=None, answer=None):
+    """answer: the question answered in one sentence (the report's card on the SME / not-for-profit page)."""
+    return {"slug": slug, "answer": answer, "audience": audience, "question": question, "org": org,
             "business": D[org].about["legal_name"] if org in D else "SME sample businesses",
             "intro": intro, "blocks": blocks, "data": data, "period": P.mo, "period_label": P.label, "period_short": P.short,
             "period_status": P.status, "status_months": P.status_months, "part_note": P.part_note}
@@ -221,6 +224,7 @@ def cost_to_win(D, P):
              f"{money(cpc)} each, {'down' if cpc < cpp else 'up'} from {money(cpp)}." + (f" {P.part_note}" if P.incomplete else ""))
     action = ("A lower cost per customer with steady spend usually means the marketing mix is working. Recording where each new customer came from shows the cost per channel."
               if cpc <= cpp else "Worth knowing which channels brought this month's customers in: recording the source of each new customer shows the cost per channel.")
+    answer = f"{money(cpc)} per new customer in {P.when}: {nc[P.mo]} new customers from {money(mk[P.mo])} of marketing."
     return report("cost-to-win", "sme", "What does it cost to win a customer?", "trades", D, P,
                   "Marketing spend divided by the customers it actually brought in (a customer's first ever job), month by month.",
                   [{"label": None, "sections": [
@@ -234,7 +238,7 @@ def cost_to_win(D, P):
                       text(shows, action)]}],
                   {"head": ["Month", "Status", "Marketing spend", "New customers", "Cost per new customer"],
                    "kinds": ["text", "text", "money", "int", "money"],
-                   "rows": [[mlabel(m), P.status_of(m), mk[m], nc[m], "=C{r}/D{r}"] for m in W]})
+                   "rows": [[mlabel(m), P.status_of(m), mk[m], nc[m], "=C{r}/D{r}"] for m in W]}, answer)
 
 
 def line_kpis(D, P, org, line, lines):
@@ -360,8 +364,14 @@ def growing(D, P):
             "table_xl": {"head": ["Line", "Year to date", "Same period last year", "Growth", "Gross margin $", "Gross margin %"],
                          "kinds": ["text", "money", "money", "pct", "money", "pct"], "rows": [r_[:6] for r_ in tab]}})
     blocks[0]["label"], blocks[1]["label"] = "Trades", "Services"
+    def yoy(org, lines):
+        t = line_table(D, P, org, lines)[-1]
+        g = t[1] / t[2] - 1
+        return f"{'up' if g >= 0 else 'down'} {abs(g) * 100:.1f}%"
+    answer = (f"Year to date, trades revenue is {yoy('trades', TRADE_LINES)} and services {yoy('services', SERVICE_LINES)} on the same period last year."
+              if P.pfytd_ok else f"Revenue by line, month by month, with growth on the same month last year.")
     r = report("growth", "sme", "Which products and services are growing?", "trades", D, P,
-               "Revenue, gross margin and growth (year on year) by product or service line over 24 months. Pick a line and every number, chart and note follows it.", blocks)
+               "Revenue, gross margin and growth (year on year) by product or service line over 24 months. Pick a line and every number, chart and note follows it.", blocks, answer=answer)
     r["business"] = "SME sample businesses"
     return r
 
@@ -459,6 +469,8 @@ def job_margins(D, P):
             f"and made a {pct(sum(gp_) / sum(rev_))} job gross margin between them. Gross margins run from {pct(min(mg))} to {pct(max(mg))} "
             "by length: the hourly rate covers technician time comfortably, so the gross margin mostly moves with how much material goes on the van.",
             margin_action("Call-outs", sum(gp_) / sum(rev_), be))
+    answer = (f"Jobs made a {pct(tk['All']['cur_m'])} gross margin in {P.when}: {best.lower()} the most ({pct(tk[best]['cur_m'])}), "
+              f"{worst.lower()} the least ({pct(tk[worst]['cur_m'])}).")
     return report("job-margins", "sme", "Which jobs actually make money?", "trades", D, P,
                   f"Every job's gross margin: revenue less materials, subcontractors and technician time at ${rate} an hour (fully loaded: wages and all on-costs). Before overheads, so this is not profit. Pick a type of job and every number, chart and note on the page follows it.",
                   [{"label": None, "filter": filt("Type of job", [("All", "All jobs")] + [(l, l) for l in TRADE_LINES]), "sections": [
@@ -467,7 +479,7 @@ def job_margins(D, P):
                              dims={"line": ["All"] + TRADE_LINES, "measure": [("margin_pct", "Gross margin %"), ("margin", "Gross margin $")]})]}],
                   {"head": ["Line", "Month", "Status", "Revenue", "Direct cost", "Gross margin", "Gross margin %"],
                    "kinds": ["text", "text", "text", "money", "money", "money", "pct"],
-                   "rows": [r_ + ["=D{r}-E{r}", "=IF(D{r}=0,\"\",F{r}/D{r})"] for r_ in data_rows]})
+                   "rows": [r_ + ["=D{r}-E{r}", "=IF(D{r}=0,\"\",F{r}/D{r})"] for r_ in data_rows]}, answer)
 
 
 # ======================================================================= NFP
@@ -565,6 +577,9 @@ def cost_to_raise(D, P):
                              "Donations": "Steady and cheap, and untied: the money that builds reserves.",
                              "Fundraising events": "Usually the dearest money to raise: events are worth counting for what else they bring too (new donors, profile)."}[name])
     chart, sp, _, _ = by_source_chart(D, P)
+    r_all, c_all = src_totals(D, [P.mo], *GROUPS["All"])
+    ry, cy = src_totals(D, P.fytd, *GROUPS["All"])
+    answer = f"Each dollar raised cost {cents(c_all, r_all)} in {P.when}, and {cents(cy, ry)} a dollar this financial year to date."
     return report("cost-to-raise", "nfp", "What does it cost to raise a dollar?", "nfp", D, P,
                   "What fundraising costs (grant writing, donor campaigns, events) for every dollar it brings in. Pick a source and every number, chart and note follows it.",
                   [{"label": None, "filter": filt("Source", [("All", "All fundraising")] + [(s_[0], s_[0]) for s_ in SOURCES]), "sections": [
@@ -578,7 +593,7 @@ def cost_to_raise(D, P):
                    "kinds": ["text", "text", "money", "money", "money", "money", "money", "money", "cents"],
                    "rows": [[mlabel(m), P.status_of(m), nfp_month(D, m)["gw"], nfp_month(D, m)["dc"], nfp_month(D, m)["ec"],
                              nfp_month(D, m)["grants"], nfp_month(D, m)["donations"], nfp_month(D, m)["events"],
-                             "=IF(SUM(F{r}:H{r})=0,\"\",SUM(C{r}:E{r})/SUM(F{r}:H{r})*100)"] for m in W]})
+                             "=IF(SUM(F{r}:H{r})=0,\"\",SUM(C{r}:E{r})/SUM(F{r}:H{r})*100)"] for m in W]}, answer)
 
 
 def funding(D, P):
@@ -610,13 +625,22 @@ def funding(D, P):
                 {"Grants": "Most of the money, and usually the cheapest to raise, starting with grants that renew.",
                  "Donations": "Cheap and flexible (untied): the money that builds reserves.",
                  "Fundraising events": "The dearest per dollar: worth measuring the new donors each event brings in too."}[name])
-    tab = []
+    tab, raised_rows = [], []
     for name, inc, cst, _, _ in SOURCES:
         a, b = src_totals(D, P.fytd, [inc], [cst])
         tab.append([name, money(a), money(b), money(a - b), cents(b, a)])
+        raised_rows.append(inp(f"{name}, raised", "money", [a]))
+    cheap, dear = min(cpd, key=cpd.get), max(cpd, key=cpd.get)
+    sp_ytd = support(f"Raised, financial year to date ({P.fytd_l})", "Grants + donations + fundraising events",
+                     raised_rows + [calc("Raised, year to date", "money", "+".join(f"r{i}" for i in range(len(raised_rows))))], cols=("Year to date",))
+    head = kpis([kpi(f"Cheapest to raise: {cheap}", f"{half_up(cpd[cheap])}¢", f"per $1 raised in {P.when}", sp),
+                 kpi(f"Dearest to raise: {dear}", f"{half_up(cpd[dear])}¢", f"per $1 raised in {P.when}", sp),
+                 kpi("Raised, year to date", money(sp_ytd["xl"]["rows"][-1]["values"][0]), P.fytd_l, sp_ytd)])
+    answer = f"{cheap} cost {half_up(cpd[cheap])}¢ to raise each dollar in {P.when}; {dear.lower()} {half_up(cpd[dear])}¢."
     return report("funding", "nfp", "Which funding is worth chasing?", "nfp", D, P,
                   "Each source of money compared on what it raises and what it costs to raise. Pick a source and every chart, table row and note follows it.",
                   [{"label": None, "filter": filt("Source", [("All", "All sources")] + [(s_[0], s_[0]) for s_ in SOURCES]), "sections": [
+                      head,
                       {"type": "bars", "chart": chart, "support": sp, "highlight_filter": True},
                       vary(tx),
                       dict(table(f"Financial year to date ({P.fytd_l}), by source", ["", "Raised", "Cost of raising it", "Left after costs", "Cost per $1"], tab,
@@ -625,7 +649,7 @@ def funding(D, P):
                              dims={"line": ["All"] + [s_[0] for s_ in SOURCES], "measure": [("raised", "Raised $"), ("net", "Left after costs $")]})]}],
                   {"head": ["Source", "Month", "Status", "Raised", "Cost of raising it", "Left after costs", "Cents per $1"],
                    "kinds": ["text", "text", "text", "money", "money", "money", "cents"],
-                   "rows": [r_ + ["=D{r}-E{r}", "=IF(D{r}=0,\"\",E{r}/D{r}*100)"] for r_ in rows_]})
+                   "rows": [r_ + ["=D{r}-E{r}", "=IF(D{r}=0,\"\",E{r}/D{r}*100)"] for r_ in rows_]}, answer)
 
 
 def grant_positions(D, P):
@@ -704,6 +728,8 @@ def program_cost(D, P):
                      f"no grant covers. It has spent {pct(g['spent_to_date'] / g['budget_to_date'])} of its budget to date{assumed}, with {money(g['unspent'])} "
                      f"left and {g['months_left']} months to go.",
                      f"The full cost is {money(full[l])} a month; {money(shared)} of it is shared cost the grant doesn't pay for. Worth asking for as much of it as the funder allows at renewal.")
+    answer = (f"{top} costs {money(full[top])} in full in {P.when}: {money(full[top] - G[0]['spent_now'])} more than its grant spending, "
+              "once its share of shared costs is added.")
     return report("program-cost", "nfp", "What does each program really cost?", "nfp", D, P,
                   "Each program's full cost: what its grant pays for, plus its fair share of the costs no single grant covers (untied program costs and administration, shared by grant spending). Pick a program and every chart and note follows it.",
                   [{"label": None, "filter": filt("Program", [("All", "All programs")] + [(l, l) for l in labels]), "sections": [
@@ -715,7 +741,7 @@ def program_cost(D, P):
                    "inputs": [("tot", f"All grant-funded program spending, {P.label}", tot, "money"),
                               ("untied", f"Untied program costs, {P.label} (all programs)", x["untied"], "money"),
                               ("admin", f"Administration, {P.label} (all)", x["admin"], "money")],
-                   "rows": [[g["program"], g["spent_now"], "=B{r}/{tot}", "=C{r}*{untied}", "=C{r}*{admin}", "=B{r}+D{r}+E{r}"] for g in G]})
+                   "rows": [[g["program"], g["spent_now"], "=B{r}/{tot}", "=C{r}*{untied}", "=C{r}*{admin}", "=B{r}+D{r}+E{r}"] for g in G]}, answer)
 
 
 # ------------------------------------------------------------------ cash (needs the balance sheet: from the opening balance on)
@@ -781,13 +807,15 @@ def runway(D, P):
              + (f"short of the {FMT['months'](tgt)} target by {money(gap)}." if gap > 0 else f"above the {FMT['months'](tgt)} target by {money(-gap)}."))
     action = ("A reserves plan is the usual next step: how much of each month's surplus goes to reserves, and by when the gap is closed."
               if gap > 0 else "Reserves are above target: worth agreeing with the board how much to hold, and what the rest is for.")
+    answer = f"{FMT['months'](run)} of spending in unrestricted cash, against a {FMT['months'](float(tgt))} reserves target."
     return report("runway", "nfp", "How many months of runway do we have?", "nfp", D, P,
                   "How long the organisation could keep going on its own money: cash at bank, less unspent grant money (which belongs to the funders' programs), divided by a month's spending.",
                   [{"label": None, "sections": [
-                      kpis([kpi("Runway now", FMT["months"](run), f"{ds.strf(mdate(P.mo), '%-d %b') if False else P.label}", s_now),
+                      kpis([kpi("Runway now", FMT["months"](run), f"target {FMT['months'](float(tgt))}", s_now, tone=ek.tone(run, "higher", float(tgt), 0.5)),
                             kpi("Target", FMT["months"](float(tgt)), "reserves target", sp3),
                             kpi("Gap" if gap > 0 else "Above target by", money(abs(gap)), "to reach the target" if gap > 0 else "unrestricted cash over the target", sp3),
-                            kpi(f"Runway in {P.prev_month}", FMT["months"](v(s_prev, 4)), f"at {mdate(runway_numbers(D, P, P.prev)[3]).strftime('%B')}'s rate of spending", s_prev)]),
+                            kpi(f"Runway in {P.prev_month}", FMT["months"](v(s_prev, 4)), f"at {mdate(runway_numbers(D, P, P.prev)[3]).strftime('%B')}'s rate of spending", s_prev,
+                                tone=ek.tone(v(s_prev, 4), "higher", float(tgt), 0.5))]),
                       text(shows, action),
                       {"type": "series", "title": f"Cash at bank, every day ({ds.strf(lab[0], '%-d %b')} to {ds.strf(lab[-1], '%-d %b')})", "labels": [ds.strf(d, "%-d %b") for d in lab],
                        "months": [d.isoformat() for d in lab], "status": stat,
@@ -799,7 +827,7 @@ def runway(D, P):
                        "dims": {"line": ["All"], "measure": [("cash", "Cash at bank $")]},
                        "note": f"Cash at bank includes unspent grant money. The daily cash data starts {ds.strf(lab[0], '%-d %B %Y')} (after the opening balance)."}]}],
                   {"head": ["Date", "Status", "Cash at bank"], "kinds": ["text", "text", "money"],
-                   "rows": [[d.isoformat(), s_, c] for d, s_, c in zip(lab, stat, cashes)]})
+                   "rows": [[d.isoformat(), s_, c] for d, s_, c in zip(lab, stat, cashes)]}, answer)
 
 
 def board(D, P):
@@ -841,6 +869,8 @@ def board(D, P):
     decisions.append("Reserves: how much of each month's surplus goes to reserves, and by when the target is reached." if run < tgt else
                      "Reserves are above target: how much to hold, and what the rest is for.")
     decisions.append("Fundraising: where the next spare hours go, given what each source costs to raise.")
+    answer = (f"A {money(surplus(cur))} {'surplus' if surplus(cur) >= 0 else 'deficit'} in {P.when}, {FMT['months'](run)} of runway, and "
+              f"{len(ending)} grant{'s' if len(ending) != 1 else ''} ending within {tgt_end} months.")
     return report("board", "nfp", "What does the board need to see?", "nfp", D, P,
                   f"A one-page board summary for {P.label}: the result, the money, the risks, and the decisions to make. The full statements are in the downloads.",
                   [{"label": None, "sections": [
@@ -857,7 +887,7 @@ def board(D, P):
                   {"head": ["Program", "Spent to date", "Budget to date", "Against budget", "Still to spend", "Months left"],
                    "kinds": ["text", "money", "money", "pct", "money", "int"],
                    "rows": [[g["program"], g["spent_to_date"], g["budget_to_date"], "=B{r}/C{r}", g["unspent"], g["months_left"]]
-                            for g in sorted(live, key=lambda g: g["months_left"])]})
+                            for g in sorted(live, key=lambda g: g["months_left"])]}, answer)
 
 
 # ======================================================================= the list

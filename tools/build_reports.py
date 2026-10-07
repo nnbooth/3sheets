@@ -459,14 +459,12 @@ def write_cards(reports):
     for aud, page in (("sme", "sme.html"), ("nfp", "not-for-profit.html")):
         cards = []
         for r in [x for x in reports if x["audience"] == aud]:
-            shows = next((sec["shows"] for b in r["blocks"] for sec in b["sections"] if sec["type"] == "text"), r["intro"])
-            first = shows.split(". ")[0].rstrip(".") + "."
+            first = r.get("answer") or r["intro"]          # the question, answered in one sentence
             cards.append(f'            <li><h3><a href="report-{r["slug"]}.html">{H.escape(r["question"])}</a></h3>'
                          f'<div class="card-chart" data-report-card="{r["slug"]}" aria-hidden="true"></div>'
                          f'<p>{H.escape(first)}</p><a class="report-open" href="report-{r["slug"]}.html">Open the report &rarr;</a></li>')
-        if aud == "sme":
-            cards.append('            <li class="report-later"><h3>Will cash cover payroll next month?</h3><p>A 13-week cash forecast built from your bank and '
-                         'accounting system, with room for what you expect that the systems don\'t know yet. Coming soon.</p></li>')
+        soon = ('<p class="cards-soon"><span class="soon-tag">Coming soon</span> <strong>Will cash cover payroll next month?</strong> '
+                'A 13-week cash forecast built from your bank and accounting system.</p>\n          ') if aud == "sme" else ""
         f = REPO / page
         s_ = f.read_text()
         a_, b_ = s_.index("<!-- REPORT CARDS:START -->"), s_.index("<!-- REPORT CARDS:END -->")
@@ -475,7 +473,7 @@ def write_cards(reports):
         feat = (f'<div class="report-feature"><p class="eyebrow">Featured: <a href="report-{feature[0]}.html">{H.escape(feature[1])}</a></p>'
                 f'<div data-report-feature="{feature[0]}" data-only="{feature[2]}"><noscript><p>Turn on JavaScript to see the chart, or '
                 f'<a href="report-{feature[0]}.html">open the report</a>.</p></noscript></div></div>\n          ')
-        s_ = s_[:a_] + "<!-- REPORT CARDS:START -->\n          " + feat + "<ul class=\"report-cards\">\n" + "\n".join(cards) + "\n          </ul>\n          " + s_[b_:]
+        s_ = s_[:a_] + "<!-- REPORT CARDS:START -->\n          " + feat + "<ul class=\"report-cards\">\n" + "\n".join(cards) + "\n          </ul>\n          " + soon + s_[b_:]
         f.write_text(s_)
 
 

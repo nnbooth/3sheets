@@ -37,3 +37,11 @@
 - New `contact.html`. A form (what you'd like: a monthly report on the 3rd business day, a numbers check, or something else; name, email, organisation, phone, message, consent) posts to a form service that emails Nathan. Its address is a new placeholder, `[[FORM_ENDPOINT]]` (e.g. Formspree), and until it's set the form says nothing has been sent. Beside it is "Or book a time" (`[[BOOKING_URL]]`, which also says it isn't live yet). A hidden trap field catches spam bots.
 - The Export menu's "Send this to me on the 3rd business day each month →" now opens the contact page with the report, period and view filled in. This replaces the `[[SUBSCRIBE_URL]]` placeholder added earlier today.
 - "Contact" in the menu now opens the contact page on every page, and each page's contact block gains "Or send me your details →".
+
+### Phase 3: SME and not-for-profit pages
+- Each report card leads with its headline number and answers its question in one sentence (`answer` in each report, from the data).
+- The cash question is a slim "Coming soon" strip under the SME cards; the dashed card is gone.
+- Featured charts: the "gross margin is not profit" note only shows on the gross margin views; the hint sits inside the chart card. Mini charts show no axis labels, just the latest value at 11 px or more, and mini bars get a wider label column.
+- Cards sit 3 across, so the five not-for-profit cards are 3 + 2.
+- Runway's headline is coloured against the reserves target (red at 2.0 months), with "target 3.0 months" beside it. Funding has headline numbers: cheapest and dearest to raise, and the amount raised year to date.
+- Both pages use the question rows from the home page. Downloads read "Excel, PDF and PowerPoint". Both pages end on the booking button and a line on what the 20 minutes covers. The SME fitness example line is deleted (Nathan's call); the not-for-profit example placeholder is untouched.
