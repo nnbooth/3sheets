@@ -24,6 +24,21 @@ NEG = "#B42318"     # negative numbers: always red, in brackets
 NEG_CSS = ".neg {{ color: #B42318; }}"
 
 
+def tone(value, good_when="higher", target=None, warn_within=0):
+    """Colour by meaning, not by sign (the same rule as script.js tone()): 'good', 'warn' or 'bad' against a target,
+    where good_when is 'higher' (more is better: margin, runway) or 'lower' (less is better: cost to win, cents per $1).
+    Returns '' when there's nothing to judge against."""
+    if value is None or target is None:
+        return ""
+    gap = (target - value) if good_when == "lower" else (value - target)
+    if gap >= 0:
+        return "good"
+    return "warn" if -gap <= warn_within else "bad"
+
+
+TONE_HEX = {"good": "2F7A5D", "warn": "8A6D3B", "bad": "B42318", "": None}   # text colours (good = brand green: readable on white)
+
+
 def neg_html(text):
     """Wrap a formatted number in a red span if it's negative (brackets or a minus sign)."""
     t = str(text).strip()

@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-27" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-28" />
   </head>
 
   <!--
@@ -100,14 +100,14 @@
                adds up. Data: dashboard-data.js. Behaviour: script.js, search
                "HERO DASHBOARD". Exports: media/exports/. -->
           <figure class="hero-dash" id="hero-dash">
-            <div class="dash-tabs" role="tablist" aria-label="Choose a statement">
+            <div class="dash-head"><div class="seg" role="tablist" aria-label="Choose a statement">
               <button type="button" role="tab" data-tab="fourth" aria-selected="true">The fourth sheet</button>
               <button type="button" role="tab" data-tab="pnl" aria-selected="false">P&amp;L</button>
               <button type="button" role="tab" data-tab="bs" aria-selected="false">Balance sheet</button>
               <button type="button" role="tab" data-tab="cf" aria-selected="false">Cash flow</button>
-            </div>
+            </div></div>
             <div class="dash-body">
-              <div class="dash-toggle" role="group" aria-label="Sample organisation" id="dash-orgs"></div>
+              <div class="seg" role="group" aria-label="Sample organisation" id="dash-orgs"></div>
               <div class="dash-panel" id="dash-panel" role="tabpanel">
                 <noscript><p>Turn on JavaScript to explore the sample statements, or download them: <a href="media/exports/trades-sample-statements.xlsx">Excel</a> · <a href="media/exports/trades-sample-statements.pdf">PDF</a>.</p></noscript>
               </div>
@@ -252,7 +252,7 @@
       </div>
     </footer>
 
-    <script src="data/dashboard-data.js?v=2026-10-27"></script>
-    <script src="script.js?v=2026-10-27"></script>
+    <script src="data/dashboard-data.js?v=2026-10-28"></script>
+    <script src="script.js?v=2026-10-28"></script>
   </body>
 </html>
