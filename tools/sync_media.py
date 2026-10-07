@@ -61,6 +61,11 @@ def sync(quiet=False):
         if rel.name == ".DS_Store":
             continue
         a, b = LOCAL / rel, remote / rel
+        if a.exists() and b.exists() and a.stat().st_size == b.stat().st_size and abs(a.stat().st_mtime - b.stat().st_mtime) > 1 \
+                and a.read_bytes() == b.read_bytes():
+            t = min(a.stat().st_mtime, b.stat().st_mtime)      # same file, different dates (e.g. a fresh git clone):
+            os.utime(a, (t, t)); os.utime(b, (t, t))           # line the dates up instead of copying
+            continue
         if a.exists() and (not b.exists() or a.stat().st_mtime > b.stat().st_mtime + 1):
             b.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(a, b)
