@@ -4,6 +4,7 @@ setup_machine.py — get this machine (Mac or Windows) ready to work on The Four
 
     Mac:      python3 tools/setup_machine.py
     Windows:  py tools\\setup_machine.py
+    Add --onedrive "<path to The 4th Sheet>" to pin this machine to that OneDrive folder (otherwise the first one found is pinned).
     Add --no-azure to leave Azure sign-in for later (until the business Microsoft 365 account exists).
 
 It checks, and fixes what it can:
@@ -103,8 +104,14 @@ def git_setup():
 def onedrive():
     step("4. OneDrive")
     try:
+        import sync_media
         from sync_media import onedrive_root, sync
+        if "--onedrive" in sys.argv:
+            sync_media.pin(sys.argv[sys.argv.index("--onedrive") + 1])
+        elif not sync_media.pinned():
+            sync_media.pin(onedrive_root())       # first run on this machine: pin what was found
         root = onedrive_root()
+        print(OK + f"pinned for this machine: {root}  (change with --onedrive \"<folder>\")")
     except SystemExit as e:
         print(FAIL + str(e) + " Sign in to OneDrive and let 'Projects/The 4th Sheet' sync, then run this again.")
         return False

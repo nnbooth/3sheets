@@ -36,14 +36,40 @@ def onedrive_candidates():
     return [Path(b) for b in bases if b]
 
 
+PIN = Path.home() / ".fourthsheet" / "onedrive_root.txt"   # this machine's pinned project folder (not in git or OneDrive)
+
+
+def pinned():
+    return Path(PIN.read_text(encoding="utf-8").strip()).expanduser() if PIN.exists() and PIN.read_text(encoding="utf-8").strip() else None
+
+
+def pin(path):
+    """Pin this machine to one project folder: every tool then reads it, and stops (rather than looking elsewhere) if it's missing."""
+    path = Path(path).expanduser()
+    if not (path / "Data").is_dir():
+        raise SystemExit(f"Not pinned: {path} doesn't have a Data folder. Is it the 'The 4th Sheet' folder, and has OneDrive synced it?")
+    PIN.parent.mkdir(parents=True, exist_ok=True)
+    PIN.write_text(str(path), encoding="utf-8")
+    return path
+
+
 def onedrive_root():
+    """The project folder in OneDrive ('Projects/The 4th Sheet'). Order: FOURTH_SHEET_DATA (its parent), then this
+    machine's pin (~/.fourthsheet/onedrive_root.txt), then a search of the usual OneDrive places (only if not pinned)."""
     if os.getenv("FOURTH_SHEET_DATA"):
         return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser().parent
+    p = pinned()
+    if p:
+        if not (p / "Data").is_dir():
+            raise SystemExit(f"The pinned project folder isn't available: {p}\n"
+                             "OneDrive may still be syncing or remapping. Wait for it to finish, or pin the new place with:\n"
+                             "  python3 tools/setup_machine.py --onedrive \"<the 'The 4th Sheet' folder>\"   (Windows: py ...)")
+        return p
     for base in onedrive_candidates():
         if (base / "Projects/The 4th Sheet").exists():
             return base / "Projects/The 4th Sheet"
     raise SystemExit("Can't find the OneDrive folder 'Projects/The 4th Sheet' (personal or business). "
-                     "Sign in to OneDrive and let it sync, or set FOURTH_SHEET_DATA to its Data folder.")
+                     "Sign in to OneDrive and let it sync, or pin it: python3 tools/setup_machine.py --onedrive \"<folder>\"")
 
 
 def sync(quiet=False):

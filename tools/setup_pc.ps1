@@ -3,6 +3,7 @@
 
   Easiest: double-click "Set up this PC.cmd" in OneDrive (Projects\The 4th Sheet).
   Or in PowerShell:  powershell -ExecutionPolicy Bypass -File "Set up this PC.ps1"
+  Add -OneDrive "C:\path\to\The 4th Sheet" to pin this PC to a particular OneDrive folder (otherwise the one found is pinned).
 
   What it does, in order (anything already done is skipped):
     1. checks OneDrive has the project folder (Projects\The 4th Sheet)
@@ -19,6 +20,7 @@
 #>
 param(
     [string]$Folder = "$env:USERPROFILE\thefourthsheet",
+    [string]$OneDrive = "",
     [switch]$Azure,
     [switch]$SkipSiteCheck
 )
@@ -59,13 +61,18 @@ try {
 
     # 1. OneDrive ---------------------------------------------------------------------------------
     Say "1. OneDrive"
+    if ($OneDrive) {
+        if (-not (Test-Path (Join-Path $OneDrive "Data"))) { throw "-OneDrive '$OneDrive' isn't the 'The 4th Sheet' folder (no Data folder in it), or it hasn't synced yet." }
+        $project = $OneDrive
+    } else {
     $bases = @($env:OneDriveConsumer, $env:OneDriveCommercial, $env:OneDrive) + @(Get-ChildItem $env:USERPROFILE -Directory -Filter "OneDrive*" -ErrorAction SilentlyContinue | ForEach-Object FullName)
     $project = $bases | Where-Object { $_ -and (Test-Path (Join-Path $_ "Projects\The 4th Sheet")) } | Select-Object -First 1
     if (-not $project) {
         throw "Can't find 'Projects\The 4th Sheet' in OneDrive. Open OneDrive, sign in with your Microsoft account, let the folder sync, then run this again."
     }
     $project = Join-Path $project "Projects\The 4th Sheet"
-    Ok "project folder: $project"
+    }
+    Ok "project folder: $project (this PC is pinned to it; change with -OneDrive)"
     foreach ($sub in "Data", "Data documentation", "Business", "Media\site media") {
         if (Test-Path (Join-Path $project $sub)) { Ok $sub } else { Warn "$sub not synced yet (it will be fetched when needed)" }
     }
@@ -122,7 +129,9 @@ try {
     # 5. The project's own setup -----------------------------------------------------------------------
     Say "5. Packages, Azure command line, git leak guard, media, and your set-up from the Mac"
     Push-Location $Folder
-    if ($Azure) { Run-Py tools\setup_machine.py } else { Run-Py tools\setup_machine.py --no-azure }
+    $pyArgs = @("tools\setup_machine.py", "--onedrive", $project)
+    if (-not $Azure) { $pyArgs += "--no-azure" }
+    Run-Py @pyArgs
     if ($LASTEXITCODE -ne 0) { throw "tools\setup_machine.py reported a problem (see above)." }
 
     # 6. Check it works --------------------------------------------------------------------------------
