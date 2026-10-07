@@ -11,7 +11,9 @@ It checks, and fixes what it can:
   2. the Azure command line (installed into its own folder; no admin rights needed)
   3. git: commits use your private GitHub noreply address, and the leak guard (tools/githooks) is switched on
   4. OneDrive: the data, notes and media folders are found; media/ is synced both ways
-  5. Azure: signed in (opens the browser if not), this machine allowed through the database firewall,
+  6. your set-up from the other machine: VS Code extensions and settings, Claude Code settings, memory notes
+     and conversations (tools/machine_profile.py; save it on the machine you're leaving with: machine_profile.py export)
+  7. Azure: signed in (opens the browser if not), this machine allowed through the database firewall,
      and a test connection to the database (signed in as you: no password exists anywhere)
 Nothing secret is stored by this script: sign-in tokens are kept by Azure's own tools in your user profile.
 """
@@ -114,7 +116,7 @@ def onedrive():
 
 
 def azure_signin():
-    step("5. Azure sign-in and the database")
+    step("7. Azure sign-in and the database")
     az = az_exe()
     if not az:
         print(WARN + "no Azure command line: skipped")
@@ -157,8 +159,14 @@ def main():
     azure_cli()
     git_setup()
     have_onedrive = onedrive()
+    step("6. Your set-up from the other machine (VS Code, Claude Code, conversations)")
+    try:
+        import machine_profile
+        machine_profile.import_profile()
+    except SystemExit as e:
+        print(WARN + str(e))
     if "--no-azure" in sys.argv:
-        step("5. Azure sign-in and the database")
+        step("7. Azure sign-in and the database")
         print(WARN + "skipped for now (--no-azure). Once your business Microsoft 365 account exists: az login, then run this again.")
     else:
         azure_signin()
@@ -167,6 +175,7 @@ def main():
     print("  python3 tools/sample_data.py                    rebuild the data, reports and downloads")
     print("  python3 tools/report.py --list                  build any report for any period")
     print("  python3 tools/database/load.py --check          stage and check a database load (then without --check to load)")
+    print("  python3 tools/machine_profile.py export         before switching machines: save VS Code + Claude set-up and conversations")
     if WIN:
         print("  (on Windows, type py instead of python3)")
     if not have_onedrive:

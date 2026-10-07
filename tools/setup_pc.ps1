@@ -9,7 +9,9 @@
     2. installs Python 3.12, Git and Google Chrome if they're missing (winget)
     3. downloads the website project to %USERPROFILE%\thefourthsheet (or updates it if it's already there)
     4. switches on Python's UTF-8 mode for good
-    5. runs tools\setup_machine.py: Python packages, Azure command line, git leak guard, OneDrive media sync
+    2b. installs VS Code and Claude Code if they're missing
+    5. runs tools\setup_machine.py: Python packages, Azure command line, git leak guard, OneDrive media sync,
+       and brings over your Mac set-up (VS Code extensions and settings, Claude settings, memory, conversations)
        (Azure sign-in is left for later unless you add -Azure: wait until the business Microsoft 365 account exists)
     6. checks it works: lists the reports, then tests every page in a real browser
     7. puts "Preview The Fourth Sheet" on the desktop and opens the site
@@ -75,6 +77,17 @@ try {
         try { Install "Google.Chrome" "Google Chrome" } catch { Warn "Chrome didn't install; the PDFs will use Playwright's own browser instead" }
     } else { Ok "Google Chrome" }
 
+    # 2b. VS Code and Claude Code -----------------------------------------------------------------------
+    Say "2b. VS Code and Claude Code"
+    if (-not ((Has "code") -or (Test-Path "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin\code.cmd"))) { Install "Microsoft.VisualStudioCode" "VS Code" }
+    Ok "VS Code"
+    if (-not (Has "claude")) {
+        Write-Host "   installing Claude Code (Anthropic's official installer) ..."
+        try { Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression; Refresh-Path; $env:Path += ";$env:USERPROFILE\.local\bin" }
+        catch { Warn "Claude Code didn't install: see docs.claude.com (Claude Code > Set up). Everything else carries on." }
+    }
+    if (Has "claude") { Ok "Claude Code" }
+
     # 3. The project ----------------------------------------------------------------------------------
     Say "3. The website project"
     if ($Folder -like "*OneDrive*") { Warn "The project shouldn't live inside OneDrive (git and OneDrive fight over files). Using $env:USERPROFILE\thefourthsheet instead."; $Folder = "$env:USERPROFILE\thefourthsheet" }
@@ -96,7 +109,7 @@ try {
     Ok "on (the tools write characters like the cent sign and arrows)"
 
     # 5. The project's own setup -----------------------------------------------------------------------
-    Say "5. Packages, Azure command line, git leak guard, media"
+    Say "5. Packages, Azure command line, git leak guard, media, and your set-up from the Mac"
     Push-Location $Folder
     if ($Azure) { py tools\setup_machine.py } else { py tools\setup_machine.py --no-azure }
     if ($LASTEXITCODE -ne 0) { throw "tools\setup_machine.py reported a problem (see above)." }
@@ -128,6 +141,8 @@ try {
     Write-Host "   Next:      the checklist in OneDrive, Business\Microsoft 365, Azure and Fabric plan.md"
     Write-Host "   Everyday:  cd $Folder   then   py tools\sample_data.py  /  py tools\report.py --list"
     Write-Host "   Before you start work each day:  git -C $Folder pull"
+    Write-Host "   Claude:    open VS Code on $Folder, sign in to Claude Code, and pick '4th Sheet buildout' from its history"
+    Write-Host "   Switching back to the Mac later:  py tools\machine_profile.py export   (then on the Mac: python3 tools/setup_machine.py)"
     if (-not $Azure) { Write-Host "   Azure:     once the business Microsoft 365 account exists, run this again with -Azure (or: az login)" }
 }
 catch {
