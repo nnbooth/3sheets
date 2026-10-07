@@ -120,11 +120,15 @@ def write_site(all_runs):
     return len(js)
 
 
+LAST_DATA = None
+
+
 def build_all(formats=("xlsx", "pdf", "pptx"), quiet=False):
     """Every report for every period it can run for: the website's data and pages, and every download.
     Returns the reports at their default periods (for the cards and the Power BI prompts)."""
     import build_reports as br
-    D = load_data()
+    global LAST_DATA
+    D = LAST_DATA = load_data()          # kept, so later steps reuse it rather than re-read files OneDrive is still syncing
     runs = {slug: [run_report(slug, p, D) for p in periods_for(slug, D)] for slug in REPORTS}
     defaults = [next(r for r in rs if r["period"] == r["default_period"]) for rs in runs.values()]
     br.write_pages(defaults)

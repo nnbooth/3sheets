@@ -162,6 +162,38 @@ function buildReportCard(report, index) {
   return card;
 }
 
+function setupChartTips() {
+  // Every chart point, bar or row with data-tip shows its label and value: on hover, on keyboard focus, and on tap.
+  const tip = document.createElement('div');
+  tip.className = 'chart-tip';
+  tip.setAttribute('role', 'status');
+  tip.hidden = true;
+  document.body.appendChild(tip);
+  let cur = null;
+  const show = (el) => {
+    if (!el || el === cur) return;
+    cur = el;
+    tip.textContent = el.dataset.tip;
+    tip.hidden = false;
+    const a = el.querySelector('.dash-dot, .dash-bar, .mb-t i') || el;
+    const r = a.getBoundingClientRect();
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    let x = r.left + r.width / 2 - tw / 2;
+    x = Math.max(8, Math.min(x, window.innerWidth - tw - 8));
+    let y = r.top - th - 8;
+    if (y < 8) y = r.bottom + 8;
+    tip.style.left = `${Math.round(x + window.scrollX)}px`;
+    tip.style.top = `${Math.round(y + window.scrollY)}px`;
+  };
+  const hide = () => { cur = null; tip.hidden = true; };
+  const find = (t) => (t && t.closest ? t.closest('[data-tip]') : null);
+  document.addEventListener('pointerover', (e) => { const el = find(e.target); if (el) show(el); else if (e.pointerType === 'mouse') hide(); });
+  document.addEventListener('pointerdown', (e) => { const el = find(e.target); if (el) { cur = null; show(el); } else hide(); });
+  document.addEventListener('focusin', (e) => { const el = find(e.target); if (el) show(el); else hide(); });
+  document.addEventListener('scroll', () => { if (cur) { const el = cur; cur = null; show(el); } }, { passive: true });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+}
+
 function setupLightbox() {
   // Mock-up images open in a <dialog> on the page (Esc or the close button shuts it); the link still works without JS.
   const links = document.querySelectorAll('a.display-link');
@@ -587,7 +619,7 @@ function renderChart(ch, width = 320) {
     const vp = ch.variance ? Math.abs((ch.variancePct || ch.values)[i]) : 0;
     const cls = ch.variance ? (vp < 0.05 ? '' : vp < 1 ? ' dash-bar--warn' : ' dash-bar--bad') : v < 0 ? ' dash-bar--bad' : below(v, i) ? ' dash-bar--below' : '';
     const bx = Math.min(x(v), x0), bw = Math.abs(x(v) - x0);
-    g += `<g class="dash-row${dim}" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
+    g += `<g class="dash-row${dim}" data-detail="${i}" data-tip="${esc(ch.labels[i])}: ${fmt(v)}${ch.marks ? ` · ${esc(ch.mark_label || 'mark')} ${fmt(ch.marks[i])}` : ''}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
       + `<rect class="dash-hit" x="0" y="${(top + pos * row).toFixed(1)}" width="${W}" height="${row}"/>`
       + `<text class="dash-axis" x="${left - 8}" y="${(y + bh - 3).toFixed(1)}" text-anchor="end"><title>${esc(ch.labels[i])}</title>${esc(clip(ch.labels[i], left - 12))}</text>`
       + `<rect class="dash-bar dash-bar--h${cls}" x="${bx.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh}" rx="2"/>`;
@@ -629,7 +661,7 @@ function renderSeries(se, width = 560) {
   let g = `<line class="dash-grid" x1="${left}" x2="${right}" y1="${base}" y2="${base}"/>`;
   se.values.forEach((v, i) => {
     const bx = left + i * slot + (slot - bw) / 2;
-    g += `<rect class="dash-bar" x="${bx.toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - y(v)).toFixed(1)}" rx="2"><title>${esc(se.labels[i])}: ${fmt(v)}</title></rect>`;
+    g += `<rect class="dash-bar" data-tip="${esc(se.labels[i])}: ${fmt(v)}${se.budget ? ` · budget ${fmt(se.budget[i])}` : ''}" x="${bx.toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - y(v)).toFixed(1)}" rx="2"></rect>`;
     if (i % every === 0 || i === n - 1) g += `<text class="dash-axis" x="${(bx + bw / 2).toFixed(1)}" y="${base + 16}" text-anchor="middle">${esc(se.labels[i])}</text>`;
     if (se.budget) g += `<line class="dash-target" x1="${(left + i * slot).toFixed(1)}" x2="${(left + (i + 1) * slot).toFixed(1)}" y1="${y(se.budget[i]).toFixed(1)}" y2="${y(se.budget[i]).toFixed(1)}"/>`;
   });
@@ -818,7 +850,7 @@ function renderArea(labels, values, status, format, mini, width, target) {
   const left = mini ? 4 : tickW, right = W - (mini ? 6 : 12), top = mini ? 20 : 22, base = H - (mini ? 6 : 34);
   const x = (i) => left + (n === 1 ? (right - left) / 2 : (i * (right - left)) / (n - 1));
   const y = (v) => base - ((v - yMin) / (yMax - yMin || 1)) * (base - top);
-  const done = (i) => !status || (status[i] !== 'Incomplete' && status[i] !== 'Provisional');
+  const done = (i) => !status || (status[i] !== 'Incomplete' && status[i] !== 'Provisional' && status[i] !== 'Forecast');   // forecast days are drawn lighter
   const gid = `ag${renderArea.n = (renderArea.n || 0) + 1}`;          // Google Sheets style: colour under the line fading to nothing
   let g = `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E9F6E" stop-opacity="0.30"/><stop offset="1" stop-color="#0E9F6E" stop-opacity="0.03"/></linearGradient>`
     + `<linearGradient id="${gid}l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E9F6E" stop-opacity="0.16"/><stop offset="1" stop-color="#0E9F6E" stop-opacity="0.03"/></linearGradient></defs>`;
@@ -851,7 +883,8 @@ function renderArea(labels, values, status, format, mini, width, target) {
   const clear = 1.5 * lw + 12;    // the first and last labels hang off their point (start / end), so the next one in keeps this far away
   values.forEach((v, i) => {
     const cx = x(i);
-    g += `<g class="dash-row" data-point="${i}" tabindex="0" role="button" aria-label="${esc(labels[i])}: ${v == null ? 'no figure' : fmt(v)}${done(i) ? '' : ` (${status[i].toLowerCase()})`}. Show the workings.">`
+    const tip = `${esc(labels[i])}: ${v == null ? 'no figure' : fmt(v)}${done(i) ? '' : ` (${status[i].toLowerCase()})`}`;
+    g += `<g class="dash-row" data-point="${i}" data-tip="${tip}" tabindex="0" role="button" aria-label="${tip}. Show the workings.">`
       + `<rect class="dash-hit" x="${(cx - slot / 2).toFixed(1)}" y="0" width="${slot.toFixed(1)}" height="${H}"/>`
       + `<line class="dash-guide" x1="${cx.toFixed(1)}" x2="${cx.toFixed(1)}" y1="${top}" y2="${base}"/>`;
     if (v != null) {
@@ -956,7 +989,7 @@ function mountReport(root, r, only, simple, opts = {}) {
     order.forEach((i) => parts.push(sectionHtml(b.sections[i], `${state.block}-${i}`, !!b.filter)));
     if (!simple) {
       const kinds = new Set(b.sections.map((sec) => (sec.type === 'vary' ? (Object.values(sec.by)[0] || {}).type : sec.type)));
-      const what = [kinds.has('kpis') || kinds.has('insight') ? 'number' : '', kinds.has('bars') ? 'bar' : '', kinds.has('series') ? (r.slug === 'runway' ? 'day' : 'month') : ''].filter(Boolean);
+      const what = [kinds.has('kpis') || kinds.has('insight') ? 'number' : '', kinds.has('bars') ? 'bar' : '', kinds.has('series') ? (r.slug === 'runway' || r.slug === 'cash-payroll' ? 'day' : 'month') : ''].filter(Boolean);
       if (what.length) parts.push(`<p class="dash-hint">Click or tap any ${what.length > 1 ? `${what.slice(0, -1).join(', ')} or ${what[what.length - 1]}` : what[0]} for its workings.</p>`);
     }
     // only redraw (and so re-animate) sections whose content changed; others just get fresh workings links
@@ -1108,12 +1141,22 @@ function setupReport() {
     const bars = first && first.type === 'bars' ? first : null;
     const ser = first && first.type === 'series' ? first : null;
     let html = '';
+    if (r.card) {   // a report can say what its card shows; groups are separate businesses, each on its own scale
+      const c = r.card;
+      el.innerHTML = c.groups.map((g) => {
+        const fmt = CHART_FORMATS[g.format] || String;
+        const max = Math.max(...g.values.map((v) => Math.abs(v))) || 1;
+        return `<div class="card-group"><p class="card-kpi"><strong>${esc(g.value)}</strong> <span>${esc(g.name)} · ${esc(g.sub)}</span></p>`
+          + `<ul class="mini-bars">${g.labels.map((l, i) => { const v = g.values[i]; return `<li data-tip="${esc(g.name)}, ${esc(l)}: ${fmt(v)}${g.tips ? ` · ${esc(g.tips[i])}` : ''}"><span class="mb-l">${esc(l)}</span><span class="mb-t"><i class="${v < 0 ? 'neg-bar' : ''}" style="width:${(100 * Math.abs(v) / max).toFixed(1)}%"></i></span><span class="mb-v${v < 0 ? ' neg' : ''}">${fmt(v)}</span></li>`; }).join('')}</ul></div>`;
+      }).join('') + (c.note ? `<p class="card-chart-note">${esc(c.note)}</p>` : '');
+      return;
+    }
     if (k) { const k0 = k.items[0]; html += `<p class="card-kpi"><strong class="${k0.tone ? `is-${k0.tone}` : ''}">${esc(k0.value)}</strong> <span>${esc(k0.label)}${k0.tone ? ` · ${esc(k0.sub)}` : ''}</span></p>`; }
     if (ser) {
       const dims = ser.dims || { line: ['All'], measure: [[Object.keys(ser.views)[0].split('|')[1], '']] };
       const v = ser.views[`${dims.line[0]}|${dims.measure[0][0]}`];
       const n = 12;
-      html += renderColumns(ser.labels.slice(-n), v.values.slice(-n), ser.status.slice(-n), v.format, chartWidth(el)).replace(/ data-point="\d+" tabindex="0" role="button"/g, '');
+      html += renderColumns(ser.labels.slice(-n), v.values.slice(-n), ser.status.slice(-n), v.format, chartWidth(el)).replace(/ data-point="\d+" (data-tip="[^"]*") tabindex="0" role="button"/g, ' $1');
     } else if (bars) {
       // a readable mini bar list (label, bar, value) for the biggest few, largest first
       const ch = bars.chart, v0 = ch.views ? ch.views[0] : ch;
@@ -1121,7 +1164,7 @@ function setupReport() {
       const items = ch.labels.map((l, i) => [l, v0.values[i]]).sort((p, q) => q[1] - p[1]).slice(0, 5);
       const max = Math.max(...items.map((x) => x[1]), v0.target || 0) || 1;
       const below = (v) => !ch.plain && v0.target != null && v < v0.target;
-      html += `<ul class="mini-bars">${items.map(([l, v]) => `<li><span class="mb-l">${esc(l)}</span><span class="mb-t"><i class="${below(v) ? 'below' : ''}" style="width:${(100 * v / max).toFixed(1)}%"></i></span><span class="mb-v${v < 0 ? ' neg' : ''}">${fmt(v)}</span></li>`).join('')}</ul>`;
+      html += `<ul class="mini-bars">${items.map(([l, v]) => `<li data-tip="${esc(l)}: ${fmt(v)}"><span class="mb-l">${esc(l)}</span><span class="mb-t"><i class="${below(v) ? 'below' : ''}" style="width:${(100 * v / max).toFixed(1)}%"></i></span><span class="mb-v${v < 0 ? ' neg' : ''}">${fmt(v)}</span></li>`).join('')}</ul>`;
     }
     el.innerHTML = html;
   };
@@ -1225,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupGameSlot();
   applyPrices();
-  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox();
+  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox(); setupChartTips();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
 });

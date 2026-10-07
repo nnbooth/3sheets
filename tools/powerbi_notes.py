@@ -87,6 +87,13 @@ Shared costs (Sep) = - CALCULATE(SUM(fact_gl_daily[amount]), dim_account[line] I
 Full cost of the program = [Grant spending] + [Share of program spending] * [Shared costs (Sep)]
 ```
 Only current grants have a full cost; finished grants appear in the spending-over-time view.""",
+    "cash-payroll": """```DAX
+Cash at bank (actual) = LASTNONBLANKVALUE(dim_date[calendar_date], SUM(fact_balance_daily[cash_at_bank]))
+Unpaid invoices = CALCULATE(SUM(fact_invoice[amount]), fact_invoice[invoice_date] <= MAX(dim_date[calendar_date]), fact_invoice[paid_date] > MAX(dim_date[calendar_date]))
+Days to pay (median) = MEDIANX(FILTER(fact_invoice, fact_invoice[paid_date] <= MAX(dim_date[calendar_date])), DATEDIFF(fact_invoice[invoice_date], fact_invoice[paid_date], DAY))
+Last pay run = - CALCULATE(SUM(fact_cash_daily[amount]), dim_account[line] = "Payments to employees", LASTDATE(fact_cash_daily[date]))
+```
+The forecast itself (one row per day: expected money in and out, by kind) is built upstream from the same tables and loaded as `report_cash_forecast_daily` (Data/Reports; filter `forecast_made_on` to the latest); Power BI then draws actual + forecast on one line with the forecast lighter, and a constant line at one pay run.""",
     "runway": """```DAX
 Cash at bank = LASTNONBLANKVALUE(dim_date[calendar_date], SUM(fact_balance_daily[cash_at_bank]))
 Unspent grant money = CALCULATE(SUM(opening_balance[amount]), opening_balance[line] = "Grants received in advance (unspent)")   -- month ends: from model_statements

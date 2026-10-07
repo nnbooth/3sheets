@@ -306,10 +306,39 @@ def main():
     # the reports read the data just written (as they will read the database), for every period
     from fourthsheet.build import build_all
     built = build_all()
+    files += write_cash_forecast()        # derived from the data just written, so it comes after it (and goes in the schema too)
     import powerbi_notes        # how to build each report in Power BI (OneDrive, Data documentation/Power BI)
     powerbi_notes.write(built)
     counts = {f: sum(folder_for(n) == f for n in TABLES) for f, _ in FOLDERS}
     print(f"Wrote {len(TABLES)} tables as {files} CSVs to {DATA_ROOT}/ (" + ", ".join(f"{f}: {c}" for f, c in counts.items()) + f"); schema.sql and README to {DOCS}/")
+
+def write_cash_forecast():
+    """report_cash_forecast_daily: the 13-week cash forecast behind 'Will cash cover payroll next month?', one row per day,
+    for every date it was made on (each period's end, or today). Built by tools/fourthsheet (cash_forecast) from the
+    tables above, so it ties to the ledger. Loaded like any other table; Power BI draws it after the actual cash."""
+    from fourthsheet import build
+    from fourthsheet.build import load_data, periods_for
+    from fourthsheet.catalogue import cash_forecast
+    from fourthsheet.period import Period
+    D = build.LAST_DATA or load_data()
+    cols = ["forecast_made_on", "forecast_date", "org_id", "unpaid_invoices_collected", "new_work_collected", "wages",
+            "suppliers_and_overheads", "tax_interest_finance", "cash_at_bank"]
+    rows = []
+    for mo in sorted(periods_for("cash-payroll", D)):
+        F = cash_forecast(D, Period(mo, D["trades"].months))
+        for d in F["days"]:
+            x = F["flows"][d]
+            rows.append([F["asat"].isoformat(), d.isoformat(), "trades", *[round(x[k], 2) for k in ("old", "new", "wages", "suppliers", "other")], round(F["cash"][d], 2)])
+    with open(DATA_ROOT / "Reports" / "report_cash_forecast_daily.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(cols)
+        w.writerows(rows)
+    with open(DOCS / "schema.sql", "a") as f:
+        f.write("\n-- Cash forecast, 13 weeks a day at a time, for each date it was made on (SME trades). Money out is negative.  "
+                "[Data/Reports/report_cash_forecast_daily.csv]\nCREATE TABLE report_cash_forecast_daily (\n    forecast_made_on DATE,\n    forecast_date DATE,\n"
+                "    org_id VARCHAR(20),\n" + ",\n".join(f"    {c} DECIMAL(14,2)" for c in cols[3:]) + ",\n    PRIMARY KEY (forecast_made_on, forecast_date, org_id)\n);\n")
+    return 1
+
 
 GROUPS = [
     ("Cloud database: daily star schema behind the home-page dashboard", "dim_"),

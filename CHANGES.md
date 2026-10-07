@@ -67,3 +67,21 @@
 - **Phone menu:** opaque, 44 px rows, and the booking button as the last item (`data-placeholder="[[BOOKING_URL]]"`).
 - **Footer:** a link row (SME, Not-for-profit, Examples, Services, About, Numbers explained, Contact) on every page, report pages included.
 - **Touch:** on touch screens, Export rows, the Period picker, the definition box, footer links and "How it's worked out" are 44 px. On phones the whole KPI card is the tap target and its small link is hidden.
+
+## New report: Will cash cover payroll next month? (7–8 Oct)
+- `report-cash-payroll.html`, built like the others (Period picker, Export menu, workings on every number and every day; Excel, PDF and PowerPoint for August, September and October to date). It replaces the "Coming soon" row and strip on the home and SME pages.
+- A 13-week daily cash forecast for the trades business, from the end of the period (or 2pm today for October to date), using only what was known that day:
+  - Each unpaid invoice is expected on its customer's usual payment date: contract terms for contracts, and the median for installations and call-outs over the last 90 days. Invoices already past that date are assumed a week out, and flagged.
+  - Contract fees are invoiced on the 1st. Installations and call-outs come in at the last three months' rate.
+  - Pay runs are fortnightly at the last run's amount. Supplier bills (last month's creditors plus overheads) are paid on the 15th and at month end. Interest and equipment finance are paid monthly, and the PAYG instalment on 28 October. Weekend due dates roll to Monday.
+- It reconciles or stops: opening cash equals the opening balance plus every day's money in and out; unpaid invoices equal the debtors balance; the month's purchases equal trade creditors on the balance sheet.
+- Shows: cash now, wages due next month (October has three pay runs), cash after the tightest pay run, the lowest point in 13 weeks (amber below one pay run, red below zero), the daily line (actual, then a lighter forecast, with a one-pay-run buffer line), next month's money in and out, 13 weeks week by week, and the invoices past their usual date.
+- "How this forecast has done so far": earlier forecasts are checked against the bank, and the box names the invoices that were expected but haven't arrived. For example, September's forecast was $62,883 high for 5 October, $64,300 of it seven invoices led by the Wacol switchboard ($46,800).
+- New database table `report_cash_forecast_daily` (Data/Reports, in `schema.sql`), plus a Power BI prompt and a "Cash forecast" entry in Numbers explained.
+- GST and BAS are left out of the sample (said under the chart).
+
+## Every chart point shows its number (8 Oct)
+- One shared tooltip shows the label and value of any chart point, bar or mini-bar row on hover, keyboard focus or tap: card mini charts (which have no y-axis), report charts, the workings dialog's monthly columns, and the home page.
+- `site_check.py` now fails a page if any chart point lacks a value label, and hovers the first and last on each page.
+- The growth card now shows what it asks: year-to-date growth by line, with **trades and services as separate groups**, each with its own headline. They're never added together or ranked against each other.
+- The cash card shows forecast cash after each pay run.

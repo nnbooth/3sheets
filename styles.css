@@ -1096,3 +1096,11 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .report-cards .card-tag { align-self: flex-start; justify-self: start; width: auto; margin-bottom: var(--sp-2); }
 .page-more { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-4); font-weight: 600; }
 .page-more a { color: var(--accent); }
+
+/* CHART TIPS — the label and value of whatever chart point, bar or row is hovered, focused or tapped (script.js setupChartTips). */
+.chart-tip { position: absolute; z-index: 60; max-width: min(320px, calc(100vw - 16px)); padding: var(--sp-1) var(--sp-2); background: var(--text); color: var(--paper); font-size: 12px; font-weight: 600; line-height: 1.35; border-radius: var(--r-sm); box-shadow: var(--shadow-sm); pointer-events: none; font-variant-numeric: tabular-nums; }
+.chart-tip[hidden] { display: none; }
+.mini-bars li[data-tip] { cursor: default; }
+.mini-bars .neg-bar { background: var(--bad); }
+.card-group + .card-group { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px solid var(--border); }
+.card-chart-note { margin: var(--sp-1) 0 0; font-size: var(--fs-xs); color: var(--muted); }

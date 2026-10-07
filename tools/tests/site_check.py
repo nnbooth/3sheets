@@ -6,7 +6,8 @@ site_check.py — check the whole website in a real browser. Run it after any ch
 
 It starts its own local web server, then:
   - every page at desktop, tablet and phone width: no script errors, no sideways scrolling,
-    and every local link, image and download resolves;
+    and every local link, image and download resolves; every chart point, bar and mini-bar row has a
+    value label, and hovering one shows it;
   - every report page, every period: the Period dropdown changes the report; the Export menu's header names the
     period and its three downloads point at that period's files (which must exist); a copied link (period and
     filter) restores the same view; ?period= links work; the "how it's worked out" dialog opens;
@@ -27,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import winutf8; winutf8.ensure()   # noqa: E402,E702  Windows: run in UTF-8 mode
 
 REPO = Path(__file__).resolve().parents[2]
-REPORTS = ["cost-to-win", "job-margins", "growth", "cost-to-raise", "program-cost", "runway", "funding", "board"]
+REPORTS = ["cost-to-win", "job-margins", "growth", "cash-payroll", "cost-to-raise", "program-cost", "runway", "funding", "board"]
 
 
 def serve():
@@ -81,6 +82,21 @@ def main():
                 if pg.evaluate("document.documentElement.scrollWidth > window.innerWidth + 1"):
                     probs.append((w, p, "sideways scrolling"))
                 if w == 1280:
+                    # every chart point, bar and mini-bar row shows its real number on hover / focus / tap
+                    bare = pg.eval_on_selector_all("svg.dash-svg g.dash-row, svg.dash-svg rect.dash-bar:not(.dash-row rect), .mini-bars li",
+                                                   "els => els.filter(e => !e.closest('[data-tip]') || !e.closest('[data-tip]').dataset.tip.trim()).length")
+                    if bare:
+                        probs.append((p, f"{bare} chart points or bars with no value label"))
+                    tips = pg.query_selector_all("[data-tip]")
+                    for t in tips[:1] + tips[-1:]:
+                        try:
+                            t.scroll_into_view_if_needed()
+                            t.hover(force=True)
+                            pg.wait_for_timeout(60)
+                            if not pg.evaluate("(() => { const t = document.querySelector('.chart-tip'); return t && !t.hidden && t.textContent.trim().length > 0; })()"):
+                                probs.append((p, "hover showed no value", t.get_attribute("data-tip")))
+                        except Exception as e:
+                            probs.append((p, "couldn't hover a chart point", str(e)[:80]))
                     for u in pg.eval_on_selector_all("a[href],img[src],script[src],link[href],video[src],source[src]",
                                                      "els => els.map(e => e.getAttribute('href') || e.getAttribute('src'))"):
                         if not u or u.startswith(("#", "mailto:", "tel:", "http", "data:", "javascript:")):

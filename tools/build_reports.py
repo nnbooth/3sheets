@@ -485,8 +485,7 @@ def write_cards(reports):
     f.write_text(s_[:a_] + "<!-- REPORT CARDS:START -->\n          <ul class=\"report-cards report-cards--four\">\n" + "\n".join(cards) + "\n          </ul>\n          " + s_[b_:])
     for aud, page in (("sme", "sme.html"), ("nfp", "not-for-profit.html")):
         cards = [card_html(r) for r in reports if r["audience"] == aud]
-        soon = ('<p class="cards-soon"><span class="soon-tag">Coming soon</span> <strong>Will cash cover payroll next month?</strong> '
-                'A 13-week cash forecast built from your bank and accounting system.</p>\n          ') if aud == "sme" else ""
+        soon = ""
         f = REPO / page
         s_ = f.read_text()
         a_, b_ = s_.index("<!-- REPORT CARDS:START -->"), s_.index("<!-- REPORT CARDS:END -->")
@@ -522,6 +521,9 @@ EXPLAINED = [
     ("profit", "Profit", "What is left after direct costs and overheads. Profit before tax is what the business earned in the period; net profit is after income tax."),
     ("profit-vs-cash", "Profit is not cash", "Profit counts work when it's invoiced; cash counts money when it lands. Unpaid invoices, stock, loan repayments, tax and equipment "
      "purchases all make cash differ from profit, which is why a profitable business can still run short of cash."),
+    ("cash-forecast", "Cash forecast", "Cash at bank today, plus the money expected in (each unpaid invoice on its customer's usual payment date, and new work at its recent rate), "
+     "less the money due out (pay runs, supplier bills, tax and loan repayments on their due dates), day by day. It's only as good as its assumptions, so a good one is checked "
+     "against the bank as the days arrive and says why it was out."),
     ("debtors", "Unpaid invoices (debtors)", "Money customers owe you for work already invoiced. It is yours, but you can't spend it until it's paid."),
     ("wip", "Work in progress", "Work done but not yet invoiced, valued at what you'll bill for it. It turns into an invoice, then into cash, later."),
     ("unrestricted-cash", "Unrestricted cash", "For a not-for-profit: cash at bank less grant money received but not yet spent. The unspent grant money belongs to the funder's program, "
