@@ -451,6 +451,7 @@ body.dev-notes .devnote { display: flex; }
 .hero-grid--dash > div:first-child { padding-top: var(--sp-3); }   /* the eyebrow lines up with the dashboard's first row */
 .hero-grid--dash > div:first-child > .eyebrow { margin-top: 0; }
 .dash-orgbar { margin-bottom: var(--sp-2); }
+.hero-grid > * { min-width: 0; }   /* columns may shrink below their content's widest line (the toggles scroll instead) */
 /* The headline with the sheets illustration (assets/brand/sheets-illustration.svg) on a brand-green panel beside it. */
 .hero-headline { display: flex; align-items: center; gap: var(--sp-5); }
 .hero-headline h1 { flex: 1; min-width: 0; }
