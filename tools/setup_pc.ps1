@@ -35,6 +35,16 @@ function Has($c)  { [bool](Get-Command $c -ErrorAction SilentlyContinue) }
 function Refresh-Path {
     $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 }
+function Add-UserPath($dir) {
+    $user = [Environment]::GetEnvironmentVariable("Path", "User")
+    if (($user -split ";") -notcontains $dir) { [Environment]::SetEnvironmentVariable("Path", ($user.TrimEnd(";") + ";" + $dir), "User") }
+    if (($env:Path -split ";") -notcontains $dir) { $env:Path += ";$dir" }
+}
+function Run-Py {
+    # runs Python with its output (errors too) going into the log; PowerShell 5.1 leaves it out otherwise
+    $ErrorActionPreference = "Continue"
+    & py.exe @args 2>&1 | ForEach-Object { "$_" } | Out-Host
+}
 function Install($id, $name) {
     if (-not (Has "winget")) {
         throw "winget (the Windows package installer) isn't available. Install 'App Installer' from the Microsoft Store, then run this again."
@@ -83,9 +93,10 @@ try {
     Ok "VS Code"
     if (-not (Has "claude")) {
         Write-Host "   installing Claude Code (Anthropic's official installer) ..."
-        try { Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression; Refresh-Path; $env:Path += ";$env:USERPROFILE\.local\bin" }
+        try { Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression; Refresh-Path }
         catch { Warn "Claude Code didn't install: see docs.claude.com (Claude Code > Set up). Everything else carries on." }
     }
+    if (Test-Path "$env:USERPROFILE\.local\bin\claude.exe") { Add-UserPath "$env:USERPROFILE\.local\bin" }
     if (Has "claude") { Ok "Claude Code" }
 
     # 3. The project ----------------------------------------------------------------------------------
@@ -111,16 +122,16 @@ try {
     # 5. The project's own setup -----------------------------------------------------------------------
     Say "5. Packages, Azure command line, git leak guard, media, and your set-up from the Mac"
     Push-Location $Folder
-    if ($Azure) { py tools\setup_machine.py } else { py tools\setup_machine.py --no-azure }
+    if ($Azure) { Run-Py tools\setup_machine.py } else { Run-Py tools\setup_machine.py --no-azure }
     if ($LASTEXITCODE -ne 0) { throw "tools\setup_machine.py reported a problem (see above)." }
 
     # 6. Check it works --------------------------------------------------------------------------------
     Say "6. Checking it works"
-    py tools\report.py --list
+    Run-Py tools\report.py --list
     if ($LASTEXITCODE -ne 0) { throw "The report builder didn't run (see above)." }
     if (-not $SkipSiteCheck) {
         Write-Host "   testing every page and report in a real browser (a few minutes) ..."
-        py tools\tests\site_check.py
+        Run-Py tools\tests\site_check.py
         if ($LASTEXITCODE -ne 0) { Warn "The site check found problems (listed above). Everything else is set up; send me the log." }
     }
     Pop-Location
