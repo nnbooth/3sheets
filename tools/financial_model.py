@@ -701,7 +701,7 @@ def fourth_trades(m, out):
         calc("Job gross margin", "money", "r0+r1+r2+r5"), calc("Job gross margin %", "pct", "r6/r0")], cols=("This job",)) for j in installs]
     return {
         "kpis": [{"label": "Gross margin (P&L), September", "value": FMT["pct"](gm[0]), "sub": k1, "cls": c1, "spine": True, "support": s_gm},
-                 {"label": "Cost to win a customer", "value": FMT["money"](cac[0]), "sub": k2, "cls": c2, "support": s_cac},
+                 {"label": "Cost to win a customer", "value": FMT["money"](cac[0]), "sub": k2, "cls": c2, "good_when": "lower", "support": s_cac},
                  {"label": "Technician time on jobs", "value": FMT["pct"](util[0]), "sub": k3, "cls": c3, "support": s_ut}],
         "chart": {"title": "Job gross margin on each installation invoiced in September 2026",
                   "subtitle": f"Whole job, recognised when invoiced: revenue less materials, subcontractors and technician time at ${m['tech_cost_rate']}/hour. Before overheads: not profit. One {m['target_margin']}.0% target for every job for now.",
@@ -748,7 +748,7 @@ def fourth_services(m, out):
     return {
         "kpis": [{"label": "Consultant utilisation, September", "value": FMT["pct"](util[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ut},
                  {"label": "Revenue per billable hour", "value": FMT["money"](rate[0]), "sub": k2, "cls": c2, "support": s_rate},
-                 {"label": "Unbilled work + unpaid invoices", "value": FMT["money"](lock[0]), "sub": k3, "cls": c3, "support": s_lock}],
+                 {"label": "Unbilled work + unpaid invoices", "value": FMT["money"](lock[0]), "sub": k3, "cls": c3, "good_when": "lower", "support": s_lock}],
         "chart": {"title": "Gross margin on each client engagement, September 2026 work only",
                   "subtitle": f"September's revenue less contractors and consultant time at ${m['cost_rate']}/hour. Before overheads: not profit. Not the whole engagement to date. One {m['target_margin']}.0% target for every engagement for now.",
                   "labels": [x["description"] for x in sep],
@@ -803,10 +803,10 @@ def fourth_nfp(m, out):
     pcts = [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details]          # over (+) or under (-) budget, % of budget to date
     var_d = [d["xl"]["rows"][-2]["values"][0] for d in details]                          # the same, in dollars
     return {
-        "kpis": [{"label": "Cost to raise a dollar, September", "value": FMT["cents"](ctr[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ctr},
+        "kpis": [{"label": "Cost to raise a dollar, September", "value": FMT["cents"](ctr[0]), "sub": k1, "cls": c1, "good_when": "lower", "spine": True, "support": s_ctr},
                  {"label": "Unrestricted cash runway", "value": FMT["months"](run[0]), "sub": k2, "cls": c2, "support": s_run},
                  {"label": f"Grants ending in {m['ending_within_months']} months", "value": money(sum(gr['unspent'] for gr in ending)),
-                  "sub": f"to spend in {m['ending_within_months']} months · {len(ending)} grant{'s' if len(ending) != 1 else ''} ending", "cls": "bad" if ending else "", "support": s_end}],
+                  "sub": f"to spend in {m['ending_within_months']} months · {len(ending)} grant{'s' if len(ending) != 1 else ''} ending", "cls": "bad" if ending else "", "good_when": "lower", "support": s_end}],
         "chart": {"title": "Each grant: over or under budget to 30 September 2026",
                   "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over or under budget in red; within 1% in amber.",
                   "labels": [gr["program"] for gr in G],

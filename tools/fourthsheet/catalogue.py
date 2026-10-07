@@ -131,7 +131,7 @@ def bridge(D, P, org):
     who = "Technician" if org == "trades" else "Consultant"
     work = "jobs" if org == "trades" else "client work"
     lab = mdate(mo).strftime("%B %Y")
-    sp = support(f"From gross margin to profit, {lab}", "Gross margin on the work − time not charged − overheads = profit before tax", [
+    sp = support(f"{ {'trades': 'Trades', 'services': 'Services'}.get(org, '') + ': ' if org in ('trades', 'services') else ''}From gross margin to profit, {lab}", "Gross margin on the work − time not charged − overheads = profit before tax", [
         inp(f"Gross margin on {work}", "money", [r["gm_work"]]), inp(f"{who} wages and on-costs", "money", [r["wages"]]),
         inp(f"{who} time charged to {work} (at cost)", "money", [r["charged"]]), calc(f"{who} time not charged to {work}", "money", "r1-r2"),
         calc("Gross profit (the P&L)", "money", "r0-r3"), inp("Overheads (operating expenses, depreciation, interest)", "money", [r["overheads"]]),
@@ -270,7 +270,9 @@ def line_kpis(D, P, org, line, lines):
     ls = lines if line == "All" else [line]
     o = D[org]
     tot = lambda mo, k: sum(o.line_month(mo, l)[k] for l in ls)
-    nm = "All lines" if line == "All" else line
+    biz = {"trades": "Trades", "services": "Services"}.get(org, "")       # every working names its business: they're never mixed
+    what = "all lines" if line == "All" else line
+    nm = f"{biz}, {what}" if biz else what.capitalize()
     sp_m = support(f"{nm}: gross margin, {P.month} and {P.prev_month}", "Revenue less direct cost, over revenue. Before overheads.", [
         inp("Revenue", "money", [tot(P.mo, "revenue"), tot(P.prev, "revenue")]), inp("Direct cost", "money", [tot(P.mo, "direct_cost"), tot(P.prev, "direct_cost")]),
         calc("Gross margin", "money", "r0-r1"), calc("Gross margin %", "pct", "r2/r0")], P.part_note or None, cols=(mlabel(P.mo), mlabel(P.prev)))
@@ -311,7 +313,9 @@ def line_views(D, P, org, lines):
             rows_ += [calc("Gross margin %", "pct", "r2/r0")]
             if ly[m]:
                 rows_ += [inp(f"Revenue, {mlabel(add_months(m, -12))}", "money", [ly[m]]), calc("Growth on the same month last year", "pct", "r0/r4-1")]
-            sups.append(support(f"{'All lines' if line == 'All' else line}, {mlabel(m)}", "Revenue less direct cost; growth against the same month last year", rows_, cols=(mlabel(m),)))
+            biz = {"trades": "Trades", "services": "Services"}.get(org)
+            what = "all lines" if line == "All" else line
+            sups.append(support(f"{biz + ', ' + what if biz else what.capitalize()}, {mlabel(m)}", "Revenue less direct cost; growth against the same month last year", rows_, cols=(mlabel(m),)))
         views[f"{line}|revenue"] = {"label": "Revenue $", "values": rev, "format": "money0", "supports": sups}
         views[f"{line}|margin_pct"] = {"label": "Gross margin %", "values": [round(100 * a / b, 1) if b else 0 for a, b in zip(mar, rev)], "format": "pct1", "supports": sups}
         views[f"{line}|margin"] = {"label": "Gross margin $", "values": mar, "format": "money0", "supports": sups}
@@ -373,7 +377,7 @@ def growing(D, P):
                 tx[line] = text(f"{line} brought in {money(k['r12'])} this financial year to date{gpart}, at a {pct(mg)} gross margin "
                                 f"({'above' if mg > tm else 'below'} the {pct(tm)} overall).", quant_flag(line, mg, k["r12"], T, be, "this financial year to date"))
         blocks.append({"label": D[org].about["toggle_name"].split(" · ")[-1].capitalize() if org != "nfp" else "Not-for-profit",
-                       "business": D[org].about["legal_name"],
+                       "business": D[org].about["legal_name"], "org": org,      # one business per block: never added to another
                        "filter": filt(noun.capitalize(), [("All", "All")] + [(l, l) for l in lines]), "sections": [
             definition(D, org), vary(kp),
             series(P, f"Revenue, gross margin and growth by {noun}, by month", views,
@@ -397,7 +401,7 @@ def growing(D, P):
               if P.pfytd_ok else f"Revenue by line, month by month, with growth on the same month last year.")
     r = report("growth", "sme", "Which products and services are growing?", "trades", D, P,
                "Revenue, gross margin and growth (year on year) by product or service line over 24 months. Pick a line and every number, chart and note follows it.", blocks, answer=answer)
-    r["business"] = "SME sample businesses"
+    r["business"] = f"{D['trades'].about['legal_name']} and {D['services'].about['legal_name']} (two separate businesses, never added together)"
     # the card on the SME page: growth by line, each business on its own (trades and services are separate businesses:
     # never added together or ranked against each other)
     groups = []

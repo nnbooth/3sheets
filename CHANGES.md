@@ -85,3 +85,51 @@
 - `site_check.py` now fails a page if any chart point lacks a value label, and hovers the first and last on each page.
 - The growth card now shows what it asks: year-to-date growth by line, with **trades and services as separate groups**, each with its own headline. They're never added together or ranked against each other.
 - The cash card shows forecast cash after each pay run.
+
+### Phase 6: downloads (Excel, PowerPoint, PDF)
+- **Font:** Roboto is set explicitly on every Excel cell (headings included), every PowerPoint run and chart, and the PDFs. Arial is the fallback where Roboto isn't installed.
+- **Excel:**
+  - **Charts:** native bar charts beside each report's charted table and each job, engagement or grant list (green, grey below target, red losing money or off budget; the target is in the title, as Excel can't draw a vertical target across horizontal bars), and a native line chart beside each monthly or daily Data sheet.
+  - **Tables and names:** Excel Tables on the Data sheets and the job, engagement and grant lists, and named ranges for every headline number.
+  - **Changes:** changes in rates are in points (`+0.0" pts"`). Changes are coloured by direction (good when it moved the right way, e.g. cost to win falling is green), not by sign; each headline number carries `good_when`.
+  - **Layout:** the Report sheet reads headline numbers, then the chart, then tables, then notes.
+  - **Printing:** print areas cover the cells, so charts beside a table don't shrink the printout.
+- **PowerPoint (`tools/pptkit.py`, rebuilt):**
+  - **Layouts:** real layouts (Title Slide, Title Only), with the theme's fonts set to Roboto and its colours to the brand, so a client can restyle a whole deck from the master.
+  - **Titles:** they wrap and push the subtitle down, never over it.
+  - **Charts:** no automatic "Value" titles, and series are properly named. Target and break-even lines are drawn on the bars (the plot area is laid out exactly), and the reserves or buffer line on area charts. Area axes use round steps.
+  - **One slide per topic:** headline numbers across the top, the chart, then "What it shows" and "What you'd do about it". Growth is 11 slides (was 27); the board is one slide plus the title (the grants table joins it when it fits); job margins is 8.
+  - **Tables:** no empty header rows (assumptions are now one slide per group), text columns left-aligned, numbers right-aligned.
+  - **Sizing:** text boxes are sized to their content, and every slide has speaker notes.
+- **PDF:**
+  - On the "Gross margin $" chart, each bar under target says how far it's short in dollars (e.g. "$10,080 short of 35.0%"), replacing the per-job ticks. Same on the statements PDF.
+  - Long tables flow across pages with their header repeated; short ones stay whole. The statements PDF's workings flow on from page 1, so the blank fifth of the page is gone.
+  - The growth PDF is 5 pages per business set (was 7).
+- **Checked:** every workbook recalculated in LibreOffice with no formula errors (13 workbooks scanned after recalculation), and samples of each format rendered to images and reviewed (trades statements, job margins, growth, board, cash).
+- **Note:** LibreOffice was installed (Homebrew) for these renders, and Roboto copied into its own font folder; neither affects the site.
+
+## Trades and services never mixed (8 Oct)
+- **Rule:** trades, services and the not-for-profit are separate, unrelated businesses. New test `tools/tests/org_separation.py` proves it end to end:
+  - every data row (36,150 rows in 24 tables) sits in its own business's files;
+  - every fact row's account, job, engagement or grant belongs to the same business;
+  - ids and line names never repeat across businesses;
+  - in every report run (86), each block is one business, and growth's year-to-date revenue ties to each business alone, never the combined figure;
+  - every working names its business;
+  - every Power BI prompt carries the rule.
+- **Growth downloads:** one set per business (`growth-trades.*`, `growth-services.*`), each holding that business only. The Export menu hands out the files of the business on screen, which `site_check` checks. The old combined `growth.*` files are removed.
+- **Labels:** every growth working names its business ("Trades, all lines: …", "Services, Projects, Sep 26"). The report's header names both businesses and says they're separate.
+- **Power BI prompts:** one page per business, each with a locked `dim_org[org_id]` page filter. Every base measure is wrapped in `IF(HASONEVALUE(dim_org[org_id]), …)`, so no visual can show a total across businesses, plus a temporary "Org check" card that must read 1.
+- **Database:** account ids are already distinct (trades 1–54, services 55–106, not-for-profit 107–162), so a join can't cross businesses.
+
+## Download names and generated stamps (8 Oct)
+- **Inside every download** (reports, statements, deliveries; Excel, PDF and PowerPoint): the business, the period and "Generated 8 Oct 2026, 9:46am" (Excel title block and footer, PDF footer, PowerPoint footer).
+- **Saved name:** e.g. `Sample Electrical & Air Pty Ltd - Job margins - September 2026 - generated 2026-10-08 0935.xlsx`. The month in progress is named by month only ("October"); a closed month in full. The repo keeps stable file names; the site's `download` attribute supplies the full name.
+- **Stamps only change with the content:** `media/exports/generated.json` records each file's content fingerprint (stamp and pictures left out) and when that content was generated. A rebuild that changes nothing keeps the files and their stamps; proven by two builds in a row with no change. Unchanged PDFs aren't even re-printed.
+- **Time zone:** stamps are Brisbane time whatever the build machine's clock (`tzdata` added for Windows).
+
+## Made-with notes (8 Oct)
+- Every hand-built chart or report says what made it, in a quiet credit line: report pages, card grids, the home dashboard, the deliveries map (Leaflet, © OpenStreetMap contributors), the mock-up images, and every download ("Made with Python (openpyxl)", "(python-pptx)", "laid out in HTML and CSS, printed to PDF in Chromium").
+- Embedded Power BI or Datawrapper won't need it: they say so themselves.
+
+## Also
+- OneDrive sometimes stalls reading a file it's still syncing; the data reader now waits and retries rather than stopping the build.

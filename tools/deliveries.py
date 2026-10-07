@@ -381,9 +381,9 @@ def write_xlsx(d):
     business = "Sample Distribution Pty Ltd"
     filename = "deliveries-sample.xlsx"
     retrieved = ds.as_at_text()
-    sub = "Sample Distribution · Wacol DC · SAMPLE DATA (invented) · The Fourth Sheet"
+    sub = f"Sample Distribution · Wacol DC · SAMPLE DATA (invented) · The Fourth Sheet · {ek.MADE_WITH['xlsx']}"
     status = (f"Data status (data retrieved {retrieved}): today's deliveries are incomplete; 1–5 October is provisional "
-              f"(October locks {ds.strf(ds.lock_date('2026-10'), '%-d %b')}); September and earlier are locked.")
+              f"(October locks {ds.strf(ds.lock_date('2026-10'), '%-d %b')}); September and earlier are locked. {ek.generated_text()}.")
     wb = ek.xl_default_font(Workbook())
     pages = {}
 
@@ -602,7 +602,7 @@ for (const s of ['out', 'in']) {{
   L.circleMarker([D.dc.lat, D.dc.lon], {{ radius: 7, color: '#25342a', weight: 2, fillColor: '#fff', fillOpacity: 1 }}).bindTooltip('Wacol DC', {{ permanent: true, direction: 'right' }}).addTo(m);
   m.fitBounds(ll, {{ padding: [14, 14] }});
 }}
-</script></body></html>"""
+</script><p style="margin:10px 0 0;font-size:7.5pt;color:#5f6f63">{ek.MADE_WITH['pdf']}; map with Leaflet, © OpenStreetMap contributors.</p></body></html>"""
 
 
 def write_pdf(d):
@@ -639,7 +639,7 @@ def write_pptx(d):
                                                      ("Late", str(k["late"]), ""), ("Overdue now", str(k["overdue"]), ""), ("In full", f"{k['in_full_pct']:.1f}%", "")])
         png = EXPORTS / f".map-{side}.png"
         if png.exists():
-            deck.image_slide(f"{heading} · map", png, "Green 95%+ on time · rose 80-95% · brick under 80% or overdue · grey-blue on its way. Dot size = number of deliveries.")
+            deck.image_slide(f"{heading} · map", png, "Green 95%+ on time · amber 80-95% · brick under 80% or overdue · grey-blue on its way. Dot size = number of deliveries.")
         deck.table_slides(f"{heading} · where it's going wrong", ["", "Late", "Of", "% late"],
                           [[h["label"], str(h["late"]), str(h["of"]), f"{h['pct']:.1f}%"] for h in p[side]["30d"]["hotspots"]])
     ek.save_if_changed(deck.save, EXPORTS / "deliveries-sample.pptx")
@@ -652,7 +652,8 @@ def publish():
     write_xlsx(d)
     write_pdf(d)
     write_pptx(d)
-    d["payload"]["exports_meta"] = ek.export_meta(d["payload"]["exports"])
+    d["payload"]["exports_meta"] = ek.export_meta(d["payload"]["exports"], "Sample Distribution Pty Ltd", "Deliveries in and out",
+                                                  f"to {ds.strf(ds.AS_AT, '%-d %B')}")       # the month in progress: by name
     write_js(d)                      # after the files, so the Export menu can say how many pages and slides they have
     return d
 

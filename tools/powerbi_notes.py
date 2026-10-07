@@ -156,12 +156,34 @@ def expected(r):
     return "\n".join(out)
 
 
+def guard_dax(text):
+    """Every base measure returns blank unless exactly one organisation is in the filter context, so no total can ever
+    add two businesses together (the sample businesses are separate and unrelated). Measures built on other measures inherit it."""
+    import re
+    out = []
+    for line in text.split("\n"):
+        m = re.match(r"^(\s*)([^=\n`]+?)\s*=\s*(.+)$", line)
+        if m and not line.lstrip().startswith(("--", "```")) and not re.match(r"^\s*(Month|Org check)\b", m.group(2)):
+            rhs, tail = (m.group(3).split("   --", 1) + [None])[:2]
+            if re.search(r"\b(SUM|SUMX|CALCULATE|LASTNONBLANKVALUE|MEDIANX|AVERAGE|COUNTROWS|DISTINCTCOUNT|LOOKUPVALUE)\(", rhs) and "[" + "" not in rhs[:0]:
+                refs_only = not re.search(r"\b(SUM|SUMX|LASTNONBLANKVALUE|MEDIANX|AVERAGE|COUNTROWS|DISTINCTCOUNT|LOOKUPVALUE)\(", rhs) and "CALCULATE([" in rhs.replace(" ", "")
+                if not refs_only:
+                    line = f"{m.group(1)}{m.group(2)} = IF(HASONEVALUE(dim_org[org_id]), {rhs.strip()})" + (f"   --{tail}" if tail else "")
+        out.append(line)
+    return "\n".join(out)
+
+
 def note(r):
     """A prompt to paste into Claude with the Power BI MCP connected."""
     secs = []
+    multi = len([b for b in r["blocks"] if b.get("org")]) > 1
     for b in r["blocks"]:
+        org = b.get("org") or r.get("org")
         if b.get("label"):
-            secs.append(f"\n### Page section: {b['label']}")
+            secs.append(f"\n### Page: {b['label']} ({b.get('business', r['business'])})")
+        if org and (b.get("label") or not multi) and org in ("trades", "services", "nfp"):
+            secs.append(f"- **Page-level filter: `dim_org[org_id] = \"{org}\"`**, locked and hidden from viewers. Everything on this page is this one business"
+                        + ("; build the other business on its own page (duplicate this page and change only the filter)." if multi else "."))
         if b.get("filter"):
             opts = ", ".join(l for _, l in b["filter"]["options"])
             secs.append(f"- Slicer **{b['filter']['label']}** ({opts}): single select, default \"All\". Edit interactions so it filters EVERY visual on the page "
@@ -183,11 +205,12 @@ Paste everything below into Claude with the Power BI MCP connected to the target
 
 ---
 
-You are building one Power BI report page that reproduces the website report "{r['question']}" (`report-{r['slug']}.html`) for {r['business']}. Use the Power BI MCP tools to create the model objects, measures and visuals. Work step by step and check each step before moving on.
+You are building {"one Power BI report page per business" if len([b for b in r["blocks"] if b.get("org")]) > 1 else "one Power BI report page"} that reproduces the website report "{r['question']}" (`report-{r['slug']}.html`) for {r['business']}. Use the Power BI MCP tools to create the model objects, measures and visuals. Work step by step and check each step before moving on.
 
 **What the page answers:** {r['intro']}
 
 **Rules (non-negotiable):**
+- **One business per page.** The sample businesses (trades, services and the not-for-profit) are separate, unrelated organisations. Never add their numbers together, put them in one total, chart or table, or rank them against each other. Every page has a locked page-level filter on `dim_org[org_id]`, and every measure returns blank unless exactly one organisation is in view (`IF(HASONEVALUE(dim_org[org_id]), …)`, already written into the measures below).
 - Gross margin is always labelled *gross margin* and never called profit: it is before overheads.
 - Wages always include on-costs (super, payroll tax, workers' compensation, leave).
 - Whole dollars; percentages to 1 decimal place; negatives in brackets.
@@ -199,7 +222,9 @@ You are building one Power BI report page that reproduces the website report "{r
 
 **Step 2: measures.** Create these (adjust names to the model if tables are named differently, and tell me what you changed):
 
-{MEASURES.get(r['slug'], '')}
+{guard_dax(MEASURES.get(r['slug'], ''))}
+
+Then add `Org check = DISTINCTCOUNT(dim_org[org_id])` as a card on each page while you build: it must read 1 everywhere. Delete the card when the page is done.
 
 **Step 3: visuals, top to bottom.**
 {chr(10).join(secs)}

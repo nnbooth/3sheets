@@ -51,6 +51,23 @@ def strip(o):
 EMBEDS = {}
 
 
+def file_parts(r):
+    """The downloads for a report: one set per business. A report that shows two separate businesses (growth: trades and
+    services) gives each its own Excel, PDF and PowerPoint, holding that business only: they're never in one file."""
+    if len(r["blocks"]) < 2 or not all(b.get("org") for b in r["blocks"]):
+        return [r]
+    return [{**r, "blocks": [b], "business": b["business"], "org": b["org"], "file": f"{r['slug']}-{b['org']}"} for b in r["blocks"]]
+
+
+SHORT = {"cost-to-win": "Cost to win a customer", "job-margins": "Job margins", "growth": "Growth by line", "cash-payroll": "Cash cover for payroll",
+         "cost-to-raise": "Cost to raise a dollar", "program-cost": "Program cost", "runway": "Runway", "funding": "Funding worth chasing",
+         "board": "Board summary"}       # the report's name in a download's file name (a question mark can't go in a file name)
+
+
+def file_name(r):
+    return r.get("file", r["slug"])
+
+
 def page_payload(reports):
     out = {}
     for r in reports:
@@ -69,9 +86,11 @@ def page_payload(reports):
         for b in r["blocks"]:
             b.pop("data", None)
             b.pop("table_xl", None)
-        base = f"media/exports/reports/{r['period']}/{r['slug']}"
-        r["exports"] = {"xlsx": base + ".xlsx", "pdf": base + ".pdf", "pptx": base + ".pptx"}
-        r["exports_meta"] = r.get("exports_meta") or {}
+        parts = r.pop("_parts", None) or [{"file": r["slug"], "label": None, "meta": r.get("exports_meta") or {}}]
+        paths = lambda f: {k: f"media/exports/reports/{r['period']}/{f}.{k}" for k in ("xlsx", "pdf", "pptx")}
+        r["exports"], r["exports_meta"] = paths(parts[0]["file"]), parts[0]["meta"]
+        if len(parts) > 1:          # separate businesses: the Export menu hands out the files of the business on screen
+            r["exports_by_business"] = {p_["label"]: {"exports": paths(p_["file"]), "meta": p_["meta"]} for p_ in parts}
         if EMBEDS.get(r["slug"]):
             r["embed_url"] = EMBEDS[r["slug"]].replace("{period}", r["period"])
         r["status"] = [{"label": date.fromisoformat(m + "-01").strftime("%B %Y"), "status": ds.month_status(m)[0], "note": ds.month_status(m)[1]}
@@ -160,13 +179,31 @@ def months_status(r, sep=" · "):
     return [(date.fromisoformat(m + "-01").strftime("%B %Y"), *ds.month_status(m)) for m in r["status_months"]]
 
 
+RANK = {"kpis": 0, "bars": 1, "series": 2, "table": 3, "insight": 4, "text": 5, "list": 6, "definition": 7}
+
+
+def report_order(secs):
+    """The Report sheet reads top down: headline numbers, then the chart, then tables, then the notes.
+    Headings (one per filter value) keep their own run of sections together."""
+    out, run = [], []
+    for x in secs + [{"type": "heading", "_end": True}]:
+        if x["type"] == "heading":
+            out += sorted(run, key=lambda y: RANK.get(y["type"], 9))
+            run = []
+            if not x.get("_end"):
+                out.append(x)
+        else:
+            run.append(x)
+    return out
+
+
 def write_xlsx(r, out=OUT):
     wb = ek.xl_default_font(Workbook())
-    filename = f"{r['slug']}.xlsx"
+    filename = f"{file_name(r)}.xlsx"
     retrieved = ds.as_at_text()
-    sub = f"{r['business']} · SAMPLE DATA (invented) · The Fourth Sheet"
+    sub = f"{r['business']} · SAMPLE DATA (invented) · The Fourth Sheet · {ek.MADE_WITH['xlsx']}"
     status = (f"Period: {r['period_label']} · Data status: " + " · ".join(f"{date.fromisoformat(m + '-01').strftime('%b %Y')} {ds.month_status(m)[0].lower()}"
-                                           for m in r["status_months"]) + f" (data retrieved {retrieved})")
+                                           for m in r["status_months"]) + f" (data retrieved {retrieved}) · {ek.generated_text()}")
     pages = {}
     ws = wb.active
     ws.title = "Report"
@@ -179,12 +216,13 @@ def write_xlsx(r, out=OUT):
     ws.row_dimensions[rr].height = 32
     rr += 2
     blocks = r["blocks"]
+    used_names = set()
     for b in blocks:
         if b.get("label"):
             starts.append(rr)
             ws.cell(rr, 1, b["label"]).font = Font(bold=True, size=13, color=pd.GREEN)
             rr += 1
-        for sec in flat_sections(b):
+        for sec in report_order(flat_sections(b)):
             t = sec["type"]
             if t == "heading":
                 starts.append(rr)
@@ -201,15 +239,19 @@ def write_xlsx(r, out=OUT):
                     ws.cell(rr, 1, it["label"])
                     c = ws.cell(rr, 2, f"=Workings!B{rowmap[len(it['support']['xl']['rows']) - 1]}")
                     c.number_format = pd.F[last["kind"]]
-                    ws.cell(rr, 3, it.get("sub", "")).font = Font(color=pd.MUTED)
+                    ek.xl_name(wb, (b.get("label") + " " if b.get("label") else "") + it["label"], "Report", f"B{rr}", used_names)
+                    cc = ws.cell(rr, 3, it.get("sub", ""))
+                    cc.font = Font(color=pd.MUTED)
+                    cc.alignment = Alignment(indent=1)
                 rr += 2
             elif t == "bars":
                 ch = sec["chart"]
                 starts.append(rr)
                 ws.cell(rr, 1, ch["title"]).font = Font(bold=True, color=pd.INK)
                 rr += 1
-                views = ch.get("views") or [{"label": "Value", "values": ch["values"], "format": ch["format"]}]
+                views = ch.get("views") or [{"label": ch.get("series_name") or ch["title"].split(",")[0], "values": ch["values"], "format": ch["format"]}]
                 pd.head_cells(ws, rr, ["", *[vw["label"] for vw in views]])
+                bars_hr = rr
                 det = ch.get("details") or []
                 for i, lab in enumerate(ch["labels"]):
                     rr += 1
@@ -232,6 +274,15 @@ def write_xlsx(r, out=OUT):
                 if sec.get("support"):
                     wr, rowmap, st = pd.xl_support(wk, wr, sec["support"])
                     wstarts.append(st)
+                v0 = views[0]
+                pc0 = v0["format"].startswith("pct")
+                tgt = v0.get("target", ch.get("target"))
+                ek.xl_bar_chart(ws, f"F{bars_hr}", ch["title"], (ws, 1, bars_hr + 1, 1, rr), (ws, 2, bars_hr + 1, 2, rr), len(ch["labels"]),
+                                "0.0%" if pc0 else '0"¢"' if v0["format"] == "cents_int" else "#,##0;(#,##0)", v0["label"],
+                                tgt, (f"{tgt:.1f}%" if pc0 else str(tgt)) if tgt is not None else None,
+                                below=None if ch.get("plain") else [tgt is not None and v < tgt for v in v0["values"]],
+                                bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [v < 0 for v in v0["values"]])
+                rr = max(rr, bars_hr + int(max(5.5, 0.75 * len(ch["labels"]) + 2) / 0.53) + 1)     # the next chart starts below this one
                 rr += 2
             elif t in ("text", "list", "definition", "insight"):
                 starts.append(rr)
@@ -310,12 +361,32 @@ def write_xlsx(r, out=OUT):
         for c in range(1, len(d["head"]) + 1):
             w.column_dimensions[get_column_letter(c)].width = 34 if c == 1 else 16
         w.freeze_panes = f"B{hr + 1}"
-        pages[name] = (hr, grp_starts, hr + len(d["rows"]))
+        last_r = hr + len(d["rows"])
+        ek.xl_table(w, f"{r['slug']} {name}", hr, last_r, len(d["head"]))
+        # a native line chart beside the data: each line's first money column by month, or the daily cash
+        head = d["head"]
+        xcol = head.index("Month") + 1 if "Month" in head else head.index("Date") + 1 if "Date" in head else None
+        money_cols = [i + 1 for i, k in enumerate(d["kinds"]) if k == "money"]
+        if xcol and money_cols and len(d["rows"]) > 2:
+            vcol = money_cols[-1] if "Date" in head else money_cols[0]
+            groups, g0 = [], 0
+            if "Month" in head and head[0] != "Month":
+                for i in range(1, len(d["rows"]) + 1):
+                    if i == len(d["rows"]) or d["rows"][i][0] != d["rows"][g0][0]:
+                        groups.append((str(d["rows"][g0][0]), hr + 1 + g0, hr + i)); g0 = i
+            else:
+                groups = [(head[vcol - 1], hr + 1, last_r)]
+            n0 = groups[0][2] - groups[0][1]
+            groups = [g for g in groups if g[2] - g[1] == n0][:7]           # same months for every line
+            ek.xl_line_chart(w, f"{get_column_letter(len(head) + 2)}{hr}", f"{head[vcol - 1]} by {head[xcol - 1].lower()}",
+                             (w, xcol, groups[0][1], groups[0][2]), [(g[0], (w, vcol, g[1], g[2])) for g in groups], "#,##0;(#,##0)")
+        pages[name] = (hr, grp_starts, last_r)
     review = []
     for w in wb.worksheets:
         hr, st, last = pages[w.title]
         ek.xl_print(w, r["business"], filename, retrieved, landscape=True, header_row=hr)
         review.append(ek.xl_review(w, ek.xl_breaks(w, st, last, hr), hr))
+    ek.xl_finish(wb)
     ek.save_if_changed(wb.save, Path(out) / filename)
     return review
 
@@ -340,7 +411,8 @@ def html_report(r):
                 parts.append(f"<h3>{esc(ch['title'])}</h3>")
                 for vw in views:
                     lab = f"<p class=viewlabel>{esc(vw['label'])}</p>" if len(views) > 1 else ""
-                    parts.append("<div class=chart>" + lab + ek.hbar_svg({**ch, **{k: vw.get(k) for k in ("values", "format", "target", "breakeven", "marks", "mark_label", "below_marks")}, "order_by": views[0]["values"]}) + "</div>")
+                    spec = ek.bar_spec(ch, vw, views)
+                    parts.append("<div class=chart>" + lab + ek.hbar_svg(spec) + "</div>")
             elif t == "series":
                 dims = sec.get("dims") or {}
                 line = (dims.get("line") or ["All"])[0]
@@ -355,8 +427,10 @@ def html_report(r):
                 if sec.get("note"):
                     parts.append(f"<p class=note>{esc(sec['note'].replace(' Tap a month for its workings.', ''))} Every month, by line, is in the Excel download.</p>")
             elif t == "table":
-                parts.append(f"<h3>{esc(sec['title'])}</h3><table><tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sec["head"])) + "</tr>"
-                             + "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{ek.neg_html(c) if i else esc(c)}</td>" for i, c in enumerate(row_)) + "</tr>" for row_ in sec["rows"]) + "</table>")
+                small = " class=small" if len(sec["rows"]) <= 15 else ""
+                parts.append(f"<h3>{esc(sec['title'])}</h3><table{small}><thead><tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sec["head"])) + "</tr></thead><tbody>"
+                             + "".join("<tr>" + "".join(f"<td{' class=n' if i else ''}>{ek.neg_html(c) if i else esc(c)}</td>" for i, c in enumerate(row_)) + "</tr>" for row_ in sec["rows"]) + "</tbody></table>"
+                             + (f"<p class=note>{esc(sec['note'])}</p>" if sec.get("note") else ""))
             elif t == "text":
                 parts.append(f"<div class=two><div class=box><h4>What it shows</h4><p>{esc(sec['shows'])}</p></div><div class='box act'><h4>What you'd do about it</h4><p>{esc(sec['action'])}</p></div></div>")
             elif t == "list":
@@ -376,7 +450,7 @@ header {{ display: flex; align-items: center; gap: 10px; border-bottom: 3px soli
 .mark {{ min-width: 28px; height: 28px; padding: 0 4px; border-radius: 7px; background: #2f7a5d; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }}
 sup {{ font-size: .55em; }} header small {{ margin-left: auto; color: #5f6f63; }}
 .sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #c8a77e; color: #6b5532; border-radius: 4px; padding: 1px 7px; font-size: 8pt; font-weight: 700; }}
-h1 {{ font-size: 16pt; margin: 6px 0 2px; }} .intro {{ color: #5f6f63; margin: 0 0 6px; }} h2.block {{ font-size: 13pt; color: #2f7a5d; margin: 14px 0 4px; page-break-before: always; }}
+h1 {{ font-size: 16pt; margin: 6px 0 2px; }} .intro {{ color: #5f6f63; margin: 0 0 6px; }} h2.block {{ font-size: 13pt; color: #2f7a5d; margin: 18px 0 4px; padding-top: 8px; border-top: 3px solid #2f7a5d; page-break-after: avoid; }}
 h3 {{ font-size: 10.5pt; margin: 12px 0 4px; }} h2.sub {{ font-size: 11.5pt; color: #2f7a5d; margin: 16px 0 2px; border-top: 1px solid #dce8dc; padding-top: 8px; }} .viewlabel {{ margin: 4px 0 0; font-size: 8.5pt; font-weight: 700; color: #5f6f63; }}
 .kpis {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin: 6px 0; }} .kpi {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 6px 8px; page-break-inside: avoid; }}
 .kpi span, .kpi em {{ display: block; font-size: 8pt; color: #5f6f63; font-style: normal; }} .kpi b {{ font-size: 14pt; color: #2f7a5d; }}
@@ -384,62 +458,144 @@ h3 {{ font-size: 10.5pt; margin: 12px 0 4px; }} h2.sub {{ font-size: 11.5pt; col
 .two {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; page-break-inside: avoid; margin: 8px 0; }} .box {{ border: 1px solid #dce8dc; border-radius: 6px; padding: 6px 10px; }}
 .neg {{ color: #B42318; }} .box.act {{ background: #eef5f0; }} .def {{ border-left: 4px solid #8a7a52; background: #fbfaf6; padding: 6px 10px; margin: 8px 0; page-break-inside: avoid; }} .def p, .insight p {{ margin: 2px 0 0; }}
 .insight {{ background: #eef5f0; border: 1px solid #cfe2d6; border-radius: 6px; padding: 6px 10px; margin: 8px 0; page-break-inside: avoid; }} .bridge {{ margin-top: 6px; font-size: 8.5pt; }} .bridge tr:last-child td {{ font-weight: 700; }} .box h4 {{ margin: 0 0 3px; font-size: 9.5pt; color: #2f7a5d; }} .box p {{ margin: 0; }}
-table {{ width: 100%; border-collapse: collapse; page-break-inside: avoid; font-size: 9pt; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 3px 6px; }}
+table {{ width: 100%; border-collapse: collapse; font-size: 9pt; }} table.small, table.bridge {{ page-break-inside: avoid; }} tr {{ page-break-inside: avoid; }} thead {{ display: table-header-group; }} h3 {{ page-break-after: avoid; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 3px 6px; }}
 td {{ padding: 3px 6px; border-bottom: 1px solid #eef2ee; }} .n {{ text-align: right; font-variant-numeric: tabular-nums; }} ul {{ margin: 4px 0 8px; padding-left: 18px; }} li {{ margin: 3px 0; }}
-""" + ek.STATUS_CSS + f"""</style></head><body>
+""" + ek.STATUS_CSS + ek.MADE_WITH_CSS + f"""</style></head><body>
 <header><div class=mark>4<sup>th</sup></div><b>The Fourth Sheet</b><small>Example report · {esc(AUDIENCE[r['audience']][1])}</small></header>
 <span class=sample>SAMPLE DATA · invented figures for demonstration</span>
 <h1>{esc(r['question'])}</h1><p class=intro><b>Period: {esc(r['period_label'])}.</b> {esc(r['intro'])}</p>
 {status}
 {''.join(parts)}
+<p class=madewith>{ek.MADE_WITH['pdf']}.</p>
 </body></html>"""
 
 
+def pptx_bars(ch):
+    """A report's bar chart as pptkit chart arguments (the first view: % where there is one)."""
+    views = ch.get("views") or [{"label": ch.get("series_name") or ch["title"].split(",")[0], "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
+    vw = views[0]
+    tgt, be = vw.get("target", ch.get("target")), vw.get("breakeven", ch.get("breakeven"))
+    vals = vw["values"]
+    if ch.get("variance"):           # off budget either way red; within 1% amber (judged on % of budget)
+        pcts = views[0]["values"]
+        bad, warn, below = [abs(x) >= 1 for x in pcts], [0.05 <= abs(x) < 1 for x in pcts], None
+    else:
+        below = None if ch.get("plain") else [(tgt is not None and v < tgt) or bool(vw.get("below_marks") and vw.get("marks") and v < vw["marks"][k]) for k, v in enumerate(vals)]
+        bad, warn = [v < 0 for v in vals], None
+    pc = str(vw["format"]).startswith("pct")
+    return {"kind": "bars", "labels": ch["labels"], "values": vals, "fmt": vw["format"], "below": below, "order_by": views[0]["values"], "bad": bad, "warn": warn,
+            "series_name": vw["label"], "target": tgt, "breakeven": be,
+            "target_label": (f"Target {tgt:.1f}%" if pc else f"Target {tgt}") if tgt is not None else None,
+            "breakeven_label": f"Break-even {be:.1f}%" if be is not None else None}
+
+
+def pptx_area(sec, line="All"):
+    dims = sec.get("dims") or {}
+    mid, mlab = (dims.get("measure") or [(next(iter(sec["views"])).split("|")[1], "")])[0]
+    vw = sec["views"].get(f"{line}|{mid}") or sec["views"].get(f"All|{mid}")
+    if not vw:
+        return None
+    t = sec.get("target") or {}
+    return {"kind": "area", "labels": sec["labels"], "values": vw["values"], "fmt": vw["format"], "series_name": vw["label"],
+            "target": t.get("value"), "target_label": t.get("label")}
+
+
 def write_pptx(r, out=OUT):
-    """PowerPoint version of the report PDF: same sections, native charts, red negatives. Built slide by slide."""
+    """PowerPoint version of the report: one idea per slide (headline numbers, the chart, what it shows and what you'd do
+    about it), then the tables. Native charts with the target and break-even drawn on them; speaker notes on every slide."""
     import pptkit
     status = [f"{lab}: {st}. {note}" for lab, st, note in months_status(r)]
-    d = pptkit.Deck(r["business"], r["question"], f"{r['slug']}.pptx", ds.as_at_text())
+    d = pptkit.Deck(r["business"], r["question"], f"{file_name(r)}.pptx", ds.as_at_text())
     d.title_slide(f"Period: {r['period_label']}. " + r["intro"], status)
+    definition = None
     for b in r["blocks"]:
-        ctx = ""
-        for sec in flat_sections(b):
-            t = sec["type"]
-            pre = " · ".join(x for x in (b.get("label"), ctx) if x)
-            name = lambda h: f"{h} · {pre}" if pre else h
-            if t == "heading":
-                ctx = sec["text"]
-            elif t == "kpis":
-                d.kpi_slide(name("Headline numbers"), [(k["label"], k["value"], k.get("sub", "")) for k in sec["items"]])
-            elif t == "bars":
-                ch = sec["chart"]
-                views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
-                for vw in views:
-                    tgt = vw.get("target")
-                    below = [(tgt is not None and v < tgt) or (vw.get("below_marks") and vw.get("marks") and v < vw["marks"][i]) for i, v in enumerate(vw["values"])]
-                    if ch.get("plain"):
-                        below = None
-                    d.bar_slide(name(ch["title"] + (f" · {vw['label']}" if len(views) > 1 else "")), ch["labels"], vw["values"], vw["format"],
-                                (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"),
-                                order_by=views[0]["values"])
-            elif t == "series":
-                dims = sec.get("dims") or {}
-                line = (dims.get("line") or ["All"])[0]
-                for mid, mlab in (dims.get("measure") or [])[:2]:
-                    vw = sec["views"].get(f"{line}|{mid}")
-                    if vw:
-                        d.area_slide(name(f"{sec['title']} · {mlab}"), sec["labels"], vw["values"], vw["format"], (sec.get("note") or "").replace(" Tap a month for its workings.", ""))
-            elif t == "table":
-                d.table_slides(name(sec["title"]), sec["head"], sec["rows"])
-            elif t == "text":
-                d.text_slide(name("What it shows"), [("What it shows", sec["shows"]), ("What you'd do about it", sec["action"])])
-            elif t == "list":
-                d.text_slide(name(sec["title"]), [(sec["title"], "\n".join("• " + x for x in sec["items"]))])
-            elif t == "definition":
-                d.text_slide(sec["title"], [(sec["title"], sec["text"])])
-            elif t == "insight":
-                d.table_slides(name(sec["title"]), ["", sec.get("period", r["period_label"])], [[r_[0], r_[1]] for r_ in sec["support"]["rows"]], sub=sec["text"])
-    ek.save_if_changed(d.save, Path(out) / f"{r['slug']}.pptx")
+        secs = flat_sections(b)
+        runs, cur = [], (None, [])
+        for x in secs:
+            if x["type"] == "heading":
+                runs.append(cur); cur = (x["text"], [])
+            else:
+                cur[1].append(x)
+        runs.append(cur)
+        shared_series = [x for h, run in runs if h and h.startswith("Every ") for x in run if x["type"] == "series"]
+        series_by_line = False          # set once the shared month chart has been shown line by line
+        held = [x for h, run in runs if not h for x in run if x["type"] == "insight"] if b.get("filter") else []
+        every_tables = [x for h, run in runs if h and h.startswith("Every ") for x in run if x["type"] == "table"]
+        for head, run in runs:
+            if not run:
+                continue
+            value = head.split(": ", 1)[1] if head and ": " in head else None          # the filter value this run is about
+            every = bool(head and head.startswith("Every "))
+            title = " · ".join(x for x in (b.get("label"), value) if x) or r["question"]
+            used = set()
+            for k, x in enumerate(run):
+                if x["type"] == "definition":
+                    definition = definition or x["text"]; used.add(k)
+            kp = next((k for k, x in enumerate(run) if x["type"] == "kpis"), None)
+            br = next((k for k, x in enumerate(run) if x["type"] == "bars"), None)
+            tx = next((k for k, x in enumerate(run) if x["type"] == "text"), None)
+            lists = [k for k, x in enumerate(run) if x["type"] == "list"]
+            sr = next((k for k, x in enumerate(run) if x["type"] == "series"), None)
+            if not every and (kp is not None or tx is not None or lists):
+                chart, sub = None, None
+                if br is not None and (sr is None or br < sr):
+                    if len(run[br]["chart"]["labels"]) <= 8:          # more bars than that get a slide of their own
+                        chart = pptx_bars(run[br]["chart"]); sub = run[br]["chart"]["title"]; used.add(br)
+                elif sr is not None:
+                    chart = pptx_area(run[sr]); sub = run[sr]["title"]; used.add(sr)
+                elif value and shared_series and br is None:
+                    chart = pptx_area(shared_series[0], value); sub = shared_series[0]["title"] + f" · {value}"
+                    series_by_line = True
+                blocks = []
+                if tx is not None:
+                    blocks += [("What it shows", run[tx]["shows"]), ("What you'd do about it", run[tx]["action"])]; used.add(tx)
+                for k in lists:
+                    blocks.append((run[k]["title"], "\n".join(("" if run[k].get("numbered") else "• ") + (f"{n}. " if run[k].get("numbered") else "") + it
+                                                              for n, it in enumerate(run[k]["items"], 1)))); used.add(k)
+                items = [(it["label"], it["value"], it.get("sub", ""), it.get("tone", "")) for it in run[kp]["items"]] if kp is not None else None
+                if kp is not None:
+                    used.add(kp)
+                if definition and not getattr(d, "_def_shown", False):
+                    sub = (sub + ". " if sub else "") + definition.split(". ")[0] + "."
+                    d._def_shown = True
+                notes = " ".join(x for x in [title + ".", "; ".join(f"{a}: {v_}" for a, v_, *_ in (items or [])) + ("." if items else ""),
+                                              run[tx]["shows"] if tx is not None else "", run[tx]["action"] if tx is not None else ""] if x)
+                tabs = [k for k, x in enumerate(run) if x["type"] == "table" and k not in used]
+                table = None
+                if chart is None and len(tabs) == 1 and d.fits_table(d.content_top(title, sub), items, blocks, len(run[tabs[0]]["rows"])):
+                    x = run[tabs[0]]
+                    table = (x["title"] + (f" · {x['note']}" if x.get("note") else ""), x["head"], x["rows"], x.get("tones")); used.add(tabs[0])
+                d.combo_slide(title, items, chart, blocks or None, sub=sub, notes=notes, table=table)
+            for k, x in enumerate(run):
+                if k in used:
+                    continue
+                t = x["type"]
+                name = f"{x.get('title', '')} · {b['label']}" if b.get("label") else x.get("title", "")
+                if t == "insight" and x in held and every_tables:
+                    continue            # goes with the year-to-date table below
+                if t == "bars":
+                    c = pptx_bars(x["chart"]); c.pop("kind")
+                    d.bar_slide(f"{x['chart']['title']}" + (f" · {b['label']}" if b.get("label") else ""), c["labels"], c["values"], c["fmt"],
+                                None, c["below"], x["chart"].get("subtitle"), c["order_by"], c["bad"], c["warn"], c["series_name"],
+                                c["target"], c["breakeven"])
+                elif t == "series":
+                    if every and series_by_line:
+                        continue            # already shown line by line on the slides above
+                    c = pptx_area(x); c.pop("kind")
+                    d.area_slide(name, c["labels"], c["values"], c["fmt"], (x.get("note") or "").replace(" Tap a month for its workings.", ""),
+                                 c["series_name"], c["target"], c["target_label"])
+                elif t == "table":
+                    ins = held[0] if (held and x is every_tables[0]) else None
+                    note_ = " ".join(y for y in (x.get("note"), f"{ins['title']}: {ins['text']}" if ins else None) if y)
+                    d.table_slides(name, x["head"], x["rows"], sub=note_ or None)
+                elif t == "insight":
+                    d.table_slides(x["title"] + (f" · {b['label']}" if b.get("label") else ""), None,
+                                   [[r_[0], r_[1]] for r_ in x["support"]["rows"]], sub=x["text"])
+                elif t == "text":
+                    d.text_slide(title, [("What it shows", x["shows"]), ("What you'd do about it", x["action"])])
+                elif t == "list":
+                    d.text_slide(x["title"], [(x["title"], "\n".join("• " + it for it in x["items"]))])
+    ek.save_if_changed(d.save, Path(out) / f"{file_name(r)}.pptx")
 
 
 def write_pdfs(reports, out=None):
@@ -457,10 +613,11 @@ def write_pdfs(reports, out=None):
             dest.mkdir(parents=True, exist_ok=True)
             page.set_content(html_report(r), wait_until="networkidle")
             page.evaluate("document.fonts.ready")
-            ek.pdf_if_changed(page, dest / f"{r['slug']}.pdf", **ek.pdf_options(r["business"], r["question"], f"{r['slug']}.pdf", ds.as_at_text()))
+            ek.pdf_if_changed(page, dest / f"{file_name(r)}.pdf", **ek.pdf_options(r["business"], r["question"], f"{file_name(r)}.pdf", ds.as_at_text()))
         browser.close()
 
 
+MADE_WITH_SITE = '<p class="made-with">Charts made with HTML, CSS and JavaScript, coded by hand · numbers prepared in Python</p>\n          '
 EXAMPLE_CARDS = ["job-margins", "growth", "program-cost", "runway"]     # the working reports shown on examples.html
 
 
@@ -482,7 +639,7 @@ def write_cards(reports):
     s_ = f.read_text()
     a_, b_ = s_.index("<!-- REPORT CARDS:START -->"), s_.index("<!-- REPORT CARDS:END -->")
     cards = [card_html(by[k], "SMEs" if by[k]["audience"] == "sme" else "Not-for-profits") for k in EXAMPLE_CARDS]
-    f.write_text(s_[:a_] + "<!-- REPORT CARDS:START -->\n          <ul class=\"report-cards report-cards--four\">\n" + "\n".join(cards) + "\n          </ul>\n          " + s_[b_:])
+    f.write_text(s_[:a_] + "<!-- REPORT CARDS:START -->\n          <ul class=\"report-cards report-cards--four\">\n" + "\n".join(cards) + "\n          </ul>\n          " + MADE_WITH_SITE + s_[b_:])
     for aud, page in (("sme", "sme.html"), ("nfp", "not-for-profit.html")):
         cards = [card_html(r) for r in reports if r["audience"] == aud]
         soon = ""
@@ -494,7 +651,7 @@ def write_cards(reports):
         feat = (f'<div class="report-feature"><p class="eyebrow">Featured: <a href="report-{feature[0]}.html">{H.escape(feature[1])}</a></p>'
                 f'<div data-report-feature="{feature[0]}" data-only="{feature[2]}"><noscript><p>Turn on JavaScript to see the chart, or '
                 f'<a href="report-{feature[0]}.html">open the report</a>.</p></noscript></div></div>\n          ')
-        s_ = s_[:a_] + "<!-- REPORT CARDS:START -->\n          " + feat + "<ul class=\"report-cards\">\n" + "\n".join(cards) + "\n          </ul>\n          " + soon + s_[b_:]
+        s_ = s_[:a_] + "<!-- REPORT CARDS:START -->\n          " + feat + "<ul class=\"report-cards\">\n" + "\n".join(cards) + "\n          </ul>\n          " + soon + MADE_WITH_SITE + s_[b_:]
         f.write_text(s_)
 
 

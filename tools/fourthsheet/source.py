@@ -48,9 +48,16 @@ class CsvSource:
 
     @lru_cache(maxsize=None)
     def _read(self, path):
-        with open(path, newline="", encoding="utf-8") as f:
-            return [{k: (v if k in ("month_key", "job_id", "engagement_id", "grant_id", "date_key_text") else _num(v)) for k, v in r.items()}
-                    for r in csv.DictReader(f)]
+        import time
+        for attempt in range(4):          # OneDrive can stall on a file it's still syncing: wait and try again
+            try:
+                with open(path, newline="", encoding="utf-8") as f:
+                    return [{k: (v if k in ("month_key", "job_id", "engagement_id", "grant_id", "date_key_text") else _num(v)) for k, v in r.items()}
+                            for r in csv.DictReader(f)]
+            except TimeoutError:
+                if attempt == 3:
+                    raise
+                time.sleep(5 * (attempt + 1))
 
     def table(self, org, name):
         p = (self.root / "Common" / f"{name}.csv") if name in COMMON else (self.root / "Month-end dashboard" / ORG_FOLDERS[org] / f"{name}.csv")

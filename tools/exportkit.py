@@ -79,11 +79,12 @@ def hbar_svg(ch, width=640):
     marks, target, plain = ch.get("marks"), ch.get("target"), ch.get("plain")
     char = 6.2
     left = min(230, 12 + max(len(str(l)) for l in labels) * char)
-    right = width - 60
+    right = width - (170 if ch.get("notes") and any(ch["notes"]) else 60)
     row, bh, top = 24, 14, 8
     plot_h = len(values) * row
     below_marks = ch.get("below_marks")
-    below = lambda v, i: not plain and ((target is not None and v < target) or (below_marks and marks and v < marks[i]))
+    flags = ch.get("below_flags")
+    below = lambda v, i: not plain and ((target is not None and v < target) or bool(below_marks and marks and v < marks[i]) or bool(flags and flags[i]))
     any_below = any(below(v, i) for i, v in enumerate(values))
     be = ch.get("breakeven")               # break-even gross margin: a second, dotted red line labelled on its own row
     height = top + plot_h + (14 if be is not None else 0) + (36 if (any_below or marks) else 22 if target is not None else 8)
@@ -116,7 +117,9 @@ def hbar_svg(ch, width=640):
             lx = x(be) + 5
         if tx is not None and lx - 4 < tx < lx + len(text) * char + 4:   # the label would sit on the target line
             lx = tx + 5
-        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{(NEG if vp >= 1 else INK) if variance else (NEG if v < 0 else INK)}">{esc(text)}</text>')
+        note_ = (ch.get("notes") or [None] * len(values))[i]
+        tail = f'<tspan fill="{NEG}" font-weight="600">  {esc(note_)}</tspan>' if note_ else ""
+        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{(NEG if vp >= 1 else INK) if variance else (NEG if v < 0 else INK)}">{esc(text)}{tail}</text>')
     if target is not None:
         g.append(f'<line x1="{tx:.1f}" x2="{tx:.1f}" y1="{top - 4}" y2="{top + plot_h + 2}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
         g.append(f'<text x="{tx:.1f}" y="{top + plot_h + 15}" text-anchor="middle" font-size="10" font-weight="600" fill="{INK}">Target {fmt_value(target, f)}</text>')
@@ -259,7 +262,7 @@ def _band(left, right):
 def pdf_options(business, report_name, filename, retrieved, landscape=False):
     """Every PDF page: header = business and report name; footer = file name, date retrieved, page X of Y."""
     footer = (f'<div style="width:100%;font-family:{HEADER_FONT};font-size:7.5px;color:#5f6f63;padding:0 12mm;display:flex;justify-content:space-between;gap:8px">'
-              f'<span>{esc(filename)}</span><span>Data retrieved {esc(retrieved)}</span>'
+              f'<span>{esc(filename)}</span><span>Data retrieved {esc(retrieved)} · {esc(generated_text())}</span>'
               f'<span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>')
     return dict(format="A4", landscape=landscape, print_background=True, display_header_footer=True,
                 header_template=_band(esc(business), esc(report_name)), footer_template=footer,
@@ -267,7 +270,9 @@ def pdf_options(business, report_name, filename, retrieved, landscape=False):
 
 
 # Excel number formats: ONE per kind, negatives in red brackets
-XL_FMT = {"money": '#,##0;[Red](#,##0);"-"', "pct": '0.0%;[Red](0.0%);"-"', "hours": '#,##0.0;[Red](#,##0.0);"-"',
+XL_FMT = {"pts": '+0.0" pts";(0.0" pts");"-"', "chg_money": '+#,##0;(#,##0);"-"', "chg_pct": '+0.0%;(0.0%);"-"',
+          "chg_cents": '+0"¢";(0"¢");"-"', "chg_months": '+0.0" months";(0.0" months");"-"',
+          "money": '#,##0;[Red](#,##0);"-"', "pct": '0.0%;[Red](0.0%);"-"', "hours": '#,##0.0;[Red](#,##0.0);"-"',
           "int": '#,##0;[Red](#,##0);"-"', "months": '0.0" months";[Red](0.0" months")', "cents": '0"¢";[Red](0"¢")',
           "date": 'd mmm yyyy', "text": '@'}
 
@@ -366,6 +371,10 @@ def xl_review(ws, plan, header_row=None):
     return f"{ws.title}: {n} page{'s' if n > 1 else ''}, {round(plan['scale'] * 100)}% scale, no block split"
 
 
+# What made each hand-built download (Nathan: every hand-built chart or report says what tools made it)
+MADE_WITH = {"xlsx": "Made with Python (openpyxl)", "pptx": "Made with Python (python-pptx)",
+             "pdf": "Made with Python: laid out in HTML and CSS, printed to PDF in Chromium"}
+MADE_WITH_CSS = ".madewith { margin: 10px 0 0; font-size: 7.5pt; color: #5f6f63; }"
 XL_FONT = "Roboto"     # Excel and PowerPoint downloads use Roboto, like the site and the business cards
 
 
@@ -389,6 +398,8 @@ def xl_default_font(wb, size=11):
 def xl_print(ws, business, filename, retrieved, landscape=True, header_row=None, gridlines=False):
     """Make a worksheet print like a report. Header: business and sheet name.
     Footer: file name, date retrieved (fixed text) and page X of Y."""
+    from openpyxl.utils import get_column_letter as _gcl
+    ws.print_area = f"A1:{_gcl(max(1, ws.max_column))}{max(1, ws.max_row)}"     # the cells: charts beside a table are for the screen
     amp = lambda t: t.replace("&", "&&")          # & starts a code in Excel headers
     ws.page_setup.paperSize = ws.PAPERSIZE_A4
     ws.page_setup.orientation = "landscape" if landscape else "portrait"
@@ -402,14 +413,110 @@ def xl_print(ws, business, filename, retrieved, landscape=True, header_row=None,
         ws.print_title_rows = f"{header_row}:{header_row}"
     ws.sheet_view.showGridLines = gridlines
     for part, text in [(ws.oddHeader.left, amp(business)), (ws.oddHeader.right, "&A"),
-                       (ws.oddFooter.left, amp(filename)), (ws.oddFooter.center, amp(f"Data retrieved {retrieved}")),
+                       (ws.oddFooter.left, amp(filename)), (ws.oddFooter.center, amp(f"Data retrieved {retrieved} · {generated_text()}")),
                        (ws.oddFooter.right, "Page &P of &N")]:
         part.text = text
         part.size = 8
         part.font = f"{XL_FONT},Regular"
 
 
-def export_meta(paths):
+# ---- When each download was generated. Every file says it inside ("Generated 8 Oct 2026, 2:35pm") and the site names the
+# download with it. A rebuild that changes nothing keeps the old file and its stamp: the comparison leaves the stamp out,
+# and media/exports/generated.json records each file's content fingerprint and when that content was generated.
+from datetime import datetime as _dt
+
+def _now_brisbane():
+    """Brisbane time (AEST, no daylight saving), whatever clock the build machine is on: a PC or a cloud build set to
+    UTC still stamps the files in Nathan's time. Falls back to the machine's own time if the time zone data is missing."""
+    try:
+        from zoneinfo import ZoneInfo
+        return _dt.now(ZoneInfo("Australia/Brisbane")).replace(tzinfo=None)
+    except Exception:
+        return _dt.now()
+
+
+GENERATED = _now_brisbane().replace(second=0, microsecond=0)
+_STAMP_RE = rb"Generated \d{1,2} [A-Z][a-z]{2} \d{4}, \d{1,2}:\d{2}[ap]m"
+
+
+def generated_text(when=None):
+    w = when or GENERATED
+    return "Generated " + f"{w.day} {w.strftime('%b %Y')}, {(w.hour % 12) or 12}:{w.strftime('%M')}{'am' if w.hour < 12 else 'pm'}"
+
+
+def _manifest_path():
+    from pathlib import Path
+    return Path(__file__).resolve().parent.parent / "media" / "exports" / "generated.json"
+
+
+def _manifest():
+    import json
+    if not hasattr(_manifest, "data"):
+        p = _manifest_path()
+        _manifest.data = json.loads(p.read_text()) if p.exists() else {}
+    return _manifest.data
+
+
+def _rel(dest):
+    from pathlib import Path
+    repo = Path(__file__).resolve().parent.parent
+    try:
+        return str(Path(dest).resolve().relative_to(repo))
+    except ValueError:
+        return None              # outside the repo (e.g. a test render): not recorded
+
+
+def _unchanged(dest, key):
+    """True if dest exists and its recorded content fingerprint matches (so the file and its stamp are kept)."""
+    from pathlib import Path
+    rel = _rel(dest)
+    m = _manifest().get(rel) if rel else None
+    return bool(m and m.get("key") == key and Path(dest).exists())
+
+
+def _record(dest, key):
+    import json
+    rel = _rel(dest)
+    if not rel:
+        return
+    _manifest()[rel] = {"key": key, "generated": GENERATED.isoformat(timespec="minutes")}
+    p = _manifest_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(dict(sorted(_manifest().items())), indent=1) + "\n")
+
+
+def generated_of(path):
+    """When the file's content was generated (from the record; the file's own stamp says the same)."""
+    m = _manifest().get(_rel(path) or "")
+    return _dt.fromisoformat(m["generated"]) if m else None
+
+
+def _key(blobs):
+    import hashlib
+    import re
+    h = hashlib.sha256()
+    for name, data in sorted(blobs.items()):
+        h.update(name.encode())
+        h.update(re.sub(_STAMP_RE, b"Generated <stamp>", data))
+    return h.hexdigest()
+
+
+def download_name(business, title, period, fmt, when):
+    """e.g. 'Sample Electrical & Air Pty Ltd - Job margins - September 2026 - generated 2026-10-08 1435.xlsx'."""
+    import re
+    clean = lambda t: re.sub(r'[\\/:*?"<>|]', "", str(t)).strip()
+    stamp = when.strftime("%Y-%m-%d %H%M") if when else "undated"
+    return f"{clean(business)} - {clean(title)} - {clean(period)} - generated {stamp}.{fmt}"
+
+
+def period_name(month, incomplete):
+    """The period in a file name: a closed month in full ('September 2026'), the month in progress by name ('October')."""
+    from datetime import date
+    d = date.fromisoformat(month + "-01")
+    return d.strftime("%B") if incomplete else d.strftime("%B %Y")
+
+
+def export_meta(paths, business=None, title=None, period=None):
     """What the Export menu says about each download: PDF page count and PowerPoint slide count, read from the files
     the build just wrote (so nothing is typed in). paths: {"pdf": "media/...", "pptx": "media/..."} relative to the repo."""
     import re
@@ -423,6 +530,8 @@ def export_meta(paths):
     if pptx and pptx.is_file():
         from pptx import Presentation
         meta["pptx_slides"] = len(Presentation(str(pptx)).slides)
+    if business and title and period:      # the name each download is saved under: business, report, period, when generated
+        meta["names"] = {fmt: download_name(business, title, period, fmt, generated_of(repo / pth)) for fmt, pth in paths.items() if pth}
     return meta
 
 
@@ -455,8 +564,30 @@ def same_office_file(a, b):
         return False
 
 
+def _office_parts(path):
+    import io
+    import zipfile
+
+    def parts(z):
+        out = {}
+        for n in z.namelist():
+            if n.endswith("docProps/core.xml"):
+                continue
+            data = z.read(n)
+            if n.endswith(".xlsx"):
+                with zipfile.ZipFile(io.BytesIO(data)) as inner:
+                    for k, v in parts(inner).items():
+                        out[f"{n}/{k}"] = v
+            else:
+                out[n] = data
+        return out
+    with zipfile.ZipFile(path) as z:
+        return parts(z)
+
+
 def save_if_changed(save, dest):
-    """Save via save(path) to a temporary file, and only replace dest if the content changed (keeps git quiet)."""
+    """Save via save(path) to a temporary file, and only replace dest if the content changed (keeps git quiet, and keeps
+    the file's 'Generated' stamp when nothing in it changed)."""
     import shutil
     import tempfile
     from pathlib import Path
@@ -465,8 +596,11 @@ def save_if_changed(save, dest):
     with tempfile.TemporaryDirectory() as t:
         tmp = Path(t) / dest.name
         save(str(tmp))
-        if not same_office_file(tmp, dest):
+        # pictures (e.g. map screenshots, which differ by a pixel run to run) are left out: real changes show in the numbers
+        key = _key({n: v for n, v in _office_parts(tmp).items() if "/media/" not in "/" + n})
+        if not _unchanged(dest, key):
             shutil.copy(tmp, dest)
+            _record(dest, key)
 
 
 def same_pdf(a, b):
@@ -480,13 +614,185 @@ def same_pdf(a, b):
 
 
 def pdf_if_changed(page, dest, **options):
-    """Print the page to dest only if the PDF's content changed (keeps git quiet)."""
-    import shutil
-    import tempfile
+    """Print the page to dest only if its content changed: the page's HTML and the print settings are fingerprinted
+    (stamp left out) and compared with the record, so an unchanged PDF isn't even printed, and keeps its stamp."""
+    import json
     from pathlib import Path
     dest = Path(dest)
-    with tempfile.TemporaryDirectory() as t:
-        tmp = Path(t) / dest.name
-        page.pdf(path=str(tmp), **options)
-        if not same_pdf(tmp, dest):
-            shutil.copy(tmp, dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    key = _key({"html": page.content().encode("utf-8"), "options": json.dumps(options, sort_keys=True, default=str).encode("utf-8")})
+    if not _unchanged(dest, key):
+        page.pdf(path=str(dest), **options)
+        _record(dest, key)
+
+
+# ---- Excel finishing: one font on every cell, tables, named headline numbers, native charts, changes by direction
+
+XL_GREEN, XL_GREY, XL_RED, XL_INK = "0E9F6E", "7D8790", "B42318", "25342A"
+
+
+def xl_finish(wb):
+    """Roboto set explicitly on every cell that has a value (headings included), keeping each cell's own size, weight
+    and colour: without a name, a font falls back to the app's default (serif in LibreOffice)."""
+    import copy as _copy
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for c in row:
+                if c.value is not None and c.font.name != XL_FONT:
+                    f = _copy.copy(c.font)
+                    f.name = XL_FONT
+                    c.font = f
+    return wb
+
+
+def xl_table(ws, name, first_row, last_row, ncols, first_col=1):
+    """An Excel Table over a header row and its data (sortable, filterable, refers by column name). Header cells
+    must be unique text. Replaces a plain auto-filter on the same range."""
+    import re as _re
+    from openpyxl.utils import get_column_letter as _gcl
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+    if last_row <= first_row:
+        return None
+    seen = {}
+    for c in range(first_col, first_col + ncols):
+        cell = ws.cell(first_row, c)
+        h = str(cell.value or f"Column {c}").strip() or f"Column {c}"
+        seen[h] = seen.get(h, 0) + 1
+        cell.value = h if seen[h] == 1 else f"{h} ({seen[h]})"
+    ws.auto_filter.ref = None
+    nm = _re.sub(r"\W", "_", name)
+    nm = ("T_" + nm) if not nm[:1].isalpha() else nm
+    existing = {t for w in ws.parent.worksheets for t in w.tables}
+    base, k = nm[:240], 2
+    while nm in existing:
+        nm = f"{base}_{k}"; k += 1
+    t = Table(displayName=nm, ref=f"{_gcl(first_col)}{first_row}:{_gcl(first_col + ncols - 1)}{last_row}")
+    t.tableStyleInfo = TableStyleInfo(name="TableStyleLight1", showRowStripes=True)
+    ws.add_table(t)
+    return t
+
+
+def xl_name(wb, label, sheet, cell_ref, used=None):
+    """A workbook-level name for a headline number, e.g. Job_gross_margin_September -> 'Report'!$B$8."""
+    import re as _re
+    from openpyxl.workbook.defined_name import DefinedName
+    nm = _re.sub(r"_+", "_", _re.sub(r"[^A-Za-z0-9_]", "_", label)).strip("_")[:60] or "Headline"
+    if not nm[:1].isalpha():
+        nm = "N_" + nm
+    used = used if used is not None else set()
+    base, k = nm, 2
+    while nm in used or nm in wb.defined_names:
+        nm = f"{base}_{k}"; k += 1
+    used.add(nm)
+    col, row = _re.match(r"([A-Z]+)(\d+)", cell_ref).groups()
+    wb.defined_names[nm] = DefinedName(nm, attr_text=f"'{sheet}'!${col}${row}")
+    return nm
+
+
+def _xl_style_chart(ch, title):
+    from openpyxl.chart.text import RichText, Text
+    from openpyxl.chart.title import Title
+    from openpyxl.drawing.text import CharacterProperties, Font as DFont, Paragraph, ParagraphProperties, RegularTextRun
+    tp = CharacterProperties(latin=DFont(typeface=XL_FONT), sz=1100, b=True, solidFill=XL_INK)
+    ch.title = Title(tx=Text(rich=RichText(p=[Paragraph(pPr=ParagraphProperties(defRPr=tp), r=[RegularTextRun(rPr=tp, t=title)])])), overlay=False)
+    ch.legend = None
+    ch.style = 2
+    cp = CharacterProperties(latin=DFont(typeface=XL_FONT), sz=900, solidFill=XL_INK)
+    ch.txPr = RichText(p=[Paragraph(pPr=ParagraphProperties(defRPr=cp), endParaRPr=cp)])
+    return ch
+
+
+def xl_bar_chart(ws, anchor, title, cats_ref, vals_ref, n, number_format="General", series_name=None, target=None, fmt_target=None, below=None, bad=None):
+    """A native horizontal bar chart (brand green), one bar per category, values labelled; no gridline clutter.
+    The target, when there is one, is in the title (Excel can't draw a vertical line across horizontal bars natively)."""
+    from openpyxl.chart import BarChart, Reference
+    from openpyxl.chart.label import DataLabelList
+    from openpyxl.chart.series import SeriesLabel
+    ch = BarChart()
+    ch.type = "bar"
+    ch.varyColors = False
+    ws_, c1, r1, c2, r2 = vals_ref
+    data = Reference(ws_, min_col=c1, min_row=r1, max_col=c2, max_row=r2)
+    ch.add_data(data, titles_from_data=False)
+    wc, cc1, cr1, cc2, cr2 = cats_ref
+    ch.set_categories(Reference(wc, min_col=cc1, min_row=cr1, max_col=cc2, max_row=cr2))
+    s_ = ch.series[0]
+    s_.tx = SeriesLabel(v=series_name or title)
+    s_.graphicalProperties.solidFill = XL_GREEN
+    s_.graphicalProperties.line.solidFill = XL_GREEN
+    s_.invertIfNegative = False
+    from openpyxl.chart.marker import DataPoint
+    for i in range(n):               # grey below target, red losing money / off budget: the same colours as the website
+        colour = XL_RED if (bad and bad[i]) else XL_GREY if (below and below[i]) else None
+        if colour:
+            pt = DataPoint(idx=i)
+            pt.graphicalProperties.solidFill = colour
+            pt.graphicalProperties.line.solidFill = colour
+            s_.dPt.append(pt)
+    s_.dLbls = DataLabelList()
+    s_.dLbls.showVal = True
+    s_.dLbls.numFmt = number_format
+    for k in ("showSerName", "showCatName", "showLegendKey", "showPercent"):
+        setattr(s_.dLbls, k, False)
+    ch.y_axis.numFmt = number_format
+    ch.y_axis.majorGridlines = None
+    ch.y_axis.delete = True
+    ch.x_axis.scaling.orientation = "maxMin"        # first row at the top, like the table
+    ch.gapWidth = 60
+    _xl_style_chart(ch, title + (f" · target {fmt_target}" if target is not None and fmt_target else ""))
+    ch.width, ch.height = 15, max(5.5, 0.75 * n + 2)
+    ws.add_chart(ch, anchor)
+    return ch
+
+
+def xl_line_chart(ws, anchor, title, cats_ref, series, number_format="General"):
+    """A native line chart: series = [(name, (ws, col, first_row, last_row))], categories along the bottom."""
+    from openpyxl.chart import LineChart, Reference
+    from openpyxl.chart.series import SeriesLabel
+    ch = LineChart()
+    palette = [XL_GREEN, "2F7A5D", "8A6D3B", "5F6F63", "8E9CAB", "1F5A43", "B42318"]
+    for k, (nm, (w, col, r1, r2)) in enumerate(series):
+        ch.add_data(Reference(w, min_col=col, min_row=r1, max_row=r2), titles_from_data=False)
+        s_ = ch.series[-1]
+        s_.tx = SeriesLabel(v=nm)
+        s_.graphicalProperties.line.solidFill = palette[k % len(palette)]
+        s_.graphicalProperties.line.width = 22000
+        s_.smooth = False
+        s_.marker.symbol = "none"
+    wc, c, r1, r2 = cats_ref
+    ch.set_categories(Reference(wc, min_col=c, min_row=r1, max_row=r2))
+    ch.y_axis.numFmt = number_format
+    ch.y_axis.majorGridlines.spPr = None
+    ch.x_axis.number_format = "@"
+    ch.x_axis.tickLblSkip = max(1, (r2 - r1 + 1) // 12)
+    _xl_style_chart(ch, title)
+    if len(series) > 1:
+        from openpyxl.chart.legend import Legend
+        ch.legend = Legend()
+        ch.legend.position = "b"
+    ch.width, ch.height = 18, 8
+    ws.add_chart(ch, anchor)
+    return ch
+
+
+def xl_change(ws, cell, good_when="higher"):
+    """Colour a change cell by meaning, not sign: green when it moved the good way, red when it moved the bad way."""
+    from openpyxl.formatting.rule import CellIsRule
+    from openpyxl.styles import Font as XFont
+    good, bad = XFont(name=XL_FONT, color="2F7A5D", bold=True), XFont(name=XL_FONT, color=XL_RED, bold=True)
+    up, down = (good, bad) if good_when == "higher" else (bad, good)
+    ws.conditional_formatting.add(cell, CellIsRule(operator="greaterThan", formula=["0"], font=up))
+    ws.conditional_formatting.add(cell, CellIsRule(operator="lessThan", formula=["0"], font=down))
+
+
+def bar_spec(ch, vw, views):
+    """One view of a chart, ready for hbar_svg. A $ view with a per-bar target mark (e.g. 35% of each job's revenue)
+    shows how far each bar is short of it, in dollars, instead of a tick per bar (unreadable when bars differ a lot)."""
+    spec = {**ch, **{k: vw.get(k) for k in ("values", "format", "target", "breakeven", "marks", "mark_label", "below_marks")},
+            "order_by": views[0]["values"], "variance_pct": views[0]["values"]}
+    if vw.get("marks") and vw.get("below_marks"):
+        t0 = views[0].get("target", ch.get("target"))
+        spec["notes"] = [f"{fmt_value(m - v, 'money0')} short of {t0:.1f}%" if v < m else "" for v, m in zip(vw["values"], vw["marks"])]
+        spec["below_flags"] = [v < m for v, m in zip(vw["values"], vw["marks"])]
+        spec["marks"], spec["below_marks"] = None, None
+    return spec

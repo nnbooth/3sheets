@@ -134,6 +134,12 @@ def main():
                     for u in hrefs:
                         if not u or per not in u or not ok(base + u):
                             probs.append((w, s, per, "export file missing", u))
+                    # each download is saved under: business - report - period - generated <date time>
+                    for nm in pg.eval_on_selector_all(".xm-item", "a => a.map(x => x.getAttribute('download'))"):
+                        mon = lab.split(" to date")[0]
+                        want_period = mon.split(" ")[0] if "to date" in lab else mon
+                        if not nm or " - generated 20" not in nm or f" - {want_period} - " not in nm:
+                            probs.append((w, s, per, "download name lacks business, period or generated time", nm))
                     pg.keyboard.press("Escape")
                 # copy the link to this exact view (a non-default filter where there is one), reload it, same view back
                 filt = pg.eval_on_selector_all(".report-filter .seg button", "b => b.map(x => x.dataset.filter)")
@@ -173,6 +179,18 @@ def main():
                 closed = pg.eval_on_selector(".xm-menu", "m => m.hidden")
                 if (f1, f2, back, closed) != ("xlsx", "pdf", True, True):
                     probs.append(("keyboard", f1, f2, back, closed))
+                # separate businesses, separate files: growth's Export menu follows the business on screen
+                pg.goto(base + "report-growth.html")
+                pg.wait_for_timeout(500)
+                for blk, org in ((0, "trades"), (1, "services")):
+                    pg.click(f'.report-blocks button[data-block="{blk}"]')
+                    pg.wait_for_timeout(300)
+                    pg.click(".xm-btn")
+                    pg.wait_for_timeout(120)
+                    hrefs = pg.eval_on_selector_all(".xm-item", "a => a.map(x => x.getAttribute('href'))")
+                    if not hrefs or any(f"growth-{org}." not in (u or "") or not ok(base + u) for u in hrefs):
+                        probs.append(("growth", org, "export files aren't this business's own", hrefs))
+                    pg.keyboard.press("Escape")
                 # home hero and deliveries: the Export menu points at real files
                 for page, sel in (("index.html", "#dash-export"), ("examples.html", "#deliv-export")):
                     pg.goto(base + page)

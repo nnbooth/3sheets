@@ -78,7 +78,7 @@ def dashboard_payload(res):
             "columns": fm.COLUMNS, "unit": "$",
             "statements": statements(org, v),
             "fourth": {"kpis": f4["kpis"], "chart": f4["chart"]},
-            "checks": checks(org), "assumptions": v["assumptions"], "exports": export_paths(org), "exports_meta": ek.export_meta(export_paths(org)),
+            "checks": checks(org), "assumptions": v["assumptions"], "exports": export_paths(org), "exports_meta": ek.export_meta(export_paths(org), v["model"]["long_name"], "Monthly report pack", "September 2026"),
         })
     status = [{"month": m, "label": date.fromisoformat(m + "-01").strftime("%b %Y"), "status": ds.month_status(m)[0],
                "note": ds.month_status(m)[1]} for m in STATUS_MONTHS]
@@ -235,7 +235,7 @@ def title_block(ws, title, sub, status):
     ws["A3"].font = Font(italic=True, size=9, color=MUTED)
 
 
-def xl_statement(ws, title, sub, status, rows):
+def xl_statement(ws, title, sub, status, rows, colour_change=True):
     """Detail lines are data; every subtotal, total and the Change column are formulas."""
     title_block(ws, title, sub, status)
     hr = 4
@@ -262,8 +262,10 @@ def xl_statement(ws, title, sub, status, rows):
             cell = ws.cell(r, c, val)
             cell.number_format = F["money"]
         ch = ws.cell(r, 4, f"=B{r}-C{r}")
-        ch.number_format = F["money"]
+        ch.number_format = F["chg_money"]
         ch.font = Font(italic=True, color=MUTED)
+        if colour_change:              # income +, costs −: a rise is always good for the result
+            ek.xl_change(ws, f"D{r}", "higher")
         if rw["level"] == "detail":
             a.alignment = Alignment(indent=1)
             a.font = Font(color=MUTED)
@@ -404,7 +406,20 @@ def xl_list(ws, org, v, status, sub):
         ws.column_dimensions[get_column_letter(c)].width = 34 if h in ("Job", "Engagement", "Program", "Funder") else 13
     ws.column_dimensions["A"].width = max(ws.column_dimensions["A"].width, 12)
     ws.freeze_panes = f"C{hr + 1}"
-    ws.auto_filter.ref = f"A{hr}:{get_column_letter(len(heads))}{last}"
+    ek.xl_table(ws, {"trades": "Jobs", "services": "Engagements", "nfp": "Grants"}[org], hr, last, len(heads))
+    # the chart beside it: September's installations / September's engagements / every grant, as on the website
+    if org == "trades":
+        rows_ = [hr + 1 + i for i, j in enumerate(jobs) if j["month"] == "2026-09" and j["type"] == "Installation"]
+        title_, vcol, fmt_ = "Job gross margin %, September installations", 14, "0.0%"
+    elif org == "services":
+        rows_ = [hr + 1 + i for i, x in enumerate(eng) if x["month"] == "2026-09"]
+        title_, vcol, fmt_ = "Gross margin %, September engagements", 10, "0.0%"
+    else:
+        rows_ = list(range(hr + 1, last + 1))
+        title_, vcol, fmt_ = "Spent against budget to date", 11, "0.0%"
+    if rows_ and rows_ == list(range(rows_[0], rows_[-1] + 1)):
+        ek.xl_bar_chart(ws, f"{get_column_letter(len(heads) + 2)}{hr}", title_, (ws, 2 if org != "nfp" else 1, rows_[0], 2 if org != "nfp" else 1, rows_[-1]),
+                        (ws, vcol, rows_[0], vcol, rows_[-1]), len(rows_), fmt_, title_)
     return hr, starts, tr
 
 
@@ -413,8 +428,8 @@ def write_xlsx(org, v):
     name = v["model"]["long_name"]
     filename = f"{org}-sample-statements.xlsx"
     retrieved = ds.as_at_text()
-    sub = f"{name} · SAMPLE DATA (invented) · The Fourth Sheet"
-    status = "Data status: " + " · ".join(f"{date.fromisoformat(m + '-01').strftime('%b %Y')} {ds.month_status(m)[0].lower()}" for m in STATUS_MONTHS) + f" (data retrieved {retrieved})"
+    sub = f"{name} · SAMPLE DATA (invented) · The Fourth Sheet · {ek.MADE_WITH['xlsx']}"
+    status = "Data status: " + " · ".join(f"{date.fromisoformat(m + '-01').strftime('%b %Y')} {ds.month_status(m)[0].lower()}" for m in STATUS_MONTHS) + f" (data retrieved {retrieved}) · {ek.generated_text()}"
     f4 = v["fourth"]
     pages = {}
 
@@ -440,13 +455,19 @@ def write_xlsx(org, v):
     # --- The fourth sheet: every number is a formula pointing at its workings
     title_block(ws4, "The fourth sheet: September 2026 against August 2026", sub, status)
     head_cells(ws4, 5, ["Headline number", "Sep 2026", "Aug 2026", "Change"])
+    used = set()
     for i, (k, (wr, kind, ncols)) in enumerate(zip(f4["kpis"], kpi_ref)):
         r = 6 + i
         ws4.cell(r, 1, k["label"].replace(", September", ""))
         ws4.cell(r, 2, f"=Workings!B{wr}").number_format = F[kind]
+        ek.xl_name(wb, k["label"].replace(", September", ""), "The fourth sheet", f"B{r}", used)
         if ncols > 1:
             ws4.cell(r, 3, f"=Workings!C{wr}").number_format = F[kind]
-            ws4.cell(r, 4, f"=B{r}-C{r}").number_format = F[kind]
+            if kind == "pct":       # a change in a rate is in percentage points
+                ws4.cell(r, 4, f"=(B{r}-C{r})*100").number_format = F["pts"]
+            else:
+                ws4.cell(r, 4, f"=B{r}-C{r}").number_format = F.get("chg_" + kind, F["chg_money"])
+            ek.xl_change(ws4, f"D{r}", k.get("good_when", "higher"))
     r = 6 + len(f4["kpis"]) + 2
     ch = f4["chart"]
     ws4.cell(r, 1, ch["title"]).font = Font(bold=True, color=INK)
@@ -454,6 +475,7 @@ def write_xlsx(org, v):
     r += 2
     views = ch.get("views") or [{"label": "Value", "format": ch["format"]}]
     head_cells(ws4, r, ["", *[vw["label"] for vw in views]])
+    chart_hr = r
     # which workings row holds the % and the $ for each bar
     for i, (lab, rowmap) in enumerate(zip(ch["labels"], det_ref)):
         r += 1
@@ -464,6 +486,12 @@ def write_xlsx(org, v):
         for c, vw in enumerate(views, 2):
             pc = vw["format"].startswith("pct")
             ws4.cell(r, c, f"=Workings!B{pct_row if pc else dollar_row}").number_format = F["pct" if pc else "money"]
+    v0 = views[0]
+    pc0 = v0["format"].startswith("pct")
+    ek.xl_bar_chart(ws4, f"F{chart_hr - 1}", ch["title"], (ws4, 1, chart_hr + 1, 1, r), (ws4, 2, chart_hr + 1, 2, r), len(ch["labels"]),
+                    "0.0%" if pc0 else "#,##0;(#,##0)", v0["label"], ch.get("target"), f"{ch['target']:.1f}%" if ch.get("target") is not None else None,
+                    below=None if ch.get("plain") or ch.get("target") is None else [x < ch["target"] for x in v0["values"]],
+                    bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [x < 0 for x in v0["values"]])
     if ch.get("target") is not None:
         r += 1
         ws4.cell(r, 1, "Target").font = Font(italic=True, color=MUTED)
@@ -477,7 +505,7 @@ def write_xlsx(org, v):
     for key, st in statements(org, v).items():
         tab = {"pnl": "Income and expenditure" if org == "nfp" else "Profit and loss", "bs": "Balance sheet", "cf": "Cash flow"}[key]
         w = wb.create_sheet(tab)
-        starts, last = xl_statement(w, st["title"], sub, status, st["rows"])
+        starts, last = xl_statement(w, st["title"], sub, status, st["rows"], colour_change=key != "bs")
         pages[tab] = (4, starts, last)
 
     # --- the granular list
@@ -523,6 +551,7 @@ def write_xlsx(org, v):
         r += 1
         w.cell(r, 1, "✓ " + line)
     print(f"  {filename}: " + " | ".join(review))
+    ek.xl_finish(wb)
     EXPORTS.mkdir(parents=True, exist_ok=True)
     ek.save_if_changed(wb.save, EXPORTS / filename)
 
@@ -553,7 +582,7 @@ def html_report(org, v):
     ch = f4["chart"]
     views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
     chart_svg = "".join((f"<p class=viewlabel>{esc(vw['label'])}</p>" if len(views) > 1 else "")
-                        + ek.hbar_svg({**ch, **{k_: vw.get(k_) for k_ in ("values", "format", "target", "marks", "mark_label", "below_marks")}, "order_by": views[0]["values"], "variance_pct": views[0]["values"]})
+                        + ek.hbar_svg(ek.bar_spec(ch, vw, views))
                         for vw in views)
     def wk(sp):
         two = all(not r_[2] for r_ in sp["rows"])
@@ -574,7 +603,7 @@ header b {{ font-size: 13pt; }} header small {{ margin-left: auto; color: #5f6f6
 h1 {{ font-size: 17pt; margin: 6px 0 2px; }} .about {{ color: #5f6f63; margin: 0 0 10px; }}
 .sample {{ display: inline-block; background: #f6f1e7; border: 1px solid #b28a92; color: #6b5532; border-radius: 4px; padding: 2px 8px; font-size: 8.5pt; font-weight: 700; }}
 h2 {{ font-size: 12.5pt; color: #2f7a5d; margin: 16px 0 6px; }} h3 {{ font-size: 10.5pt; margin: 10px 0 4px; color: #2f7a5d; }}
-table {{ width: 100%; border-collapse: collapse; page-break-inside: avoid; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 4px 6px; font-size: 9pt; }}
+table {{ width: 100%; border-collapse: collapse; }} table.wk, table.assum {{ page-break-inside: avoid; }} tr {{ page-break-inside: avoid; }} thead {{ display: table-header-group; }} th {{ text-align: left; background: #2f7a5d; color: #fff; padding: 4px 6px; font-size: 9pt; }}
 td {{ padding: 3px 6px; border-bottom: 1px solid #eef2ee; }} .n {{ text-align: right; font-variant-numeric: tabular-nums; }}
 tr.heading td {{ font-weight: 700; color: #2f7a5d; padding-top: 7px; border: 0; }} tr.detail td:first-child {{ padding-left: 16px; color: #5f6f63; }}
 tr.subtotal td, tr.total td {{ font-weight: 700; border-top: 1px solid #9db8a6; }} tr.total td {{ border-bottom: 1px solid #25342a; }}
@@ -597,13 +626,13 @@ footer {{ margin-top: 14px; font-size: 8pt; color: #5f6f63; }}
 {ek.status_box_html([(date.fromisoformat(m + "-01").strftime("%B %Y"), *ds.month_status(m)) for m in STATUS_MONTHS])}
 <h2>The fourth sheet: September 2026 vs August 2026</h2><div class=kpis>{kpis}</div>
 <h3>{esc(ch['title'])}</h3><p class=stline>{esc(ch.get('subtitle', ''))}</p><div class=chart>{chart_svg}</div>
-<div class=page><h2>How each number is worked out</h2>{workings}</div>
+<div class=flow><h2>How each number is worked out</h2>{workings}</div>
 <div class="page wide"><h2>{esc(dtitle)}</h2>{tbl}</div>
 <div class=page>{stmt(st['pnl'])}</div>
 <div class=page>{stmt(st['bs'])}</div>
 <div class=page>{stmt(st['cf'])}</div>
 <div class=page><h2>Assumptions</h2>{assum}<h3>Checks (all passed)</h3><ul class=checks>{''.join(f'<li>✓ {esc(c)}</li>' for c in checks(org))}</ul>
-<footer>Generated {date.today().isoformat()} by a driver-based model: every figure is calculated from the assumptions above. Sample data only, not financial advice.</footer></div>
+<footer>{ek.generated_text()} by a driver-based model: every figure is calculated from the assumptions above. Sample data only, not financial advice. {ek.MADE_WITH['pdf']}.</footer></div>
 </body></html>"""
 
 
@@ -614,7 +643,7 @@ def write_pptx(org, v):
     name = v["model"]["long_name"]
     d = pptkit.Deck(name, "Monthly report pack, September 2026", f"{org}-sample-statements.pptx", ds.as_at_text())
     d.title_slide(v["model"]["about"], [f"{date.fromisoformat(m + '-01').strftime('%B %Y')}: {ds.month_status(m)[0]}. {ds.month_status(m)[1]}" for m in STATUS_MONTHS])
-    d.kpi_slide("The fourth sheet: September 2026 vs August 2026", [(k["label"], k["value"], k["sub"]) for k in f4["kpis"]])
+    d.kpi_slide("The fourth sheet: September 2026 vs August 2026", [(k["label"], k["value"], k["sub"], k.get("cls", "")) for k in f4["kpis"]])
     ch = f4["chart"]
     views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
     for vw in views:
@@ -627,8 +656,10 @@ def write_pptx(org, v):
         else:
             below = None if ch.get("plain") else [(tgt is not None and x < tgt) or (vw.get("below_marks") and vw.get("marks") and x < vw["marks"][i]) for i, x in enumerate(vw["values"])]
             bad, warn = [x < 0 for x in vw["values"]], None
-        d.bar_slide(ch["title"] + (f" · {vw['label']}" if len(views) > 1 else ""), ch["labels"], vw["values"], vw["format"],
-                    (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"), order_by=views[0]["values"], bad=bad, warn=warn)
+        d.bar_slide(ch["title"], ch["labels"], vw["values"], vw["format"],
+                    (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below,
+                    " · ".join(x for x in (vw["label"] if len(views) > 1 else None, ch.get("subtitle")) if x), order_by=views[0]["values"], bad=bad, warn=warn,
+                    series_name=vw["label"] or ch["title"])
     for k in f4["kpis"]:
         sp = k["support"]
         d.table_slides(f"How it's worked out: {sp['title']}", sp["head"] if any(r_[2] for r_ in sp["rows"]) else sp["head"][:2],
@@ -640,7 +671,8 @@ def write_pptx(org, v):
     dtitle, dhead, drows = pdf_detail_rows(org, v)
     cellv = lambda c: fmt(c) if isinstance(c, int) else (f"{c:,.1f}" if isinstance(c, float) else c)
     d.table_slides(dtitle, dhead, [[cellv(c) for c in r_] for r_ in drows])
-    d.table_slides("Assumptions", ["", ""], [[a_, b_] for g_, items in v["assumptions"] for a_, b_ in items])
+    for g_, items in v["assumptions"]:            # one slide per group: label / value, no empty header row
+        d.table_slides(f"Assumptions: {g_}", None, [[a_, b_] for a_, b_ in items])
     ek.save_if_changed(d.save, EXPORTS / f"{org}-sample-statements.pptx")
 
 

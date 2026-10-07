@@ -714,6 +714,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       "value": "$162",
       "sub": "▼ from $205 in Aug",
       "cls": "good",
+      "good_when": "lower",
       "support": {
        "title": "Cost to win a customer",
        "formula": "Marketing spend ÷ new customers",
@@ -1798,7 +1799,12 @@ window.FOURTH_SHEET_DASHBOARD = {
    },
    "exports_meta": {
     "pdf_pages": 7,
-    "pptx_slides": 16
+    "pptx_slides": 18,
+    "names": {
+     "xlsx": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.xlsx",
+     "pdf": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0937.pdf",
+     "pptx": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.pptx"
+    }
    }
   },
   {
@@ -2541,6 +2547,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       "value": "$216,090",
       "sub": "▲ from $149,190 in Aug",
       "cls": "bad",
+      "good_when": "lower",
       "support": {
        "title": "Cash tied up in work",
        "formula": "Work in progress + unpaid invoices at month end",
@@ -3884,7 +3891,12 @@ window.FOURTH_SHEET_DASHBOARD = {
    },
    "exports_meta": {
     "pdf_pages": 8,
-    "pptx_slides": 14
+    "pptx_slides": 17,
+    "names": {
+     "xlsx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.xlsx",
+     "pdf": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0937.pdf",
+     "pptx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.pptx"
+    }
    }
   },
   {
@@ -4446,6 +4458,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       "value": "20¢",
       "sub": "▲ from 13¢ in Aug",
       "cls": "bad",
+      "good_when": "lower",
       "spine": true,
       "support": {
        "title": "Cost to raise a dollar",
@@ -4697,6 +4710,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       "value": "$117,300",
       "sub": "to spend in 6 months · 2 grants ending",
       "cls": "bad",
+      "good_when": "lower",
       "support": {
        "title": "Grants ending in the next 6 months",
        "formula": "Grant total − spent to date, for each grant ending soon",
@@ -5876,7 +5890,12 @@ window.FOURTH_SHEET_DASHBOARD = {
    },
    "exports_meta": {
     "pdf_pages": 7,
-    "pptx_slides": 14
+    "pptx_slides": 16,
+    "names": {
+     "xlsx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.xlsx",
+     "pdf": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0937.pdf",
+     "pptx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.pptx"
+    }
    }
   }
  ]

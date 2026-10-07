@@ -75,15 +75,17 @@ def write_files(r, formats, out=None):
     out = Path(out) if out else out_dir(r)
     out.mkdir(parents=True, exist_ok=True)
     done = []
-    if "xlsx" in formats:
-        review = br.write_xlsx(r, out)
-        done.append((out / f"{r['slug']}.xlsx", " | ".join(review)))
-    if "pptx" in formats:
-        br.write_pptx(r, out)
-        done.append((out / f"{r['slug']}.pptx", ""))
-    if "pdf" in formats:
-        br.write_pdfs([r], out)
-        done.append((out / f"{r['slug']}.pdf", ""))
+    for part in br.file_parts(r):        # one set of files per business
+        f = br.file_name(part)
+        if "xlsx" in formats:
+            review = br.write_xlsx(part, out)
+            done.append((out / f"{f}.xlsx", " | ".join(review)))
+        if "pptx" in formats:
+            br.write_pptx(part, out)
+            done.append((out / f"{f}.pptx", ""))
+        if "pdf" in formats:
+            br.write_pdfs([part], out)
+            done.append((out / f"{f}.pdf", ""))
     return done
 
 
@@ -100,8 +102,12 @@ def write_site(all_runs):
     base = {}
     for slug, runs in all_runs.items():
         for r in runs:
-            base_path = f"media/exports/reports/{r['period']}/{r['slug']}"
-            r["exports_meta"] = ek.export_meta({"pdf": base_path + ".pdf", "pptx": base_path + ".pptx"})
+            parts = br.file_parts(r)
+            per = ek.period_name(r["period"], r["period_status"] == "Incomplete")
+            meta = lambda p_: ek.export_meta({k: f"media/exports/reports/{r['period']}/{br.file_name(p_)}.{k}" for k in ("xlsx", "pdf", "pptx")},
+                                             p_["business"], br.SHORT.get(r["slug"], r["slug"]), per)
+            r["exports_meta"] = meta(parts[0])
+            r["_parts"] = [{"file": br.file_name(p_), "label": p_["blocks"][0].get("label") if len(parts) > 1 else None, "meta": meta(p_)} for p_ in parts]
             p = site_payload(r)
             if r["period"] == r["default_period"]:
                 base[slug] = p
@@ -135,15 +141,16 @@ def build_all(formats=("xlsx", "pdf", "pptx"), quiet=False):
     br.write_cards(defaults)
     br.write_explainer()
     flat = [r for rs in runs.values() for r in rs]
-    for r in flat:
+    files = [part for r in flat for part in br.file_parts(r)]       # one set of downloads per business
+    for r in files:
         if "xlsx" in formats:
             review = br.write_xlsx(r, out_dir(r))
             if not quiet and r["period"] == r["default_period"]:
-                print(f"  {r['slug']}.xlsx: " + " | ".join(review))
+                print(f"  {br.file_name(r)}.xlsx: " + " | ".join(review))
         if "pptx" in formats:
             br.write_pptx(r, out_dir(r))
     if "pdf" in formats:
-        br.write_pdfs(flat)
+        br.write_pdfs(files)
     size = write_site(runs)          # after the files, so the Export menu can say how many pages and slides they have
     print(f"  {len(runs)} reports × their periods = {len(flat)} runs, each as Excel, PDF and PowerPoint (media/exports/reports/<period>/); "
           f"data/reports-data.js {size // 1024} KB + one file per period")

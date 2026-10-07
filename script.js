@@ -162,6 +162,9 @@ function buildReportCard(report, index) {
   return card;
 }
 
+// What made the hand-built charts (Nathan: every hand-built chart or report says what tools made it; embeds say it themselves)
+const MADE_WITH_HTML = '<p class="made-with">Made with HTML, CSS and JavaScript, coded by hand · numbers prepared in Python</p>';
+
 function setupChartTips() {
   // Every chart point, bar or row with data-tip shows its label and value: on hover, on keyboard focus, and on tap.
   const tip = document.createElement('div');
@@ -322,6 +325,8 @@ function mountExportMenu(container, opts) {
         a.removeAttribute('aria-disabled');
         a.removeAttribute('tabindex');
         const m = state.meta || {};
+        // saved as e.g. "Sample Electrical & Air Pty Ltd - Job margins - September 2026 - generated 2026-10-08 1435.xlsx"
+        if (m.names && m.names[a.dataset.fmt]) a.setAttribute('download', m.names[a.dataset.fmt]); else a.setAttribute('download', '');
         size.textContent = a.dataset.fmt === 'pdf' && m.pdf_pages ? `${m.pdf_pages} page${m.pdf_pages === 1 ? '' : 's'}`
           : a.dataset.fmt === 'pptx' && m.pptx_slides ? `${m.pptx_slides} slide${m.pptx_slides === 1 ? '' : 's'}` : '';
       } else {
@@ -992,6 +997,7 @@ function mountReport(root, r, only, simple, opts = {}) {
       const what = [kinds.has('kpis') || kinds.has('insight') ? 'number' : '', kinds.has('bars') ? 'bar' : '', kinds.has('series') ? (r.slug === 'runway' || r.slug === 'cash-payroll' ? 'day' : 'month') : ''].filter(Boolean);
       if (what.length) parts.push(`<p class="dash-hint">Click or tap any ${what.length > 1 ? `${what.slice(0, -1).join(', ')} or ${what[what.length - 1]}` : what[0]} for its workings.</p>`);
     }
+    if (!opts.noMadeWith) parts.push(MADE_WITH_HTML);
     // only redraw (and so re-animate) sections whose content changed; others just get fresh workings links
     const norm = (h) => h.replace(/data-sup="\d+"/g, '').replace(/ag\d+/g, '');
     parts.forEach((h, i) => {
@@ -1095,7 +1101,9 @@ function setupReport() {
         initial: view,
         onState: (v) => {
           view = v;
-          if (menu) menu.update({ period: r.period_label, filterLabel: [v.business, v.filterLabel].filter(Boolean).join(' · '), exports: r.exports, meta: r.exports_meta });
+          // separate businesses have separate files: the menu offers the business on screen, never both in one
+          const ex = (r.exports_by_business || {})[v.business] || { exports: r.exports, meta: r.exports_meta };
+          if (menu) menu.update({ period: r.period_label, filterLabel: [v.business, v.filterLabel].filter(Boolean).join(' · '), exports: ex.exports, meta: ex.meta });
           syncUrl();
         },
       });
@@ -1129,7 +1137,7 @@ function setupReport() {
   // the featured chart on the SME and not-for-profit pages
   document.querySelectorAll('[data-report-feature]').forEach((el) => {
     const r = all[el.dataset.reportFeature];
-    if (r) mountReport(el, r, el.dataset.only ? el.dataset.only.split(',') : null, true);
+    if (r) mountReport(el, r, el.dataset.only ? el.dataset.only.split(',') : null, true, { noMadeWith: true });   // the cards' credit line covers it
   });
   // a small live chart on every example report card
   const drawCard = (el) => {
