@@ -460,7 +460,7 @@ def write_xlsx(org, v):
         ws4.cell(r, 1, lab)
         n = len(rowmap)
         pct_row = rowmap[n - 1]                                  # the last row is the % (margin / spent against budget)
-        dollar_row = rowmap[n - 2] if org != "nfp" else rowmap[2]   # profit / contribution; grants: spent to date
+        dollar_row = rowmap[n - 2]                                # profit / contribution; grants: over (under) budget in $
         for c, vw in enumerate(views, 2):
             pc = vw["format"].startswith("pct")
             ws4.cell(r, c, f"=Workings!B{pct_row if pc else dollar_row}").number_format = F["pct" if pc else "money"]
@@ -619,9 +619,13 @@ def write_pptx(org, v):
     views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
     for vw in views:
         tgt = vw.get("target")
-        below = None if ch.get("plain") else [(tgt is not None and x < tgt) or (vw.get("below_marks") and vw.get("marks") and x < vw["marks"][i]) for i, x in enumerate(vw["values"])]
+        if ch.get("variance"):     # over budget red, under budget grey
+            below, bad = [x < 0 for x in vw["values"]], [x > 0 for x in vw["values"]]
+        else:
+            below = None if ch.get("plain") else [(tgt is not None and x < tgt) or (vw.get("below_marks") and vw.get("marks") and x < vw["marks"][i]) for i, x in enumerate(vw["values"])]
+            bad = [x < 0 for x in vw["values"]]
         d.bar_slide(ch["title"] + (f" · {vw['label']}" if len(views) > 1 else ""), ch["labels"], vw["values"], vw["format"],
-                    (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"), order_by=views[0]["values"])
+                    (f"{tgt:.1f}%" if tgt is not None and str(vw["format"]).startswith("pct") else None), below, ch.get("subtitle"), order_by=views[0]["values"], bad=bad)
     for k in f4["kpis"]:
         sp = k["support"]
         d.table_slides(f"How it's worked out: {sp['title']}", sp["head"] if any(r_[2] for r_ in sp["rows"]) else sp["head"][:2],

@@ -424,8 +424,6 @@ body.dev-notes .devnote { display: flex; }
 .cred-inner { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-2) var(--sp-6); }
 .cred-line { margin: 0; font-size: var(--fs-md); max-width: 52rem; }
 .cred-names { margin: 0; font-size: var(--fs-sm); letter-spacing: 0.08em; text-transform: uppercase; }
-.cred-names a { color: var(--on-dark-muted); text-decoration: none; }
-.cred-names a:hover { text-decoration: underline; }
 
 /* AUDIENCE SECTIONS — spine number beside the "next layer" numbers */
 .audience-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: var(--sp-6); align-items: start; }
@@ -449,7 +447,10 @@ body.dev-notes .devnote { display: flex; }
 .info-card a { color: var(--accent); text-underline-offset: 3px; }
 
 /* HERO DASHBOARD — sample statements and "the fourth sheet" on the home page */
-.hero-grid--dash { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; }
+.hero-grid--dash { grid-template-columns: minmax(0, 45fr) minmax(0, 55fr); align-items: start; }   /* the dashboard gets ~55% */
+.hero-grid--dash > div:first-child { padding-top: var(--sp-3); }   /* the eyebrow lines up with the dashboard's first row */
+.hero-grid--dash > div:first-child > .eyebrow { margin-top: 0; }
+.dash-orgbar { margin-bottom: var(--sp-2); }
 /* The headline with the sheets illustration (assets/brand/sheets-illustration.svg) on a brand-green panel beside it. */
 .hero-headline { display: flex; align-items: center; gap: var(--sp-5); }
 .hero-headline h1 { flex: 1; min-width: 0; }
@@ -556,6 +557,17 @@ body.dev-notes .devnote { display: flex; }
 .q-chips--page li { font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-3); }
 .q-intro { margin: var(--sp-4) 0 0; font-weight: 700; color: var(--text); }
 
+/* QUESTION ROWS — the questions on the home page doors: full-width rows, the same padding, › on the right */
+.q-rows { display: grid; gap: var(--sp-2); margin: var(--sp-2) 0 0; padding: 0; list-style: none; }
+.q-rows li { min-width: 0; }
+.q-rows a, .q-rows .q-soon { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); min-height: 44px; padding: var(--sp-2) var(--sp-4); font-size: var(--fs-sm); line-height: 1.3; color: var(--text); text-decoration: none; background: var(--accent-soft); border-radius: var(--r-sm); }
+.q-rows a::after { content: "\203A"; font-size: var(--fs-lg); font-weight: 700; color: var(--accent); }
+.q-rows a:hover, .q-rows a:focus-visible { background: var(--accent-soft-hover); outline: 2px solid var(--accent); outline-offset: -2px; }
+.q-rows .q-soon { color: var(--muted); background: var(--track); }
+.soon-tag { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.q-own-line { margin: var(--sp-3) 0 0; font-size: var(--fs-sm); color: var(--muted); }
+.q-own-line a { font-weight: 700; color: var(--accent); }
+
 /* HUB AND SPOKE — home "doors", sub-page headers, links between pages */
 .doors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5); }
 .door {
@@ -591,6 +603,9 @@ body.dev-notes .devnote { display: flex; }
 .rung p { color: var(--muted); }
 .rung-price { margin-top: auto; padding-top: var(--sp-3); border-top: 1px solid var(--border); font-weight: 700; color: var(--text); }
 .rung-price small { display: block; font-weight: 400; color: var(--muted); }
+.rung-tag { display: block; margin: 0 0 var(--sp-2); font-size: var(--fs-xs); font-weight: 700; color: var(--accent); }
+.rung-price span:empty { display: none; }
+.ladder-price { margin: 0 0 var(--sp-2); font-weight: 700; color: var(--text); }
 .offer-cta { margin-top: var(--sp-6); }
 
 /* NO DATA YET? — help clients start capturing data */

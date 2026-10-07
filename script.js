@@ -281,6 +281,7 @@ const PRICES = {
 
 function applyPrices() {
   if (!SHOW_PRICES) return;
+  document.querySelectorAll('[data-price-note]').forEach((n) => { n.hidden = true; });   // "Talk to me about pricing" goes once prices show
   document.querySelectorAll('[data-price]').forEach((node) => {
     const value = PRICES[node.dataset.price];
     if (value && !/\[\[.*\]\]/.test(value)) node.textContent = value;
@@ -310,6 +311,9 @@ const dash = { org: 'trades', tab: 'fourth', view: 'pct' };
 const acct = (n) => (n < 0 ? `(${Math.abs(n).toLocaleString('en-AU')})` : n === 0 ? '-' : n.toLocaleString('en-AU'));
 const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const CHART_FORMATS = {
+  // over (+) / under (-) budget, said in words so an underspend isn't shown as a red negative
+  pct_var: (v) => (Math.round(v * 10) === 0 ? 'on budget' : `${Math.abs(Number(v)).toFixed(1)}% ${v > 0 ? 'over' : 'under'}`),
+  money_var: (v) => (Math.round(v) === 0 ? 'on budget' : `$${Math.abs(Math.round(v)).toLocaleString('en-AU')} ${v > 0 ? 'over' : 'under'}`),
   money0: (v) => (v < 0 ? `($${Math.round(-v).toLocaleString('en-AU')})` : `$${Math.round(v).toLocaleString('en-AU')}`),
   pct0: (v) => `${Math.round(v)}%`,
   pct1: (v) => (v < 0 ? `(${Math.abs(Number(v)).toFixed(1)}%)` : `${Number(v).toFixed(1)}%`),
@@ -389,7 +393,7 @@ function renderChart(ch, width = 320) {
   const n = ch.values.length, plotH = n * row;
   const below = (v, i) => !ch.plain && ((ch.target != null && v < ch.target) || (ch.below_marks && ch.marks && v < ch.marks[i]));
   const anyBelow = ch.values.some((v, i) => below(v, i));
-  const H = top + plotH + (anyBelow || ch.marks ? 40 : ch.target != null ? 24 : 6);
+  const H = top + plotH + (anyBelow || ch.marks || ch.variance ? 40 : ch.target != null ? 24 : 6);
   const lo = Math.min(0, ...ch.values);
   const max = Math.max(...ch.values, ch.target || 0, ...(ch.marks || [0])) * 1.05;
   const x = (v) => left + ((v - lo) / (max - lo || 1)) * (right - left);
@@ -402,7 +406,7 @@ function renderChart(ch, width = 320) {
     const v = ch.values[i];
     const y = top + pos * row + (row - bh) / 2;
     const dim = ch.highlight && ch.labels[i] !== ch.highlight ? ' dash-row--dim' : '';
-    const cls = v < 0 ? ' dash-bar--bad' : below(v, i) ? ' dash-bar--below' : '';
+    const cls = ch.variance ? (v > 0 ? ' dash-bar--bad' : v < 0 ? ' dash-bar--below' : '') : v < 0 ? ' dash-bar--bad' : below(v, i) ? ' dash-bar--below' : '';
     const bx = Math.min(x(v), x0), bw = Math.abs(x(v) - x0);
     g += `<g class="dash-row${dim}" data-detail="${i}" tabindex="0" role="button" aria-label="${esc(ch.labels[i])}: ${fmt(v)}. Show the workings.">`
       + `<rect class="dash-hit" x="0" y="${(top + pos * row).toFixed(1)}" width="${W}" height="${row}"/>`
@@ -414,14 +418,17 @@ function renderChart(ch, width = 320) {
     let lx = Math.max(x(v), x0) + 5;
     if (ch.marks) { const mx = x(ch.marks[i]); if (mx >= x(v) - 1 && mx < lx + tw + 3) lx = mx + 5; }
     if (ch.target != null && lx - 3 < x(ch.target) && x(ch.target) < lx + tw + 3) lx = x(ch.target) + 5;
-    g += `<text class="dash-value${v < 0 ? ' neg' : ''}" x="${lx.toFixed(1)}" y="${(y + bh - 3).toFixed(1)}">${txt}</text></g>`;
+    const bad = ch.variance ? v > 0 : v < 0;
+    g += `<text class="dash-value${bad ? ' neg' : ''}" x="${lx.toFixed(1)}" y="${(y + bh - 3).toFixed(1)}">${txt}</text></g>`;
   });
   if (ch.target != null) {   // drawn after the bars, so the target sits on top
     const tx = x(ch.target).toFixed(1);
     g += `<line class="dash-target" x1="${tx}" x2="${tx}" y1="${top - 4}" y2="${top + plotH + 2}"/>`;
     g += `<text class="dash-target-label" x="${tx}" y="${top + plotH + 16}" text-anchor="middle">Target ${fmt(ch.target)}</text>`;
   }
-  if (anyBelow && !ch.marks) g += `<rect class="dash-bar--below" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Below target</text>`;
+  if (ch.variance) g += `<rect class="dash-bar--bad" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Over budget</text>`
+    + `<rect class="dash-bar--below" x="${left + 110}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 126}" y="${H - 3}">Under budget</text>`;
+  else if (anyBelow && !ch.marks) g += `<rect class="dash-bar--below" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Below target</text>`;
   if (ch.marks) g += `<line class="dash-mark" x1="${left + 4}" x2="${left + 4}" y1="${H - 14}" y2="${H - 1}"/><text class="dash-key" x="${left + 12}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}.`;
   return `<svg class="dash-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
@@ -475,7 +482,7 @@ function renderFourth(o) {
   }
   const w = chartWidth(document.getElementById('dash-panel'), 32);
   return `<div class="dash-kpis">${kpis}</div>
-    <div class="dash-chart"><div class="dash-chart-head"><p class="dash-chart-title">${esc(ch.title)}</p>${toggle}</div>${ch.subtitle ? `<p class="dash-chart-sub">${esc(ch.subtitle)}</p>` : ''}${renderChart(ch, w)}<p class="dash-hint">Tap a bar or a number to see how it's worked out.</p></div>`;
+    <div class="dash-chart"><div class="dash-chart-head"><p class="dash-chart-title">${esc(ch.title)}</p>${toggle}</div>${ch.subtitle ? `<p class="dash-chart-sub">${esc(ch.subtitle)}</p>` : ''}${renderChart(ch, w)}<p class="dash-hint">Click or tap any number for its workings.</p></div>`;
 }
 
 function renderAssumptions(o) {
@@ -500,16 +507,21 @@ function renderDash() {
   document.querySelectorAll('#dash-orgs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.org === dash.org)));
   const check = document.getElementById('dash-check');
   const ok = orgBalances(o);
+  if (!ok) console.warn('Sample statements do not balance: re-run tools/sample_data.py');
+  if (check) {
   check.hidden = false;
   check.className = `dash-check ${ok ? 'is-ok' : 'is-bad'}`;
   check.textContent = ok ? '✓ Balances' : '✗ Does not balance';
   check.title = ok ? o.checks.join(' · ') : 'A check failed: re-run tools/sample_data.py';
+  }
   const rep = data.status[0];
   const chip = document.getElementById('dash-status');
-  chip.hidden = false;
-  chip.className = `dash-status is-${rep.status.toLowerCase()}`;
-  chip.textContent = `${rep.label.split(' ')[0]} ${rep.status.toLowerCase()}`;
-  chip.title = data.status.map((m) => m.note).join(' ');
+  if (chip) {
+    chip.hidden = false;
+    chip.className = `dash-status is-${rep.status.toLowerCase()}`;
+    chip.textContent = `${rep.label.split(' ')[0]} ${rep.status.toLowerCase()}`;
+    chip.title = data.status.map((m) => m.note).join(' ');
+  }
   document.getElementById('dash-xlsx').href = o.exports.xlsx;
   document.getElementById('dash-pdf').href = o.exports.pdf;
   if (document.getElementById('dash-pptx')) document.getElementById('dash-pptx').href = o.exports.pptx;

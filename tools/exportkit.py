@@ -19,7 +19,7 @@ Palette (muted, and still distinct when printed in black and white):
 
 from datetime import date
 
-GOOD, SOME, BAD, OPEN, INK, MUTED, LINE = "#0E9F6E", "#A7B0B8", "#8f4a3e", "#8e9cab", "#2f2f2f", "#5f6f63", "#dce8dc"
+GOOD, SOME, BAD, OPEN, INK, MUTED, LINE = "#0E9F6E", "#7D8790", "#b42318", "#8e9cab", "#2f2f2f", "#5f6f63", "#dce8dc"
 NEG = "#B42318"     # negative numbers: always red, in brackets
 NEG_CSS = ".neg {{ color: #B42318; }}"
 
@@ -53,6 +53,10 @@ def esc(s):
 
 
 def fmt_value(v, f):
+    if f == "pct_var":        # over (+) or under (-) budget: said in words, so an underspend isn't a red negative
+        return "on budget" if round(v, 1) == 0 else f"{abs(v):.1f}% {'over' if v > 0 else 'under'}"
+    if f == "money_var":
+        return "on budget" if round(v) == 0 else f"${abs(round(v)):,} {'over' if v > 0 else 'under'}"
     if f == "pct1":
         return f"({-v:.1f}%)" if v < 0 else f"{v:.1f}%"
     if f == "pct0":
@@ -82,19 +86,25 @@ def hbar_svg(ch, width=640):
     below = lambda v, i: not plain and ((target is not None and v < target) or (below_marks and marks and v < marks[i]))
     any_below = any(below(v, i) for i, v in enumerate(values))
     height = top + plot_h + (36 if (any_below or marks) else 22 if target is not None else 8)
-    mx = max(values + ([target] if target is not None else []) + (marks or [])) * 1.08
-    x = lambda v: left + v / mx * (right - left)
+    variance = ch.get("variance")          # over/under budget: around zero, over = red, under = grey
+    mx = max(values + ([target] if target is not None else []) + (marks or []) + [0]) * 1.08
+    lo = min(values + [0]) * 1.08
+    if variance:
+        right = width - 90
+    x = lambda v: left + (v - lo) / ((mx - lo) or 1) * (right - left)
+    x0 = x(0)
     tx = x(target) if target is not None else None
-    g = [f'<line x1="{left}" x2="{left}" y1="{top - 3}" y2="{top + plot_h}" stroke="{LINE}" stroke-width="1.5"/>']
+    g = [f'<line x1="{x0:.1f}" x2="{x0:.1f}" y1="{top - 3}" y2="{top + plot_h}" stroke="{LINE}" stroke-width="1.5"/>']
     by = ch.get("order_by") or values
     order = sorted(range(len(values)), key=lambda i: -by[i])     # order set by the first view, same in every view
     for pos, i in enumerate(order):
         lab, v = labels[i], values[i]
         y = top + pos * row + (row - bh) / 2
         g.append(f'<text x="{left - 8}" y="{y + bh - 3}" text-anchor="end" font-size="11" fill="{MUTED}">{esc(lab)}</text>')
-        g.append(f'<rect x="{left}" y="{y}" width="{x(v) - left:.1f}" height="{bh}" rx="2" fill="{SOME if below(v, i) else GOOD}"/>')
+        fill = (NEG if v > 0 else SOME) if variance else (NEG if v < 0 else SOME if below(v, i) else GOOD)
+        g.append(f'<rect x="{min(x(v), x0):.1f}" y="{y}" width="{abs(x(v) - x0):.1f}" height="{bh}" rx="2" fill="{fill}"/>')
         text = fmt_value(v, f)
-        lx = x(v) + 5
+        lx = max(x(v), x0) + 5
         if marks:
             mxp = x(marks[i])
             g.append(f'<line x1="{mxp:.1f}" x2="{mxp:.1f}" y1="{y - 3}" y2="{y + bh + 3}" stroke="{INK}" stroke-width="2"/>')
@@ -102,12 +112,17 @@ def hbar_svg(ch, width=640):
                 lx = mxp + 5
         if tx is not None and lx - 4 < tx < lx + len(text) * char + 4:   # the label would sit on the target line
             lx = tx + 5
-        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{NEG if v < 0 else INK}">{esc(text)}</text>')
+        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{(NEG if v > 0 else INK) if variance else (NEG if v < 0 else INK)}">{esc(text)}</text>')
     if target is not None:
         g.append(f'<line x1="{tx:.1f}" x2="{tx:.1f}" y1="{top - 4}" y2="{top + plot_h + 2}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
         g.append(f'<text x="{tx:.1f}" y="{top + plot_h + 15}" text-anchor="middle" font-size="10" font-weight="600" fill="{INK}">Target {fmt_value(target, f)}</text>')
     ky = height - 6
-    if any_below and not marks:
+    if variance:
+        height += 14
+        ky = height - 6
+        g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{NEG}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Over budget</text>'
+                 f'<rect x="{left + 105}" y="{ky - 9}" width="10" height="10" rx="2" fill="{SOME}"/><text x="{left + 120}" y="{ky}" font-size="10" fill="{MUTED}">Under budget</text>')
+    elif any_below and not marks:
         g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{SOME}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Below target</text>')
     if marks:
         g.append(f'<line x1="{left + 4}" x2="{left + 4}" y1="{ky - 11}" y2="{ky + 1}" stroke="{INK}" stroke-width="2"/><text x="{left + 12}" y="{ky}" font-size="10" fill="{MUTED}">{esc(ch.get("mark_label", ""))}</text>')

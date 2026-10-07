@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-10-28" />
+    <link rel="stylesheet" href="styles.css?v=2026-10-29" />
   </head>
 
   <!--
@@ -100,20 +100,21 @@
                adds up. Data: dashboard-data.js. Behaviour: script.js, search
                "HERO DASHBOARD". Exports: media/exports/. -->
           <figure class="hero-dash" id="hero-dash">
-            <div class="dash-head"><div class="seg" role="tablist" aria-label="Choose a statement">
+            <div class="dash-head">
+              <div class="seg-bar dash-orgbar"><span class="seg-label" id="dash-orgs-label">Sample business</span><div class="seg" role="group" aria-labelledby="dash-orgs-label" id="dash-orgs"></div></div>
+              <div class="seg" role="tablist" aria-label="Choose a statement">
               <button type="button" role="tab" data-tab="fourth" aria-selected="true">The fourth sheet</button>
               <button type="button" role="tab" data-tab="pnl" aria-selected="false">P&amp;L</button>
               <button type="button" role="tab" data-tab="bs" aria-selected="false">Balance sheet</button>
               <button type="button" role="tab" data-tab="cf" aria-selected="false">Cash flow</button>
             </div></div>
             <div class="dash-body">
-              <div class="seg" role="group" aria-label="Sample organisation" id="dash-orgs"></div>
               <div class="dash-panel" id="dash-panel" role="tabpanel">
                 <noscript><p>Turn on JavaScript to explore the sample statements, or download them: <a href="media/exports/trades-sample-statements.xlsx">Excel</a> · <a href="media/exports/trades-sample-statements.pdf">PDF</a>.</p></noscript>
               </div>
             </div>
             <figcaption class="dash-caption">
-              <span><span class="dash-sample">Sample data</span> <span class="dash-check" id="dash-check" hidden></span> <span class="dash-status" id="dash-status" hidden></span></span>
+              <span class="dash-sample">Sample data</span>
               <span class="dash-actions">
                 <button type="button" id="dash-assumptions">Assumptions</button>
                 <a id="dash-xlsx" href="media/exports/trades-sample-statements.xlsx" download>Excel</a>
@@ -154,13 +155,25 @@
             <div class="door">
               <span class="door-eyebrow">For SMEs</span>
               <strong>What's really making you money?</strong>
-              <ul class="q-chips" aria-label="Example questions"><li><a href="report-cost-to-win.html">What does it cost to win a customer?</a></li><li><a href="report-job-margins.html">Which jobs actually make money?</a></li><li class="q-later" title="Coming soon: built from your bank and accounting system">Will cash cover payroll next month?</li><li><a href="report-growth.html">Which products and services are growing?</a></li><li class="q-own">…or bring your own</li></ul>
+              <ul class="q-rows" aria-label="Example questions">
+                <li><a href="report-cost-to-win.html">What does it cost to win a customer?</a></li>
+                <li><a href="report-job-margins.html">Which jobs actually make money?</a></li>
+                <li><a href="report-growth.html">Which products and services are growing?</a></li>
+                <li class="q-soon"><span>Will cash cover payroll next month?</span><span class="soon-tag">Coming soon</span></li>
+              </ul>
+              <p class="q-own-line">Got a different question? <a href="#contact">Bring your own &rarr;</a></p>
               <a class="door-go" href="sme.html">See how it works for SMEs &rarr;</a>
             </div>
             <div class="door">
               <span class="door-eyebrow">For not-for-profits</span>
               <strong>Show where every dollar goes.</strong>
-              <ul class="q-chips" aria-label="Example questions"><li><a href="report-cost-to-raise.html">What does it cost to raise a dollar?</a></li><li><a href="report-program-cost.html">What does each program really cost?</a></li><li><a href="report-runway.html">How many months of runway do we have?</a></li><li><a href="report-funding.html">Which funding is worth chasing?</a></li><li><a href="report-board.html">What does the board need to see?</a></li><li class="q-own">…or bring your own</li></ul>
+              <ul class="q-rows" aria-label="Example questions">
+                <li><a href="report-cost-to-raise.html">What does it cost to raise a dollar?</a></li>
+                <li><a href="report-program-cost.html">What does each program really cost?</a></li>
+                <li><a href="report-runway.html">How many months of runway do we have?</a></li>
+                <li><a href="report-funding.html">Which funding is worth chasing?</a></li>
+              </ul>
+              <p class="q-own-line">Got a different question? <a href="#contact">Bring your own &rarr;</a></p>
               <a class="door-go" href="not-for-profit.html">See how it works for not-for-profits &rarr;</a>
             </div>
           </div>
@@ -171,7 +184,7 @@
       <section class="cred-strip" aria-label="Background">
         <div class="container cred-inner">
           <p class="cred-line">Twenty years building the reporting that listed and global companies ran on, now set up for organisations your size, dealing with you directly.</p>
-          <p class="cred-names"><a href="examples.html">Abbott Rapid Diagnostics · Shine Lawyers</a></p>
+          <p class="cred-names">Abbott Rapid Diagnostics · Shine Lawyers</p>
         </div>
       </section>
 
@@ -183,37 +196,33 @@
           <div class="section-heading">
             <p class="eyebrow">Services</p>
             <h2>Start with setup. Go as far up as you like.</h2>
-            <p class="lead">Setup is the front door. Once your system is running, you choose: take it from there, have me alongside while the habit forms, or have me run your month-end.</p>
+            <p class="lead">Everything starts with a setup. After that, how much of me you keep is up to you.</p>
           </div>
 
           <ol class="ladder">
             <li class="rung">
               <span class="rung-step">1</span>
+              <span class="rung-tag">Start here: every engagement begins with setup</span>
               <h3>Set up and hand over</h3>
               <p>I build the system, train your team and leave it running.</p>
-              <p class="rung-price"><span data-price="setup">Talk to me about pricing</span><small>One-off fixed fee</small></p>
+              <p class="rung-price"><span data-price="setup"></span><small>One-off fixed fee</small></p>
             </li>
             <li class="rung">
               <span class="rung-step">2</span>
               <h3>Bedding-in</h3>
               <p>Setup, plus a few months alongside you while the habit forms.</p>
-              <p class="rung-price"><span data-price="bedding">Talk to me about pricing</span><small>Fixed term</small></p>
+              <p class="rung-price"><span data-price="bedding"></span><small>Fixed term</small></p>
             </li>
             <li class="rung">
               <span class="rung-step">3</span>
               <h3>Monthly</h3>
               <p>I run your month-end and review rhythm with you.</p>
-              <p class="rung-price"><span data-price="monthly">Talk to me about pricing</span><small>Monthly retainer</small></p>
+              <p class="rung-price"><span data-price="monthly"></span><small>Monthly retainer</small></p>
             </li>
           </ol>
 
-          <!-- Clients without usable data: help them start capturing it -->
-          <div class="no-data">
-            <h3>No data to hand over yet?</h3>
-            <p>That's fine. I'll work with you to set up the processes and frameworks to capture it: simple templates, forms and routines your team can keep up. Then the reporting is built on top.</p>
-          </div>
-
-          <p class="more-link"><a href="services.html">Services, in full &rarr;</a></p>
+          <p class="ladder-price" data-price-note>Talk to me about pricing.</p>
+          <p class="no-data-line"><strong>No data to hand over yet?</strong> That's fine: I'll help you start capturing it first. <a href="services.html">Services, in full &rarr;</a></p>
         </div>
       </section>
 
@@ -252,7 +261,7 @@
       </div>
     </footer>
 
-    <script src="data/dashboard-data.js?v=2026-10-28"></script>
-    <script src="script.js?v=2026-10-28"></script>
+    <script src="data/dashboard-data.js?v=2026-10-29"></script>
+    <script src="script.js?v=2026-10-29"></script>
   </body>
 </html>

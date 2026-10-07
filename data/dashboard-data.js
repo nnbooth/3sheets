@@ -4686,8 +4686,8 @@ window.FOURTH_SHEET_DASHBOARD = {
      },
      {
       "label": "Grants ending in 6 months",
-      "value": "2 · $117,300",
-      "sub": "still to spend before they end",
+      "value": "$117,300",
+      "sub": "to spend in 6 months · 2 grants ending",
       "cls": "bad",
       "support": {
        "title": "Grants ending in the next 6 months",
@@ -4750,8 +4750,8 @@ window.FOURTH_SHEET_DASHBOARD = {
      }
     ],
     "chart": {
-     "title": "Each grant: spent to 30 September 2026 against budget to the same date",
-     "subtitle": "Whole grant from its start date. Budget to date = the grant spread evenly over its months.",
+     "title": "Each grant: over or under budget to 30 September 2026",
+     "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over budget in red; under budget in grey.",
      "labels": [
       "Youth outreach",
       "Housing support",
@@ -4761,53 +4761,42 @@ window.FOURTH_SHEET_DASHBOARD = {
       "Volunteer coordinator"
      ],
      "values": [
-      102.1,
-      95.4,
-      95.3,
-      99.3,
-      100.0,
-      100.0
+      2.1,
+      -4.6,
+      -4.7,
+      -0.7,
+      0.0,
+      0.0
      ],
-     "target": 100.0,
-     "format": "pct1",
+     "format": "pct_var",
      "what": "grant spend against budget",
-     "plain": true,
+     "variance": true,
      "views": [
       {
        "id": "pct",
        "label": "% of budget",
        "values": [
-        102.1,
-        95.4,
-        95.3,
-        99.3,
-        100.0,
-        100.0
+        2.1,
+        -4.6,
+        -4.7,
+        -0.7,
+        0.0,
+        0.0
        ],
-       "format": "pct1",
-       "target": 100.0
+       "format": "pct_var"
       },
       {
        "id": "dollars",
-       "label": "$ spent",
+       "label": "$",
        "values": [
-        306300,
-        257700,
-        57200,
-        59600,
-        12000,
-        21000
+        6300,
+        -12300,
+        -2800,
+        -400,
+        0,
+        0
        ],
-       "format": "money0",
-       "marks": [
-        300000,
-        270000,
-        60000,
-        60000,
-        12000,
-        21000
-       ],
-       "mark_label": "Budget to date"
+       "format": "money_var"
       }
      ],
      "details": [
@@ -4850,8 +4839,13 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Spent against budget",
-         "102.1%",
+         "Over (under) budget to date",
+         "$6,300",
+         ""
+        ],
+        [
+         "Over (under) budget, % of budget to date",
+         "2.1%",
          ""
         ]
        ],
@@ -4965,12 +4959,20 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0-r2"
          },
          {
-          "label": "Spent against budget",
+          "label": "Over (under) budget to date",
+          "kind": "money",
+          "values": [
+           6300
+          ],
+          "calc": "r2-r3"
+         },
+         {
+          "label": "Over (under) budget, % of budget to date",
           "kind": "pct",
           "values": [
-           1.021
+           0.020999999999999908
           ],
-          "calc": "r2/r3"
+          "calc": "r2/r3-1"
          }
         ]
        }
@@ -5014,8 +5016,13 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Spent against budget",
-         "95.4%",
+         "Over (under) budget to date",
+         "($12,300)",
+         ""
+        ],
+        [
+         "Over (under) budget, % of budget to date",
+         "(4.6%)",
          ""
         ]
        ],
@@ -5111,12 +5118,20 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0-r2"
          },
          {
-          "label": "Spent against budget",
+          "label": "Over (under) budget to date",
+          "kind": "money",
+          "values": [
+           -12300
+          ],
+          "calc": "r2-r3"
+         },
+         {
+          "label": "Over (under) budget, % of budget to date",
           "kind": "pct",
           "values": [
-           0.9544444444444444
+           -0.04555555555555557
           ],
-          "calc": "r2/r3"
+          "calc": "r2/r3-1"
          }
         ]
        }
@@ -5160,8 +5175,13 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Spent against budget",
-         "95.3%",
+         "Over (under) budget to date",
+         "($2,800)",
+         ""
+        ],
+        [
+         "Over (under) budget, % of budget to date",
+         "(4.7%)",
          ""
         ]
        ],
@@ -5248,12 +5268,20 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0-r2"
          },
          {
-          "label": "Spent against budget",
+          "label": "Over (under) budget to date",
+          "kind": "money",
+          "values": [
+           -2800
+          ],
+          "calc": "r2-r3"
+         },
+         {
+          "label": "Over (under) budget, % of budget to date",
           "kind": "pct",
           "values": [
-           0.9533333333333334
+           -0.046666666666666634
           ],
-          "calc": "r2/r3"
+          "calc": "r2/r3-1"
          }
         ]
        }
@@ -5297,8 +5325,13 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Spent against budget",
-         "99.3%",
+         "Over (under) budget to date",
+         "($400)",
+         ""
+        ],
+        [
+         "Over (under) budget, % of budget to date",
+         "(0.7%)",
          ""
         ]
        ],
@@ -5403,12 +5436,20 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0-r2"
          },
          {
-          "label": "Spent against budget",
+          "label": "Over (under) budget to date",
+          "kind": "money",
+          "values": [
+           -400
+          ],
+          "calc": "r2-r3"
+         },
+         {
+          "label": "Over (under) budget, % of budget to date",
           "kind": "pct",
           "values": [
-           0.9933333333333333
+           -0.00666666666666671
           ],
-          "calc": "r2/r3"
+          "calc": "r2/r3-1"
          }
         ]
        }
@@ -5452,8 +5493,13 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Spent against budget",
-         "100.0%",
+         "Over (under) budget to date",
+         "$0",
+         ""
+        ],
+        [
+         "Over (under) budget, % of budget to date",
+         "0.0%",
          ""
         ]
        ],
@@ -5531,12 +5577,20 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0-r2"
          },
          {
-          "label": "Spent against budget",
+          "label": "Over (under) budget to date",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": "r2-r3"
+         },
+         {
+          "label": "Over (under) budget, % of budget to date",
           "kind": "pct",
           "values": [
-           1.0
+           0.0
           ],
-          "calc": "r2/r3"
+          "calc": "r2/r3-1"
          }
         ]
        }
@@ -5580,8 +5634,13 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
-         "Spent against budget",
-         "100.0%",
+         "Over (under) budget to date",
+         "$0",
+         ""
+        ],
+        [
+         "Over (under) budget, % of budget to date",
+         "0.0%",
          ""
         ]
        ],
@@ -5671,12 +5730,20 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": "r0-r2"
          },
          {
-          "label": "Spent against budget",
+          "label": "Over (under) budget to date",
+          "kind": "money",
+          "values": [
+           0
+          ],
+          "calc": "r2-r3"
+         },
+         {
+          "label": "Over (under) budget, % of budget to date",
           "kind": "pct",
           "values": [
-           1.0
+           0.0
           ],
-          "calc": "r2/r3"
+          "calc": "r2/r3-1"
          }
         ]
        }

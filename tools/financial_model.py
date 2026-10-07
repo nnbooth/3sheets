@@ -794,23 +794,23 @@ def fourth_nfp(m, out):
         inp("Grant total", "money", [gr["total"]]), inp("Received from the funder", "money", [gr["received_to_date"]]),
         inp("Spent to date", "money", [gr["spent_to_date"]]), inp("Budget to date", "money", [gr["budget_to_date"]]),
         inp("Months left", "int", [gr["months_left"]]), calc("Still to spend", "money", "r0-r2"),
-        calc("Spent against budget", "pct", "r2/r3")], None,
+        calc("Over (under) budget to date", "money", "r2-r3"), calc("Over (under) budget, % of budget to date", "pct", "r2/r3-1")], None,
         {"title": "Spend by month against budget", "labels": [mname(x["month"]) for x in gr["monthly"]],
          "values": [x["spend"] for x in gr["monthly"]], "budget": [x["budget"] for x in gr["monthly"]], "format": "money0"},
         cols=("This grant",)) for gr in G]
-    pcts = [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details]
+    pcts = [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details]          # over (+) or under (-) budget, % of budget to date
+    var_d = [d["xl"]["rows"][-2]["values"][0] for d in details]                          # the same, in dollars
     return {
         "kpis": [{"label": "Cost to raise a dollar, September", "value": FMT["cents"](ctr[0]), "sub": k1, "cls": c1, "spine": True, "support": s_ctr},
                  {"label": "Unrestricted cash runway", "value": FMT["months"](run[0]), "sub": k2, "cls": c2, "support": s_run},
-                 {"label": f"Grants ending in {m['ending_within_months']} months", "value": f"{len(ending)} · {money(sum(gr['unspent'] for gr in ending))}",
-                  "sub": "still to spend before they end", "cls": "bad" if ending else "", "support": s_end}],
-        "chart": {"title": "Each grant: spent to 30 September 2026 against budget to the same date",
-                  "subtitle": "Whole grant from its start date. Budget to date = the grant spread evenly over its months.",
+                 {"label": f"Grants ending in {m['ending_within_months']} months", "value": money(sum(gr['unspent'] for gr in ending)),
+                  "sub": f"to spend in {m['ending_within_months']} months · {len(ending)} grant{'s' if len(ending) != 1 else ''} ending", "cls": "bad" if ending else "", "support": s_end}],
+        "chart": {"title": "Each grant: over or under budget to 30 September 2026",
+                  "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over budget in red; under budget in grey.",
                   "labels": [gr["program"] for gr in G],
-                  "values": pcts, "target": 100.0, "format": "pct1", "what": "grant spend against budget", "plain": True,
-                  "views": [{"id": "pct", "label": "% of budget", "values": pcts, "format": "pct1", "target": 100.0},
-                            {"id": "dollars", "label": "$ spent", "values": [gr["spent_to_date"] for gr in G], "format": "money0",
-                             "marks": [gr["budget_to_date"] for gr in G], "mark_label": "Budget to date"}],
+                  "values": pcts, "format": "pct_var", "what": "grant spend against budget", "variance": True,
+                  "views": [{"id": "pct", "label": "% of budget", "values": pcts, "format": "pct_var"},
+                            {"id": "dollars", "label": "$", "values": var_d, "format": "money_var"}],
                   "details": details},
         "facts": dict(ctr=ctr, runway=run, ending=ending),
     }
