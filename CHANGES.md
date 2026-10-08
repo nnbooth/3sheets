@@ -134,3 +134,14 @@
 ## Also
 - OneDrive sometimes stalls reading a file it's still syncing; the data reader now waits and retries rather than stopping the build.
 - Home dashboard: the three headline tiles look alike (the left tile's green "lead" style is gone; on phones the third tile takes its own row). A change that rounds to nothing reads "■ same as Aug ($173)" in neutral, not a red arrow beside two equal numbers.
+
+## Final checks (8 Oct)
+- `site_check.py`: 17 pages × 3 widths, 9 reports at every period, Export menus, links, keyboard, chart tooltips, per-business growth files, download names. `check_exports.py`: 86 workbooks, 13,686 formulas and headline numbers. `org_separation.py`: data, 86 report runs, 9 Power BI prompts. All pass.
+- Playwright at 390, 1440 and 2560 px: no sideways scrolling and no chart text under 11 px on any page. Drill-downs open on every report at September and at October to date.
+- Every local `href` resolves and every download exists (site_check). No line with `data-placeholder`, `.devnote` or `dev-notes` was removed or changed in any commit (checked with git diff each phase).
+
+### Couldn't do, or needs you
+- **Excel targets:** Excel can't draw a vertical target line across horizontal bars natively, so the target is in the chart title (the web, PDF and PowerPoint draw the line).
+- **Drafts to confirm:** the Services "How long" lines and the first-30-days steps (italic, with a TO DO note), and the About career moments (`[[CAREER_1]]`–`[[CAREER_3]]`).
+- **PowerPoint extra views:** decks show the first view of each chart (gross margin %). The $ view is in Excel and the PDF.
+- **Growth card:** shows trades and services as two separate groups on one card (never combined or ranked). If you'd rather the card show one business only, say which.
