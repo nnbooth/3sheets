@@ -145,7 +145,7 @@ def write_pages(reports):
         </div>
 {dialog}      </section>
 {contact}    </main>'''
-        t = tail.replace(f'<script src="script.js?v={v}"></script>',
+        t = tail if "data/reports-data.js" in tail else tail.replace(f'<script src="script.js?v={v}"></script>',
                          f'<script src="data/reports-data.js?v={v}"></script>\n    <script src="script.js?v={v}"></script>')
         (REPO / f"report-{r['slug']}.html").write_text(h + body + t)
 

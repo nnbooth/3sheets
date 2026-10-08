@@ -43,6 +43,12 @@ def V(n):
     return f"VARCHAR({n})"
 
 
+def techs_in(mo):
+    """Technicians employed in a month: the same headcount the ledger's wages use (history.py; 7 from January 2026)."""
+    import history
+    return history.trades_techs(mo)
+
+
 def working(d):
     return d.weekday() < 5 and d not in ds.QLD_HOLIDAYS
 
@@ -156,7 +162,8 @@ def build(res, history_jobs, timesheet_rows, grant_spend_rows, grant_rows):
         if d == asat.date():
             break                                 # today's shifts aren't over
         dk = key(d)
-        on = [t for t in TECHS if working(d) and rnd.random() > 0.04]           # leave and sick days
+        crew = TECHS[:techs_in(d.strftime("%Y-%m"))]                          # the technicians employed that month
+        on = [t for t in crew if working(d) and rnd.random() > 0.04]           # leave and sick days
         if not on and job_hours.get(dk, 0) == 0:
             continue
         busy = job_hours.get(dk, 0)
@@ -170,7 +177,7 @@ def build(res, history_jobs, timesheet_rows, grant_spend_rows, grant_rows):
                 ot = round(rnd.choice([0.5, 1, 1.5, 2, 2, 2.5, 3]) * 2) / 2
             shifts.append([dk, "trades", t, ORDINARY, ot, why])
         if not working(d) and rnd.random() < 0.12 + 0.18 * trend(d):           # a weekend emergency
-            shifts.append([dk, "trades", rnd.choice(TECHS), 0, rnd.choice([2, 2.5, 3, 4]), "After-hours call-out"])
+            shifts.append([dk, "trades", rnd.choice(TECHS[:techs_in(d.strftime("%Y-%m"))]), 0, rnd.choice([2, 2.5, 3, 4]), "After-hours call-out"])
     tbl("fact_shift_daily", "Trades: each technician's paid hours by day, Oct 2024 to 5 Oct 2026: ordinary hours (7.6 a working day) and overtime, with the main reason for the overtime. "
         "Technicians are codes (T1 to T7). Ordinary hours cover the hours charged to jobs (fact_timesheet_daily); the rest is travel, quoting and time not charged.",
         [("date_key", "INT REFERENCES dim_date(date_key)"), ("org_id", V(12) + " REFERENCES dim_org(org_id)"), ("technician", V(4)),

@@ -152,6 +152,8 @@ def build_all(formats=("xlsx", "pdf", "pptx"), quiet=False):
     if "pdf" in formats:
         br.write_pdfs(files)
     size = write_site(runs)          # after the files, so the Export menu can say how many pages and slides they have
+    from .dashboard_months import build as dashboard_months      # the home dashboard for every month (checks September against the model)
+    n_months = dashboard_months(D)
     print(f"  {len(runs)} reports × their periods = {len(flat)} runs, each as Excel, PDF and PowerPoint (media/exports/reports/<period>/); "
-          f"data/reports-data.js {size // 1024} KB + one file per period")
+          f"data/reports-data.js {size // 1024} KB + one file per period; home dashboard: {n_months} months")
     return defaults

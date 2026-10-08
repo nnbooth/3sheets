@@ -63,7 +63,8 @@ CALLOUT_SEASON = {12: 1.30, 1: 1.40, 2: 1.30, 11: 1.15, 3: 1.05, 6: 0.85, 7: 0.8
 
 
 def trades_techs(mo):
-    return 5 if mo < "2025-03" else 6 if mo < "2026-01" else 7
+    # sized to the work: technicians' time on jobs stays in a believable range (about 55% to 85%) every month
+    return 6 if mo < "2026-01" else 7
 
 
 def trades_jobs(m):
@@ -163,7 +164,8 @@ COURSES = [("Budgeting workshop", 6400, 20), ("Excel for managers", 8800, 30), (
 
 
 def services_consultants(mo):
-    return 4 if mo < "2025-07" else 5 if mo < "2026-03" else 6
+    # sized to the work: billable hours never exceed the hours the consultants have
+    return 5 if mo < "2026-03" else 6
 
 
 def services_engagements(m):
@@ -336,9 +338,11 @@ def build(res):
                 continue
             ds_ = [d for d in wdays(mo) if (j["type"] == "Maintenance contract" or d <= j["invoice_date"])]
             if j["type"] == "Installation":
+                if mo == OCT:     # the five working days before the invoice reach back into September (locked): only October's share is posted
+                    ds_ = [d for d in wdays("2026-09") + wdays(mo) if d <= j["invoice_date"]]
                 ds_ = ds_[-5:] or wdays(mo)[:1]
             for d, h in zip(ds_, allocate(int(j["hours"] * 2), [1] * len(ds_))):
-                if h and (mo != OCT or d <= AS_AT):
+                if h and (mo != OCT or (d.strftime("%Y-%m") == OCT and d <= AS_AT)):
                     out["ts"].append((d, "trades", j["job"], None, h / 2))
 
     # ---------------- services

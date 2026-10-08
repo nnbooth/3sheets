@@ -354,7 +354,7 @@ function mountExportMenu(container, opts) {
         a.removeAttribute('href');
         a.setAttribute('aria-disabled', 'true');
         a.tabIndex = -1;
-        size.textContent = 'Not available for a part month';
+        size.textContent = (state.meta && state.meta.unavailable) || 'Not available for a part month';
       }
     });
   }
@@ -603,6 +603,7 @@ function statementAddsUp(rows) {
 // The headline ties: balance sheet balances, cash flow ends at the bank balance
 function orgBalances(o) {
   const val = (rows, label) => (rows.find((r) => r.label === label) || {}).values;
+  if (o.statements.bs.unavailable) return statementAddsUp(o.statements.pnl.rows);    // a month with the profit and loss only
   const bs = o.statements.bs.rows, cf = o.statements.cf.rows;
   const equity = val(bs, 'Total equity') || val(bs, 'Accumulated funds');
   const ok = ['pnl', 'bs', 'cf'].every((k) => statementAddsUp(o.statements[k].rows));
@@ -610,6 +611,7 @@ function orgBalances(o) {
 }
 
 function renderStatement(o, st) {
+  if (st.unavailable) return `<p class="dash-unavailable">${esc(st.unavailable)}</p>`;
   const rows = st.rows.map((r) => {
     if (r.level === 'heading') return `<tr class="st-heading"><th colspan="4" scope="rowgroup">${esc(r.label)}</th></tr>`;
     const change = r.values[0] - r.values[1];
@@ -1105,6 +1107,7 @@ function setupReport() {
       document.head.appendChild(s_);
     });
     const params = new URLSearchParams(window.location.search);
+    let periodFallback = '';
     let view = { business: params.get('business'), filter: params.get('filter') };     // restored from a copied link
     let current = base;
     const exportBox = document.getElementById('report-export');
@@ -1122,7 +1125,7 @@ function setupReport() {
       const st = r.status[0];
       const later = r.status.slice(1).map((x) => `${x.label} is still in progress`);
       meta.innerHTML = `${metaStart} · <span class="dash-status is-${st.status.toLowerCase()}" title="${esc(r.status.map((x) => x.note).join(' '))}">${esc(r.period_label)}: ${esc(st.status.toLowerCase())}</span>${later.length ? ` · ${esc(later.join(' · '))}` : ''}`;
-      document.getElementById('report-period-note').textContent = r.part_note || r.periods_note || '';
+      document.getElementById('report-period-note').textContent = [r.part_note || r.periods_note || '', periodFallback].filter(Boolean).join(' ');
       const root = document.getElementById('report-root');
       root.innerHTML = '';
       const inner = document.createElement('div');
@@ -1159,19 +1162,26 @@ function setupReport() {
         sel.value = base.period;
       }).finally(() => { sel.disabled = false; });
     };
-    const want = params.get('period');
-    const valid = (p) => base.periods.some((o) => o.value === p);
-    if (want && valid(want) && want !== base.period) go(want, false); else show(base);
-    if (sel) sel.addEventListener('change', () => go(sel.value, true));
+    const asked = params.get('period') || sitePeriod();
+    const want = pickPeriod(base.periods, asked);
+    if (asked && want && want !== asked) {        // this report doesn't have that month: the nearest earlier one, said plainly
+      periodFallback = `${monthLabel(asked)} isn't available for this report, so it opens on ${monthLabel(want)}.`;
+    }
+    if (want && want !== base.period) go(want, false); else show(base);
+    if (sel) sel.addEventListener('change', () => { periodFallback = ''; setSitePeriod(sel.value); go(sel.value, true); });
   }
   // the featured chart on the SME and not-for-profit pages
   document.querySelectorAll('[data-report-feature]').forEach((el) => {
     const r = all[el.dataset.reportFeature];
-    if (r) mountReport(el, r, el.dataset.only ? el.dataset.only.split(',') : null, true, { noMadeWith: true });   // the cards' credit line covers it
+    if (!r) return;
+    const only = el.dataset.only ? el.dataset.only.split(',') : null;
+    const p = pickPeriod(r.periods, sitePeriod());
+    if (p && p !== r.period) loadReportPeriod(el.dataset.reportFeature, p).then((x) => mountReport(el, x, only, true, { noMadeWith: true })).catch(() => mountReport(el, r, only, true, { noMadeWith: true }));
+    else mountReport(el, r, only, true, { noMadeWith: true });   // the cards' credit line covers it
   });
   // a small live chart on every example report card
-  const drawCard = (el) => {
-    const r = all[el.dataset.reportCard];
+  const drawCard = (el, override) => {
+    const r = override || el._period || all[el.dataset.reportCard];
     if (!r) return;
     const secs = r.blocks[0].sections.map((x) => (x.type === 'vary' ? (x.by.All || Object.values(x.by)[0]) : x));
     const k = secs.find((x) => x.type === 'kpis');
@@ -1206,10 +1216,58 @@ function setupReport() {
     }
     el.innerHTML = html;
   };
+  const chosen = sitePeriod();
   document.querySelectorAll('[data-report-card]').forEach((el) => {
     drawCard(el);
+    const base = all[el.dataset.reportCard];
+    const p = base && pickPeriod(base.periods, chosen);
+    if (p && p !== base.period) {          // the month picked on the home page (or a report page)
+      loadReportPeriod(el.dataset.reportCard, p).then((r) => {
+        el._period = r;
+        drawCard(el, r);
+        const ans = el.nextElementSibling;
+        if (ans && ans.tagName === 'P' && r.answer) ans.textContent = r.answer;
+      }).catch(() => {});
+    }
     if ('ResizeObserver' in window) { let w = el.clientWidth; new ResizeObserver(() => { if (Math.abs(el.clientWidth - w) >= 8) { w = el.clientWidth; drawCard(el); } }).observe(el); }
   });
+}
+
+/* ---------------------------------------------------------------------------
+   SITE PERIOD — the month picked on the home page (or any report page) carries to every page for the rest of the
+   visit: report pages open on it, report cards show it. Kept in sessionStorage ('fs-period') and in links as ?period=.
+   A report that doesn't have that month opens on the nearest earlier one it does have (or its first, if the month is
+   older than all its data), and says so.
+--------------------------------------------------------------------------- */
+const SITE_PERIOD_KEY = 'fs-period';
+function sitePeriod() {
+  const q = new URLSearchParams(window.location.search).get('period');
+  if (/^\d{4}-\d{2}$/.test(q || '')) { setSitePeriod(q); return q; }   // a shared link sets the month for the rest of the visit
+  try { return sessionStorage.getItem(SITE_PERIOD_KEY); } catch (e) { return null; }
+}
+function setSitePeriod(p) { try { if (p) sessionStorage.setItem(SITE_PERIOD_KEY, p); } catch (e) { /* storage blocked: the page still works */ } }
+function pickPeriod(periods, want) {        // periods newest first, [{ value: 'yyyy-mm', … }]
+  if (!want || !periods || !periods.length) return null;
+  if (periods.some((o) => o.value === want)) return want;
+  const earlier = periods.find((o) => o.value <= want);
+  return earlier ? earlier.value : periods[periods.length - 1].value;   // older than all its data: its first month
+}
+function monthLabel(p) { const [y, m] = p.split('-').map(Number); return new Date(y, m - 1, 1).toLocaleString('en-AU', { month: 'long', year: 'numeric' }); }
+function loadScriptData(src, ready) {        // a generated data file, loaded once; resolves when ready() returns the data
+  return new Promise((ok, fail) => {
+    const have = ready();
+    if (have) { ok(have); return; }
+    const ver = ((document.querySelector('script[src*="script.js"]') || {}).src || '').split('?v=')[1] || '';
+    const el = document.createElement('script');
+    el.src = `${src}${ver ? `?v=${ver}` : ''}`;
+    el.onload = () => (ready() ? ok(ready()) : fail());
+    el.onerror = fail;
+    document.head.appendChild(el);
+  });
+}
+function loadReportPeriod(slug, p) {
+  const cache = window.FOURTH_SHEET_PERIODS = window.FOURTH_SHEET_PERIODS || {};
+  return loadScriptData(`data/reports/${slug}/${p}.js`, () => cache[`${slug}|${p}`]);
 }
 
 function setupHeroDash() {
@@ -1220,6 +1278,31 @@ function setupHeroDash() {
   if (data.orgs.some((o) => o.id === askedFor)) dash.org = askedFor;
   const exportBox = document.getElementById('dash-export');
   if (exportBox) dash.menu = mountExportMenu(exportBox, { period: data.status[0].label });
+  // Period: every month the data has; September is the full dashboard, other months load when picked
+  const list = window.FOURTH_SHEET_DASHBOARD_LIST;
+  const perSel = document.getElementById('dash-period');
+  if (list && perSel) {
+    const base = data;
+    perSel.innerHTML = list.months.map((m) => `<option value="${m.value}">${esc(m.label)}${m.status === 'Incomplete' ? ' (incomplete)' : ''}</option>`).join('');
+    const loadMonth = (mo) => (mo === list.default ? Promise.resolve(base)
+      : loadScriptData(`data/dashboard/${mo}.js`, () => (window.FOURTH_SHEET_DASHBOARD_MONTHS || {})[mo]));
+    const showMonth = (mo, remember) => {
+      perSel.disabled = true;
+      loadMonth(mo).then((d) => {
+        window.FOURTH_SHEET_DASHBOARD = d;
+        perSel.value = mo;
+        if (remember) setSitePeriod(mo);
+        const u = new URL(window.location.href);
+        if (mo === list.default) u.searchParams.delete('period'); else u.searchParams.set('period', mo);
+        history.replaceState(null, '', u);
+        renderDash();
+      }).catch(() => { perSel.value = list.default; }).finally(() => { perSel.disabled = false; });
+    };
+    const start = pickPeriod(list.months, sitePeriod()) || list.default;
+    perSel.value = start;
+    if (start !== list.default) setTimeout(() => showMonth(start, false), 0);
+    perSel.addEventListener('change', () => showMonth(perSel.value, true));
+  }
   document.getElementById('dash-orgs').innerHTML = data.orgs.map((o) => `<button type="button" data-org="${o.id}" aria-pressed="false">${esc(o.toggle)}</button>`).join('');
   // switching organisation always opens on the fourth sheet
   box.querySelectorAll('[data-org]').forEach((b) => b.addEventListener('click', () => { dash.org = b.dataset.org; dash.tab = 'fourth'; renderDash(); }));

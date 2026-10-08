@@ -1,5 +1,12 @@
 # Changes
 
+## Site-wide period picker
+- The home dashboard has a **Period** picker covering every month from November 2024 to October 2026 to date (September 2026 is the default: the latest month that's over). Each month is built from the ledger by `tools/fourthsheet/dashboard_months.py` (`data/dashboard-months.js` + `data/dashboard/<month>.js`), and the build stops if September stops matching the modelled month-end.
+- The picked month carries through the visit (sessionStorage `fs-period`, or `?period=` in a link): report pages open on it, and the SME and not-for-profit cards and featured charts show it. A report without that month opens on the nearest earlier one it has (or its first, if the month is older than all its data), and says so.
+- The balance sheet, cash flow and monthly export pack exist for September 2026 only (opening balances are 31 July 2026); other months show a plain note there rather than invented figures. Cost to win and revenue per billable hour show "–" for October to date ("counted at month end").
+- History fixes: technicians 6 before January 2026, consultants 5 before March 2026, and October installation hours spread from September, so time on jobs and utilisation stay believable (about 40–90%) in every month.
+- Report pages no longer load `reports-data.js` twice.
+
 ## Opening animation (branch `intro-animation`)
 - The home page opens with a short intro (about 9 s): Profit & loss, Balance sheet and Cash flow arrive one at a time with a one-line caption each, a piece of data from each flows into the fourth sheet ("The Fourth Sheet: Analysis. What it all means and what to do next."), then the picture shrinks into the sheets illustration beside the headline.
 - Plays once per visit. "Skip intro", Esc or a click ends it early. Never shown with reduced motion, a link to a section (`#…`), `?intro=off` or automated tests; `?intro=on` forces it.

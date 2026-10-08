@@ -1252,3 +1252,10 @@ body.intro-active .hero-sheets img { visibility: hidden; }
 }
 /* At 1700 px and up (larger root font) an even split keeps the headline to three lines, so the columns' natural heights match */
 @media (min-width: 1700px) { .hero-grid--dash { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+/* HOME DASHBOARD — the Period picker (carries to every page for the visit), and months without a balance sheet */
+.dash-orgbar { justify-content: space-between; }
+.dash-period { display: flex; align-items: center; gap: var(--sp-2); }
+.dash-period select { min-height: 36px; padding: 0 var(--sp-2); border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--paper); font: inherit; font-size: var(--fs-sm); color: var(--text); }
+@media (pointer: coarse) { .dash-period select { min-height: 44px; } }
+.dash-unavailable { margin: var(--sp-4) 0; padding: var(--sp-3) var(--sp-4); background: var(--accent-soft); border-radius: var(--r-sm); font-size: var(--fs-sm); color: var(--text); }

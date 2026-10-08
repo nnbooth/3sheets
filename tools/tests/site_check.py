@@ -113,7 +113,8 @@ def main():
                     probs.append((w, s, "Period dropdown missing"))
                     continue
                 before = pg.inner_text("#report-root")
-                opening = pg.eval_on_selector("#report-period", "e => e.value")     # the period the page opens on
+                opening = pg.eval_on_selector("#report-period", "e => e.value")     # the period the page opens on (the month picked earlier in the visit carries over)
+                default = pg.evaluate(f"window.FOURTH_SHEET_REPORTS[{s!r}].period")   # the default month needs no ?period=
                 if w == 1280:
                     periods = list(zip(opts, labels))           # every period at desktop width; the oldest elsewhere
                 else:
@@ -123,7 +124,7 @@ def main():
                     pg.wait_for_timeout(450)
                     if per != opening and pg.inner_text("#report-root") == before:
                         probs.append((w, s, per, "report didn't change with the period"))
-                    if per != opening and f"period={per}" not in pg.url:
+                    if per != default and f"period={per}" not in pg.url:
                         probs.append((w, s, per, "address doesn't carry the period"))
                     pg.click(".xm-btn")
                     pg.wait_for_timeout(120)
@@ -192,13 +193,27 @@ def main():
                         probs.append(("growth", org, "export files aren't this business's own", hrefs))
                     pg.keyboard.press("Escape")
                 # home hero and deliveries: the Export menu points at real files
-                for page, sel in (("index.html", "#dash-export"), ("examples.html", "#deliv-export")):
+                for page, sel in (("index.html?period=2026-09", "#dash-export"), ("examples.html", "#deliv-export")):
                     pg.goto(base + page)
                     pg.wait_for_timeout(600)
                     pg.click(f"{sel} .xm-btn")
                     for u in pg.eval_on_selector_all(f"{sel} .xm-item", "a => a.map(x => x.getAttribute('href'))"):
                         if not u or not ok(base + u):
                             probs.append((page, "export file missing", u))
+                    pg.keyboard.press("Escape")
+                # other months on the home page: no monthly pack, said plainly; no invented balance sheet
+                pg.goto(base + "index.html?period=2025-03")
+                pg.wait_for_timeout(900)
+                if pg.eval_on_selector("#dash-period", "e => e.value") != "2025-03":
+                    probs.append(("index.html", "period link didn't open March 2025"))
+                pg.click("#dash-export .xm-btn")
+                if pg.eval_on_selector_all("#dash-export a.xm-item[href]", "a => a.length"):
+                    probs.append(("index.html", "March 2025 offers September's export pack"))
+                pg.keyboard.press("Escape")
+                pg.click('[role="tab"][data-tab="bs"]')
+                pg.wait_for_timeout(200)
+                if not pg.locator(".dash-unavailable").count():
+                    probs.append(("index.html", "March 2025 balance sheet has no 'not available' note"))
                     pg.keyboard.press("Escape")
         br.close()
     httpd.shutdown()
