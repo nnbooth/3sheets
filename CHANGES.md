@@ -168,3 +168,5 @@
 - "Services, in full →" on the home page is brand green, not browser blue.
 - Numbers explained: once the big title scrolls away, a slim bar under the site header keeps "The numbers, explained." in view, with a "Jump to a term" menu. Jumped-to terms land below it.
 - The site header (and the new bar) are solid, so text no longer shows through as you scroll.
+
+- About: the career stories are full-width rows (tag and question, what was done, the result), so stories of different lengths sit evenly. Phones: one column. Your copy unchanged.

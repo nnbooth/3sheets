@@ -469,14 +469,22 @@ body.dev-notes .devnote { display: flex; }
 .moment-result { margin: auto 0 0; padding-top: var(--sp-3); color: var(--accent); font-weight: 700; }
 .moment { display: flex; flex-direction: column; }
 .moment .card-tag { align-self: flex-start; }
-/* The three cards share rows (tag, question, description, result), so each part starts on the same line across
-   the row of cards. Browsers without subgrid keep the flex column above. */
-@supports (grid-template-rows: subgrid) {
-  #career .card-grid { grid-auto-rows: auto; }
-  #career .moment { display: grid; grid-template-rows: subgrid; grid-row: span 4; row-gap: 0; align-content: start; }
-  #career .moment > * { align-self: start; }
-  #career .moment .card-tag { justify-self: start; }
-  #career .moment .moment-result { margin-top: 0; }
+/* CAREER STORIES as rows: tag and question on the left, what was done in the middle, the result on the right.
+   Rows take any height, so stories of different lengths sit evenly. Phones: one column, top to bottom. */
+#career .card-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+#career .moment { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1.1fr); grid-template-areas: "tag desc result" "q desc result"; grid-template-rows: auto 1fr;
+  column-gap: var(--sp-7); row-gap: 0; align-items: start; }
+#career .moment .card-tag { grid-area: tag; justify-self: start; }
+#career .moment h3 { grid-area: q; margin: var(--sp-2) 0 0; }
+#career .moment > p:not(.moment-result) { grid-area: desc; margin: 0; }
+#career .moment .moment-result { grid-area: result; margin: 0; padding: 0 0 0 var(--sp-5); border-left: 2px solid var(--accent-tint-border, var(--border)); }
+#career .moment .moment-quote { grid-column: 2 / -1; }      /* only takes a row once it's shown */
+@media (max-width: 900px) {
+  #career .moment { grid-template-columns: 1fr; grid-template-areas: "tag" "q" "desc" "result"; grid-template-rows: none; row-gap: var(--sp-3); }
+  #career .moment .moment-quote { grid-column: 1; }
+  #career .moment h3 { margin-top: 0; }
+  #career .moment .moment-result { padding: var(--sp-3) 0 0; border-left: 0; border-top: 1px solid var(--border); }
+}
 }
 .moment-quote { margin: var(--sp-4) 0 0; padding: var(--sp-1) 0 var(--sp-1) var(--sp-3); border-left: 2px solid #0B6E4F; font-weight: 400; }
 .moment-quote p { margin: 0 0 var(--sp-1); color: var(--text); font-size: var(--fs-sm); }
