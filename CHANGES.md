@@ -186,3 +186,5 @@
 - Balanced question sets on the home, SME and Not-for-profit pages. Operations, customers and people for SMEs; people helped, calls for help and volunteer hours for not-for-profits; alongside the money questions with working reports. Headings broadened: "What's really driving the business?" / "Show what your work achieves." (also the SME and Not-for-profit page titles and descriptions).
 
 - Services framing: "Start where you need to." A client can come in at any of the three and move between them (some need the system built, some need help making it stick, some just want the month-end done). The cards stand on their own ("Build it", "Make it stick", "Run it"); no "Start here", no "setup is the front door".
+
+- Home hero names the sheets (user testing: people didn't know what "three sheets" meant): "The three: profit and loss, balance sheet and cash flow, the reports your accountant prepares. The fourth: the numbers underneath them, the customers, jobs, people and programs that make them what they are."

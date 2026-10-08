@@ -1158,3 +1158,7 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
   .q-list a { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "text text" "tag go"; row-gap: var(--sp-1); padding: var(--sp-3) 0; }
   .q-list .q-text { grid-area: text; } .q-list .q-tag { grid-area: tag; justify-self: start; } .q-list .q-go { grid-area: go; }
 }
+
+/* HERO — the line that says what the three sheets and the fourth are */
+.hero-define { margin: var(--sp-3) 0 var(--sp-2); font-size: var(--fs-md); line-height: 1.55; color: var(--text); max-width: 36rem; }
+.hero-define strong { color: var(--accent); }
