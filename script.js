@@ -306,7 +306,7 @@ function mountExportMenu(container, opts) {
     + `<p class="xm-head"></p>`
     + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
     // (An "Include the workings" option would go here. Every export includes the workings for now.)
-    + `<div class="xm-foot"><a class="xm-sub" role="menuitem" href="contact.html?topic=monthly">Send this to me on the 3rd business day each month &rarr;</a></div>`
+    + `<div class="xm-foot"><a class="xm-sub" role="menuitem" href="contact.html?topic=monthly">Get this report on your schedule &rarr;</a></div>`
     + `</div>`;
   const btn = container.querySelector('.xm-btn');
   const menu = container.querySelector('.xm-menu');
@@ -406,7 +406,7 @@ function setupContactForm() {
   ['report', 'period', 'view'].forEach((k) => { form.elements[k].value = q.get(k) || ''; });
   if (q.get('topic') === 'monthly' && q.get('report')) {
     const req = document.getElementById('contact-request');
-    req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''}, sent to you on the 3rd business day of each month${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
+    req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''} as standardised reporting, given on your schedule${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
     req.hidden = false;
   }
   form.addEventListener('submit', (e) => {

@@ -144,3 +144,9 @@
 - **Drafts to confirm:** the Services "How long" lines and the first-30-days steps (italic, with a TO DO note), and the About career moments (`[[CAREER_1]]`–`[[CAREER_3]]`).
 - **PowerPoint extra views:** decks show the first view of each chart (gross margin %). The $ view is in Excel and the PDF.
 - **Growth card:** shows trades and services as two separate groups on one card (never combined or ranked). If you'd rather the card show one business only, say which.
+
+## ABN and contact form (8 Oct)
+- ABN 31 839 620 153 in every page's footer (replaces the `[[ABN]]` placeholder, as the project notes describe).
+- Contact form: asks for job title. Phone isn't required, and the form doesn't call it optional. The first option reads "Standardised reporting, given on your schedule" (was "a report each month, on the 3rd business day").
+- Same wording where it was a delivery promise: the Export menu's "Get this report on your schedule →" and the request line it fills in on the contact page, and the Services "Monthly" card ("on the schedule we agree").
+- **Left for Nathan:** the Services heading "Three questions you should be able to answer on the 3rd business day of the month" (about the client's own close, not a delivery promise).

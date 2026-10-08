@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contact | The Fourth Sheet</title>
-    <meta name="description" content="Send Nathan your details, ask for a report each month, or book a free 20-minute numbers check." />
+    <meta name="description" content="Send Nathan your details, ask for standardised reporting on your schedule, or book a free 20-minute numbers check." />
 
     <!-- Favicon: SVG for modern browsers, PNG fallbacks for older ones / iOS. -->
     <link rel="icon" href="assets/brand/mark-4th.svg?v=roboto" type="image/svg+xml" />
@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-11-12" />
+    <link rel="stylesheet" href="styles.css?v=2026-11-13" />
   </head>
 
   <!--
@@ -85,7 +85,7 @@
               <p class="contact-request" id="contact-request" hidden></p>
               <fieldset class="contact-topic">
                 <legend>What would you like?</legend>
-                <label><input type="radio" name="topic" value="monthly" /> A report each month, on the 3rd business day</label>
+                <label><input type="radio" name="topic" value="monthly" /> Standardised reporting, given on your schedule</label>
                 <label><input type="radio" name="topic" value="numbers-check" checked /> A free 20-minute numbers check</label>
                 <label><input type="radio" name="topic" value="other" /> Something else</label>
               </fieldset>
@@ -94,8 +94,11 @@
                 <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" required /></label>
               </div>
               <div class="field-row">
+                <label class="field"><span>Job title</span><input type="text" name="job_title" autocomplete="organization-title" /></label>
                 <label class="field"><span>Organisation <small>(optional)</small></span><input type="text" name="organisation" autocomplete="organization" /></label>
-                <label class="field"><span>Phone <small>(optional)</small></span><input type="tel" name="phone" autocomplete="tel" /></label>
+              </div>
+              <div class="field-row">
+                <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" /></label>
               </div>
               <label class="field"><span>What would you like your numbers to tell you? <small>(optional)</small></span><textarea name="message" rows="4"></textarea></label>
               <input type="hidden" name="report" /><input type="hidden" name="period" /><input type="hidden" name="view" />
@@ -122,11 +125,11 @@
         </nav>
         <p>
           © <span id="year">2026</span> The Fourth Sheet · Nathan Booth · Brisbane, Australia ·
-          ABN <span class="tbc" data-placeholder="[[ABN]]">TBC</span>
+          ABN 31 839 620 153
         </p>
       </div>
     </footer>
 
-    <script src="script.js?v=2026-11-12"></script>
+    <script src="script.js?v=2026-11-13"></script>
   </body>
 </html>
