@@ -98,7 +98,7 @@ def main(argv=None):
     ap.add_argument("--tables", help="comma-separated table names (default: all), e.g. dim_org,retail.fact_sales")
     ap.add_argument("--dataset", help="only one area: website (dbo), retail, health or legal")
     ap.add_argument("--rebuild", action="store_true", help="drop and recreate live tables whose columns have changed (their data is reloaded)")
-    ap.add_argument("--interactive", action="store_true", help="sign in through the browser instead of az login")
+    ap.add_argument("--interactive", action="store_true", help="sign in with your Microsoft account in the browser instead of the SQL login (only if the server has you as its Entra admin)")
     a = ap.parse_args(argv)
 
     ts = schema.tables()
