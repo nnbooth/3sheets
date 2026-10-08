@@ -160,3 +160,11 @@
 - Employer names removed from the home page's credentials line (now "Healthcare diagnostics · Manufacturing · Legal services") and the Examples page's description.
 
 - About: the career cards share rows (CSS subgrid), so the tag, question, description and result each start on the same line across the three cards. Browsers without subgrid keep the previous layout.
+
+## Spacing, tiles, buttons, Numbers explained (8 Oct)
+- Tighter gaps between sections: section padding 32 px on desktop (was 48) and 24 px on phones, and a section's eyebrow adds no extra space above it. Visible gaps between sections are now 48–142 px (median 105), down from 141–190.
+- Tiles: every tile has the same outline (the home ladder's first tile no longer has a heavier green border; it keeps "Start here", now beside its step number so the three headings line up).
+- Booking button: at most one in the page plus the contact block's. Removed the end-of-page blocks on SME and Not-for-profit (they sat right above the contact block) and the button in About's links row.
+- "Services, in full →" on the home page is brand green, not browser blue.
+- Numbers explained: once the big title scrolls away, a slim bar under the site header keeps "The numbers, explained." in view, with a "Jump to a term" menu. Jumped-to terms land below it.
+- The site header (and the new bar) are solid, so text no longer shows through as you scroll.

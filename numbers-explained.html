@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-11-14" />
+    <link rel="stylesheet" href="styles.css?v=2026-11-20" />
   </head>
 
   <!--
@@ -76,7 +76,29 @@
       <section class="section page-top">
         <div class="container narrow">
           <p class="eyebrow">Plain English</p>
-          <h1>The numbers, explained.</h1>
+          <h1 data-title-bar>The numbers, explained.</h1>
+          <div class="title-bar" id="title-bar"><div class="container narrow title-bar-inner"><strong>The numbers, explained.</strong>
+            <select aria-label="Jump to a term"><option value="">Jump to a term…</option>
+              <option value="accrual">Accrual accounting (what these reports assume)</option>
+              <option value="revenue">Revenue</option>
+              <option value="direct-costs">Direct costs</option>
+              <option value="gross-margin">Gross margin (not profit)</option>
+              <option value="markup">Gross margin is not markup</option>
+              <option value="wages">Wages (the full cost of a person)</option>
+              <option value="on-costs">On-costs</option>
+              <option value="overheads">Overheads</option>
+              <option value="break-even">The gross margin you need</option>
+              <option value="profit">Profit</option>
+              <option value="profit-vs-cash">Profit is not cash</option>
+              <option value="cash-forecast">Cash forecast</option>
+              <option value="debtors">Unpaid invoices (debtors)</option>
+              <option value="wip">Work in progress</option>
+              <option value="unrestricted-cash">Unrestricted cash</option>
+              <option value="runway">Runway</option>
+              <option value="cost-to-raise">Cost to raise a dollar</option>
+              <option value="year-on-year">Growth, year on year</option>
+              <option value="status">Locked, provisional, incomplete</option>
+            </select></div></div>
           <p class="lead">The words in the reports, in plain English. The three that catch most businesses out: gross margin is not profit, wages always include on-costs, and profit is not cash. Everything here assumes accrual accounting (explained first).</p>
           <nav class="jump-list" aria-label="Terms on this page"><ul>
             <li><a href="#accrual">Accrual accounting (what these reports assume)</a></li>
@@ -161,7 +183,7 @@
       </div>
     </footer>
 
-    <script src="data/reports-data.js?v=2026-11-14"></script>
-    <script src="script.js?v=2026-11-14"></script>
+    <script src="data/reports-data.js?v=2026-11-20"></script>
+    <script src="script.js?v=2026-11-20"></script>
   </body>
 </html>

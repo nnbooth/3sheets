@@ -165,6 +165,26 @@ function buildReportCard(report, index) {
 // What made the hand-built charts (Nathan: every hand-built chart or report says what tools made it; embeds say it themselves)
 const MADE_WITH_HTML = '<p class="made-with">Made with HTML, CSS and JavaScript, coded by hand · numbers prepared in Python</p>';
 
+function setupTitleBar() {
+  // A page title kept in view: once the big h1[data-title-bar] scrolls under the site header, a slim bar with the title
+  // (and a "jump to" menu) shows just below the header. Fixed, so nothing on the page moves when it appears.
+  const h1 = document.querySelector('h1[data-title-bar]');
+  const bar = document.getElementById('title-bar');
+  const header = document.querySelector('.site-header');
+  if (!h1 || !bar || !header) return;
+  const place = () => { bar.style.top = `${Math.max(0, header.getBoundingClientRect().bottom)}px`; };
+  const update = () => { place(); bar.classList.toggle('is-shown', h1.getBoundingClientRect().bottom < header.getBoundingClientRect().bottom); };
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+  const sel = bar.querySelector('select');
+  if (sel) sel.addEventListener('change', () => {
+    const t = sel.value && document.getElementById(sel.value);
+    if (t) { const y = t.getBoundingClientRect().top + window.scrollY - header.offsetHeight - bar.offsetHeight - 8; window.scrollTo({ top: y }); }
+    sel.value = '';
+  });
+}
+
 function setupChartTips() {
   // Every chart point, bar or row with data-tip shows its label and value: on hover, on keyboard focus, and on tap.
   const tip = document.createElement('div');
@@ -1279,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupGameSlot();
   applyPrices();
-  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox(); setupChartTips();
+  setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox(); setupChartTips(); setupTitleBar();
   renderReports(); // must run before watchEmbedLoad so live report cards get a loading state
   document.querySelectorAll('[data-embed]').forEach(watchEmbedLoad);
 });

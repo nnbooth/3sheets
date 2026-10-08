@@ -50,7 +50,7 @@
   --note-edge: #8a7a52;
   --ink-line: #2f2f2f;
   --guide: #8a959c;
-  --header-bg: rgba(252, 251, 247, 0.96);
+  --header-bg: #fcfbf7;
   --backdrop: rgba(37, 52, 42, 0.45);
   /* type: six steps */
   --fs-xs: 0.75rem;
@@ -145,9 +145,10 @@ h2 { font-size: var(--fs-xl); margin: 0 0 var(--sp-3); letter-spacing: -0.02em; 
 .metric-value { display: block; font-size: var(--fs-md); color: var(--text); font-weight: 600; }
 .metric-value.positive { color: var(--accent); }
 .metric-value.neutral { color: var(--text); }
-/* SECTION SPACING — reduce these values to tighten vertical gaps between sections */
-.section { padding: var(--sp-8) 0; }
+/* SECTION SPACING — the gap between sections is about twice this (bottom of one + top of the next) */
+.section { padding: var(--sp-7) 0; }
 .section-alt { background: var(--bg-alt); }
+.section .container > :first-child, .section-heading > :first-child { margin-top: 0; }
 /* SECTION HEADING — controls gap between heading and section content */
 .section-heading { margin-bottom: var(--sp-6); }
 .card-grid, .dashboard-grid, .steps-grid { display: grid; gap: var(--sp-5); }
@@ -659,8 +660,6 @@ body.dev-notes .devnote { display: flex; }
 .q-rows--page { max-width: 44rem; }
 .cards-soon { margin: var(--sp-4) 0 0; padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); color: var(--muted); background: var(--track); border-radius: var(--r-sm); }
 .cards-soon strong { color: var(--text); }
-.page-end { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-6); margin-top: var(--sp-7); padding-top: var(--sp-6); border-top: 1px solid var(--border); }
-.page-end p { margin: 0; max-width: 34rem; color: var(--muted); }
 
 /* HUB AND SPOKE — home "doors", sub-page headers, links between pages */
 .doors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5); }
@@ -692,7 +691,6 @@ body.dev-notes .devnote { display: flex; }
 /* THE OFFER — three-rung ladder */
 .ladder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-5); margin: 0 0 var(--sp-6); padding: 0; list-style: none; }
 .rung { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-6); }
-.rung:first-child { border: 2px solid var(--accent); }
 .rung-step { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; margin-bottom: var(--sp-2); border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 700; }
 .rung p { color: var(--muted); }
 .rung-price { margin-top: auto; padding-top: var(--sp-3); border-top: 1px solid var(--border); font-weight: 700; color: var(--text); }
@@ -708,6 +706,7 @@ body.dev-notes .devnote { display: flex; }
 .no-data p { margin: 0; color: var(--muted); }
 .no-data-line { margin: var(--sp-5) 0 0; color: var(--muted); }
 .no-data-line strong { color: var(--text); }
+.no-data-line a { color: var(--accent); font-weight: 600; text-underline-offset: 3px; }
 
 /* DEV NOTE (inline) — a small orange TO DO line in the page flow */
 .devnote--inline { margin: 0 0 0.75rem; padding: 0.35rem 0.7rem; font-size: 0.85rem; font-weight: 700; color: #3a2300; background: #ffb020; border: 2px dashed #3a2300; border-radius: 0.4rem; width: fit-content; }
@@ -859,7 +858,7 @@ body.dev-notes .devnote { display: flex; }
   .hero-grid--dash, .wins-grid, .card-grid, .card-grid--two, .audience-grid, .ladder, .doors, .org-lists, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
-  .section { padding: var(--sp-7) 0; }
+  .section { padding: var(--sp-6) 0; }
   .section-heading { margin-bottom: var(--sp-4); }
 }
 @media (max-width: 720px) {
@@ -1100,6 +1099,16 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .lightbox-close { position: absolute; top: var(--sp-2); right: var(--sp-2); width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--paper); font-size: 1.6rem; line-height: 1; cursor: pointer; box-shadow: var(--shadow-sm); }
 
 /* NUMBERS EXPLAINED — the jump list of terms. */
+.title-bar { position: fixed; left: 0; right: 0; z-index: 19; background: var(--header-bg); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  transform: translateY(-120%); visibility: hidden; transition: transform 0.18s ease, visibility 0.18s; }
+.title-bar.is-shown { transform: none; visibility: visible; }
+.explain { scroll-margin-top: 130px; }      /* a jumped-to term lands below the header and the title bar */
+.title-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); min-height: 48px; }
+.title-bar strong { font-size: var(--fs-md); white-space: nowrap; }
+@media (max-width: 640px) { .title-bar strong { font-size: var(--fs-sm); } .title-bar select { flex: 0 1 auto; min-width: 0; width: min(46vw, 240px); max-width: none; } }
+.title-bar select { max-width: 55vw; min-height: 36px; padding: 0 var(--sp-2); border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--paper); font: inherit; font-size: var(--fs-sm); }
+@media (pointer: coarse) { .title-bar select { min-height: 44px; } }
+@media (prefers-reduced-motion: reduce) { .title-bar { transition: none; } }
 .jump-list ul { columns: 2; column-gap: var(--sp-6); list-style: none; margin: var(--sp-4) 0 var(--sp-6); padding: var(--sp-4) var(--sp-5); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); }
 .jump-list li { break-inside: avoid; padding: var(--sp-1) 0; font-size: var(--fs-sm); }
 .jump-list a { color: var(--accent); }
@@ -1122,3 +1131,6 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .made-with { margin: var(--sp-2) 0 0; font-size: var(--fs-xs); color: var(--muted); }
 .dash-made-with { padding: 0 var(--sp-4) var(--sp-3); margin: 0; }
 .dash-caption .made-with { display: block; margin-top: var(--sp-1); }
+
+/* LADDER — "Start here" sits beside the step number, so the three tiles' headings line up */
+.rung .rung-tag { position: absolute; top: var(--sp-6); left: calc(var(--sp-6) + 2rem + var(--sp-2)); right: var(--sp-6); margin: 0; line-height: 2rem; }
