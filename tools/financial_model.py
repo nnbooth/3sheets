@@ -22,14 +22,17 @@ published (subtotals, balance sheet balances, cash ties, profit rolls into
 equity, job/engagement/grant detail ties to the statements, debtors equal the
 unpaid invoices, unspent grants equal grants received less income recognised).
 
-Australian financial year: FY2027 runs 1 July 2026 to 30 June 2027. GST is
-excluded for simplicity. All data is invented.
+Australian financial year: FY2027 runs 1 July 2026 to 30 June 2027. GST,
+BAS, pay runs, PAYG withholding and super follow tax_payroll.py: the P&L is
+GST-exclusive (an accrual), invoices, bills and cash include GST, and money
+only moves on banking days. All data is invented.
 
 Used by tools/publish_dashboard.py (via tools/sample_data.py).
 """
 
 import random
 import data_status as ds
+import tax_payroll as tp
 from datetime import date, timedelta
 
 PERIODS = ["2026-09", "2026-08"]           # display order: this month, prior month
@@ -39,6 +42,12 @@ MONTH_END = {"2026-05": date(2026, 5, 31), "2026-06": date(2026, 6, 30), "2026-0
              "2026-08": date(2026, 8, 31), "2026-09": date(2026, 9, 30)}
 WORKING_DAYS = {"2026-08": 20, "2026-09": 22}   # Brisbane: Ekka show holiday Wed 12 Aug 2026
 HOURS_PER_DAY = 7.6
+
+
+def loaded_wages(people, working_days, rate):
+    """A month's wages incl. on-costs: every available hour (people x working days x 7.6 h) at the loaded hourly cost.
+    So the costing rate = wages / available hours, and time charged to the work + time not charged = wages, exactly."""
+    return half_up(people * working_days * HOURS_PER_DAY * rate)
 
 
 def ym(d):
@@ -57,6 +66,14 @@ def prev_month(m):
 
 def half_up(x):
     return int(x + 0.5) if x >= 0 else -int(-x + 0.5)
+
+
+def round_half_up(v, dp=0):
+    """The one rounding rule for every number shown (site, PDF, Excel, slides): halves round away from zero
+    (112.5 -> 113, 12.25 -> 12.3), worked in decimal so binary float error can't tip a half the wrong way."""
+    from decimal import Decimal, ROUND_HALF_UP
+    q = Decimal(repr(float(v))).quantize(Decimal(1).scaleb(-dp), rounding=ROUND_HALF_UP)
+    return int(q) if dp <= 0 else float(q)
 
 
 def split(total, weights):
@@ -91,28 +108,30 @@ def paid_in(invoices, m):
 TRADES = {
     "name": "SME · trades", "long_name": "Sample Electrical & Air Pty Ltd",
     "about": "An electrical and air-conditioning contractor in Brisbane: maintenance contracts, installations and call-outs. 7 technicians, 3 office staff.",
-    "technicians": 7, "tech_wages": {"2026-08": 54600, "2026-09": 54600}, "tech_cost_rate": 68,
-    "callout_rate": 145, "materials_markup": 1.3, "target_margin": 35,
+    # tech_cost_rate: what an hour of a technician costs, wages and all on-costs. Wages are set from it each month
+    # (technicians x working days x 7.6 h x rate, see loaded_wages), so time charged to jobs + time not charged = wages.
+    "technicians": 7, "tech_cost_rate": 68,
+    "callout_rate": 163, "materials_markup": 1.3, "target_margin": 35,
     "contracts": [  # [customer, monthly fee, technician hours a month, materials a month]
-        ["Riverside Apartments (strata)", 3200, 18, 60], ["Southbank cafe group", 1800, 10, 40], ["Milton office tower", 4200, 24, 90],
-        ["Ashgrove aged care", 3600, 20, 80], ["Newstead gym", 1600, 9, 30], ["Kangaroo Point townhouses", 2400, 14, 50],
-        ["Rocklea factory", 3900, 22, 110], ["Wynnum medical centre", 2200, 12, 40], ["Bulimba school", 2800, 16, 60],
-        ["Fortitude Valley hotel", 3400, 19, 70], ["Chermside retail centre", 4100, 23, 100], ["West End brewery", 2600, 15, 50],
-        ["Carindale vet clinic", 1700, 9, 30], ["Wacol logistics depot", 3000, 17, 70],
+        ["Riverside Apartments (strata)", 3600, 18, 60], ["Southbank cafe group", 2000, 10, 40], ["Milton office tower", 4700, 24, 90],
+        ["Ashgrove aged care", 4050, 20, 80], ["Newstead gym", 1800, 9, 30], ["Kangaroo Point townhouses", 2700, 14, 50],
+        ["Rocklea factory", 4350, 22, 110], ["Wynnum medical centre", 2450, 12, 40], ["Bulimba school", 3150, 16, 60],
+        ["Fortitude Valley hotel", 3800, 19, 70], ["Chermside retail centre", 4600, 23, 100], ["West End brewery", 2900, 15, 50],
+        ["Carindale vet clinic", 1900, 9, 30], ["Wacol logistics depot", 3350, 17, 70],
     ],
     "contract_pay_days": 30,
     "installs": {  # [job id, job name, completion day, revenue, materials, subcontractors, tech hours, days to pay]
-        "2026-08": [["J-2588", "Rocklea factory switchboard", 7, 38500, 15600, 4800, 92, 30],
-                    ["J-2591", "Ashgrove hall LED lighting", 14, 21300, 8100, 0, 70, 30],
-                    ["J-2594", "Newstead gym air-con", 19, 16800, 6700, 1200, 44, 21],
-                    ["J-2597", "Wynnum house solar", 24, 19600, 9400, 2200, 36, 14],
-                    ["J-2599", "Valley office cabling", 28, 13400, 3900, 1100, 48, 30]],
-        "2026-09": [["J-2604", "Wacol warehouse switchboard", 4, 46800, 22900, 7400, 150, 45],
-                    ["J-2607", "Milton office LED lighting", 9, 18600, 6900, 0, 64, 30],
-                    ["J-2611", "Carindale solar and battery", 15, 27400, 13800, 3100, 46, 14],
-                    ["J-2615", "West End cafe air-con", 18, 12900, 5100, 900, 38, 21],
-                    ["J-2618", "Bulimba EV chargers", 23, 9800, 3600, 0, 26, 30],
-                    ["J-2620", "Chermside clinic cabling", 29, 15200, 4300, 1800, 52, 30]],
+        "2026-08": [["J-2588", "Rocklea factory switchboard", 7, 43100, 15600, 4800, 92, 30],
+                    ["J-2591", "Ashgrove hall LED lighting", 14, 23900, 8100, 0, 70, 30],
+                    ["J-2594", "Newstead gym air-con", 19, 18800, 6700, 1200, 44, 21],
+                    ["J-2597", "Wynnum house solar", 24, 22000, 9400, 2200, 36, 14],
+                    ["J-2599", "Valley office cabling", 28, 15000, 3900, 1100, 48, 30]],
+        "2026-09": [["J-2604", "Wacol warehouse switchboard", 4, 52400, 22900, 7400, 150, 45],
+                    ["J-2607", "Milton office LED lighting", 9, 20800, 6900, 0, 64, 30],
+                    ["J-2611", "Carindale solar and battery", 15, 30700, 13800, 3100, 46, 14],
+                    ["J-2615", "West End cafe air-con", 18, 14400, 5100, 900, 38, 21],
+                    ["J-2618", "Bulimba EV chargers", 23, 11000, 3600, 0, 26, 30],
+                    ["J-2620", "Chermside clinic cabling", 29, 17000, 4300, 1800, 52, 30]],
     },
     "callouts": {"2026-05": 55, "2026-06": 57, "2026-07": 54, "2026-08": 58, "2026-09": 64},
     "history_installs": {"2026-05": 4, "2026-06": 5, "2026-07": 4},
@@ -132,6 +151,12 @@ TRADES = {
 }
 
 
+TRADES["tech_wages"] = {mo: loaded_wages(TRADES["technicians"], WORKING_DAYS[mo], TRADES["tech_cost_rate"]) for mo in PERIODS}
+
+
+INSTALL_PRICE = 1.12   # generated installations: price over the base the costs come from (prices set for technicians at $68/hour)
+
+
 def trades_jobs(m):
     """Every job and invoice for May-Sep (seeded, so it's identical every run)."""
     rng = random.Random(2604)
@@ -148,9 +173,9 @@ def trades_jobs(m):
                              "subcontractors": sub, "hours": hrs, "invoice_date": start + timedelta(days=day - 1), "days_to_pay": pay})
         else:
             for k in range(m["history_installs"][month]):
-                rev = rng.randrange(9000, 42000, 100)
+                rev = rng.randrange(9000, 42000, 100)                  # costs are worked out from this; the price is INSTALL_PRICE above it
                 jobs.append({"month": month, "job": f"J-{2500 + ALL_MONTHS.index(month) * 20 + k}", "type": "Installation",
-                             "description": f"Installation {k + 1}, {month_start(month).strftime('%B')}", "revenue": rev, "materials": int(rev * 0.38) // 100 * 100,
+                             "description": f"Installation {k + 1}, {month_start(month).strftime('%B')}", "revenue": round(rev * INSTALL_PRICE / 100) * 100, "materials": int(rev * 0.38) // 100 * 100,
                              "subcontractors": int(rev * 0.08) // 100 * 100, "hours": rev // 260,
                              "invoice_date": start + timedelta(days=rng.randrange(0, 27)), "days_to_pay": rng.choice([14, 21, 30, 30, 45])})
         for k in range(m["callouts"][month]):
@@ -164,21 +189,70 @@ def trades_jobs(m):
     for j in jobs:
         j.setdefault("labour_revenue", None)      # only call-outs bill time and materials separately
         j.setdefault("materials_revenue", None)
-        j["paid_date"] = j["invoice_date"] + timedelta(days=j["days_to_pay"])
+        j["paid_date"] = tp.next_banking_day(j["invoice_date"] + timedelta(days=j["days_to_pay"]))   # money moves on banking days
         j["labour_cost"] = half_up(j["hours"] * m["tech_cost_rate"])
         j["gross_profit"] = j["revenue"] - j["materials"] - j["subcontractors"] - j["labour_cost"]
-        j["amount"] = j["revenue"]
+        j["gst"] = tp.gst_on(j["revenue"])
+        j["amount"] = j["revenue"] + j["gst"]     # the invoice, incl. GST: what the customer owes and pays
     return jobs
 
 
+def taxable(label):
+    """P&L lines that carry GST on the bill: everything bought in except wages, depreciation, interest and income tax."""
+    l = label.lower()
+    return not ("wages" in l or "salar" in l or l in ("depreciation", "interest") or l.startswith("income tax"))
+
+
+def sme_payroll(org, wages_by_month, leave):
+    """The fortnightly pay run for FY2027: a 26th of the year's gross wages (wage cost less super and leave)."""
+    annual = sum(tp.gross_from_cost(wages_by_month(mo), leave) for mo in tp.fy_months())
+    run = tp.pay_run(annual, org)
+    run["payroll_tax"] = tp.payroll_tax_check(org, annual)
+    if run["payroll_tax"]:
+        raise SystemExit(f"{org}: wages are over the Queensland payroll tax threshold; the model doesn't include payroll tax")
+    return run
+
+
+def opening_payroll(run):
+    """Wages, super and PAYG owed at 31 July: wages since the last pay run, and PAYG withheld from July's pay runs."""
+    july = tp.pay_days(date(2026, 7, 1), MONTH_END["2026-07"])
+    last = max(july)
+    since = sum(1 for k in range(1, (MONTH_END["2026-07"] - last).days + 1) if ds.working(last + timedelta(days=k)))
+    owed = half_up(run["gross"] * since / 10)
+    return {"wages_owed": owed, "super_payable": half_up(owed * tp.SUPER_RATE), "paygw_payable": run["payg"] * len(july)}
+
+
+def month_payroll(run, prev, wage_cost, leave, mo):
+    """A month's pay runs against the wage cost: cash paid on pay days (net pay + super), what's still owed, and PAYG for the ATO."""
+    gross = tp.gross_from_cost(wage_cost, leave)
+    sup = wage_cost - leave - gross
+    n = len(tp.pay_days_in(mo))
+    return {"gross": gross, "super": sup, "runs": n, "pay_emp": n * run["cash"],
+            "wages_owed": prev["wages_owed"] + gross - n * run["gross"],
+            "super_payable": prev["super_payable"] + sup - n * run["super"],
+            "paygw_payable": prev["paygw_payable"] + n * run["payg"]}
+
+
 def trades(m):
+    import history                                  # July's overheads (for July's GST) come from the history ledger
     jobs = trades_jobs(m)
     inv = jobs
     purchases = {mo: sum(j["materials"] + j["subcontractors"] for j in jobs if j["month"] == mo) for mo in ALL_MONTHS}
+    tax_opex = lambda mo: sum(v[mo] for k, v in m["opex"].items() if taxable(k))
+    leave = half_up(sum(m["provision_change"].values()) / len(m["provision_change"]))
+    office = m["opex"]["Office and admin wages"]
+    wage_cost = lambda mo: loaded_wages(m["technicians"], tp.working_days(mo), m["tech_cost_rate"]) + office.get(mo, office["2026-09"])
+    run = sme_payroll("trades", wage_cost, leave)
     o = m["opening"]
-    bs = {"2026-07": {**o, "debtors": unpaid_at(inv, MONTH_END["2026-07"]), "creditors": purchases["2026-07"]}}
-    bs["2026-07"]["retained"] = (o["cash"] + bs["2026-07"]["debtors"] + o["stock"] + o["prepayments"] + o["fixed_assets"]
-                                 - bs["2026-07"]["creditors"] - o["provisions"] - o["tax_payable"] - o["loan"] - o["share_capital"])
+    jul = history.trades_lines(m, "2026-07")
+    jul_gst = (sum(j["gst"] for j in jobs if j["month"] == "2026-07") - tp.gst_on(purchases["2026-07"])
+               - tp.gst_on(-sum(v for k, v in jul.items() if taxable(k))))
+    bs = {"2026-07": {**o, "debtors": unpaid_at(inv, MONTH_END["2026-07"]), "creditors": tp.with_gst(purchases["2026-07"]),
+                      "gst_payable": jul_gst, **opening_payroll(run)}}
+    b0 = bs["2026-07"]
+    b0["retained"] = (o["cash"] + b0["debtors"] + o["stock"] + o["prepayments"] + o["fixed_assets"]
+                      - b0["creditors"] - o["provisions"] - o["tax_payable"] - o["loan"] - o["share_capital"]
+                      - b0["gst_payable"] - b0["wages_owed"] - b0["super_payable"] - b0["paygw_payable"])
     r = {}
     for mo in ["2026-08", "2026-09"]:
         mj = [j for j in jobs if j["month"] == mo]
@@ -197,23 +271,27 @@ def trades(m):
         tax = half_up(pbt * m["tax_rate"] / 100)
         npat = pbt - tax
         prev = bs[prev_month(mo)]
-        wages = techw + opex["Office and admin wages"]
-        nonwage = sum(v for k, v in opex.items() if "wages" not in k)
+        pay = month_payroll(run, prev, techw + opex["Office and admin wages"], m["provision_change"][mo], mo)
+        sales_gst = sum(j["gst"] for j in mj)
+        purchase_gst = tp.gst_on(purchases[mo]) + tp.gst_on(tax_opex(mo)) + tp.gst_on(m["capex"][mo])
         receipts = paid_in(inv, mo)
-        pay_sup = purchases[prev_month(mo)] + nonwage
-        pay_emp = wages - m["provision_change"][mo]
-        operating = receipts - pay_sup - pay_emp - m["interest"][mo]
-        cur = {"cash": prev["cash"] + operating - m["capex"][mo] - m["loan_repaid"][mo],
-               "debtors": unpaid_at(inv, MONTH_END[mo]), "stock": prev["stock"], "prepayments": prev["prepayments"],
-               "fixed_assets": prev["fixed_assets"] + m["capex"][mo] - m["depreciation"][mo],
-               "creditors": purchases[mo], "provisions": prev["provisions"] + m["provision_change"][mo],
-               "tax_payable": prev["tax_payable"] + tax, "loan": prev["loan"] - m["loan_repaid"][mo],
-               "share_capital": prev["share_capital"], "retained": prev["retained"] + npat}
-        bs[mo] = cur
+        pay_sup = prev["creditors"] + tp.with_gst(tax_opex(mo))        # last month's bills + this month's overheads, incl. GST
+        capex_paid = tp.with_gst(m["capex"][mo])
+        ato = 0                                                       # the July to September BAS is due 28 October
+        operating = receipts - pay_sup - pay["pay_emp"] - m["interest"][mo] - ato
+        bs[mo] = {"cash": prev["cash"] + operating - capex_paid - m["loan_repaid"][mo],
+                  "debtors": unpaid_at(inv, MONTH_END[mo]), "stock": prev["stock"], "prepayments": prev["prepayments"],
+                  "fixed_assets": prev["fixed_assets"] + m["capex"][mo] - m["depreciation"][mo],
+                  "creditors": tp.with_gst(purchases[mo]), "provisions": prev["provisions"] + m["provision_change"][mo],
+                  "tax_payable": prev["tax_payable"] + tax, "loan": prev["loan"] - m["loan_repaid"][mo],
+                  "gst_payable": prev["gst_payable"] + sales_gst - purchase_gst,
+                  "wages_owed": pay["wages_owed"], "super_payable": pay["super_payable"], "paygw_payable": pay["paygw_payable"],
+                  "share_capital": prev["share_capital"], "retained": prev["retained"] + npat}
         hours = sum(j["hours"] for j in mj)
         avail = m["technicians"] * WORKING_DAYS[mo] * HOURS_PER_DAY
         r[mo] = dict(rev=rev, revenue=revenue, mat=mat, sub=sub, techw=techw, cos=cos, gp=gp, opex=opex, ebitda=ebitda, pbt=pbt,
-                     tax=tax, npat=npat, receipts=receipts, pay_sup=pay_sup, pay_emp=pay_emp, operating=operating,
+                     tax=tax, npat=npat, receipts=receipts, pay_sup=pay_sup, pay_emp=pay["pay_emp"], operating=operating, ato=ato,
+                     capex_paid=capex_paid, sales_gst=sales_gst, purchase_gst=purchase_gst, pay=pay,
                      jobs_gp=sum(j["gross_profit"] for j in mj), allocated=sum(j["labour_cost"] for j in mj),
                      hours=hours, available=avail)
 
@@ -241,22 +319,29 @@ def trades(m):
             row("Net profit after tax", "key", per(lambda mo: r[mo]["npat"]))]
     bsr, cfr = sme_bs_cf(bs, r, m, "Materials on hand", "Vehicles and equipment", "Purchase of vehicles and equipment",
                          "Payments to suppliers", "Payments to employees")
-    return dict(jobs=jobs, r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr)
+    return dict(jobs=jobs, r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr, payroll=run)
+
+
+SME_LIABILITIES = ("creditors", "wages_owed", "super_payable", "paygw_payable", "gst_payable", "provisions", "tax_payable")
 
 
 def sme_bs_cf(bs, r, m, stock_label, fa_label, capex_label, sup_label, emp_label):
     def ca(mo): b = bs[mo]; return b["cash"] + b["debtors"] + b["stock"] + b["prepayments"]
-    def cl(mo): b = bs[mo]; return b["creditors"] + b["provisions"] + b["tax_payable"]
+    def cl(mo): b = bs[mo]; return sum(b[k] for k in SME_LIABILITIES)
     bsr = [row("Current assets", "heading", None),
            row("Cash at bank", "detail", per(lambda mo: bs[mo]["cash"])),
-           row("Trade debtors (unpaid invoices)", "detail", per(lambda mo: bs[mo]["debtors"])),
+           row("Trade debtors (unpaid invoices)", "detail", per(lambda mo: bs[mo]["debtors"]), note="Invoices include GST."),
            row(stock_label, "detail", per(lambda mo: bs[mo]["stock"])),
            row("Prepayments", "detail", per(lambda mo: bs[mo]["prepayments"])),
            row("Total current assets", "subtotal", per(ca)),
            row(fa_label, "subtotal", per(lambda mo: bs[mo]["fixed_assets"])),
            row("Total assets", "total", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"])),
            row("Current liabilities", "heading", None),
-           row("Trade creditors (bills due next month)", "detail", per(lambda mo: bs[mo]["creditors"])),
+           row("Trade creditors (bills due next month)", "detail", per(lambda mo: bs[mo]["creditors"]), note="Bills include GST."),
+           row("Wages owed (since the last pay run)", "detail", per(lambda mo: bs[mo]["wages_owed"])),
+           row("Super payable", "detail", per(lambda mo: bs[mo]["super_payable"])),
+           row("PAYG withholding payable", "detail", per(lambda mo: bs[mo]["paygw_payable"]), note="Paid with the BAS."),
+           row("GST payable (net)", "detail", per(lambda mo: bs[mo]["gst_payable"]), note="GST on sales less GST credits, quarter to date. Paid with the BAS."),
            row("Employee leave provisions", "detail", per(lambda mo: bs[mo]["provisions"])),
            row("Income tax payable", "detail", per(lambda mo: bs[mo]["tax_payable"])),
            row("Total current liabilities", "subtotal", per(cl)),
@@ -268,19 +353,19 @@ def sme_bs_cf(bs, r, m, stock_label, fa_label, capex_label, sup_label, emp_label
            row("Retained earnings", "detail", per(lambda mo: bs[mo]["retained"])),
            row("Total equity", "key", per(lambda mo: bs[mo]["share_capital"] + bs[mo]["retained"]))]
     cfr = [row("Operating activities", "heading", None),
-           row("Receipts from customers (invoices paid)", "detail", per(lambda mo: r[mo]["receipts"])),
-           row(sup_label, "detail", per(lambda mo: -r[mo]["pay_sup"])),
-           row(emp_label, "detail", per(lambda mo: -r[mo]["pay_emp"])),
+           row("Receipts from customers (invoices paid)", "detail", per(lambda mo: r[mo]["receipts"]), note="Incl. GST."),
+           row(sup_label, "detail", per(lambda mo: -r[mo]["pay_sup"]), note="Incl. GST."),
+           row(emp_label, "detail", per(lambda mo: -r[mo]["pay_emp"]), note="Net pay and super, on each fortnightly pay day."),
            row("Interest paid", "detail", per(lambda mo: -m["interest"][mo])),
-           row("Income tax paid", "detail", per(lambda mo: 0), note="Next PAYG instalment is due in October."),
+           row("GST, PAYG and income tax paid (BAS)", "detail", per(lambda mo: -r[mo]["ato"]), note="The July to September BAS is due 28 October."),
            row("Net cash from operating activities", "subtotal", per(lambda mo: r[mo]["operating"])),
            row("Investing activities", "heading", None),
-           row(capex_label, "detail", per(lambda mo: -m["capex"][mo])),
-           row("Net cash from investing activities", "subtotal", per(lambda mo: -m["capex"][mo])),
+           row(capex_label, "detail", per(lambda mo: -r[mo]["capex_paid"]), note="Incl. GST."),
+           row("Net cash from investing activities", "subtotal", per(lambda mo: -r[mo]["capex_paid"])),
            row("Financing activities", "heading", None),
            row("Equipment finance repaid", "detail", per(lambda mo: -m["loan_repaid"][mo])),
            row("Net cash from financing activities", "subtotal", per(lambda mo: -m["loan_repaid"][mo])),
-           row("Net change in cash", "total", per(lambda mo: r[mo]["operating"] - m["capex"][mo] - m["loan_repaid"][mo])),
+           row("Net change in cash", "total", per(lambda mo: r[mo]["operating"] - r[mo]["capex_paid"] - m["loan_repaid"][mo])),
            row("Cash at start of month", "subtotal", per(lambda mo: bs[prev_month(mo)]["cash"])),
            row("Cash at end of month", "key", per(lambda mo: bs[mo]["cash"]))]
     return bsr, cfr
@@ -291,34 +376,35 @@ def sme_bs_cf(bs, r, m, stock_label, fa_label, capex_label, sup_label, emp_label
 SERVICES = {
     "name": "SME · services", "long_name": "Sample Advisory Pty Ltd",
     "about": "A Brisbane finance and operations consultancy: projects billed on milestones, monthly retainers and training. 6 consultants, 3 management and admin staff.",
-    "consultants": 6, "salaries": {"2026-08": 46500, "2026-09": 46500}, "cost_rate": 60, "target_margin": 40,
+    # cost_rate: what an hour of a consultant costs, salary and all on-costs; salaries are set from it (see loaded_wages)
+    "consultants": 6, "cost_rate": 60, "target_margin": 40,
     # [code, type, client / description, rate or fee, days to pay]
     "engagements": [
-        ["E-311", "Project", "Logistics systems rollout", 175, 30],
-        ["E-314", "Project", "Retail pricing review", 190, 30],
-        ["E-316", "Project", "Distributor cost-to-serve", 180, 45],
-        ["E-318", "Project", "Health charity board pack", 165, 30],
-        ["E-320", "Project", "Manufacturer process mapping", 170, 45],
-        ["R-102", "Retainer", "Construction firm finance", 9500, 14],
-        ["R-105", "Retainer", "Dental group reporting", 6800, 14],
-        ["R-108", "Retainer", "Agribusiness CFO support", 12000, 30],
-        ["R-110", "Retainer", "Hospitality payroll", 4200, 14],
-        ["T-205", "Training", "Budgeting workshop", 6400, 30],
-        ["T-207", "Training", "Excel for managers", 8800, 30],
-        ["T-209", "Training", "Power BI basics", 4600, 30],
+        ["E-311", "Project", "Logistics systems rollout", 195, 30],
+        ["E-314", "Project", "Retail pricing review", 210, 30],
+        ["E-316", "Project", "Distributor cost-to-serve", 200, 45],
+        ["E-318", "Project", "Health charity board pack", 180, 30],
+        ["E-320", "Project", "Manufacturer process mapping", 185, 45],
+        ["R-102", "Retainer", "Construction firm finance", 10400, 14],
+        ["R-105", "Retainer", "Dental group reporting", 7500, 14],
+        ["R-108", "Retainer", "Agribusiness CFO support", 13200, 30],
+        ["R-110", "Retainer", "Hospitality payroll", 4600, 14],
+        ["T-205", "Training", "Budgeting workshop", 7000, 30],
+        ["T-207", "Training", "Excel for managers", 9700, 30],
+        ["T-209", "Training", "Power BI basics", 5100, 30],
     ],
     # month -> code -> [hours, amount billed (projects only), contractors]
     "activity": {
-        "2026-08": {"E-311": [180, 0, 4200], "E-314": [60, 0, 0], "E-316": [88, 15840, 0], "E-320": [100, 0, 1800],
+        "2026-08": {"E-311": [180, 0, 4200], "E-314": [60, 0, 0], "E-316": [88, 17600, 0], "E-320": [100, 0, 1800],
                     "R-102": [56, 0, 0], "R-105": [42, 0, 0], "R-108": [68, 0, 0], "R-110": [48, 0, 0], "T-205": [20, 0, 900]},
         # Below the 40% target on purpose: payroll retainer scope creep (hours up, same fee), the logistics rollout
         # leaning on contractors, and the Excel course's venue and co-trainer.
-        "2026-09": {"E-311": [210, 30000, 11200], "E-314": [96, 0, 0], "E-318": [64, 10560, 0], "E-320": [120, 24000, 2200],
+        "2026-09": {"E-311": [210, 33400, 11200], "E-314": [96, 0, 0], "E-318": [64, 11520, 0], "E-320": [120, 26100, 2200],
                     "R-102": [58, 0, 0], "R-105": [44, 0, 0], "R-108": [70, 0, 0], "R-110": [52, 0, 0],
                     "T-207": [36, 0, 4200], "T-209": [14, 0, 0]},
     },
-    "opening_wip": {"E-311": 12000, "E-314": 0, "E-316": 0, "E-318": 0, "E-320": 6000},
-    "history_billing": {"2026-05": 118000, "2026-06": 126000, "2026-07": 121000},   # earlier months' invoices (for debtors)
+    "opening_wip": {"E-311": 13200, "E-314": 0, "E-316": 0, "E-318": 0, "E-320": 6600},
+    "history_billing": {"2026-05": 130000, "2026-06": 139000, "2026-07": 133000},   # earlier months' invoices (for debtors)
     "history_contractors": {"2026-07": 3900},
     "opex": {"Management and admin wages": {"2026-08": 24000, "2026-09": 24000},
              "Marketing and business development": {"2026-08": 6500, "2026-09": 5800},
@@ -334,6 +420,9 @@ SERVICES = {
     "opening": {"cash": 158000, "prepayments": 15000, "fixed_assets": 61000,
                 "provisions": 121000, "tax_payable": 48500, "loan": 18000, "share_capital": 20000},
 }
+
+
+SERVICES["salaries"] = {mo: loaded_wages(SERVICES["consultants"], WORKING_DAYS[mo], SERVICES["cost_rate"]) for mo in PERIODS}
 
 
 def services_engagements(m):
@@ -353,26 +442,37 @@ def services_engagements(m):
                          "contribution": revenue - contractors - hours * m["cost_rate"]})
             if bill:
                 d = month_start(mo) + timedelta(days=(27 if typ == "Project" else rng.randrange(0, 20)))
-                invoices.append({"invoice": f"INV-{mo[5:]}{code}", "code": code, "amount": bill, "invoice_date": d,
-                                 "paid_date": d + timedelta(days=pay + rng.choice([-3, 0, 0, 5, 12]))})
+                invoices.append({"invoice": f"INV-{mo[5:]}{code}", "code": code, "ex_gst": bill, "gst": tp.gst_on(bill), "amount": tp.with_gst(bill),
+                                 "invoice_date": d, "paid_date": tp.next_banking_day(d + timedelta(days=pay + rng.choice([-3, 0, 0, 5, 12])))})
     for mo, total in m["history_billing"].items():  # earlier months, in a few invoices each
         parts = [total // 4] * 3 + [total - 3 * (total // 4)]
         for k, amt in enumerate(parts):
             d = month_start(mo) + timedelta(days=6 + 6 * k)
-            invoices.append({"invoice": f"INV-{mo[5:]}H{k}", "code": "earlier", "amount": amt, "invoice_date": d,
-                             "paid_date": d + timedelta(days=rng.choice([14, 30, 30, 45, 52]))})
+            invoices.append({"invoice": f"INV-{mo[5:]}H{k}", "code": "earlier", "ex_gst": amt, "gst": tp.gst_on(amt), "amount": tp.with_gst(amt),
+                             "invoice_date": d, "paid_date": tp.next_banking_day(d + timedelta(days=rng.choice([14, 30, 30, 45, 52])))})
     return rows, invoices
 
 
 def services(m):
+    import history                                  # July's overheads (for July's GST) come from the history ledger
     rows, invoices = services_engagements(m)
     o = m["opening"]
     wip0 = sum(m["opening_wip"].values())
+    tax_opex = lambda mo: sum(v[mo] for k, v in m["opex"].items() if taxable(k))
+    leave = half_up(sum(m["provision_change"].values()) / len(m["provision_change"]))
+    mgmt = m["opex"]["Management and admin wages"]
+    wage_cost = lambda mo: loaded_wages(m["consultants"], tp.working_days(mo), m["cost_rate"]) + mgmt.get(mo, mgmt["2026-09"])
+    run = sme_payroll("services", wage_cost, leave)
+    billed_in = lambda mo, k: sum(i[k] for i in invoices if ym(i["invoice_date"]) == mo)
+    jul = history.services_lines(m, "2026-07")
+    jul_gst = (billed_in("2026-07", "gst") - tp.gst_on(m["history_contractors"]["2026-07"])
+               - tp.gst_on(-sum(v for k, v in jul.items() if taxable(k))))
     bs = {"2026-07": {**o, "debtors": unpaid_at(invoices, MONTH_END["2026-07"]), "stock": wip0,
-                      "creditors": m["history_contractors"]["2026-07"]}}
+                      "creditors": tp.with_gst(m["history_contractors"]["2026-07"]), "gst_payable": jul_gst, **opening_payroll(run)}}
     b0 = bs["2026-07"]
     b0["retained"] = (o["cash"] + b0["debtors"] + wip0 + o["prepayments"] + o["fixed_assets"]
-                      - b0["creditors"] - o["provisions"] - o["tax_payable"] - o["loan"] - o["share_capital"])
+                      - b0["creditors"] - o["provisions"] - o["tax_payable"] - o["loan"] - o["share_capital"]
+                      - b0["gst_payable"] - b0["wages_owed"] - b0["super_payable"] - b0["paygw_payable"])
     wip = dict(m["opening_wip"])
     r = {}
     for mo in ["2026-08", "2026-09"]:
@@ -392,21 +492,26 @@ def services(m):
             if x["type"] == "Project":
                 wip[x["code"]] = wip.get(x["code"], 0) + x["revenue"] - x["billed"]
         prev = bs[prev_month(mo)]
-        wages = sal + opex["Management and admin wages"]
-        nonwage = sum(v for k, v in opex.items() if "wages" not in k)
+        pay = month_payroll(run, prev, sal + opex["Management and admin wages"], m["provision_change"][mo], mo)
+        sales_gst = billed_in(mo, "gst")
+        purchase_gst = tp.gst_on(contractors) + tp.gst_on(tax_opex(mo)) + tp.gst_on(m["capex"][mo])
         receipts = paid_in(invoices, mo)
-        pay_sup = prev["creditors"] + nonwage           # last month's contractor bills + this month's overheads
-        pay_emp = wages - m["provision_change"][mo]
-        operating = receipts - pay_sup - pay_emp - m["interest"][mo]
-        bs[mo] = {"cash": prev["cash"] + operating - m["capex"][mo] - m["loan_repaid"][mo],
+        pay_sup = prev["creditors"] + tp.with_gst(tax_opex(mo))      # last month's contractor bills + this month's overheads, incl. GST
+        capex_paid = tp.with_gst(m["capex"][mo])
+        ato = 0                                                     # the July to September BAS is due 28 October
+        operating = receipts - pay_sup - pay["pay_emp"] - m["interest"][mo] - ato
+        bs[mo] = {"cash": prev["cash"] + operating - capex_paid - m["loan_repaid"][mo],
                   "debtors": unpaid_at(invoices, MONTH_END[mo]), "stock": sum(wip.values()), "prepayments": prev["prepayments"],
                   "fixed_assets": prev["fixed_assets"] + m["capex"][mo] - m["depreciation"][mo],
-                  "creditors": contractors, "provisions": prev["provisions"] + m["provision_change"][mo],
+                  "creditors": tp.with_gst(contractors), "provisions": prev["provisions"] + m["provision_change"][mo],
                   "tax_payable": prev["tax_payable"] + tax, "loan": prev["loan"] - m["loan_repaid"][mo],
+                  "gst_payable": prev["gst_payable"] + sales_gst - purchase_gst,
+                  "wages_owed": pay["wages_owed"], "super_payable": pay["super_payable"], "paygw_payable": pay["paygw_payable"],
                   "share_capital": prev["share_capital"], "retained": prev["retained"] + npat}
         hours = sum(x["hours"] for x in mr)
         r[mo] = dict(rev=rev, revenue=revenue, contractors=contractors, sal=sal, cos=cos, gp=gp, opex=opex, ebitda=ebitda,
-                     pbt=pbt, tax=tax, npat=npat, receipts=receipts, pay_sup=pay_sup, pay_emp=pay_emp, operating=operating,
+                     pbt=pbt, tax=tax, npat=npat, receipts=receipts, pay_sup=pay_sup, pay_emp=pay["pay_emp"], operating=operating,
+                     ato=ato, capex_paid=capex_paid, sales_gst=sales_gst, purchase_gst=purchase_gst, pay=pay,
                      hours=hours, available=m["consultants"] * WORKING_DAYS[mo] * HOURS_PER_DAY,
                      contribution=sum(x["contribution"] for x in mr), allocated=sum(x["allocated_cost"] for x in mr),
                      wip=dict(wip))
@@ -432,7 +537,7 @@ def services(m):
             row("Net profit after tax", "key", per(lambda mo: r[mo]["npat"]))]
     bsr, cfr = sme_bs_cf(bs, r, m, "Work in progress (unbilled project time)", "Office equipment", "Purchase of equipment",
                          "Payments to contractors and suppliers", "Payments to employees")
-    return dict(engagements=rows, invoices=invoices, r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr)
+    return dict(engagements=rows, invoices=invoices, r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr, payroll=run)
 
 
 # ========================================================================== NFP
@@ -476,8 +581,13 @@ NFP = {
     "reserves_target_months": 3, "ending_within_months": 6,
 }
 
+NFP["grants"] = [gr[:7] + [[(tp.next_banking_day(d), amt) for d, amt in gr[7]]] + gr[8:] for gr in NFP["grants"]]   # banking days
+
+NFP_TAXABLE_COSTS = ("Grant-funded program costs", "Program costs (untied)", "Donor campaigns", "Event costs", "Occupancy", "Other administration")
+
 
 def nfp(m):
+    import history                                  # July's lines (for July's GST) come from the history ledger
     a = m
     g = a["grants"]
     received = lambda gr, d: sum(amt for dt, amt in gr[7] if dt <= d)
@@ -489,99 +599,6 @@ def nfp(m):
         return {gr[0]: received(gr, MONTH_END[mo]) - recog[gr[0]][mo] for gr in g}
     def adv(mo): return sum(v for v in grant_bal(mo).values() if v > 0)
     def grec(mo): return -sum(v for v in grant_bal(mo).values() if v < 0)
-    o = a["opening"]
-    bs = {"2026-07": {**o, "grants_in_advance": adv("2026-07"), "grants_receivable": grec("2026-07"),
-                      "fees_receivable": a["fees_receivable"]["2026-07"]}}
-    b0 = bs["2026-07"]
-    b0["accumulated"] = (o["cash"] + b0["fees_receivable"] + b0["grants_receivable"] + o["prepayments"] + o["fixed_assets"]
-                         - o["payables"] - b0["grants_in_advance"] - o["provisions"])
-    r = {}
-    for mo in ["2026-08", "2026-09"]:
-        k = 9 if mo == "2026-08" else 10
-        gspend = {gr[0]: gr[k] for gr in g}
-        grant_income = sum(gspend.values())
-        other_income = {kk: v[mo] for kk, v in a["income"].items()}
-        income = grant_income + sum(other_income.values())
-        grant_wages = half_up(grant_income * a["grant_wage_share"])
-        grant_costs = grant_income - grant_wages
-        untied = {kk: v[mo] for kk, v in a["untied_program"].items()}
-        program = grant_income + sum(untied.values())
-        fund = {kk: v[mo] for kk, v in a["fundraising"].items()}
-        admin = {kk: v[mo] for kk, v in a["admin"].items()}
-        expenses = program + sum(fund.values()) + sum(admin.values()) + a["depreciation"][mo]
-        surplus = income - expenses
-        prev = bs[prev_month(mo)]
-        wages = grant_wages + untied["Program delivery wages (untied)"] + fund["Grant writing and reporting"] + admin["Administration wages"]
-        nonwage = expenses - a["depreciation"][mo] - wages
-        grants_received = sum(amt for gr in g for dt, amt in gr[7] if ym(dt) == mo)
-        fees_received = other_income["Program fees"] - (a["fees_receivable"][mo] - a["fees_receivable"][prev_month(mo)])
-        don_received = other_income["Donations"] + other_income["Fundraising events"]
-        pay_sup = prev["payables"]                 # suppliers are paid the following month
-        pay_emp = wages - a["provision_change"][mo]
-        operating = grants_received + don_received + fees_received + other_income["Interest"] - pay_sup - pay_emp
-        bs[mo] = {"cash": prev["cash"] + operating - a["capex"][mo], "fees_receivable": a["fees_receivable"][mo],
-                  "grants_receivable": grec(mo), "prepayments": prev["prepayments"],
-                  "fixed_assets": prev["fixed_assets"] + a["capex"][mo] - a["depreciation"][mo],
-                  "payables": nonwage, "grants_in_advance": adv(mo), "provisions": prev["provisions"] + a["provision_change"][mo],
-                  "accumulated": prev["accumulated"] + surplus}
-        r[mo] = dict(gspend=gspend, grant_income=grant_income, other_income=other_income, income=income,
-                     grant_wages=grant_wages, grant_costs=grant_costs, untied=untied, program=program, fund=fund, admin=admin,
-                     expenses=expenses, surplus=surplus, wages=wages, nonwage=nonwage, grants_received=grants_received,
-                     fees_received=fees_received, don_received=don_received, pay_sup=pay_sup, pay_emp=pay_emp,
-                     operating=operating, cash_expenses=expenses - a["depreciation"][mo])
-    pnl = [row("Income", "heading", None)]
-    for gr in g:
-        pnl.append(row(f"{gr[2]} grant", "detail", per(lambda mo, c=gr[0]: r[mo]["gspend"][c])))
-    for kk in a["income"]:
-        pnl.append(row(kk, "detail", per(lambda mo, kk=kk: r[mo]["other_income"][kk])))
-    pnl += [row("Total income", "subtotal", per(lambda mo: r[mo]["income"])),
-            row("Programs", "heading", None),
-            row("Grant-funded program wages", "detail", per(lambda mo: -r[mo]["grant_wages"])),
-            row("Grant-funded program costs", "detail", per(lambda mo: -r[mo]["grant_costs"]))]
-    for kk in a["untied_program"]:
-        pnl.append(row(kk, "detail", per(lambda mo, kk=kk: -r[mo]["untied"][kk])))
-    pnl.append(row("Total program spend", "subtotal", per(lambda mo: -r[mo]["program"])))
-    for head, key, total in [("Fundraising", "fund", "Total fundraising costs"), ("Administration", "admin", "Total administration")]:
-        pnl.append(row(head, "heading", None))
-        for kk in a["fundraising" if key == "fund" else "admin"]:
-            pnl.append(row(kk, "detail", per(lambda mo, kk=kk, key=key: -r[mo][key][kk])))
-        pnl.append(row(total, "subtotal", per(lambda mo, key=key: -sum(r[mo][key].values()))))
-    pnl += [row("Depreciation", "subtotal", per(lambda mo: -a["depreciation"][mo])),
-            row("Total expenses", "total", per(lambda mo: -r[mo]["expenses"])),
-            row("Surplus for the month", "key", per(lambda mo: r[mo]["surplus"]), note="Income-tax exempt charity: no income tax.")]
-
-    def ca(mo): b = bs[mo]; return b["cash"] + b["fees_receivable"] + b["grants_receivable"] + b["prepayments"]
-    def cl(mo): b = bs[mo]; return b["payables"] + b["grants_in_advance"] + b["provisions"]
-    bsr = [row("Current assets", "heading", None),
-           row("Cash at bank", "detail", per(lambda mo: bs[mo]["cash"])),
-           row("Program fees receivable", "detail", per(lambda mo: bs[mo]["fees_receivable"])),
-           row("Grants receivable (spent ahead of instalment)", "detail", per(lambda mo: bs[mo]["grants_receivable"])),
-           row("Prepayments", "detail", per(lambda mo: bs[mo]["prepayments"])),
-           row("Total current assets", "subtotal", per(ca)),
-           row("Vehicles and equipment", "subtotal", per(lambda mo: bs[mo]["fixed_assets"])),
-           row("Total assets", "total", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"])),
-           row("Current liabilities", "heading", None),
-           row("Payables (bills due next month)", "detail", per(lambda mo: bs[mo]["payables"])),
-           row("Grants received in advance (unspent)", "detail", per(lambda mo: bs[mo]["grants_in_advance"])),
-           row("Employee leave provisions", "detail", per(lambda mo: bs[mo]["provisions"])),
-           row("Total liabilities", "total", per(cl)),
-           row("Net assets", "key", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"] - cl(mo))),
-           row("Equity", "heading", None),
-           row("Accumulated funds", "key", per(lambda mo: bs[mo]["accumulated"]))]
-    cfr = [row("Operating activities", "heading", None),
-           row("Grant instalments received", "detail", per(lambda mo: r[mo]["grants_received"]), note="Next instalments arrive in October."),
-           row("Donations and fundraising received", "detail", per(lambda mo: r[mo]["don_received"])),
-           row("Program fees received", "detail", per(lambda mo: r[mo]["fees_received"])),
-           row("Interest received", "detail", per(lambda mo: r[mo]["other_income"]["Interest"])),
-           row("Payments to suppliers", "detail", per(lambda mo: -r[mo]["pay_sup"])),
-           row("Payments to employees", "detail", per(lambda mo: -r[mo]["pay_emp"])),
-           row("Net cash from operating activities", "subtotal", per(lambda mo: r[mo]["operating"])),
-           row("Investing activities", "heading", None),
-           row("Purchase of vehicles and equipment", "detail", per(lambda mo: -a["capex"][mo])),
-           row("Net cash from investing activities", "subtotal", per(lambda mo: -a["capex"][mo])),
-           row("Net change in cash", "total", per(lambda mo: r[mo]["operating"] - a["capex"][mo])),
-           row("Cash at start of month", "subtotal", per(lambda mo: bs[prev_month(mo)]["cash"])),
-           row("Cash at end of month", "key", per(lambda mo: bs[mo]["cash"]))]
     grant_rows = []
     hist_rng = random.Random(102)
     for gr in g:
@@ -606,8 +623,129 @@ def nfp(m):
                            "months_left": max(0, (gr[6].year - 2026) * 12 + gr[6].month - 9),
                            "monthly": [{"month": mo, "spend": spend[mo], "budget": budget[mo]} for mo in to_date],
                            "budget_by_month": budget})
-    return dict(r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr, grants=grant_rows, grant_bal=grant_bal)
+    # wages and the pay run: the fortnightly pay run is a 26th of the year's gross wages, on August and September's level
+    def month_wages(mo):
+        k = 9 if mo == "2026-08" else 10
+        gi = sum(gr[k] for gr in g)
+        return (half_up(gi * a["grant_wage_share"]) + a["untied_program"]["Program delivery wages (untied)"][mo]
+                + a["fundraising"]["Grant writing and reporting"][mo] + a["admin"]["Administration wages"][mo])
+    run = tp.pay_run(6 * sum(tp.gross_from_cost(month_wages(mo), a["provision_change"][mo]) for mo in PERIODS), "nfp")
+    run["payroll_tax"] = tp.payroll_tax_check("nfp", run["annual_gross"])
+    # July's GST (the quarter started 1 July): on grant instalments, program fees and events, less credits on bills
+    jul_spend = {gr["code"]: x["spend"] for gr in grant_rows for x in gr["monthly"] if x["month"] == "2026-07"} | history.nfp_grant_spend("2026-07")
+    jul = history.nfp_lines(a, "2026-07", jul_spend)
+    jul_gst = (tp.gst_on(sum(amt for gr in g for dt, amt in gr[7] if ym(dt) == "2026-07")) + tp.gst_on(jul["Program fees"])
+               + tp.gst_on(jul["Fundraising events"]) - tp.gst_on(-sum(jul[k] for k in NFP_TAXABLE_COSTS)))
+    o = a["opening"]
+    bs = {"2026-07": {**o, "grants_in_advance": adv("2026-07"), "grants_receivable": grec("2026-07"),
+                      "fees_receivable": tp.with_gst(a["fees_receivable"]["2026-07"]), "gst_payable": jul_gst, **opening_payroll(run)}}
+    b0 = bs["2026-07"]
+    b0["accumulated"] = (o["cash"] + b0["fees_receivable"] + b0["grants_receivable"] + o["prepayments"] + o["fixed_assets"]
+                         - o["payables"] - b0["grants_in_advance"] - o["provisions"]
+                         - b0["gst_payable"] - b0["wages_owed"] - b0["super_payable"] - b0["paygw_payable"])
+    r = {}
+    for mo in ["2026-08", "2026-09"]:
+        k = 9 if mo == "2026-08" else 10
+        gspend = {gr[0]: gr[k] for gr in g}
+        grant_income = sum(gspend.values())
+        other_income = {kk: v[mo] for kk, v in a["income"].items()}
+        income = grant_income + sum(other_income.values())
+        grant_wages = half_up(grant_income * a["grant_wage_share"])
+        grant_costs = grant_income - grant_wages
+        untied = {kk: v[mo] for kk, v in a["untied_program"].items()}
+        program = grant_income + sum(untied.values())
+        fund = {kk: v[mo] for kk, v in a["fundraising"].items()}
+        admin = {kk: v[mo] for kk, v in a["admin"].items()}
+        expenses = program + sum(fund.values()) + sum(admin.values()) + a["depreciation"][mo]
+        surplus = income - expenses
+        prev = bs[prev_month(mo)]
+        wages = grant_wages + untied["Program delivery wages (untied)"] + fund["Grant writing and reporting"] + admin["Administration wages"]
+        nonwage = expenses - a["depreciation"][mo] - wages                      # every bill is taxable (NFP_TAXABLE_COSTS)
+        pay = month_payroll(run, prev, wages, a["provision_change"][mo], mo)
+        instalments = sum(amt for gr in g for dt, amt in gr[7] if ym(dt) == mo)
+        grants_received = tp.with_gst(instalments)
+        fees_rec = tp.with_gst(a["fees_receivable"][mo])
+        fees_received = tp.with_gst(other_income["Program fees"]) - (fees_rec - prev["fees_receivable"])
+        don_received = other_income["Donations"] + tp.with_gst(other_income["Fundraising events"])
+        sales_gst = tp.gst_on(instalments) + tp.gst_on(other_income["Program fees"]) + tp.gst_on(other_income["Fundraising events"])
+        purchase_gst = tp.gst_on(nonwage) + tp.gst_on(a["capex"][mo])
+        pay_sup = prev["payables"]                 # suppliers are paid the following month
+        ato = 0                                     # the July to September BAS is due 28 October
+        operating = grants_received + don_received + fees_received + other_income["Interest"] - pay_sup - pay["pay_emp"] - ato
+        capex_paid = tp.with_gst(a["capex"][mo])
+        bs[mo] = {"cash": prev["cash"] + operating - capex_paid, "fees_receivable": fees_rec,
+                  "grants_receivable": grec(mo), "prepayments": prev["prepayments"],
+                  "fixed_assets": prev["fixed_assets"] + a["capex"][mo] - a["depreciation"][mo],
+                  "payables": tp.with_gst(nonwage), "grants_in_advance": adv(mo), "provisions": prev["provisions"] + a["provision_change"][mo],
+                  "gst_payable": prev["gst_payable"] + sales_gst - purchase_gst,
+                  "wages_owed": pay["wages_owed"], "super_payable": pay["super_payable"], "paygw_payable": pay["paygw_payable"],
+                  "accumulated": prev["accumulated"] + surplus}
+        r[mo] = dict(gspend=gspend, grant_income=grant_income, other_income=other_income, income=income,
+                     grant_wages=grant_wages, grant_costs=grant_costs, untied=untied, program=program, fund=fund, admin=admin,
+                     expenses=expenses, surplus=surplus, wages=wages, nonwage=nonwage, grants_received=grants_received,
+                     fees_received=fees_received, don_received=don_received, pay_sup=pay_sup, pay_emp=pay["pay_emp"], pay=pay,
+                     sales_gst=sales_gst, purchase_gst=purchase_gst, ato=ato, capex_paid=capex_paid,
+                     operating=operating, cash_expenses=expenses - a["depreciation"][mo])
+    pnl = [row("Income", "heading", None)]
+    for gr in g:
+        pnl.append(row(f"{gr[2]} grant", "detail", per(lambda mo, c=gr[0]: r[mo]["gspend"][c])))
+    for kk in a["income"]:
+        pnl.append(row(kk, "detail", per(lambda mo, kk=kk: r[mo]["other_income"][kk])))
+    pnl += [row("Total income", "subtotal", per(lambda mo: r[mo]["income"])),
+            row("Programs", "heading", None),
+            row("Grant-funded program wages", "detail", per(lambda mo: -r[mo]["grant_wages"])),
+            row("Grant-funded program costs", "detail", per(lambda mo: -r[mo]["grant_costs"]))]
+    for kk in a["untied_program"]:
+        pnl.append(row(kk, "detail", per(lambda mo, kk=kk: -r[mo]["untied"][kk])))
+    pnl.append(row("Total program spend", "subtotal", per(lambda mo: -r[mo]["program"])))
+    for head, key, total in [("Fundraising", "fund", "Total fundraising costs"), ("Administration", "admin", "Total administration")]:
+        pnl.append(row(head, "heading", None))
+        for kk in a["fundraising" if key == "fund" else "admin"]:
+            pnl.append(row(kk, "detail", per(lambda mo, kk=kk, key=key: -r[mo][key][kk])))
+        pnl.append(row(total, "subtotal", per(lambda mo, key=key: -sum(r[mo][key].values()))))
+    pnl += [row("Depreciation", "subtotal", per(lambda mo: -a["depreciation"][mo])),
+            row("Total expenses", "total", per(lambda mo: -r[mo]["expenses"])),
+            row("Surplus for the month", "key", per(lambda mo: r[mo]["surplus"]), note="Income-tax exempt charity: no income tax.")]
 
+    LIAB = ("payables", "wages_owed", "super_payable", "paygw_payable", "gst_payable", "grants_in_advance", "provisions")
+    def ca(mo): b = bs[mo]; return b["cash"] + b["fees_receivable"] + b["grants_receivable"] + b["prepayments"]
+    def cl(mo): b = bs[mo]; return sum(b[k] for k in LIAB)
+    bsr = [row("Current assets", "heading", None),
+           row("Cash at bank", "detail", per(lambda mo: bs[mo]["cash"])),
+           row("Program fees receivable", "detail", per(lambda mo: bs[mo]["fees_receivable"]), note="Incl. GST."),
+           row("Grants receivable (spent ahead of instalment)", "detail", per(lambda mo: bs[mo]["grants_receivable"])),
+           row("Prepayments", "detail", per(lambda mo: bs[mo]["prepayments"])),
+           row("Total current assets", "subtotal", per(ca)),
+           row("Vehicles and equipment", "subtotal", per(lambda mo: bs[mo]["fixed_assets"])),
+           row("Total assets", "total", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"])),
+           row("Current liabilities", "heading", None),
+           row("Payables (bills due next month)", "detail", per(lambda mo: bs[mo]["payables"]), note="Bills include GST."),
+           row("Wages owed (since the last pay run)", "detail", per(lambda mo: bs[mo]["wages_owed"])),
+           row("Super payable", "detail", per(lambda mo: bs[mo]["super_payable"])),
+           row("PAYG withholding payable", "detail", per(lambda mo: bs[mo]["paygw_payable"]), note="Paid with the BAS."),
+           row("GST payable (net)", "detail", per(lambda mo: bs[mo]["gst_payable"]), note="GST on grants, program fees and events less GST credits, quarter to date. Paid with the BAS."),
+           row("Grants received in advance (unspent)", "detail", per(lambda mo: bs[mo]["grants_in_advance"])),
+           row("Employee leave provisions", "detail", per(lambda mo: bs[mo]["provisions"])),
+           row("Total liabilities", "total", per(cl)),
+           row("Net assets", "key", per(lambda mo: ca(mo) + bs[mo]["fixed_assets"] - cl(mo))),
+           row("Equity", "heading", None),
+           row("Accumulated funds", "key", per(lambda mo: bs[mo]["accumulated"]))]
+    cfr = [row("Operating activities", "heading", None),
+           row("Grant instalments received", "detail", per(lambda mo: r[mo]["grants_received"]), note="Incl. GST. Next instalments arrive in October."),
+           row("Donations and fundraising received", "detail", per(lambda mo: r[mo]["don_received"]), note="Event income incl. GST; donations carry none."),
+           row("Program fees received", "detail", per(lambda mo: r[mo]["fees_received"]), note="Incl. GST."),
+           row("Interest received", "detail", per(lambda mo: r[mo]["other_income"]["Interest"])),
+           row("Payments to suppliers", "detail", per(lambda mo: -r[mo]["pay_sup"]), note="Incl. GST."),
+           row("Payments to employees", "detail", per(lambda mo: -r[mo]["pay_emp"]), note="Net pay and super, on each fortnightly pay day."),
+           row("GST and PAYG paid (BAS)", "detail", per(lambda mo: -r[mo]["ato"]), note="The July to September BAS is due 28 October."),
+           row("Net cash from operating activities", "subtotal", per(lambda mo: r[mo]["operating"])),
+           row("Investing activities", "heading", None),
+           row("Purchase of vehicles and equipment", "detail", per(lambda mo: -r[mo]["capex_paid"])),
+           row("Net cash from investing activities", "subtotal", per(lambda mo: -r[mo]["capex_paid"])),
+           row("Net change in cash", "total", per(lambda mo: r[mo]["operating"] - r[mo]["capex_paid"])),
+           row("Cash at start of month", "subtotal", per(lambda mo: bs[prev_month(mo)]["cash"])),
+           row("Cash at end of month", "key", per(lambda mo: bs[mo]["cash"]))]
+    return dict(r=r, bs=bs, pnl=pnl, bsr=bsr, cfr=cfr, grants=grant_rows, grant_bal=grant_bal, payroll=run)
 
 # ============================================================ the fourth sheet
 # Three headline numbers (this month vs last month) and one chart that drills
@@ -633,10 +771,10 @@ def money(v):
 # fraction) · hours: 1 dp · int: whole · months: 1 dp · cents: whole cents
 FMT = {
     "money": lambda v: money(v),
-    "pct": lambda v: f"({-v * 100:.1f}%)" if v < 0 else f"{v * 100:.1f}%",
-    "hours": lambda v: f"({-v:,.1f} h)" if v < 0 else f"{v:,.1f} h",
-    "int": lambda v: f"{v:,.0f}",
-    "months": lambda v: f"({-v:.1f} months)" if v < 0 else f"{v:.1f} months",
+    "pct": lambda v: f"({round_half_up(-v * 100, 1):.1f}%)" if v < 0 else f"{round_half_up(v * 100, 1):.1f}%",
+    "hours": lambda v: f"({round_half_up(-v, 1):,.1f} h)" if v < 0 else f"{round_half_up(v, 1):,.1f} h",
+    "int": lambda v: f"{round_half_up(v):,}",
+    "months": lambda v: f"({round_half_up(-v, 1):.1f} months)" if v < 0 else f"{round_half_up(v, 1):.1f} months",
     "cents": lambda v: f"({-half_up(v)}¢)" if v < 0 else f"{half_up(v)}¢",
     "date": lambda v: v,
     "text": lambda v: v,
@@ -680,7 +818,7 @@ def fourth_trades(m, out):
         inp("Materials", "money", S(lambda mo: -r[mo]["mat"])), inp("Subcontractors", "money", S(lambda mo: -r[mo]["sub"])),
         inp("Technician wages", "money", S(lambda mo: -r[mo]["techw"])),
         calc("Gross profit", "money", "r0+r1+r2+r3"), calc("Gross margin (P&L)", "pct", "r4/r0")],
-        "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include all on-costs (super, payroll tax, workers' compensation, leave). Technicians are on salary, so a quiet month for jobs lowers gross margin even if every job is priced well.")
+        "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include their on-costs: super (12%) and leave as it's earned. No payroll tax: wages are under Queensland's $1.3 million threshold. Technicians are on salary, so a quiet month for jobs lowers gross margin even if every job is priced well.")
     s_cac = support("Cost to win a customer", "Marketing spend ÷ new customers", [
         inp("Marketing spend", "money", S(lambda mo: m["opex"]["Marketing"][mo])),
         inp("New customers (first job ever)", "int", S(lambda mo: m["new_customers"][mo])),
@@ -690,7 +828,7 @@ def fourth_trades(m, out):
         inp("Technicians", "int", S(lambda mo: m["technicians"])), inp("Working days", "int", S(lambda mo: WORKING_DAYS[mo])),
         inp("Hours per day", "hours", S(lambda mo: HOURS_PER_DAY)),
         calc("Hours available", "hours", "r1*r2*r3"), calc("Time on jobs", "pct", "r0/r4")],
-        "August had one fewer working day for the Ekka show holiday. The rest is travel, training, quoting and waiting time.")
+        "August had 20 working days: 21 weekdays, less the Ekka People's Day holiday (Wed 12 Aug). The rest is travel, training, quoting and waiting time.")
     kp = lambda sp, i=-1: sp["xl"]["rows"][i]["values"]
     gm, cac, util = kp(s_gm), kp(s_cac), kp(s_ut)
     k1, c1 = chg(gm[0], gm[1], FMT["pct"])
@@ -778,13 +916,14 @@ def fourth_nfp(m, out):
         calc("Money raised", "money", f"r{nf + 1}+r{nf + 2}+r{nf + 3}"),
         calc("Cost per dollar raised", "cents", f"r{nf}/r{nf + 4}*100")],
         "September's gala raised $41,600 but cost $16,900 to run, which lifts the month's figure.")
-    s_run = support("Unrestricted cash runway", "(Cash at bank − unspent grant money) ÷ this month's cash spending", [
+    s_run = support("Unrestricted cash runway", "(Cash at bank − unspent grant money − GST and PAYG owed to the ATO) ÷ a month's cash spending", [
         inp("Cash at bank", "money", S(lambda mo: bs[mo]["cash"])),
         inp("Less unspent grant money (belongs to funders' programs)", "money", S(lambda mo: -bs[mo]["grants_in_advance"])),
-        calc("Unrestricted cash", "money", "r0+r1"),
+        inp("Less GST and PAYG withheld owed to the ATO (paid with the BAS)", "money", S(lambda mo: -(bs[mo]["gst_payable"] + bs[mo]["paygw_payable"]))),
+        calc("Unrestricted cash", "money", "r0+r1+r2"),
         inp("Cash spending in the month (expenses less depreciation)", "money", S(lambda mo: r[mo]["cash_expenses"])),
-        calc("Runway", "months", "r2/r3")], f"Reserves target: {m['reserves_target_months']}.0 months.")
-    ending = [gr for gr in out["grants"] if gr["months_left"] < m["ending_within_months"]]
+        calc("Runway", "months", "r3/r4")], f"Reserves target: {m['reserves_target_months']}.0 months.")
+    ending = [gr for gr in out["grants"] if gr["months_left"] <= m["ending_within_months"]]
     s_end = support(f"Grants ending in the next {m['ending_within_months']} months", "Grant total − spent to date, for each grant ending soon",
                     [inp(f"{gr['program']} (ends {ds.strf(date.fromisoformat(gr['end']), '%-d %b %Y')})", "money", [gr["unspent"]]) for gr in ending]
                     + [calc("Total still to spend", "money", "+".join(f"r{i}" for i in range(len(ending))))],
@@ -822,6 +961,28 @@ def fourth_nfp(m, out):
 
 # ============================================================== assumptions
 
+def tax_assumption_rows(org, out):
+    run = out["payroll"]
+    rows = [["GST", "registered; 10%, accruals basis: GST on a sale is owed when it's invoiced, a credit on a bill is claimed when it's received. "
+                    "The P&L excludes GST; invoices, bills, debtors, creditors and cash include it"],
+            ["BAS", "quarterly, self-lodged: GST on sales − GST credits + PAYG withheld" + (" + PAYG instalment" if org != "nfp" else "")
+                    + ". July to September is due 28 October; October to December, 28 February"],
+            ["Pay runs", f"fortnightly on Thursdays: ${run['gross']:,} gross (a 26th of the year's gross wages); net pay ${run['net']:,} and super "
+                         f"${run['super']:,} paid on the day; PAYG withheld (about {round(tp.PAYG_RATE[org] * 100)}% of gross, ${run['payg']:,}) goes with the BAS. "
+                         "Two months a year have three pay runs"],
+            ["Super", f"{round(tp.SUPER_RATE * 100)}% of gross wages, paid with each pay run (Payday Super, from 1 July 2026)"],
+            ["Payroll tax", "none: the charity is exempt for wages paid for its charitable work (assumption to confirm)" if org == "nfp" else
+                            f"none: Queensland's threshold is $1.3 million of wages a year (rate 4.75% above it); this business pays about ${round(run['annual_gross'] * (1 + tp.SUPER_RATE), -3):,.0f} including super"],
+            ["Banking days", "money only moves on banking days: a payment due on a weekend or Queensland public holiday moves to the next banking day"]]
+    if org == "nfp":
+        rows[0][1] = ("registered (income over the $150,000 not-for-profit threshold); 10%, accruals basis. The P&L excludes GST; cash, fees receivable and bills include it")
+        rows += [["Donations (assumption to confirm)", "no GST: a gift isn't payment for anything"],
+                 ["Program fees (assumption to confirm)", "taxable: GST included in what's charged"],
+                 ["Grants (assumption to confirm)", "taxable supplies under each funding agreement: the funder pays each instalment plus 10% GST"],
+                 ["Fundraising events (assumption to confirm)", "taxable: ticket sales include GST"]]
+    return rows
+
+
 def trades_assumptions(m, out):
     sep = [j for j in out["jobs"] if j["month"] == "2026-09"]
     return [
@@ -831,16 +992,16 @@ def trades_assumptions(m, out):
                               ["Installations", f"{len(m['installs']['2026-09'])} named jobs, each with its own quote, materials, subcontractors and hours"],
                               ["Call-outs", f"{m['callouts']['2026-09']} jobs at ${m['callout_rate']}/hour plus materials marked up {round((m['materials_markup'] - 1) * 100)}%"],
                               ["Jobs in September", f"{len(sep)} in total (every one is in the spreadsheet download and CSV)"]]],
-        ["Costs", [["Technicians", f"{m['technicians']} on salary: ${m['tech_wages']['2026-09']:,} a month incl. on-costs"],
-                   ["Job costing rate", f"${m['tech_cost_rate']}/hour for technician time charged to a job"],
-                   ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
+        ["Costs", [["Technicians", f"{m['technicians']} employed full time: ${m['tech_wages']['2026-09']:,} in September incl. on-costs (every available hour at ${m['tech_cost_rate']})"],
+                   ["Job costing rate", f"${m['tech_cost_rate']}/hour = technician wages incl. on-costs ÷ available hours, worked out each month; time charged to jobs + time not charged = technician wages"],
+                   ["Working days", "20 in August (21 weekdays, less the Ekka People's Day holiday, Wed 12 Aug), 22 in September; 7.6 hours a day"],
                    ["Overheads", "set month by month, as shown in the P&L"],
-                   ["Income tax", f"{m['tax_rate']}% of profit, provided monthly; next PAYG instalment due October"]]],
+                   ["Income tax", f"{m['tax_rate']}% of profit, provided monthly; the PAYG instalment is paid with each quarter's BAS"]]],
         ["Cash and balance sheet", [["Customer payments", "each invoice is paid on its own date; unpaid invoices at month end = debtors"],
                                     ["Supplier bills", "materials and subcontractors are paid the following month"],
                                     ["Equipment finance", f"${m['loan_repaid']['2026-09']:,} repaid each month"],
-                                    ["New equipment", f"a ${m['capex']['2026-09']:,} trailer bought in September"],
-                                    ["GST", "excluded throughout, for simplicity"]]],
+                                    ["New equipment", f"a ${m['capex']['2026-09']:,} trailer bought in September"]]],
+        ["GST, BAS and payroll", tax_assumption_rows("trades", out)],
     ]
 
 
@@ -851,12 +1012,13 @@ def services_assumptions(m, out):
         ["Engagements (September)", [["Projects", "hours worked at each project's rate; billed on milestones (unbilled time = work in progress)"],
                                      ["Retainers", "fixed monthly fee, billed monthly"], ["Training", "fixed fee, billed on delivery"],
                                      ["Engagements in September", f"{len(m['activity']['2026-09'])} (every one is in the spreadsheet download and CSV)"]]],
-        ["Costs", [["Consultants", f"{m['consultants']} on salary: ${m['salaries']['2026-09']:,} a month incl. on-costs"],
-                   ["Engagement costing rate", f"${m['cost_rate']}/hour for consultant time"],
-                   ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
+        ["Costs", [["Consultants", f"{m['consultants']} employed full time: ${m['salaries']['2026-09']:,} in September incl. on-costs (every available hour at ${m['cost_rate']})"],
+                   ["Engagement costing rate", f"${m['cost_rate']}/hour = consultant salaries incl. on-costs ÷ available hours, worked out each month; time charged to clients + time not charged = salaries"],
+                   ["Working days", "20 in August (21 weekdays, less the Ekka People's Day holiday, Wed 12 Aug), 22 in September; 7.6 hours a day"],
                    ["Income tax", f"{m['tax_rate']}% of profit, provided monthly"]]],
         ["Cash and balance sheet", [["Client payments", "each invoice is paid on its own date; unpaid invoices at month end = debtors"],
-                                    ["Contractors", "paid the following month"], ["GST", "excluded throughout, for simplicity"]]],
+                                    ["Contractors", "paid the following month"]]],
+        ["GST, BAS and payroll", tax_assumption_rows("services", out)],
     ]
 
 
@@ -872,10 +1034,10 @@ def nfp_assumptions(m, out):
                                     ["Grant-funded spending", f"{round(m['grant_wage_share'] * 100)}% wages, the rest program costs"],
                                     ["Income tax", "none: registered charity, income-tax exempt"]]],
         ["Cash and balance sheet", [["Suppliers", "paid the following month"],
-                                    ["Unrestricted cash", "cash at bank less unspent grant money"],
+                                    ["Unrestricted cash", "cash at bank less unspent grant money, and less GST and PAYG withheld owed to the ATO"],
                                     ["Cash runway", "unrestricted cash ÷ this month's cash spending"],
-                                    ["Reserves target", f"{m['reserves_target_months']} months of spending"],
-                                    ["GST", "excluded throughout, for simplicity"]]],
+                                    ["Reserves target", f"{m['reserves_target_months']} months of spending"]]],
+        ["GST, BAS and payroll", tax_assumption_rows("nfp", out)],
     ]
 
 
@@ -987,12 +1149,14 @@ def examples_trades(m, out, f4):
         raise SystemExit("aged debtors don't add up to trade debtors")
     sp3 = support("Will cash cover payroll and the bills in October?", "Cash at bank − next pay run − supplier bills due, before any collections", [
         inp("Cash at bank, 30 September", "money", [bs["2026-09"]["cash"]]),
-        inp("Monthly wages incl. on-costs (technicians + office)", "money", [m["tech_wages"]["2026-09"] + m["opex"]["Office and admin wages"]["2026-09"]]),
-        calc("Next fortnightly pay run (half the month)", "money", "r1/2"),
-        inp("Supplier bills due in October (September's purchases)", "money", [bs["2026-09"]["creditors"]]),
-        calc("Cash left before collections", "money", "r0-r2-r3"),
+        inp("Gross wages a pay run (a 26th of the year's, technicians + office)", "money", [out["payroll"]["gross"]]),
+        inp("Less PAYG withheld (paid to the ATO with the BAS)", "money", [-out["payroll"]["payg"]]),
+        inp("Plus super (paid with the pay run)", "money", [out["payroll"]["super"]]),
+        calc("Next pay run, 1 October: net pay + super", "money", "r1+r2+r3"),
+        inp("Supplier bills due in October (September's purchases, incl. GST)", "money", [bs["2026-09"]["creditors"]]),
+        calc("Cash left before collections", "money", "r0-r4-r5"),
         *[inp(f"Unpaid invoices: {b[0].lower()}", "money", [a_]) for b, a_ in zip(buckets, aged)],
-        calc("Unpaid invoices, total", "money", "r5+r6+r7")],
+        calc("Unpaid invoices, total (incl. GST)", "money", "r7+r8+r9")],
         "Customers pay on their own dates; every unpaid invoice is in the jobs list in the spreadsheet download.", cols=("30 Sep 2026",))
     x3 = sp3["xl"]["rows"]
     over30 = aged[1] + aged[2]
@@ -1007,8 +1171,8 @@ def examples_trades(m, out, f4):
     e3 = ex("trades", "Will cash cover payroll next month?",
             {"type": "bars", "chart": {"title": "Unpaid invoices at 30 September, by age", "labels": [b[0] for b in buckets],
                                        "values": aged, "format": "money0", "plain": True}},
-            f"Cash at bank is {money(x3[0]['values'][0])}. The next pay run ({money(x3[2]['values'][0])}) and September's supplier bills "
-            f"({money(x3[3]['values'][0])}) come to {money(x3[2]['values'][0] + x3[3]['values'][0])}, so October depends on collecting some of the "
+            f"Cash at bank is {money(x3[0]['values'][0])}. The next pay run ({money(x3[4]['values'][0])}) and September's supplier bills "
+            f"({money(x3[5]['values'][0])}) come to {money(x3[4]['values'][0] + x3[5]['values'][0])}, so October depends on collecting some of the "
             f"{money(sum(aged))} customers owe, " + tail,
             act, sp3)
     return [e1, e2, e3]
@@ -1065,7 +1229,7 @@ def examples_nfp(m, out, f4):
             f"({money(r['fund']['Event costs'])} to raise {money(r['other_income']['Fundraising events'])}).",
             "Put the next spare hours into grant writing. Keep the gala only if it also brings in new regular donors, and track that from this year's guest list.",
             sp1)
-    ending = sorted([gr for gr in out["grants"] if gr["months_left"] < m["ending_within_months"]], key=lambda g: g["months_left"])
+    ending = sorted([gr for gr in out["grants"] if gr["months_left"] <= m["ending_within_months"]], key=lambda g: g["months_left"])
     rows = []
     for gr in ending:
         rows += [inp(f"{gr['program']}: still to spend", "money", [gr["unspent"]]), inp(f"{gr['program']}: months left", "int", [gr["months_left"]]),

@@ -17,7 +17,7 @@ from statistics import median
 
 import data_status as ds
 import exportkit as ek
-from financial_model import FMT, calc, half_up, inp, money, support
+from financial_model import FMT, calc, half_up, inp, money, support, round_half_up
 
 from .catalogue import kpi, kpis, report, series, table, text
 from .period import mdate, mlabel
@@ -52,7 +52,7 @@ def callbacks(D, P):
         done = [r for r in e if r["minutes_to_callback"] is not None]
         within = sum(1 for r in done if r["within_target"] == 1)
         return {"n": len(e), "done": len(done), "within": within, "open": len(e) - len(done),
-                "median": median([r["minutes_to_callback"] for r in done]) if done else None}
+                "median": half_up(median([r["minutes_to_callback"] for r in done])) if done else None}   # rounded once, half up: tile, headline and workings agree
 
     S = {m: stats(m) for m in W}
 
@@ -90,7 +90,7 @@ def callbacks(D, P):
     worst = min(labs, key=lambda k: ch[k][1] / ch[k][0]) if labs else None
     shows = (f"{pct(share)} of the {c['done']} enquiries called back in {P.when} heard back within 2 working hours (target {pct(TARGET_CB)}), "
              f"{'up' if share >= pshare else 'down'} from {pct(pshare)} in {P.prev_month}. The median wait was {half_up(c['median'] or 0)} working minutes.")
-    gap = round(TARGET_CB * c["done"] - c["within"])
+    gap = round_half_up(TARGET_CB * c["done"] - c["within"])
     action = flags_or([
         f"{gap} more enquiries would have needed a faster callback to reach the {pct(TARGET_CB)} target." if gap > 0 else None,
         f"{worst} enquiries are the slowest: {pct(ch[worst][1] / ch[worst][0])} within 2 working hours." if worst else None,
@@ -102,14 +102,14 @@ def callbacks(D, P):
                   [{"label": None, "sections": [
                       kpis(items),
                       series(P, "Callbacks by month", {
-                          "All|share": {"label": "Within 2 working hours %", "values": [round(100 * S[m]["within"] / S[m]["done"], 1) if S[m]["done"] else None for m in W], "format": "pct1", "supports": sups},
+                          "All|share": {"label": "Within 2 working hours %", "values": [round_half_up(100 * S[m]["within"] / S[m]["done"], 1) if S[m]["done"] else None for m in W], "format": "pct1", "supports": sups},
                           "All|median": {"label": "Median wait (min)", "values": [half_up(S[m]["median"]) if S[m]["median"] is not None else None for m in W], "format": "int", "supports": sups},
                           "All|n": {"label": "Enquiries", "values": [S[m]["n"] for m in W], "format": "int", "supports": sups}},
                           note="Working minutes only (8:30am to 5pm, working days). Tap a month for its workings.",
                           dims={"line": ["All"], "measure": [("share", "Within 2 working hours %"), ("median", "Median wait (min)"), ("n", "Enquiries")]}),
                       {"type": "bars", "chart": {"title": f"Called back within 2 working hours, by channel, {P.label}", "subtitle": f"Target {pct(TARGET_CB)}.",
-                                                 "labels": labs, "values": [round(100 * ch[k][1] / ch[k][0], 1) for k in labs], "format": "pct1",
-                                                 "target": round(100 * TARGET_CB, 1), "details": det}},
+                                                 "labels": labs, "values": [round_half_up(100 * ch[k][1] / ch[k][0], 1) for k in labs], "format": "pct1",
+                                                 "target": round_half_up(100 * TARGET_CB, 1), "details": det}},
                       text(shows, action)]}],
                   {"head": ["Month", "Status", "Enquiries", "Called back", "Within 2 working hours", "Share within target", "Median wait (min)"],
                    "kinds": ["text", "text", "int", "int", "int", "pct", "int"],
@@ -161,13 +161,13 @@ def overtime(D, P):
                   [{"label": None, "sections": [
                       kpis(items),
                       series(P, "Overtime by month", {
-                          "All|rate": {"label": "Overtime % of ordinary hours", "values": [round(100 * rate[m], 1) for m in W], "format": "pct1", "supports": sups},
-                          "All|hours": {"label": "Overtime hours", "values": [round(o_h[m], 1) for m in W], "format": "int", "supports": sups}},
+                          "All|rate": {"label": "Overtime % of ordinary hours", "values": [round_half_up(100 * rate[m], 1) for m in W], "format": "pct1", "supports": sups},
+                          "All|hours": {"label": "Overtime hours", "values": [round_half_up(o_h[m], 1) for m in W], "format": "int", "supports": sups}},
                           note="Tap a month for its workings.", dims={"line": ["All"], "measure": [("rate", "Overtime % of ordinary hours"), ("hours", "Overtime hours")]}),
                       {"type": "bars", "chart": {"title": f"Why the overtime, {P.label}", "subtitle": "Overtime hours by main reason.", "labels": rs,
-                                                 "values": [round(why[P.mo][x], 1) for x in rs], "format": "int", "plain": True, "details": det_r}},
+                                                 "values": [round_half_up(why[P.mo][x], 1) for x in rs], "format": "int", "plain": True, "details": det_r}},
                       {"type": "bars", "chart": {"title": f"Overtime by technician, {P.label}", "subtitle": "Technicians are codes, not names.", "labels": [f"Technician {x}" for x in ts],
-                                                 "values": [round(tech[P.mo][x], 1) for x in ts], "format": "int", "plain": True, "details": det_t}},
+                                                 "values": [round_half_up(tech[P.mo][x], 1) for x in ts], "format": "int", "plain": True, "details": det_t}},
                       text(shows, action)]}],
                   {"head": ["Month", "Status", "Ordinary hours", "Overtime hours", "Overtime share"], "kinds": ["text", "text", "hours", "hours", "pct"],
                    "rows": [[mlabel(m), P.status_of(m), ord_h[m], o_h[m], "=IF(C{r}=0,\"\",D{r}/C{r})"] for m in W]}, answer)
@@ -218,14 +218,14 @@ def people_helped(D, P):
                   [{"label": None, "sections": [
                       kpis(items),
                       {"type": "bars", "chart": {"title": f"Share of people reached, by program, {P.label}", "subtitle": f"Target {pct(TARGET_REACH)}.",
-                                                 "labels": progs, "values": [round(100 * ph[P.mo][x] / (ph[P.mo][x] + pn[P.mo][x]), 1) for x in progs], "format": "pct1",
-                                                 "target": round(100 * TARGET_REACH, 1), "details": det,
-                                                 "views": [{"id": "share", "label": "Share reached %", "values": [round(100 * ph[P.mo][x] / (ph[P.mo][x] + pn[P.mo][x]), 1) for x in progs],
-                                                            "format": "pct1", "target": round(100 * TARGET_REACH, 1)},
+                                                 "labels": progs, "values": [round_half_up(100 * ph[P.mo][x] / (ph[P.mo][x] + pn[P.mo][x]), 1) for x in progs], "format": "pct1",
+                                                 "target": round_half_up(100 * TARGET_REACH, 1), "details": det,
+                                                 "views": [{"id": "share", "label": "Share reached %", "values": [round_half_up(100 * ph[P.mo][x] / (ph[P.mo][x] + pn[P.mo][x]), 1) for x in progs],
+                                                            "format": "pct1", "target": round_half_up(100 * TARGET_REACH, 1)},
                                                            {"id": "helped", "label": "People helped", "values": [ph[P.mo][x] for x in progs], "format": "int"}]}},
                       series(P, "People helped by month", {
                           "All|helped": {"label": "People helped", "values": [int(h[m]) for m in W], "format": "int", "supports": sups},
-                          "All|reach": {"label": "Share reached %", "values": [round(100 * reach[m], 1) if reach[m] is not None else None for m in W], "format": "pct1", "supports": sups},
+                          "All|reach": {"label": "Share reached %", "values": [round_half_up(100 * reach[m], 1) if reach[m] is not None else None for m in W], "format": "pct1", "supports": sups},
                           "All|missed": {"label": "Couldn't reach", "values": [int(nr[m]) for m in W], "format": "int", "supports": sups}},
                           note="Tap a month for its workings.", dims={"line": ["All"], "measure": [("helped", "People helped"), ("reach", "Share reached %"), ("missed", "Couldn't reach")]}),
                       table(f"Why people couldn't be helped, {P.label}", ["Main reason", "People"], [[x, f"{reason[P.mo][x]:,}"] for x in rs], ["text", "int"]),
@@ -236,6 +236,12 @@ def people_helped(D, P):
 
 BLOCKS = [("Before 8:30am", lambda hr: hr < 8.5), ("8:30 to 10am", lambda hr: 8.5 <= hr < 10), ("10am to noon", lambda hr: 10 <= hr < 12),
           ("Noon to 2pm", lambda hr: 12 <= hr < 14), ("2 to 5pm", lambda hr: 14 <= hr < 17), ("5 to 8pm", lambda hr: 17 <= hr < 20), ("After 8pm", lambda hr: hr >= 20)]
+
+
+def nth(n):
+    """1st, 2nd, 3rd, 4th ... 11th, 12th, 13th ... 21st."""
+    suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n:,}{suffix}"
 
 
 def calls(D, P):
@@ -271,11 +277,21 @@ def calls(D, P):
         calc("Answered while staffed", "pct", "r2/r1"), calc("Calls outside staffed hours", "pct", "(r0-r1)/r0")], P.part_note or None, cols=(mlabel(P.mo), mlabel(P.prev)))
     rc = rate[P.mo] or 0
     after = 1 - staffed[P.mo] / tot[P.mo] if tot[P.mo] else 0
-    mw = median(waits[P.mo]) if waits[P.mo] else 0
+    mw = half_up(median(waits[P.mo])) if waits[P.mo] else 0          # rounded once, half up
+    mw_p = half_up(median(waits[P.prev])) if waits[P.prev] else 0
+    srt = sorted(waits[P.mo])
+    mid = len(srt) // 2
+    k_wait = support(f"Median wait when answered, {P.month} and {P.prev_month}", "The middle wait when every answered call is lined up from shortest to longest", [
+        inp("Answered calls (while staffed)", "int", [len(waits[P.mo]), len(waits[P.prev])]),
+        inp("Median wait (seconds, rounded half up)", "int", [mw, mw_p])],
+        (f"{P.month}: {len(srt):,} waits in order; the median is "
+         + (f"the {nth(mid + 1)}, {srt[mid]} seconds." if len(srt) % 2 else f"halfway between the {nth(mid)} and {nth(mid + 1)} ({srt[mid - 1]} and {srt[mid]} seconds).")
+         if srt else "No answered calls.") + " Unanswered calls and calls outside staffed hours have no wait to count. " + (P.part_note or ""),
+        cols=(mlabel(P.mo), mlabel(P.prev)))
     items = [kpi(f"Calls for help, {P.when}", f"{tot[P.mo]:,}", f"{P.prev_month} {tot[P.prev]:,}", k),
              kpi(f"Answered while staffed, {P.when}", pct(rc), f"target {pct(TARGET_ANSWER)}", k, tone=ek.tone(rc, "higher", TARGET_ANSWER, 0.03)),
              kpi(f"Calls outside staffed hours, {P.when}", pct(after), f"{tot[P.mo] - staffed[P.mo]:,} calls to voicemail", k),
-             kpi(f"Median wait when answered, {P.when}", f"{half_up(mw)} sec", f"{len(waits[P.mo]):,} answered calls", k)]
+             kpi(f"Median wait when answered, {P.when}", f"{mw} sec", f"{len(waits[P.mo]):,} answered calls", k_wait)]
     labs = [b for b, _ in BLOCKS]
     det = [support(f"Calls {b.lower()}, {P.label}", "Answered ÷ calls", [inp("Calls", "int", [blk[b][0]]), inp("Answered", "int", [blk[b][1]]), calc("Answered", "pct", "r1/r0")],
                    "Outside 8:30am to 5pm on working days the line goes to voicemail.", cols=(P.short,)) for b in labs]
@@ -295,10 +311,10 @@ def calls(D, P):
                       {"type": "bars", "chart": {"title": f"When the calls come in, {P.label}", "subtitle": "Calls by time of day, and the share answered.",
                                                  "labels": labs, "values": [blk[b][0] for b in labs], "format": "int", "plain": True, "details": det, "keep_order": True,
                                                  "views": [{"id": "calls", "label": "Calls", "values": [blk[b][0] for b in labs], "format": "int"},
-                                                           {"id": "answered", "label": "Answered %", "values": [round(100 * blk[b][1] / blk[b][0], 1) if blk[b][0] else 0 for b in labs], "format": "pct1"}]}},
+                                                           {"id": "answered", "label": "Answered %", "values": [round_half_up(100 * blk[b][1] / blk[b][0], 1) if blk[b][0] else 0 for b in labs], "format": "pct1"}]}},
                       series(P, "Calls for help by month", {
                           "All|calls": {"label": "Calls", "values": [tot[m] for m in W], "format": "int", "supports": sups},
-                          "All|rate": {"label": "Answered while staffed %", "values": [round(100 * rate[m], 1) if rate[m] is not None else None for m in W], "format": "pct1", "supports": sups}},
+                          "All|rate": {"label": "Answered while staffed %", "values": [round_half_up(100 * rate[m], 1) if rate[m] is not None else None for m in W], "format": "pct1", "supports": sups}},
                           note="Tap a month for its workings.", dims={"line": ["All"], "measure": [("calls", "Calls"), ("rate", "Answered while staffed %")]}),
                       text(shows, action)]}],
                   {"head": ["Month", "Status", "Calls", "While staffed", "Answered", "Answered while staffed"], "kinds": ["text", "text", "int", "int", "int", "pct"],
@@ -343,9 +359,9 @@ def volunteers(D, P):
                   [{"label": None, "sections": [
                       kpis(items),
                       {"type": "bars", "chart": {"title": f"Volunteer hours by program, {P.label}", "subtitle": "Hours from every shift.", "labels": ps,
-                                                 "values": [round(prog[P.mo][x], 1) for x in ps], "format": "int", "plain": True, "details": det}},
+                                                 "values": [round_half_up(prog[P.mo][x], 1) for x in ps], "format": "int", "plain": True, "details": det}},
                       series(P, "Volunteer hours by month", {
-                          "All|hours": {"label": "Volunteer hours", "values": [round(hrs[m], 1) for m in W], "format": "int", "supports": sups},
+                          "All|hours": {"label": "Volunteer hours", "values": [round_half_up(hrs[m], 1) for m in W], "format": "int", "supports": sups},
                           "All|people": {"label": "Volunteers", "values": [len(people[m]) for m in W], "format": "int", "supports": sups}},
                           note="Tap a month for its workings.", dims={"line": ["All"], "measure": [("hours", "Volunteer hours"), ("people", "Volunteers")]}),
                       text(shows, action)]}],

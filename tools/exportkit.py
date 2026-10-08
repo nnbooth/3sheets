@@ -53,22 +53,23 @@ def esc(s):
 
 
 def fmt_value(v, f):
+    from financial_model import round_half_up as hu        # one rounding rule everywhere: halves away from zero
     if f == "pct_var":        # over (+) or under (-) budget: said in words, so an underspend isn't a red negative
-        return "on budget" if round(v, 1) == 0 else f"{abs(v):.1f}% {'over' if v > 0 else 'under'}"
+        return "on budget" if hu(v, 1) == 0 else f"{hu(abs(v), 1):.1f}% {'over' if v > 0 else 'under'}"
     if f == "money_var":
-        return "on budget" if round(v) == 0 else f"${abs(round(v)):,} {'over' if v > 0 else 'under'}"
+        return "on budget" if hu(v) == 0 else f"${hu(abs(v)):,} {'over' if v > 0 else 'under'}"
     if f == "pct1":
-        return f"({-v:.1f}%)" if v < 0 else f"{v:.1f}%"
+        return f"({hu(-v, 1):.1f}%)" if v < 0 else f"{hu(v, 1):.1f}%"
     if f == "pct0":
-        return f"{round(v)}%"
+        return f"{hu(v)}%"
     if f == "money_k":
-        return f"${round(v / 1000):,}k" if abs(v) >= 1000 else f"${v}"
+        return f"${hu(v / 1000):,}k" if abs(v) >= 1000 else f"${v}"
     if f == "money0":
-        return f"(${-round(v):,})" if v < 0 else f"${round(v):,}"
+        return f"(${hu(-v):,})" if v < 0 else f"${hu(v):,}"
     if f == "cents_int":
-        return f"{round(v)}¢"
+        return f"{hu(v)}¢"
     if f == "int":
-        return f"{round(v):,}"
+        return f"{hu(v):,}"
     return str(v)
 
 

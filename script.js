@@ -555,19 +555,21 @@ function applyPrices() {
 --------------------------------------------------------------------------- */
 const dash = { org: 'trades', tab: 'fourth', view: 'pct' };
 
+// one rounding rule everywhere (site, PDF, spreadsheet, slides): halves round away from zero, so 112.5 shows as 113 and 12.25 as 12.3
+const hu = (v, dp = 0) => { const p = 10 ** dp; return Math.sign(v) * Math.round(Math.abs(v) * p + 1e-9) / p; };
 // Accounting format in whole dollars: 1,234 / (1,234) for negatives / - for zero
 const acct = (n) => (n < 0 ? `(${Math.abs(n).toLocaleString('en-AU')})` : n === 0 ? '-' : n.toLocaleString('en-AU'));
 const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const CHART_FORMATS = {
   // over (+) / under (-) budget, said in words so an underspend isn't shown as a red negative
-  pct_var: (v) => (Math.round(v * 10) === 0 ? 'on budget' : `${Math.abs(Number(v)).toFixed(1)}% ${v > 0 ? 'over' : 'under'}`),
-  money_var: (v) => (Math.round(v) === 0 ? 'on budget' : `$${Math.abs(Math.round(v)).toLocaleString('en-AU')} ${v > 0 ? 'over' : 'under'}`),
-  money0: (v) => (v < 0 ? `($${Math.round(-v).toLocaleString('en-AU')})` : `$${Math.round(v).toLocaleString('en-AU')}`),
-  pct0: (v) => `${Math.round(v)}%`,
-  pct1: (v) => (v < 0 ? `(${Math.abs(Number(v)).toFixed(1)}%)` : `${Number(v).toFixed(1)}%`),
+  pct_var: (v) => (hu(v, 1) === 0 ? 'on budget' : `${hu(Math.abs(Number(v)), 1).toFixed(1)}% ${v > 0 ? 'over' : 'under'}`),
+  money_var: (v) => (hu(v) === 0 ? 'on budget' : `$${hu(Math.abs(v)).toLocaleString('en-AU')} ${v > 0 ? 'over' : 'under'}`),
+  money0: (v) => (v < 0 ? `($${hu(-v).toLocaleString('en-AU')})` : `$${hu(v).toLocaleString('en-AU')}`),
+  pct0: (v) => `${hu(v)}%`,
+  pct1: (v) => (v < 0 ? `(${hu(Math.abs(Number(v)), 1).toFixed(1)}%)` : `${hu(Number(v), 1).toFixed(1)}%`),
   cents_int: (v) => `${v}¢`,
-  int: (v) => Math.round(v).toLocaleString('en-AU'),
-  money_k: (v) => (Math.abs(v) >= 1000 ? `$${Math.round(v / 1000).toLocaleString('en-AU')}k` : `$${v}`),
+  int: (v) => hu(v).toLocaleString('en-AU'),
+  money_k: (v) => (Math.abs(v) >= 1000 ? `$${hu(v / 1000).toLocaleString('en-AU')}k` : `$${v}`),
 };
 
 // EXPLANATIONS: the "gross margin, not profit" boxes on the report pages. Hide them for an audience that
@@ -802,7 +804,7 @@ function delivBand(p) {
   const done = p.on_time + p.late + p.very_late;
   if (p.overdue) return 'bad';
   if (!done) return 'open';
-  const r = p.on_time / done;
+  const r = p.on_time / (done + p.overdue);      // overdue counts as late: on time ÷ (delivered + overdue)
   return r >= 0.95 ? 'good' : r >= 0.8 ? 'some' : 'bad';
 }
 function setupDeliveries() {

@@ -215,7 +215,7 @@ def check_totals():
 MOCKUP_CHECKS = {
     "tools/mockups/warehouse.html": ["142", "180", "94", "steel coil"],
     "tools/mockups/reception.html": ["1,248", "96", "24", "31"],
-    "tools/mockups/boardroom.html": ["+2.8%", "$4.29M", "$4.18M", "31.4%", "4.1%", "+1.8%", "· September"],
+    "tools/mockups/boardroom.html": ["+2.8%", "$4.29M", "$4.18M", "31.4%", "38 days", "+1.8%", "· September"],
     "tools/mockups/report-sales.html": ["$412k", "1,248", "3.8%", "[19, 13, 9, 6]", "<b>September</b>", "['Apr','May','Jun','Jul','Aug','Sep']"],
     "tools/mockups/report-purchasing.html": ["$286k", "91%", "+4.2%", "PO-1042"],
     "tools/mockups/report-payroll.html": ["$198k", "412", "9.6%", "$143"],

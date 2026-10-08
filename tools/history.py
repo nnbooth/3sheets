@@ -26,13 +26,13 @@ from datetime import date, timedelta
 
 import data_status as ds
 import financial_model as fm
+import tax_payroll as tp
 from warehouse import allocate, days, key, pattern, spread, wdays, working
 
 HIST = [f"{y}-{m:02d}" for y, m in [(2024, 10), (2024, 11), (2024, 12)] + [(2025, k) for k in range(1, 13)] + [(2026, k) for k in range(1, 8)]]
 OCT = "2026-10"
 AS_AT = ds.AS_AT.date()                       # 6 Oct 2026
 MODEL_MONTHS = ["2026-05", "2026-06", "2026-07"]  # the model already has these months' trades jobs (for debtors)
-PAY_DAYS_OCT = [date(2026, 10, 1)]            # the fortnightly pay run after 17 Sep
 SUBURBS = ["Albion", "Ashgrove", "Aspley", "Bulimba", "Capalaba", "Carindale", "Chermside", "Coorparoo", "Darra", "Everton Park",
            "Fortitude Valley", "Hamilton", "Indooroopilly", "Kedron", "Logan Central", "Milton", "Mitchelton", "Morningside",
            "Mount Gravatt", "Newstead", "Northgate", "Paddington", "Red Hill", "Rocklea", "Salisbury", "Sunnybank", "Taringa",
@@ -88,6 +88,7 @@ def trades_jobs(m):
             mat_ = round(rev * (mat_share + margin_noise / 2) / 100) * 100
             sub_ = round(rev * sub_share / 100) * 100
             hrs = round(rev / rng.uniform(230, 300) * 2) / 2
+            rev = round(rev * fm.INSTALL_PRICE / 100) * 100   # the price: costs above come from the base
             day = 2 if mo == OCT else rng.randrange(1, 27)
             n_inst += 1
             jobs.append(dict(month=mo, job=f"J-{n_inst}", type="Installation",
@@ -109,10 +110,11 @@ def trades_jobs(m):
     for j in jobs:
         j.setdefault("labour_revenue", None)      # only call-outs bill time and materials separately
         j.setdefault("materials_revenue", None)
-        j["paid_date"] = j["invoice_date"] + timedelta(days=j["days_to_pay"])
+        j["paid_date"] = tp.next_banking_day(j["invoice_date"] + timedelta(days=j["days_to_pay"]))   # money moves on banking days
         j["labour_cost"] = fm.half_up(j["hours"] * m["tech_cost_rate"])
         j["gross_profit"] = j["revenue"] - j["materials"] - j["subcontractors"] - j["labour_cost"]
-        j["amount"] = j["revenue"]
+        j["gst"] = tp.gst_on(j["revenue"])
+        j["amount"] = j["revenue"] + j["gst"]     # the invoice, incl. GST
     return jobs
 
 
@@ -122,7 +124,7 @@ def trades_lines(m, mo):
     grow = 0.86 + 0.14 * i / 24
     t = trades_techs(mo)
     office = 14600 if mo < "2025-07" else 21900
-    lines = {"Technician wages (incl. on-costs)": -t * 7800, "Office and admin wages": -office,
+    lines = {"Technician wages (incl. on-costs)": -fm.loaded_wages(t, len(wdays(mo)), m["tech_cost_rate"]), "Office and admin wages": -office,
              "Marketing": -round(7600 * (0.85 + 0.25 * season(mo, {9: 1.1, 10: 1.1, 2: 1.1, 12: 0.7, 1: 0.8})) / 100) * 100,
              "Vehicles and fuel": -round(7900 * t / 7 / 100) * 100, "Rent and occupancy": -(6400 if mo < "2025-07" else 7000),
              "Insurance": -(2700 if mo < "2025-07" else 3000), "IT and software": -round(2300 * grow / 100) * 100,
@@ -140,27 +142,27 @@ def trades_new_customers(mo):
 
 # history engagements: [code, type, name, rate or fee, first month, last month, hours a month, contractors a month]
 SERVICES_HISTORY = [
-    ["R-095", "Retainer", "Retail chain reporting", 5500, "2024-10", "2025-06", 30, 0],
-    ["R-102", "Retainer", "Construction firm finance", 9500, "2024-10", "2026-07", 55, 0],
-    ["R-105", "Retainer", "Dental group reporting", 6800, "2025-03", "2026-07", 42, 0],
-    ["R-108", "Retainer", "Agribusiness CFO support", 12000, "2025-11", "2026-07", 66, 0],
-    ["R-110", "Retainer", "Hospitality payroll", 4200, "2026-06", "2026-07", 34, 0],
-    ["E-198", "Project", "Month-end process redesign, distributor", 160, "2024-10", "2025-02", 100, 0],
-    ["E-203", "Project", "Cash flow model, childcare group", 160, "2024-10", "2024-12", 80, 0],
-    ["E-201", "Project", "Inventory costing review, wholesaler", 160, "2024-10", "2025-01", 90, 1500],
-    ["E-205", "Project", "Budget model, aged care provider", 165, "2024-11", "2025-03", 70, 0],
-    ["E-214", "Project", "ERP data migration, engineering firm", 170, "2025-02", "2025-07", 140, 3800],
-    ["E-226", "Project", "Pricing review, food manufacturer", 175, "2025-05", "2025-09", 85, 0],
-    ["E-233", "Project", "Board pack redesign, sports club", 160, "2025-08", "2025-11", 60, 0],
-    ["E-241", "Project", "Cost-to-serve model, freight company", 180, "2025-10", "2026-03", 110, 2400],
-    ["E-252", "Project", "Forecasting tool, builder", 175, "2026-01", "2026-05", 95, 0],
-    ["E-260", "Project", "Systems review, accounting practice", 170, "2026-03", "2026-06", 75, 1200],
-    ["E-311", "Project", "Logistics systems rollout", 175, "2026-06", "2026-07", 150, 3600],
-    ["E-316", "Project", "Distributor cost-to-serve", 180, "2026-06", "2026-07", 70, 0],
-    ["E-320", "Project", "Manufacturer process mapping", 170, "2026-07", "2026-07", 60, 1500],
+    ["R-095", "Retainer", "Retail chain reporting", 6100, "2024-10", "2025-06", 30, 0],
+    ["R-102", "Retainer", "Construction firm finance", 10400, "2024-10", "2026-07", 55, 0],
+    ["R-105", "Retainer", "Dental group reporting", 7500, "2025-03", "2026-07", 42, 0],
+    ["R-108", "Retainer", "Agribusiness CFO support", 13200, "2025-11", "2026-07", 66, 0],
+    ["R-110", "Retainer", "Hospitality payroll", 4600, "2026-06", "2026-07", 34, 0],
+    ["E-198", "Project", "Month-end process redesign, distributor", 175, "2024-10", "2025-02", 100, 0],
+    ["E-203", "Project", "Cash flow model, childcare group", 175, "2024-10", "2024-12", 80, 0],
+    ["E-201", "Project", "Inventory costing review, wholesaler", 175, "2024-10", "2025-01", 90, 1500],
+    ["E-205", "Project", "Budget model, aged care provider", 180, "2024-11", "2025-03", 70, 0],
+    ["E-214", "Project", "ERP data migration, engineering firm", 185, "2025-02", "2025-07", 140, 3800],
+    ["E-226", "Project", "Pricing review, food manufacturer", 195, "2025-05", "2025-09", 85, 0],
+    ["E-233", "Project", "Board pack redesign, sports club", 175, "2025-08", "2025-11", 60, 0],
+    ["E-241", "Project", "Cost-to-serve model, freight company", 200, "2025-10", "2026-03", 110, 2400],
+    ["E-252", "Project", "Forecasting tool, builder", 195, "2026-01", "2026-05", 95, 0],
+    ["E-260", "Project", "Systems review, accounting practice", 185, "2026-03", "2026-06", 75, 1200],
+    ["E-311", "Project", "Logistics systems rollout", 195, "2026-06", "2026-07", 150, 3600],
+    ["E-316", "Project", "Distributor cost-to-serve", 200, "2026-06", "2026-07", 70, 0],
+    ["E-320", "Project", "Manufacturer process mapping", 185, "2026-07", "2026-07", 60, 1500],
 ]
-COURSES = [("Budgeting workshop", 6400, 20), ("Excel for managers", 8800, 30), ("Power BI basics", 4600, 14),
-           ("Cash flow for owners", 5200, 16), ("Reading your P&L", 3900, 12)]
+COURSES = [("Budgeting workshop", 7000, 20), ("Excel for managers", 9700, 30), ("Power BI basics", 5100, 14),
+           ("Cash flow for owners", 5700, 16), ("Reading your P&L", 4300, 12)]
 
 
 def services_consultants(mo):
@@ -196,15 +198,16 @@ def services_engagements(m):
         if x["billed"]:
             d = fm.month_start(x["month"]) + timedelta(days=(0 if x["type"] == "Retainer" else 26 if x["month"] != OCT else 0))
             pay = 14 if x["type"] == "Retainer" else 30
-            invoices.append({"invoice": f"INV-{x['month'][2:4]}{x['month'][5:]}{x['code']}", "code": x["code"], "amount": x["billed"],
-                             "invoice_date": d, "paid_date": d + timedelta(days=pay + rng.choice([-3, 0, 0, 5, 12]))})
+            invoices.append({"invoice": f"INV-{x['month'][2:4]}{x['month'][5:]}{x['code']}", "code": x["code"], "ex_gst": x["billed"],
+                             "gst": tp.gst_on(x["billed"]), "amount": tp.with_gst(x["billed"]),
+                             "invoice_date": d, "paid_date": tp.next_banking_day(d + timedelta(days=pay + rng.choice([-3, 0, 0, 5, 12])))})
     return rows, invoices
 
 
 def services_lines(m, mo):
     i = idx(mo)
     grow = 0.85 + 0.15 * i / 24
-    return {"Consultant salaries (incl. on-costs)": -services_consultants(mo) * 7750,
+    return {"Consultant salaries (incl. on-costs)": -fm.loaded_wages(services_consultants(mo), len(wdays(mo)), m["cost_rate"]),
             "Management and admin wages": -(18000 if mo < "2025-07" else 24000),
             "Marketing and business development": -round(5800 * grow / 100) * 100,
             "Rent and occupancy": -(7200 if mo < "2025-07" else 8000), "IT and software": -round(4500 * grow / 100) * 100,
@@ -409,13 +412,11 @@ def build(res):
         bs_sep = o["bs"]["2026-09"]
         if org == "trades":
             invoices = o["jobs"] + [j for j in hist_jobs if j["month"] == OCT and j["invoice_date"] <= AS_AT]
-            wages = T["tech_wages"]["2026-09"] + T["opex"]["Office and admin wages"]["2026-09"]
         elif org == "services":
             invoices = o["invoices"] + [i for i in inv if i["invoice_date"].strftime("%Y-%m") == OCT]
-            wages = S["salaries"]["2026-09"] + S["opex"]["Management and admin wages"]["2026-09"]
         else:
             invoices = []
-            wages = o["r"]["2026-09"]["wages"]
+        pay_run = o["payroll"]["cash"]                     # net pay + super on pay day (PAYG withheld goes with the BAS)
         flows = {}
         def flow(d, label, amt):
             if amt:
@@ -424,14 +425,14 @@ def build(res):
         for d in month_days_to_date(OCT):
             if org != "nfp":
                 flow(d, "Receipts from customers (invoices paid)", sum(i["amount"] for i in invoices if i["paid_date"] == d))
-            if d in PAY_DAYS_OCT:
-                flow(d, "Payments to employees", -(wages // 2))
-        if org == "nfp":
+            if d in tp.pay_days_in(OCT):
+                flow(d, "Payments to employees", -pay_run)
+        if org == "nfp":                                   # money moves on banking days only; program fees include GST
             don = round(17000 * season(OCT, DONATION_SEASON) / 100) * 100
-            for d, a in spread(don, days(OCT)):
+            for d, a in spread(don, wdays(OCT)):
                 if d <= AS_AT:
                     flow(d, "Donations and fundraising received", a)
-            for d, a in spread(26000, wdays(OCT)):
+            for d, a in spread(tp.with_gst(26000), wdays(OCT)):
                 if d <= AS_AT:
                     flow(d, "Program fees received", a)
         cash = bs_sep["cash"]

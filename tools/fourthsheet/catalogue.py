@@ -13,8 +13,9 @@ and every sentence is written from those numbers. Each report carries:
 from datetime import date
 
 import data_status as ds
+import tax_payroll as tp
 import exportkit as ek
-from financial_model import FMT, calc, half_up, inp, money, support
+from financial_model import FMT, calc, half_up, inp, money, support, round_half_up
 
 from .period import add_months, mdate, mlabel
 
@@ -91,7 +92,7 @@ def lines_by_month(D, org, lines):
     return out
 
 
-ONCOSTS = "Wages always include all on-costs: super, payroll tax, workers' compensation insurance and leave."
+ONCOSTS = "Wages include their on-costs: super (12%) and leave as it's earned. No payroll tax: wages are under Queensland's $1.3 million threshold."
 
 
 def definition(D, org):
@@ -119,6 +120,13 @@ def pnl(D, org, mo):
         wages = -o.line(mo, "Consultant salaries (incl. on-costs)")
         es = [e for e in D["_engagements"] if e["month"] == mo]
         charged, gm_work = sum(e["time_cost"] for e in es), sum(e["contribution"] for e in es)
+    # the costing rate is wages / available hours: a full month's wages must be every available hour at that rate
+    if ds.month_end(mo) <= ds.AS_AT.date():                   # whole months (October to date is cut part-way)
+        people = o.drivers["Technicians" if org == "trades" else "Consultants"][mo]
+        wd = sum(1 for r in D["_src"].table(None, "dim_date") if r["month_key"] == mo and r["is_working_day"] == 1)
+        rate = o.rates["Technician cost rate" if org == "trades" else "Consultant cost rate"]
+        if abs(wages - people * wd * 7.6 * rate) > 1:
+            raise SystemExit(f"{org} {mo}: wages {wages} aren't {people} x {wd} working days x 7.6 h x ${rate}: the costing rate wouldn't tie to the P&L")
     if gm_work - (wages - charged) != gp:
         raise SystemExit(f"{org} {mo}: the work's gross margin ({gm_work}) less time not charged ({wages - charged}) doesn't tie to the ledger's gross profit ({gp})")
     return dict(revenue=revenue, gp=gp, pbt=pbt, wages=wages, charged=charged, gm_work=gm_work, overheads=gp - pbt)
@@ -141,7 +149,7 @@ def bridge(D, P, org):
         f"Ties to the {lab} P&L ({P.status_of(mo).lower()}). " + ONCOSTS + (f" {P.month} is still in progress, so this uses {P.full_month}." if P.incomplete else ""),
         cols=(mdate(mo).strftime("%b %Y"),))
     x = sp["xl"]["rows"]
-    if round(x[4]["values"][0]) != r["gp"] or round(x[6]["values"][0]) != r["pbt"]:
+    if round_half_up(x[4]["values"][0]) != r["gp"] or round_half_up(x[6]["values"][0]) != r["pbt"]:
         raise SystemExit(f"bridge for {org} {mo} doesn't tie to the P&L")
     v = lambda i: x[i]["values"][0]
     pre = (f"{P.month} is still in progress and wages are paid fortnightly, so a part month can't be bridged: this is {P.full_month}, the latest closed month. "
@@ -177,14 +185,14 @@ def margin_action(name, gm, be):
         return f"{name}: {pct(gm)} gross margin. Losing money before overheads."
     if gm < be:
         return f"{name}: {pct(gm)} gross margin, below the {pct(be)} needed to cover overheads."
-    return f"{name}: {pct(gm)} gross margin, {round(100 * (gm - be), 1):.1f} points clear of the {pct(be)} overheads need."
+    return f"{name}: {pct(gm)} gross margin, {round_half_up(100 * (gm - be), 1):.1f} points clear of the {pct(be)} overheads need."
 
 
 def margin_chart(title, subtitle, labels, rev, gp, target, details, be=None):
     """Bars with a gross margin % / $ toggle; the $ view marks each item's target gross margin. be (a fraction) adds the
     break-even line (the gross margin that just covers overheads and time not charged) beside the target."""
-    pct_ = [round(100 * g / r, 1) if r else 0 for g, r in zip(gp, rev)]
-    bev = round(100 * be, 1) if be is not None else None
+    pct_ = [round_half_up(100 * g / r, 1) if r else 0 for g, r in zip(gp, rev)]
+    bev = round_half_up(100 * be, 1) if be is not None else None
     if bev is not None:
         subtitle = (subtitle + f" Target {float(target):.1f}% is what to price for; break-even {bev:.1f}% only covers overheads and time not charged.").strip()
     return {"title": title, "subtitle": subtitle, "labels": labels, "values": pct_, "target": float(target), "breakeven": bev, "format": "pct1", "details": details,
@@ -317,9 +325,9 @@ def line_views(D, P, org, lines):
             what = "all lines" if line == "All" else line
             sups.append(support(f"{biz + ', ' + what if biz else what.capitalize()}, {mlabel(m)}", "Revenue less direct cost; growth against the same month last year", rows_, cols=(mlabel(m),)))
         views[f"{line}|revenue"] = {"label": "Revenue $", "values": rev, "format": "money0", "supports": sups}
-        views[f"{line}|margin_pct"] = {"label": "Gross margin %", "values": [round(100 * a / b, 1) if b else 0 for a, b in zip(mar, rev)], "format": "pct1", "supports": sups}
+        views[f"{line}|margin_pct"] = {"label": "Gross margin %", "values": [round_half_up(100 * a / b, 1) if b else 0 for a, b in zip(mar, rev)], "format": "pct1", "supports": sups}
         views[f"{line}|margin"] = {"label": "Gross margin $", "values": mar, "format": "money0", "supports": sups}
-        views[f"{line}|growth"] = {"label": "Growth vs same month last year", "values": [round(100 * (rev[i] / ly[m] - 1), 1) if ly[m] else None for i, m in enumerate(W)],
+        views[f"{line}|growth"] = {"label": "Growth vs same month last year", "values": [round_half_up(100 * (rev[i] / ly[m] - 1), 1) if ly[m] else None for i, m in enumerate(W)],
                                    "format": "pct1", "supports": sups}
         for i, m in enumerate(W):
             data_rows.append([line, mlabel(m), P.status_of(m), rev[i], cost[i]])
@@ -410,11 +418,11 @@ def growing(D, P):
         ks = [(line, line_kpis(D, P, org, line, lines)) for line in lines]
         if P.pfytd_ok and t[2] and all(k["p12"] for _, k in ks):
             groups.append({"name": nm, "value": growth_text(t[1], t[2]), "sub": f"{money(t[1])} against {money(t[2])}", "format": "pct1",
-                           "labels": [l for l, _ in ks], "values": [round(100 * (k["r12"] / k["p12"] - 1), 1) for _, k in ks],
+                           "labels": [l for l, _ in ks], "values": [round_half_up(100 * (k["r12"] / k["p12"] - 1), 1) for _, k in ks],
                            "tips": [f"{money(k['r12'])} against {money(k['p12'])}" for _, k in ks]})
         else:
             groups.append({"name": nm, "value": money(t[1]), "sub": f"revenue, {P.fytd_l}", "format": "money0",
-                           "labels": [l for l, _ in ks], "values": [round(k["r12"]) for _, k in ks]})
+                           "labels": [l for l, _ in ks], "values": [round_half_up(k["r12"]) for _, k in ks]})
     r["card"] = {"groups": groups, "note": (f"Revenue growth by line, {P.fytd_l} against the same months last year." if groups[0]["format"] == "pct1"
                                             else f"Revenue by line, {P.fytd_l}.")}
     return r
@@ -511,14 +519,14 @@ def job_margins(D, P):
             calc("Technician time, % of call-out revenue", "pct", "r0/r5")], cols=(P.short,))
         by["kpis"]["Call-outs and repairs"]["items"] += [
             kpi(f"Technician time charged, {P.when}", money(lab_rev), f"{pct(lab_rev / (lab_rev + mat_rev))} of call-out revenue", rev_split),
-            kpi(f"Materials charged, {P.when}", money(mat_rev), f"{money(mat_cost)} at cost, plus {round(100 * (mk - 1))}%", rev_split)]
+            kpi(f"Materials charged, {P.when}", money(mat_rev), f"{money(mat_cost)} at cost, plus {round_half_up(100 * (mk - 1))}%", rev_split)]
         by["bars"]["Call-outs and repairs"] = {"type": "bars", "chart": margin_chart(
             f"Job gross margin on call-outs by length, {P.label}",
             f"Charged at ${o.rates['Call-out charge rate']}/hour plus materials at cost × {o.rates['Materials mark-up on call-outs']}; technician time at ${rate}/hour.",
             labs, rev_, gp_, tgt, det, be)}
         mg = [g / r for g, r in zip(gp_, rev_)]
         by["text"]["Call-outs and repairs"] = text(
-            f"{len(co)} call-outs in {P.when} billed {money(lab_rev)} of technician time and {money(mat_rev)} of materials ({money(mat_cost)} at cost plus {round(100 * (mk - 1))}%), "
+            f"{len(co)} call-outs in {P.when} billed {money(lab_rev)} of technician time and {money(mat_rev)} of materials ({money(mat_cost)} at cost plus {round_half_up(100 * (mk - 1))}%), "
             f"and made a {pct(sum(gp_) / sum(rev_))} job gross margin between them. Gross margins run from {pct(min(mg))} to {pct(max(mg))} "
             "by length: the hourly rate covers technician time comfortably, so the gross margin mostly moves with how much material goes on the van.",
             quant_flag("All call-outs", sum(gp_) / sum(rev_), sum(rev_), T, be, f"in {P.when}"))
@@ -754,7 +762,7 @@ def program_cost(D, P):
     chart = {"title": f"Full cost of each program, {P.label}", "labels": labels, "values": [half_up(full[l]) for l in labels],
              "format": "money0", "plain": True, "details": sups,
              "views": [{"id": "dollars", "label": "$", "values": [half_up(full[l]) for l in labels], "format": "money0"},
-                       {"id": "pct", "label": "% of total", "values": [round(100 * full[l] / sum(full.values()), 1) for l in labels], "format": "pct1"}]}
+                       {"id": "pct", "label": "% of total", "values": [round_half_up(100 * full[l] / sum(full.values()), 1) for l in labels], "format": "pct1"}]}
     spend = {}
     for r in D["_src"].table("nfp", "fact_grant_spend_month"):
         spend.setdefault(r["grant_id"], {})[r["month_key"]] = (r["spend"], r["budget"])
@@ -800,18 +808,23 @@ def program_cost(D, P):
 # ------------------------------------------------------------------ cash (needs the balance sheet: from the opening balance on)
 
 def cash_at(D, mo, P=None):
-    """Cash at bank and unspent grant money at the end of a month (or today, for the month in progress)."""
+    """Cash at bank, unspent grant money, and GST and PAYG withheld owed to the ATO, at the end of a month (or today, for
+    the month in progress). The ATO's money sits in the bank until the BAS is paid, so it isn't the organisation's to spend."""
     src = D["_src"]
     ob = {r["line"]: r["amount"] for r in src.table("nfp", "opening_balance")}
     ob_mo = src.table("nfp", "opening_balance")[0]["as_at"][:7]
+    ato_lines = ("GST payable (net)", "PAYG withholding payable")
     if mo == ob_mo:
-        return ob["Cash at bank"], ob["Grants received in advance (unspent)"]
+        return ob["Cash at bank"], ob["Grants received in advance (unspent)"], sum(ob.get(k, 0) for k in ato_lines)
     end = min(ds.month_end(mo), ds.AS_AT.date())
     bal = [r for r in src.table("nfp", "fact_balance_daily") if r["date_key"] <= int(end.strftime("%Y%m%d"))]
     from .period import Period
     Q = Period(mo, D["nfp"].months)
     adv = sum(max(0, g["received"] - g["spent_to_date"]) for g in grant_positions(D, Q) if g["code"] in D["_current_grants"])
-    return bal[-1]["cash_at_bank"], adv
+    st = {(r["period"], r["line"]): r["amount_aud"] for r in src.table("nfp", "model_statements") if r["statement_key"] == "bs"}
+    at = mo if (mo, ato_lines[0]) in st else max((p for p, l in st if l == ato_lines[0] and p < mo), default=None)   # month in progress: the last month end's
+    ato = round_half_up(sum(st.get((at, k), 0) for k in ato_lines)) if at else sum(ob.get(k, 0) for k in ato_lines)
+    return bal[-1]["cash_at_bank"], adv, ato
 
 
 def cash_months(D):
@@ -821,20 +834,25 @@ def cash_months(D):
 
 
 def runway_numbers(D, P, mo):
-    cash, adv = cash_at(D, mo)
+    """(cash at bank, unspent grant money, a month's cash spending, the month that rate is from, GST and PAYG owed to the ATO)."""
+    cash, adv, ato = cash_at(D, mo)
     rate_mo = P.prev if (mo == P.mo and P.incomplete) else mo
     x = nfp_month(D, rate_mo)
-    return cash, adv, x["expenses"] - x["depreciation"], rate_mo
+    return cash, adv, x["expenses"] - x["depreciation"], rate_mo, ato
+
+
+RUNWAY_FORMULA = "(Cash at bank − unspent grant money − GST and PAYG owed to the ATO) ÷ a month's cash spending"
 
 
 def runway_support(D, P, mo):
-    cash, adv, spend, rate_mo = runway_numbers(D, P, mo)
+    cash, adv, spend, rate_mo, ato = runway_numbers(D, P, mo)
     lab = mdate(mo).strftime("%B %Y")
-    return support(f"Unrestricted cash runway, {lab}", "(Cash at bank − unspent grant money) ÷ a month's cash spending", [
+    return support(f"Unrestricted cash runway, {lab}", RUNWAY_FORMULA, [
         inp("Cash at bank", "money", [cash]), inp("Less unspent grant money (belongs to funders' programs)", "money", [-adv]),
-        calc("Unrestricted cash", "money", "r0+r1"), inp(f"Cash spending in {mdate(rate_mo).strftime('%B')} (expenses less depreciation)", "money", [spend]),
-        calc("Runway", "months", "r2/r3")],
-        (f"{P.month} is still in progress, so the rate of spending is {P.prev_month}'s. " if rate_mo != mo else "")
+        inp("Less GST and PAYG withheld owed to the ATO (paid with the BAS)", "money", [-ato]),
+        calc("Unrestricted cash", "money", "r0+r1+r2"), inp(f"Cash spending in {mdate(rate_mo).strftime('%B')} (expenses less depreciation)", "money", [spend]),
+        calc("Runway", "months", "r3/r4")],
+        (f"{P.month} is still in progress, so the rate of spending is {P.prev_month}'s, and what's owed to the ATO is at 30 September. " if rate_mo != mo else "")
         + f"Reserves target: {FMT['months'](D['_targets']['Reserves (unrestricted cash runway)'])}.", cols=(mdate(mo).strftime("%b %Y"),))
 
 
@@ -842,7 +860,7 @@ def runway(D, P):
     tgt = D["_targets"]["Reserves (unrestricted cash runway)"]
     s_now, s_prev = runway_support(D, P, P.mo), runway_support(D, P, P.prev)
     v = lambda s, i: s["xl"]["rows"][i]["values"][0]
-    run, unres, spend = v(s_now, 4), v(s_now, 2), v(s_now, 3)
+    run, unres, spend = v(s_now, 5), v(s_now, 3), v(s_now, 4)
     sp3 = support(f"Reserves: how far from {FMT['months'](tgt)}?", "Target months × monthly cash spending − unrestricted cash", [
         inp("Unrestricted cash", "money", [unres]), inp("A month's cash spending", "money", [spend]),
         calc("Runway", "months", "r0/r1"), inp("Reserves target", "months", [float(tgt)]),
@@ -861,16 +879,17 @@ def runway(D, P):
     action = ("A reserves plan is the usual next step: how much of each month's surplus goes to reserves, and by when the gap is closed."
               if gap > 0 else "Reserves are above target: worth agreeing with the board how much to hold, and what the rest is for.")
     answer = f"{FMT['months'](run)} of spending in unrestricted cash, against a {FMT['months'](float(tgt))} reserves target."
-    res_tgt = round(float(tgt) * spend + runway_numbers(D, P, P.mo)[1])     # cash at bank that would meet the target: grant money is held as well
+    rn = runway_numbers(D, P, P.mo)
+    res_tgt = round_half_up(float(tgt) * spend + rn[1] + rn[4])     # cash at bank that would meet the target: grant money and the ATO's are held as well
     return report("runway", "nfp", "How many months of runway do we have?", "nfp", D, P,
-                  "How long the organisation could keep going on its own money: cash at bank, less unspent grant money (which belongs to the funders' programs), divided by a month's spending.",
+                  "How long the organisation could keep going on its own money: cash at bank, less unspent grant money (which belongs to the funders' programs) and GST and PAYG owed to the ATO, divided by a month's spending.",
                   [{"label": None, "sections": [
                       kpis([kpi("Runway now", FMT["months"](run), f"target {FMT['months'](float(tgt))}", s_now, tone=ek.tone(run, "higher", float(tgt), 0.5)),
                             kpi("Target", FMT["months"](float(tgt)), "reserves target", sp3),
                             kpi("Gap" if gap > 0 else "Above target by", money(abs(gap)), "to reach the target" if gap > 0 else "unrestricted cash over the target", sp3,
                                 tone="bad" if gap > 0 else "good"),
-                            kpi(f"Runway in {P.prev_month}", FMT["months"](v(s_prev, 4)), f"at {mdate(runway_numbers(D, P, P.prev)[3]).strftime('%B')}'s rate of spending", s_prev,
-                                tone=ek.tone(v(s_prev, 4), "higher", float(tgt), 0.5))]),
+                            kpi(f"Runway in {P.prev_month}", FMT["months"](v(s_prev, 5)), f"at {mdate(runway_numbers(D, P, P.prev)[3]).strftime('%B')}'s rate of spending", s_prev,
+                                tone=ek.tone(v(s_prev, 5), "higher", float(tgt), 0.5))]),
                       text(shows, action),
                       {"type": "series", "title": f"Cash at bank, every day ({ds.strf(lab[0], '%-d %b')} to {ds.strf(lab[-1], '%-d %b')})", "labels": [ds.strf(d, "%-d %b") for d in lab],
                        "months": [d.isoformat() for d in lab], "status": stat,
@@ -880,7 +899,7 @@ def runway(D, P):
                                                                     calc("Cash at bank, end of the day", "money", "r0+r1")], cols=(ds.strf(d, "%-d %b"),))
                                                            for d, prev, cur in zip(lab, [opening] + cashes[:-1], cashes)]}},
                        "dims": {"line": ["All"], "measure": [("cash", "Cash at bank $")]},
-                       "target": {"value": res_tgt, "label": f"Reserves target {money(res_tgt)}: {FMT['months'](float(tgt))} of spending + unspent grant money"},
+                       "target": {"value": res_tgt, "label": f"Reserves target {money(res_tgt)}: {FMT['months'](float(tgt))} of spending + unspent grant money + what's owed to the ATO"},
                        "note": f"Cash at bank includes unspent grant money. The daily cash data starts {ds.strf(lab[0], '%-d %B %Y')} (after the opening balance)."}]}],
                   {"head": ["Date", "Status", "Cash at bank"], "kinds": ["text", "text", "money"],
                    "rows": [[d.isoformat(), s_, c] for d, s_, c in zip(lab, stat, cashes)]}, answer)
@@ -908,7 +927,7 @@ def board(D, P):
                     cols=(mlabel(P.mo), mlabel(P.prev)))
     G = grant_positions(D, P)
     live = [g for g in G if g["active"]]
-    ending = sorted([g for g in live if g["months_left"] < tgt_end], key=lambda g: g["months_left"])
+    ending = sorted([g for g in live if g["months_left"] <= tgt_end], key=lambda g: g["months_left"])
     grants = [[g["program"], money(g["spent_to_date"]), money(g["budget_to_date"]), pct(g["spent_to_date"] / g["budget_to_date"]),
                money(g["unspent"]), str(g["months_left"])] for g in sorted(live, key=lambda g: g["months_left"])]
     tgt = D["_targets"]["Reserves (unrestricted cash runway)"]
@@ -960,16 +979,20 @@ def _d(x):
 
 
 def _weekday(d):
-    """Bills due on a weekend are paid the next Monday."""
-    from datetime import timedelta
-    return d + timedelta(days=(7 - d.weekday()) % 7) if d.weekday() >= 5 else d
+    """Money moves on banking days: a payment due on a weekend or Queensland public holiday moves to the next banking day."""
+    return tp.next_banking_day(d)
+
+
+FLOWS = ("old", "new", "wages", "suppliers", "bas", "other")
 
 
 def cash_forecast(D, P, weeks=13):
     """A 13-week daily cash forecast for the trades business from the end of the period (or now, for a month in progress).
     Everything comes from the data as it stood that day: cash at bank, each unpaid invoice and the customer's usual
     payment time, contract fees, the run rate of new work, the pay-run cycle, supplier bills owed (creditors) and the
-    month's overheads, interest, equipment finance and the PAYG instalment. Ties to the ledger or stops."""
+    month's overheads, interest, equipment finance and the BAS (GST, PAYG withheld and the PAYG instalment). Receipts
+    and bills include GST; money moves on banking days only; every day's amounts are whole dollars, so the days add up
+    to every total. Ties to the ledger or stops."""
     from datetime import timedelta
     src, o = D["_src"], D["trades"]
     asat = P.end_date()
@@ -979,7 +1002,7 @@ def cash_forecast(D, P, weeks=13):
     moves = src.table("trades", "fact_cash_daily")
     bal = {r["date_key"]: r for r in src.table("trades", "fact_balance_daily")}
     cash0 = bal[ak]["cash_at_bank"]
-    if round(ob["Cash at bank"] + sum(m["amount"] for m in moves if m["date_key"] <= ak)) != round(cash0):
+    if round_half_up(ob["Cash at bank"] + sum(m["amount"] for m in moves if m["date_key"] <= ak)) != round_half_up(cash0):
         raise SystemExit(f"cash forecast {P.mo}: opening cash + the day's money in and out doesn't tie to cash at bank on {asat}")
     # unpaid invoices at the as-at date, and how long each kind of customer usually takes to pay
     jt = {j["job_id"]: j for j in src.table("trades", "dim_job")}
@@ -987,7 +1010,7 @@ def cash_forecast(D, P, weeks=13):
     inv = [i for i in src.table("trades", "fact_invoice") if i["org_id"] == "trades"]
     paid_by = lambda i: _d(i["paid_date"]) if i["paid_date"] else None
     unpaid = [i for i in inv if _d(i["invoice_date"]) <= asat and (paid_by(i) is None or paid_by(i) > asat)]
-    if round(sum(i["amount"] for i in unpaid)) != round(bal[ak]["unpaid_invoices"]):
+    if round_half_up(sum(i["amount"] for i in unpaid)) != round_half_up(bal[ak]["unpaid_invoices"]):
         raise SystemExit(f"cash forecast {P.mo}: unpaid invoices don't add up to the debtors balance on {asat}")
     def median(v):
         v = sorted(v)
@@ -998,8 +1021,11 @@ def cash_forecast(D, P, weeks=13):
     days_for = lambda i: con[i["job_id"]]["payment_days"] if i["job_id"] in con else usual[jt[i["job_id"]]["job_type"]]
     end = asat + timedelta(days=7 * weeks)
     days = [asat + timedelta(days=k) for k in range(1, 7 * weeks + 1)]
-    flows = {d: {"old": 0, "new": 0, "wages": 0, "suppliers": 0, "other": 0} for d in days}
-    add = lambda d, k, v: d in flows and flows[d].__setitem__(k, flows[d][k] + v)
+    raw = {d: {k: 0.0 for k in FLOWS} for d in days}
+    def add(d, k, v):
+        d = _weekday(d)
+        if d in raw:
+            raw[d][k] += v
     overdue, expect = [], []
     for i in unpaid:
         due = _d(i["invoice_date"]) + timedelta(days=days_for(i))
@@ -1007,58 +1033,89 @@ def cash_forecast(D, P, weeks=13):
             overdue.append((i, due))
             due = asat + timedelta(days=7)
         add(due, "old", i["amount"])
-        expect.append((i, due))
-    # new work: contract fees on the 1st, installations and call-outs at the last three months' run rate (working days)
+        expect.append((i, _weekday(due)))
+    # new work, incl. GST: contract fees on the 1st, installations and call-outs at the last three months' run rate (working days)
     closed = [m for m in o.months if ds.month_end(m) <= asat][-3:]
-    wd = lambda m: sum(1 for k in range(ds.month_end(m).day) if (mdate(m) + timedelta(days=k)).weekday() < 5)
+    wd = lambda m: tp.working_days(m)
     run = {t: sum(i["amount"] for i in inv if jt[i["job_id"]]["job_type"] == t and i["invoice_date"][:7] in closed) / sum(wd(m) for m in closed)
            for t in ("Installation", "Call-out")}
     for d in days:
         if d.day == 1:
             for c in con.values():
-                add(d + timedelta(days=c["payment_days"]), "new", c["monthly_fee"])
-        if d.weekday() < 5:
+                add(d + timedelta(days=c["payment_days"]), "new", tp.with_gst(c["monthly_fee"]))
+        if ds.working(d):
             for t in run:
                 add(d + timedelta(days=usual[t]), "new", run[t])
-    # pay runs: fortnightly from the last one, at the last one's amount
+    # pay runs: every fortnightly pay day, at the last pay run's cash (net pay + super; PAYG withheld goes with the BAS)
     pays = sorted((_d(m["date_key"]), -m["amount"]) for m in moves if acc[m["account_id"]] == "Payments to employees" and m["date_key"] <= ak)
     last_pay, pay_amt = pays[-1]
-    d = last_pay + timedelta(days=14)
-    pay_dates = []
-    while d <= end:
-        add(d, "wages", -pay_amt); pay_dates.append(d); d += timedelta(days=14)
-    # suppliers: last month's bills (creditors) + this month's overheads, half on the 15th and half at month end
+    pay_dates = tp.pay_days(asat + timedelta(days=1), end)
+    for d in pay_dates:
+        add(d, "wages", -pay_amt)
+    # suppliers, incl. GST: last month's bills (creditors) + this month's overheads, half on the 15th and half at month end
     last_closed = closed[-1]
     purchases = lambda m: -(o.line(m, "Materials") + o.line(m, "Subcontractors"))
     overheads = -sum(o.line(last_closed, k) for k in ("Marketing", "Vehicles and fuel", "Rent and occupancy", "Insurance", "IT and software", "Other overheads"))
-    st = [r for r in src.table("trades", "model_statements") if r["statement_key"] == "bs" and r["line"].startswith("Trade creditors") and r["period"] == last_closed]
-    if st and round(st[0]["amount_aud"]) != round(purchases(last_closed)):
-        raise SystemExit(f"cash forecast {P.mo}: {last_closed} purchases don't tie to trade creditors on the balance sheet")
+    bs_line = lambda line, m: next((round_half_up(r["amount_aud"]) for r in src.table("trades", "model_statements")
+                                    if r["statement_key"] == "bs" and r["line"].startswith(line) and r["period"] == m), None)
+    cred = bs_line("Trade creditors", last_closed)
+    if cred is not None and cred != tp.with_gst(purchases(last_closed)):
+        raise SystemExit(f"cash forecast {P.mo}: {last_closed} purchases (incl. GST) don't tie to trade creditors on the balance sheet")
     interest = -o.line(last_closed, "Interest")
     fin = -[m for m in moves if acc[m["account_id"]] == "Equipment finance repaid" and m["date_key"] <= ak][-1]["amount"]
-    tax_mo = lambda m: -o.line(m, "Income tax provision (25%)") if m in closed or m <= last_closed else -o.line(last_closed, "Income tax provision (25%)")
+    tax_mo = lambda m: -o.line(m, "Income tax provision (25%)") if m in o.months and m <= last_closed else -o.line(last_closed, "Income tax provision (25%)")
     months_ahead = sorted({d.strftime("%Y-%m") for d in days})
-    bills = {}
+    bills, sup_runs = {}, []
     for m in months_ahead:
         prev = add_months(m, -1)
-        owed = purchases(prev) if prev <= last_closed else purchases(last_closed)
-        sup = owed + overheads
-        bills[m] = (owed, overheads, prev <= last_closed)
-        for when in (date(int(m[:4]), int(m[5:]), 15), ds.month_end(m)):
-            add(_weekday(when), "suppliers", -sup / 2)
-        add(_weekday(ds.month_end(m)), "other", -interest)
-        add(_weekday(date(int(m[:4]), int(m[5:]), 28)), "other", -fin)
-        if int(m[5:]) in (1, 4, 7, 10):       # PAYG instalment for the quarter just ended, due on the 28th
-            q = [add_months(m, -k) for k in (3, 2, 1)]
-            add(date(int(m[:4]), int(m[5:]), 28), "other", -sum(tax_mo(x) for x in q))
+        owed = tp.with_gst(purchases(prev) if prev <= last_closed else purchases(last_closed))
+        ovh = tp.with_gst(overheads)
+        bills[m] = (owed, ovh, prev <= last_closed)
+        halves = [(owed + ovh) // 2, owed + ovh - (owed + ovh) // 2]
+        for when, amt in zip((date(int(m[:4]), int(m[5:]), 15), ds.month_end(m)), halves):
+            sup_runs.append({"month": m, "due": when, "paid": _weekday(when), "amount": amt})
+            add(when, "suppliers", -amt)
+        add(ds.month_end(m), "other", -interest)
+        add(date(int(m[:4]), int(m[5:]), 28), "other", -fin)
+    # the BAS for each quarter that falls due in the window: GST and PAYG withheld owed at the quarter end (balance sheet) + the PAYG instalment
+    # (a quarter not yet closed at the as-at date is estimated from the latest month: nothing after the as-at date is used)
+    def bal_at(line, m):
+        v = bs_line(line, m)
+        return v if v is not None else (round_half_up(ob[next(k for k in ob if k.startswith(line))]) if m == ob_mo else None)
+    ob_mo = src.table("trades", "opening_balance")[0]["as_at"][:7]
+    bas = []
+    for q, paid in tp.bas_payments_between(asat, end):
+        q_end = q[-1]
+        known = q_end <= last_closed
+        at = q_end if known else last_closed
+        gst_, paygw = bal_at("GST payable", at), bal_at("PAYG withholding payable", at)
+        if gst_ is None or paygw is None:
+            raise SystemExit(f"cash forecast {P.mo}: no balance sheet for {at}, so the BAS due {paid} can't be worked out")
+        if not known:                   # the rest of the quarter at the latest month's rate
+            left = sum(1 for x in q if x > last_closed)
+            before = add_months(last_closed, -1)
+            gst_ += left * (gst_ - bal_at("GST payable", before))
+            paygw += left * (paygw - bal_at("PAYG withholding payable", before))
+        inst = round_half_up(sum(tax_mo(x) for x in q))
+        bas.append({"quarter": q, "due": tp.bas_due(q_end), "paid": paid, "gst": gst_, "paygw": paygw, "instalment": inst,
+                    "total": gst_ + paygw + inst, "estimate": not known})
+        add(paid, "bas", -(gst_ + paygw + inst))
+    # whole dollars, rounded once: each day's amount is the change in the rounded running total, so days add up to every total
+    flows = {d: {} for d in days}
+    for k in FLOWS:
+        cum, last = 0.0, 0
+        for d in days:
+            cum += raw[d][k]
+            r_ = half_up(cum)
+            flows[d][k] = r_ - last
+            last = r_
     cash, c = {}, cash0
     for d in days:
-        f = flows[d]
-        c = c + f["old"] + f["new"] + f["wages"] + f["suppliers"] + f["other"]
+        c = c + sum(flows[d].values())
         cash[d] = c
     return {"asat": asat, "cash0": cash0, "days": days, "flows": flows, "cash": cash, "unpaid": unpaid, "overdue": overdue, "usual": usual,
-            "run": run, "closed": closed, "pay_dates": pay_dates, "pay_amt": pay_amt, "bills": bills, "interest": interest, "fin": fin,
-            "tax_mo": tax_mo, "con": con, "jt": jt, "bal": bal, "moves": moves, "acc": acc, "expect": expect}
+            "run": run, "closed": closed, "pay_dates": pay_dates, "pay_amt": pay_amt, "bills": bills, "sup_runs": sup_runs, "bas": bas,
+            "interest": interest, "fin": fin, "tax_mo": tax_mo, "con": con, "jt": jt, "bal": bal, "moves": moves, "acc": acc, "expect": expect}
 
 
 def cash_payroll(D, P):
@@ -1071,6 +1128,7 @@ def cash_payroll(D, P):
     runs = [d for d in F["pay_dates"] if d.strftime("%Y-%m") == nxt]
     low_run = min(runs, key=lambda d: cash[d])
     low = min(days, key=lambda d: cash[d])
+    short = [d for d in days if cash[d] < 0]
     f = lambda d: ds.strf(d, "%-d %b")
     fl = lambda d: ds.strf(d, "%-d %B")
     asat_l = (f"2pm on {fl(asat)}" if P.incomplete else fl(asat))
@@ -1079,137 +1137,186 @@ def cash_payroll(D, P):
         prev = cash[d - timedelta(days=1)] if d - timedelta(days=1) in cash else F["cash0"]
         x = flows[d]
         return support(f"Forecast cash at bank, {ds.strf(d, '%-d %b %Y')}", "Yesterday's cash + money in − money out", [
-            inp("Cash at bank, end of the day before", "money", [prev]), inp("Unpaid invoices expected", "money", [x["old"]]),
-            inp("New work expected to be paid", "money", [x["new"]]), inp("Pay run", "money", [x["wages"]]),
-            inp("Suppliers and overheads", "money", [x["suppliers"]]), inp("Tax, interest and equipment finance", "money", [x["other"]]),
-            calc("Cash at bank, end of the day", "money", "r0+r1+r2+r3+r4+r5")], "Forecast.", cols=(f(d),))
+            inp("Cash at bank, end of the day before", "money", [prev]), inp("Unpaid invoices expected (incl. GST)", "money", [x["old"]]),
+            inp("New work expected to be paid (incl. GST)", "money", [x["new"]]), inp("Pay run (net pay + super)", "money", [x["wages"]]),
+            inp("Suppliers and overheads (incl. GST)", "money", [x["suppliers"]]), inp("BAS: GST, PAYG withheld and PAYG instalment", "money", [x["bas"]]),
+            inp("Interest and equipment finance", "money", [x["other"]]),
+            calc("Cash at bank, end of the day", "money", "r0+r1+r2+r3+r4+r5+r6")],
+            "Forecast." + ("" if ds.working(d) else " Not a banking day: no money moves."), cols=(f(d),))
     s_now = support(f"Cash at bank, {asat_l}", "Opening balance + every day's money in − money out", [
         inp("Cash at bank, 31 July (opening balance)", "money", [F["cash0"] - sum(m["amount"] for m in F["moves"] if m["date_key"] <= int(asat.strftime("%Y%m%d")))]),
         inp(f"Money in, 1 August to {fl(asat)}", "money", [sum(m["amount"] for m in F["moves"] if 0 < m["amount"] and m["date_key"] <= int(asat.strftime("%Y%m%d")))]),
         inp(f"Money out, 1 August to {fl(asat)}", "money", [sum(m["amount"] for m in F["moves"] if m["amount"] < 0 and m["date_key"] <= int(asat.strftime("%Y%m%d")))]),
         calc("Cash at bank", "money", "r0+r1+r2")], "From the bank feed; ties to the ledger.", cols=(f(asat),))
-    s_runs = support(f"Pay runs in {nm}", "Number of fortnightly pay runs × the last pay run", [
-        inp(f"Last pay run ({fl(F['pay_dates'][0] - timedelta(days=14))})", "money", [F["pay_amt"]]),
-        inp(f"Pay runs in {nm} ({', '.join(f(d) for d in runs)})", "int", [len(runs)]), calc(f"Wages paid in {nm}", "money", "r0*r1")],
-        "Wages include all on-costs. Fortnightly pay means two months a year have three pay runs.", cols=(nm,))
+    s_runs = support(f"Pay runs in {nm}", "Number of fortnightly pay runs × the cash each one takes", [
+        inp(f"Last pay run, net pay + super ({fl(max(d for d in tp.pay_days(asat - timedelta(days=14), asat)))})", "money", [F["pay_amt"]]),
+        inp(f"Pay runs in {nm} ({', '.join(f(d) for d in runs)})", "int", [len(runs)]), calc(f"Paid to employees and their super funds in {nm}", "money", "r0*r1")],
+        "Each pay run is a 26th of the year's gross wages: net pay and super leave the bank on pay day, and the PAYG withheld goes to the ATO with the BAS. "
+        "Fortnightly pay means two months a year have three pay runs.", cols=(nm,))
     s_low = day_sp(low_run)
     s_min = day_sp(low)
     # where next month's cash comes from and goes
     nd = [d for d in days if d.strftime("%Y-%m") == nxt]
     tot = lambda k: sum(flows[d][k] for d in nd)
-    labs = ["Unpaid invoices collected", "New work collected", f"Wages ({len(runs)} pay runs)", "Suppliers and overheads", "Tax, interest and equipment finance"]
-    vals = [round(tot(k)) for k in ("old", "new", "wages", "suppliers", "other")]
+    labs = ["Unpaid invoices collected", "New work collected", f"Pay runs ({len(runs)})", "Suppliers and overheads", "BAS (GST and PAYG)", "Interest and equipment finance"]
+    vals = [tot(k) for k in ("old", "new", "wages", "suppliers", "bas", "other")]
     owed, ovh, known = F["bills"][nxt]
-    det = [support(f"Unpaid invoices collected in {nm}", "Each invoice unpaid at the start, on its customer's usual payment date",
-                   [inp("Expected in the month", "money", [vals[0]])], f"{len(F['unpaid'])} invoices unpaid at {asat_l}; overdue ones assumed a week from then.", cols=(nm,)),
+    srun = [x for x in F["sup_runs"] if x["month"] == nxt or x["paid"].strftime("%Y-%m") == nxt]
+    sup_rows = [inp(f"{mdate(add_months(nxt, -1)).strftime('%B')}'s bills for materials and subcontractors, incl. GST" + ("" if known else " (estimate: the latest month's)"), "money", [owed]),
+                inp(f"Overheads, incl. GST (at {mdate(F['closed'][-1]).strftime('%B')}'s level)", "money", [ovh]), calc(f"{nm}'s supplier bills", "money", "r0+r1")]
+    for x in srun:
+        lands = x["paid"].strftime("%Y-%m") == nxt
+        moved = f", lands {ds.strf(x['paid'], '%a %-d %b')} ({ds.strf(x['due'], '%-d %b')} isn't a banking day)" if x["paid"] != x["due"] else ""
+        sup_rows.append(inp(f"{mdate(x['month']).strftime('%B')} run due {fl(x['due'])}{moved}: " + (f"paid in {nm}" if lands else f"paid in {ds.strf(x['paid'], '%B')}, not {nm}"),
+                            "money", [-x["amount"] if lands else 0]))
+    sup_rows.append(calc(f"Paid in {nm}", "money", "+".join(f"r{3 + i}" for i in range(len(srun)))))
+    bas_n = [b for b in F["bas"] if b["paid"].strftime("%Y-%m") == nxt]
+    bas_rows = []
+    for b in bas_n:
+        ql = f"{mdate(b['quarter'][0]).strftime('%B')} to {mdate(b['quarter'][-1]).strftime('%B')}"
+        bas_rows += [inp(f"GST on sales less GST credits, {ql}" + (" (estimate)" if b["estimate"] else ""), "money", [-b["gst"]]),
+                     inp(f"PAYG withheld from pay runs, {ql}" + (" (estimate)" if b["estimate"] else ""), "money", [-b["paygw"]]),
+                     inp(f"PAYG income tax instalment, {ql}", "money", [-b["instalment"]])]
+    if bas_rows:
+        bas_rows.append(calc(f"BAS paid in {nm}", "money", "+".join(f"r{i}" for i in range(len(bas_rows)))))
+    else:
+        bas_rows = [inp(f"BAS paid in {nm}", "money", [0])]
+    det = [support(f"Unpaid invoices collected in {nm}", "Each invoice unpaid at the start, on its customer's usual payment date (next banking day)",
+                   [inp("Expected in the month (incl. GST)", "money", [vals[0]])], f"{len(F['unpaid'])} invoices unpaid at {asat_l}; overdue ones assumed a week from then.", cols=(nm,)),
            support(f"New work collected in {nm}", "Contract fees (1st of the month, on each contract's terms) + installations and call-outs at the last three months' run rate",
-                   [inp("Expected in the month", "money", [vals[1]])], f"Run rate from {', '.join(mdate(m).strftime('%B') for m in F['closed'])}.", cols=(nm,)),
+                   [inp("Expected in the month (incl. GST)", "money", [vals[1]])],
+                   f"Run rate from {', '.join(mdate(m).strftime('%B') for m in F['closed'])}. Every day's amount is in whole dollars, so the days add up to this.", cols=(nm,)),
            s_runs,
-           support(f"Suppliers and overheads in {nm}", "Last month's bills (trade creditors) + the month's overheads, paid on the 15th and at month end",
-                   [inp(f"Bills owed for {mdate(add_months(nxt, -1)).strftime('%B')}'s materials and subcontractors" + ("" if known else " (estimate: the latest month's)"), "money", [owed]),
-                    inp(f"Overheads (at {mdate(F['closed'][-1]).strftime('%B')}'s level)", "money", [ovh]), calc("Paid in the month", "money", "r0+r1")], cols=(nm,)),
-           support(f"Tax, interest and equipment finance in {nm}", "Interest + equipment finance repayment (+ the PAYG instalment in Jan, Apr, Jul, Oct)",
-                   [inp("Paid in the month", "money", [-vals[4]])], cols=(nm,))]
-    chart = {"title": f"{nm}: where the cash comes from and goes (forecast)", "subtitle": "Money in, and money out in brackets.",
-             "labels": labs, "values": vals, "format": "money0", "plain": True, "details": det}
+           support(f"Suppliers and overheads in {nm}", "Last month's bills (trade creditors) + the month's overheads, half on the 15th and half at month end, on banking days",
+                   sup_rows, cols=(nm,)),
+           support(f"BAS in {nm}", "GST on sales − GST credits + PAYG withheld + PAYG instalment, for the quarter, due on the 28th (quarterly, self-lodged)",
+                   bas_rows, "From the balance sheet at the quarter end: GST payable and PAYG withholding payable." if bas_n else
+                   f"No BAS falls due in {nm}. The October to December BAS is due 28 February.", cols=(nm,)),
+           support(f"Interest and equipment finance in {nm}", "Interest at month end + the equipment finance repayment on the 28th (no GST on either)",
+                   [inp("Paid in the month", "money", [-vals[5]])], cols=(nm,))]
+    chart = {"title": f"{nm}: where the cash comes from and goes (forecast)", "subtitle": "Money in, and money out in brackets. Includes GST.",
+             "labels": labs, "values": vals, "format": "money0", "plain": True, "details": det, "keep_order": True}
     # the daily line: actual to the as-at date, then the forecast
     act = sorted(r for r in F["bal"] if r <= int(asat.strftime("%Y%m%d")))
     alab = [_d(k) for k in act]
     lab = alab + days
-    vals_c = [F["bal"][k]["cash_at_bank"] for k in act] + [round(cash[d]) for d in days]
+    vals_c = [F["bal"][k]["cash_at_bank"] for k in act] + [cash[d] for d in days]
     stat = [ds.day_status(d) for d in alab] + ["Forecast"] * len(days)
     sups = []
-    prev = None
     for k, d in zip(act, alab):
         v = F["bal"][k]["cash_at_bank"]
         sups.append(support(f"Cash at bank, {ds.strf(d, '%-d %b %Y')}", "From the bank feed", [inp("Cash at bank, end of the day", "money", [v])],
-                            "Actual." if d < asat else ("Actual, at 2pm." if P.incomplete else "Actual."), cols=(f(d),)))
+                            ("Actual." if d < asat else ("Actual, at 2pm." if P.incomplete else "Actual.")) + ("" if ds.working(d) else " Not a banking day: no money moves."),
+                            cols=(f(d),)))
     sups += [day_sp(d) for d in days]
     # 13 weeks, week by week
     rows, tones = [], []
     start = F["cash0"]
     for w in range(13):
         dd = days[w * 7:(w + 1) * 7]
-        t = {k: sum(flows[d][k] for d in dd) for k in ("old", "new", "wages", "suppliers", "other")}
+        t = {k: sum(flows[d][k] for d in dd) for k in FLOWS}
         close = cash[dd[-1]]
         lo_w = min(cash[d] for d in dd)
-        rows.append([f(dd[-1]), money(start), money(t["old"]), money(t["new"]), money(t["wages"]), money(t["suppliers"]), money(t["other"]), money(close), money(lo_w)])
-        tones.append(["", "", "", "", "", "", "", "", "" if lo_w >= buffer else "warn" if lo_w >= 0 else "bad"])
+        rows.append([f(dd[-1]), money(start), money(t["old"]), money(t["new"]), money(t["wages"]), money(t["suppliers"]), money(t["bas"]),
+                     money(t["other"]), money(close), money(lo_w)])
+        tones.append(["", "", "", "", "", "", "", "", "", "" if lo_w >= buffer else "warn" if lo_w >= 0 else "bad"])
         start = close
-    # overdue invoices: past the customer's usual payment date
+    # overdue invoices: past the customer's usual payment date (the same invoices the forecast assumes arrive within a week)
     od = sorted(F["overdue"], key=lambda x: -x[0]["amount"])
     od_rows = [[F["jt"][i["job_id"]]["description"], f(_d(i["invoice_date"])), money(i["amount"]),
                 str(F["con"][i["job_id"]]["payment_days"] if i["job_id"] in F["con"] else F["usual"][F["jt"][i["job_id"]]["job_type"]]),
-                str((asat - _d(i["invoice_date"])).days)] for i, _ in od[:10]]
+                str((asat - _d(i["invoice_date"])).days)] for i, _ in od]
     od_tot = sum(i["amount"] for i, _ in od)
-    # what it shows, and the flags
+    # the answer looks at the whole 13 weeks, not just next month
     cover = cash[low_run]
-    verdict = ("Yes" if cover >= buffer else "Yes, just" if cover >= 0 else "No")
+    lowest = cash[low]
+    od_day = _weekday(asat + timedelta(days=7))           # when the forecast assumes the overdue invoices arrive
+    without_od = {d: cash[d] - (od_tot if d >= od_day else 0) for d in days}
+    depends = bool(od) and min(without_od.values()) < 0 <= lowest
+    if cover < 0:
+        answer = f"No: {money(-cover)} short after the {fl(low_run)} pay run."
+    elif short:
+        answer = (f"Yes for {nm}, but cash runs short on {fl(short[0])}: lowest {money(lowest)}"
+                  + (f" on {fl(low)}." if low != short[0] else "."))
+    elif lowest < buffer:
+        answer = f"Yes, just: the lowest point in the 13 weeks is {money(lowest)} on {fl(low)}, less than one pay run ({money(buffer)}) in reserve."
+    else:
+        answer = f"Yes: {money(cover)} forecast in the bank after the {fl(low_run)} pay run, the tightest in {nm}, and at least one pay run in reserve for all 13 weeks."
+    if depends:
+        answer += f" It depends on {money(od_tot)} of overdue invoices arriving."
     shows = (f"Cash at bank was {money(F['cash0'])} at {asat_l}. {nm} has {len(runs)} pay run{'s' if len(runs) != 1 else ''} "
              f"({money(F['pay_amt'] * len(runs))}). The tightest is {fl(low_run)}: {money(cover)} left after paying wages"
              + (f", {money(cover - buffer)} more than a pay run in reserve." if cover >= buffer else
                 f", less than one pay run ({money(buffer)}) in reserve." if cover >= 0 else f": {money(-cover)} short.")
-             + f" The lowest point in the 13 weeks is {money(cash[low])} on {fl(low)}.")
+             + f" The lowest point in the 13 weeks is {money(lowest)} on {fl(low)}"
+             + (f"; cash first goes below zero on {fl(short[0])}." if short else "."))
     flags = []
     if od:
         flags.append(f"{len(od)} invoice{'s' if len(od) != 1 else ''} ({money(od_tot)}) {'are' if len(od) != 1 else 'is'} already past the customer's usual payment date; "
-                     f"the forecast assumes {'they arrive' if len(od) != 1 else 'it arrives'} within a week. Without {'them' if len(od) != 1 else 'it'}, {fl(low_run)} would be {money(cover - od_tot)}.")
+                     f"the forecast assumes {'they arrive' if len(od) != 1 else 'it arrives'} within a week. Without {'them' if len(od) != 1 else 'it'}, the lowest point would be {money(min(without_od.values()))}.")
     if len(runs) == 3:
-        flags.append(f"{nm} is one of the two months a year with three pay runs: {money(F['pay_amt'])} more wages than a usual month.")
-    tax_d = [d for d in nd if d.day == 28 and d.month in (1, 4, 7, 10)]
-    if tax_d and flows[tax_d[0]]["other"] < -F["fin"] - 1:
-        flags.append(f"The PAYG instalment ({money(-(flows[tax_d[0]]['other'] + (F['fin'] if _weekday(tax_d[0]) == tax_d[0] else 0)))}) is due {fl(tax_d[0])}.")
-    action = " ".join(flags) or f"Nothing stands out: every pay run in {nm} leaves at least one more pay run in the bank."
-    answer = (f"{verdict}: {money(cover)} forecast in the bank after the {fl(low_run)} pay run, the tightest in {nm}.")
+        flags.append(f"{nm} is one of the two months a year with three pay runs: {money(F['pay_amt'])} more than a usual month.")
+    for b in F["bas"]:
+        ql = f"{mdate(b['quarter'][0]).strftime('%B')} to {mdate(b['quarter'][-1]).strftime('%B')}"
+        flags.append(f"The {ql} BAS ({money(b['total'])}{', estimated' if b['estimate'] else ''}) is due {fl(b['paid'])}: GST {money(b['gst'])}, "
+                     f"PAYG withheld {money(b['paygw'])} and the PAYG instalment {money(b['instalment'])}.")
+    if short:
+        flags.append(f"Cash goes below zero on {fl(short[0])}: worth moving a supplier run, chasing the largest invoices or arranging an overdraft before then.")
+    action = " ".join(flags) or f"Nothing stands out: every pay run in the 13 weeks leaves at least one more pay run in the bank."
     secs = [kpis([kpi(f"Cash at bank, {f(asat)}", money(F["cash0"]), "2pm, still moving" if P.incomplete else "end of the day", s_now),
-                  kpi(f"Wages to pay in {nm}", money(F["pay_amt"] * len(runs)), f"{len(runs)} fortnightly pay runs", s_runs),
+                  kpi(f"Paid to employees in {nm}", money(F["pay_amt"] * len(runs)), f"{len(runs)} fortnightly pay runs, net pay + super", s_runs),
                   kpi(f"After the tightest pay run, {f(low_run)}", money(cover), f"buffer: one pay run, {money(buffer)}", s_low, tone=tn(cover)),
-                  kpi("Lowest point, next 13 weeks", money(cash[low]), fl(low), s_min, tone=tn(cash[low]))]),
+                  kpi("Lowest point, next 13 weeks", money(lowest), fl(low), s_min, tone=tn(lowest))]),
             text(shows, action),
             {"type": "series", "title": f"Cash at bank, every day: actual to {f(asat)}, then forecast to {f(days[-1])}", "labels": [f(d) for d in lab],
              "months": [d.isoformat() for d in lab], "status": stat,
              "views": {"All|cash": {"label": "Cash at bank $", "values": vals_c, "format": "money0", "supports": sups}},
              "dims": {"line": ["All"], "measure": [("cash", "Cash at bank $")]},
-             "target": {"value": round(buffer), "label": f"Buffer: one pay run, {money(buffer)}"},
-             "note": "Lighter line = forecast. Customers are expected on their usual payment dates; new work at the last three months' rate; pay runs, supplier runs, interest, equipment finance and PAYG on their due dates. GST and BAS are left out of the sample."},
+             "target": {"value": round_half_up(buffer), "label": f"Buffer: one pay run, {money(buffer)}"},
+             "note": "Lighter line = forecast. Customers are expected on their usual payment dates; new work at the last three months' rate; pay runs, supplier runs, "
+                     "interest, equipment finance and the BAS on their due dates. Receipts and bills include GST. Money only moves on banking days "
+                     "(not weekends or Queensland public holidays)."},
             {"type": "bars", "chart": chart},
-            dict(table("13 weeks, week by week", ["Week ending", "Cash at start", "Unpaid invoices collected", "New work collected", "Wages", "Suppliers and overheads",
-                                                  "Tax, interest and finance", "Cash at end", "Lowest in the week"], rows,
-                       ["text", "money", "money", "money", "money", "money", "money", "money", "money"],
-                       note=f"Lowest in the week: amber below one pay run ({money(buffer)}), red below zero."), tones=tones)]
+            dict(table("13 weeks, week by week", ["Week ending", "Cash at start", "Unpaid invoices collected", "New work collected", "Pay runs", "Suppliers and overheads",
+                                                  "BAS (GST and PAYG)", "Interest and finance", "Cash at end", "Lowest in the week"], rows,
+                       ["text", "money", "money", "money", "money", "money", "money", "money", "money", "money"],
+                       note=f"Lowest in the week: amber below one pay run ({money(buffer)}), red below zero. Amounts include GST."), tones=tones)]
     if od_rows:
-        secs.append(table(f"Invoices past the customer's usual payment date ({money(od_tot)})", ["Customer or job", "Invoiced", "Amount", "Usually pays in (days)", "Days since invoiced"],
+        secs.append(table(f"Invoices past the customer's usual payment date ({money(od_tot)}): the forecast assumes these arrive within a week",
+                          ["Customer or job", "Invoiced", "Amount (incl. GST)", "Usually pays in (days)", "Days since invoiced"],
                           od_rows, ["text", "text", "money", "int", "int"]))
-    # how the forecast has done: where the days after it have happened, forecast against the bank
-    last_act = max(k for k in F["bal"] if _d(k) < ds.AS_AT.date())
-    if _d(last_act) > asat:
+    # how last month's forecast has done: only for the month in progress, so a locked month's view uses nothing after its own date
+    if P.incomplete:
+        from .period import Period
+        Fp = cash_forecast(D, Period(P.prev, D["trades"].months))
+        last_act = max(k for k in F["bal"] if _d(k) < ds.AS_AT.date())
         da = _d(last_act)
-        a_cash, f_cash = F["bal"][last_act]["cash_at_bank"], cash[da]
-        # invoices the forecast expected by then that the bank hasn't seen (the usual reason a cash forecast misses)
-        late = sorted([i for i, due in F["expect"] if due <= da and (not i["paid_date"] or _d(i["paid_date"]) > da)], key=lambda i: -i["amount"])
-        late_t = sum(i["amount"] for i in late)
-        sp_bt = support(f"Forecast made {fl(asat)} against the bank, {fl(da)}", "Actual cash − forecast cash", [
-            inp(f"Forecast for {fl(da)}", "money", [round(f_cash)]), inp(f"Actual, {fl(da)}", "money", [a_cash]), calc("Actual − forecast", "money", "r1-r0"),
-            inp("Of which: invoices expected by then, not yet paid", "money", [-late_t]), calc("Everything else (timing of other money in and out)", "money", "r2-r3")],
-            (f"Not yet paid: " + "; ".join(f"{F['jt'][i['job_id']]['description']} {money(i['amount'])}" for i in late[:5]) + ("…" if len(late) > 5 else "") + ".") if late else None,
-            cols=(f(da),))
-        why = (f" {money(late_t)} of it is {len(late)} invoice{'s' if len(late) != 1 else ''} expected by then and not yet paid"
-               + (f", the largest {F['jt'][late[0]['job_id']]['description']} ({money(late[0]['amount'])})." if late else ".")) if late and a_cash < f_cash else ""
-        secs.insert(2, {"type": "insight", "title": "How this forecast has done so far",
-                        "text": f"For {fl(da)} it said {money(f_cash)}; the bank says {money(a_cash)}, {money(abs(a_cash - f_cash))} {'more' if a_cash >= f_cash else 'less'}." + why,
-                        "support": sp_bt, "period": f(da)})
+        if da > Fp["asat"]:
+            a_cash, f_cash = F["bal"][last_act]["cash_at_bank"], Fp["cash"][da]
+            late = sorted([i for i, due in Fp["expect"] if due <= da and (not i["paid_date"] or _d(i["paid_date"]) > da)], key=lambda i: -i["amount"])
+            late_t = sum(i["amount"] for i in late)
+            sp_bt = support(f"Forecast made {fl(Fp['asat'])} against the bank, {fl(da)}", "Actual cash − forecast cash", [
+                inp(f"Forecast for {fl(da)}", "money", [f_cash]), inp(f"Actual, {fl(da)}", "money", [a_cash]), calc("Actual − forecast", "money", "r1-r0"),
+                inp("Of which: invoices expected by then, not yet paid", "money", [-late_t]), calc("Everything else (timing of other money in and out)", "money", "r2-r3")],
+                (f"Not yet paid: " + "; ".join(f"{F['jt'][i['job_id']]['description']} {money(i['amount'])}" for i in late[:5]) + ("…" if len(late) > 5 else "") + ".") if late else None,
+                cols=(f(da),))
+            why = (f" {money(late_t)} of it is {len(late)} invoice{'s' if len(late) != 1 else ''} expected by then and not yet paid"
+                   + (f", the largest {F['jt'][late[0]['job_id']]['description']} ({money(late[0]['amount'])})." if late else ".")) if late and a_cash < f_cash else ""
+            secs.insert(2, {"type": "insight", "title": f"How the {fl(Fp['asat'])} forecast has done so far",
+                            "text": f"For {fl(da)} it said {money(f_cash)}; the bank says {money(a_cash)}, {money(abs(a_cash - f_cash))} {'more' if a_cash >= f_cash else 'less'}." + why,
+                            "support": sp_bt, "period": f(da)})
     r = report("cash-payroll", "sme", "Will cash cover payroll next month?", "trades", D, P,
                f"A 13-week cash forecast from {asat_l}: cash at bank, plus what customers owe on their usual payment dates and new work at its recent rate, "
-               "less pay runs, supplier bills, tax and finance on their due dates. Every day opens its workings.",
+               "less pay runs, supplier bills, the BAS and finance on their due dates. Every day opens its workings.",
                [{"label": None, "sections": secs}],
                {"head": ["Date", "Actual or forecast", "Money in", "Money out", "Cash at bank"], "kinds": ["text", "text", "money", "money", "money"],
-                "rows": [[d.isoformat(), "Forecast", round(flows[d]["old"] + flows[d]["new"]), round(flows[d]["wages"] + flows[d]["suppliers"] + flows[d]["other"]), round(cash[d])] for d in days]},
+                "rows": [[d.isoformat(), "Forecast", sum(v for v in flows[d].values() if v > 0), sum(v for v in flows[d].values() if v < 0), cash[d]] for d in days]},
                answer)
     # the card on the SME page: cash left after every pay run in the 13 weeks (the question, answered pay run by pay run)
-    r["card"] = {"groups": [{"name": "After the tightest pay run", "value": money(cover), "sub": f"{fl(low_run)}, the tightest in {nm}", "format": "money0",
-                             "labels": [f"Pay run {f(d)}" for d in F["pay_dates"]], "values": [round(cash[d]) for d in F["pay_dates"]],
-                             "tips": [f"forecast cash after paying {money(F['pay_amt'])} of wages" for d in F["pay_dates"]]}],
-                 "note": f"Forecast cash left after each fortnightly pay run, from {asat_l}."}
+    r["card"] = {"groups": [{"name": "After each pay run", "value": money(cover), "sub": f"{fl(low_run)}, the tightest in {nm}", "format": "money0",
+                             "labels": [f"Pay run {f(d)}" for d in F["pay_dates"]], "values": [cash[d] for d in F["pay_dates"]],
+                             "tips": [f"forecast cash after paying {money(F['pay_amt'])} (net pay + super)" for d in F["pay_dates"]]}],
+                 "note": f"Forecast cash left after each fortnightly pay run, from {asat_l}." + (f" Lowest point {money(lowest)} on {fl(low)}." if lowest < buffer else "")}
     return r
 
 

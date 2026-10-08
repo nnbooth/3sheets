@@ -2,7 +2,7 @@
    Don't edit by hand: change the assumptions in financial_model.py and re-run.
    All figures are invented sample data, in whole dollars: September 2026 vs August 2026. */
 window.FOURTH_SHEET_DASHBOARD = {
- "generated": "2026-10-08",
+ "generated": "2026-10-09",
  "as_at": "2pm, Tue 6 Oct 2026",
  "status": [
   {
@@ -50,8 +50,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Maintenance contracts (14)",
        "level": "detail",
        "values": [
-        40500,
-        40500
+        45350,
+        45350
        ],
        "note": null
       },
@@ -59,8 +59,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Installations (jobs)",
        "level": "detail",
        "values": [
-        130700,
-        109600
+        146300,
+        122800
        ],
        "note": null
       },
@@ -68,8 +68,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Call-outs: technician time",
        "level": "detail",
        "values": [
-        21543,
-        19872
+        24216,
+        22338
        ],
        "note": null
       },
@@ -86,8 +86,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total revenue",
        "level": "subtotal",
        "values": [
-        202337,
-        179007
+        225460,
+        199523
        ],
        "note": null
       },
@@ -119,8 +119,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Technician wages (incl. on-costs)",
        "level": "detail",
        "values": [
-        -54600,
-        -54600
+        -79587,
+        -72352
        ],
        "note": null
       },
@@ -128,8 +128,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total cost of sales",
        "level": "subtotal",
        "values": [
-        -132660,
-        -115430
+        -157647,
+        -133182
        ],
        "note": null
       },
@@ -137,8 +137,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Gross profit",
        "level": "total",
        "values": [
-        69677,
-        63577
+        67813,
+        66341
        ],
        "note": null
       },
@@ -224,8 +224,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "EBITDA",
        "level": "total",
        "values": [
-        15677,
-        9477
+        13813,
+        12241
        ],
        "note": null
       },
@@ -251,8 +251,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Profit before tax",
        "level": "total",
        "values": [
-        10097,
-        4077
+        8233,
+        6841
        ],
        "note": null
       },
@@ -260,8 +260,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Income tax provision (25%)",
        "level": "subtotal",
        "values": [
-        -2524,
-        -1019
+        -2058,
+        -1710
        ],
        "note": null
       },
@@ -269,8 +269,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net profit after tax",
        "level": "key",
        "values": [
-        7573,
-        3058
+        6175,
+        5131
        ],
        "note": null
       }
@@ -290,8 +290,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at bank",
        "level": "detail",
        "values": [
-        59746,
-        65263
+        120228,
+        92859
        ],
        "note": null
       },
@@ -299,10 +299,10 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Trade debtors (unpaid invoices)",
        "level": "detail",
        "values": [
-        151063,
-        129819
+        185678,
+        159756
        ],
-       "note": null
+       "note": "Invoices include GST."
       },
       {
        "label": "Materials on hand",
@@ -326,8 +326,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total current assets",
        "level": "subtotal",
        "values": [
-        297809,
-        282082
+        392906,
+        339615
        ],
        "note": null
       },
@@ -344,8 +344,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total assets",
        "level": "total",
        "values": [
-        553009,
-        529782
+        648106,
+        587315
        ],
        "note": null
       },
@@ -359,10 +359,46 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Trade creditors (bills due next month)",
        "level": "detail",
        "values": [
-        78060,
-        60830
+        85866,
+        66913
+       ],
+       "note": "Bills include GST."
+      },
+      {
+       "label": "Wages owed (since the last pay run)",
+       "level": "detail",
+       "values": [
+        37678,
+        27458
        ],
        "note": null
+      },
+      {
+       "label": "Super payable",
+       "level": "detail",
+       "values": [
+        4523,
+        3296
+       ],
+       "note": null
+      },
+      {
+       "label": "PAYG withholding payable",
+       "level": "detail",
+       "values": [
+        47754,
+        31836
+       ],
+       "note": "Paid with the BAS."
+      },
+      {
+       "label": "GST payable (net)",
+       "level": "detail",
+       "values": [
+        32817,
+        22477
+       ],
+       "note": "GST on sales less GST credits, quarter to date. Paid with the BAS."
       },
       {
        "label": "Employee leave provisions",
@@ -377,8 +413,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Income tax payable",
        "level": "detail",
        "values": [
-        35043,
-        32519
+        35268,
+        33210
        ],
        "note": null
       },
@@ -386,8 +422,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total current liabilities",
        "level": "subtotal",
        "values": [
-        219103,
-        198449
+        349906,
+        290290
        ],
        "note": null
       },
@@ -404,8 +440,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total liabilities",
        "level": "total",
        "values": [
-        314103,
-        298449
+        444906,
+        390290
        ],
        "note": null
       },
@@ -413,8 +449,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net assets",
        "level": "key",
        "values": [
-        238906,
-        231333
+        203200,
+        197025
        ],
        "note": null
       },
@@ -437,8 +473,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Retained earnings",
        "level": "detail",
        "values": [
-        228906,
-        221333
+        193200,
+        187025
        ],
        "note": null
       },
@@ -446,8 +482,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total equity",
        "level": "key",
        "values": [
-        238906,
-        231333
+        203200,
+        197025
        ],
        "note": null
       }
@@ -467,28 +503,28 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Receipts from customers (invoices paid)",
        "level": "detail",
        "values": [
-        181093,
-        156273
+        222094,
+        191442
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Payments to suppliers",
        "level": "detail",
        "values": [
-        -92930,
-        -97510
+        -102223,
+        -107261
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Payments to employees",
        "level": "detail",
        "values": [
-        -75600,
-        -75400
+        -73222,
+        -73222
        ],
-       "note": null
+       "note": "Net pay and super, on each fortnightly pay day."
       },
       {
        "label": "Interest paid",
@@ -500,20 +536,20 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "Income tax paid",
+       "label": "GST, PAYG and income tax paid (BAS)",
        "level": "detail",
        "values": [
         0,
         0
        ],
-       "note": "Next PAYG instalment is due in October."
+       "note": "The July to September BAS is due 28 October."
       },
       {
        "label": "Net cash from operating activities",
        "level": "subtotal",
        "values": [
-        11483,
-        -17737
+        45569,
+        9859
        ],
        "note": null
       },
@@ -527,16 +563,16 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Purchase of vehicles and equipment",
        "level": "detail",
        "values": [
-        -12000,
+        -13200,
         0
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Net cash from investing activities",
        "level": "subtotal",
        "values": [
-        -12000,
+        -13200,
         0
        ],
        "note": null
@@ -569,8 +605,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net change in cash",
        "level": "total",
        "values": [
-        -5517,
-        -22737
+        27369,
+        4859
        ],
        "note": null
       },
@@ -578,7 +614,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at start of month",
        "level": "subtotal",
        "values": [
-        65263,
+        92859,
         88000
        ],
        "note": null
@@ -587,8 +623,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at end of month",
        "level": "key",
        "values": [
-        59746,
-        65263
+        120228,
+        92859
        ],
        "note": null
       }
@@ -599,8 +635,8 @@ window.FOURTH_SHEET_DASHBOARD = {
     "kpis": [
      {
       "label": "Gross margin (P&L), September",
-      "value": "34.4%",
-      "sub": "▼ from 35.5% in Aug",
+      "value": "30.1%",
+      "sub": "▼ from 33.2% in Aug",
       "cls": "bad",
       "spine": true,
       "support": {
@@ -614,8 +650,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue (every job invoiced in the month)",
-         "$202,337",
-         "$179,007"
+         "$225,460",
+         "$199,523"
         ],
         [
          "Materials",
@@ -629,21 +665,21 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Technician wages",
-         "($54,600)",
-         "($54,600)"
+         "($79,587)",
+         "($72,352)"
         ],
         [
          "Gross profit",
-         "$69,677",
-         "$63,577"
+         "$67,813",
+         "$66,341"
         ],
         [
          "Gross margin (P&L)",
-         "34.4%",
-         "35.5%"
+         "30.1%",
+         "33.2%"
         ]
        ],
-       "note": "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include all on-costs (super, payroll tax, workers' compensation, leave). Technicians are on salary, so a quiet month for jobs lowers gross margin even if every job is priced well.",
+       "note": "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include their on-costs: super (12%) and leave as it's earned. No payroll tax: wages are under Queensland's $1.3 million threshold. Technicians are on salary, so a quiet month for jobs lowers gross margin even if every job is priced well.",
        "series": null,
        "xl": {
         "cols": [
@@ -655,8 +691,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue (every job invoiced in the month)",
           "kind": "money",
           "values": [
-           202337,
-           179007
+           225460,
+           199523
           ],
           "calc": null
          },
@@ -682,8 +718,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Technician wages",
           "kind": "money",
           "values": [
-           -54600,
-           -54600
+           -79587,
+           -72352
           ],
           "calc": null
          },
@@ -691,8 +727,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross profit",
           "kind": "money",
           "values": [
-           69677,
-           63577
+           67813,
+           66341
           ],
           "calc": "r0+r1+r2+r3"
          },
@@ -700,8 +736,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin (P&L)",
           "kind": "pct",
           "values": [
-           0.3443611400781864,
-           0.355164881820264
+           0.3007761908986073,
+           0.33249800774848015
           ],
           "calc": "r4/r0"
          }
@@ -824,7 +860,7 @@ window.FOURTH_SHEET_DASHBOARD = {
          "61.6%"
         ]
        ],
-       "note": "August had one fewer working day for the Ekka show holiday. The rest is travel, training, quoting and waiting time.",
+       "note": "August had 20 working days: 21 weekdays, less the Ekka People's Day holiday (Wed 12 Aug). The rest is travel, training, quoting and waiting time.",
        "series": null,
        "xl": {
         "cols": [
@@ -903,12 +939,12 @@ window.FOURTH_SHEET_DASHBOARD = {
       "Wacol warehouse switchboard"
      ],
      "values": [
-      45.2,
-      39.5,
-      36.6,
-      33.5,
-      26.9,
-      13.5
+      51.2,
+      45.9,
+      43.3,
+      40.4,
+      34.8,
+      22.7
      ],
      "target": 35.0,
      "format": "pct1",
@@ -924,7 +960,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$9,800",
+         "$11,000",
          ""
         ],
         [
@@ -954,12 +990,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Job gross margin",
-         "$4,432",
+         "$5,632",
          ""
         ],
         [
          "Job gross margin %",
-         "45.2%",
+         "51.2%",
          ""
         ]
        ],
@@ -974,7 +1010,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           9800
+           11000
           ],
           "calc": null
          },
@@ -1022,7 +1058,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin",
           "kind": "money",
           "values": [
-           4432
+           5632
           ],
           "calc": "r0+r1+r2+r5"
          },
@@ -1030,7 +1066,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin %",
           "kind": "pct",
           "values": [
-           0.45224489795918366
+           0.512
           ],
           "calc": "r6/r0"
          }
@@ -1047,7 +1083,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$18,600",
+         "$20,800",
          ""
         ],
         [
@@ -1077,12 +1113,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Job gross margin",
-         "$7,348",
+         "$9,548",
          ""
         ],
         [
          "Job gross margin %",
-         "39.5%",
+         "45.9%",
          ""
         ]
        ],
@@ -1097,7 +1133,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           18600
+           20800
           ],
           "calc": null
          },
@@ -1145,7 +1181,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin",
           "kind": "money",
           "values": [
-           7348
+           9548
           ],
           "calc": "r0+r1+r2+r5"
          },
@@ -1153,7 +1189,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin %",
           "kind": "pct",
           "values": [
-           0.39505376344086024
+           0.45903846153846156
           ],
           "calc": "r6/r0"
          }
@@ -1170,7 +1206,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$15,200",
+         "$17,000",
          ""
         ],
         [
@@ -1200,12 +1236,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Job gross margin",
-         "$5,564",
+         "$7,364",
          ""
         ],
         [
          "Job gross margin %",
-         "36.6%",
+         "43.3%",
          ""
         ]
        ],
@@ -1220,7 +1256,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           15200
+           17000
           ],
           "calc": null
          },
@@ -1268,7 +1304,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin",
           "kind": "money",
           "values": [
-           5564
+           7364
           ],
           "calc": "r0+r1+r2+r5"
          },
@@ -1276,7 +1312,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin %",
           "kind": "pct",
           "values": [
-           0.36605263157894735
+           0.4331764705882353
           ],
           "calc": "r6/r0"
          }
@@ -1293,7 +1329,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$12,900",
+         "$14,400",
          ""
         ],
         [
@@ -1323,12 +1359,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Job gross margin",
-         "$4,316",
+         "$5,816",
          ""
         ],
         [
          "Job gross margin %",
-         "33.5%",
+         "40.4%",
          ""
         ]
        ],
@@ -1343,7 +1379,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           12900
+           14400
           ],
           "calc": null
          },
@@ -1391,7 +1427,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin",
           "kind": "money",
           "values": [
-           4316
+           5816
           ],
           "calc": "r0+r1+r2+r5"
          },
@@ -1399,7 +1435,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin %",
           "kind": "pct",
           "values": [
-           0.3345736434108527
+           0.4038888888888889
           ],
           "calc": "r6/r0"
          }
@@ -1416,7 +1452,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$27,400",
+         "$30,700",
          ""
         ],
         [
@@ -1446,12 +1482,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Job gross margin",
-         "$7,372",
+         "$10,672",
          ""
         ],
         [
          "Job gross margin %",
-         "26.9%",
+         "34.8%",
          ""
         ]
        ],
@@ -1466,7 +1502,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           27400
+           30700
           ],
           "calc": null
          },
@@ -1514,7 +1550,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin",
           "kind": "money",
           "values": [
-           7372
+           10672
           ],
           "calc": "r0+r1+r2+r5"
          },
@@ -1522,7 +1558,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin %",
           "kind": "pct",
           "values": [
-           0.26905109489051093
+           0.3476221498371336
           ],
           "calc": "r6/r0"
          }
@@ -1539,7 +1575,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$46,800",
+         "$52,400",
          ""
         ],
         [
@@ -1569,12 +1605,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Job gross margin",
-         "$6,300",
+         "$11,900",
          ""
         ],
         [
          "Job gross margin %",
-         "13.5%",
+         "22.7%",
          ""
         ]
        ],
@@ -1589,7 +1625,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           46800
+           52400
           ],
           "calc": null
          },
@@ -1637,7 +1673,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin",
           "kind": "money",
           "values": [
-           6300
+           11900
           ],
           "calc": "r0+r1+r2+r5"
          },
@@ -1645,7 +1681,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Job gross margin %",
           "kind": "pct",
           "values": [
-           0.1346153846153846
+           0.22709923664122136
           ],
           "calc": "r6/r0"
          }
@@ -1658,12 +1694,12 @@ window.FOURTH_SHEET_DASHBOARD = {
        "id": "pct",
        "label": "Gross margin %",
        "values": [
-        45.2,
-        39.5,
-        36.6,
-        33.5,
-        26.9,
-        13.5
+        51.2,
+        45.9,
+        43.3,
+        40.4,
+        34.8,
+        22.7
        ],
        "format": "pct1",
        "target": 35.0
@@ -1672,21 +1708,21 @@ window.FOURTH_SHEET_DASHBOARD = {
        "id": "dollars",
        "label": "Gross margin $",
        "values": [
-        4432,
-        7348,
-        5564,
-        4316,
-        7372,
-        6300
+        5632,
+        9548,
+        7364,
+        5816,
+        10672,
+        11900
        ],
        "format": "money0",
        "marks": [
-        3430,
-        6510,
-        5320,
-        4515,
-        9590,
-        16380
+        3850,
+        7280,
+        5950,
+        5040,
+        10745,
+        18340
        ],
        "mark_label": "Target gross margin (35.0% of the job's revenue)",
        "below_marks": true
@@ -1733,7 +1769,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       ],
       [
        "Call-outs",
-       "64 jobs at $145/hour plus materials marked up 30%"
+       "64 jobs at $163/hour plus materials marked up 30%"
       ],
       [
        "Jobs in September",
@@ -1746,15 +1782,15 @@ window.FOURTH_SHEET_DASHBOARD = {
      [
       [
        "Technicians",
-       "7 on salary: $54,600 a month incl. on-costs"
+       "7 employed full time: $79,587 in September incl. on-costs (every available hour at $68)"
       ],
       [
        "Job costing rate",
-       "$68/hour for technician time charged to a job"
+       "$68/hour = technician wages incl. on-costs ÷ available hours, worked out each month; time charged to jobs + time not charged = technician wages"
       ],
       [
        "Working days",
-       "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"
+       "20 in August (21 weekdays, less the Ekka People's Day holiday, Wed 12 Aug), 22 in September; 7.6 hours a day"
       ],
       [
        "Overheads",
@@ -1762,7 +1798,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       ],
       [
        "Income tax",
-       "25% of profit, provided monthly; next PAYG instalment due October"
+       "25% of profit, provided monthly; the PAYG instalment is paid with each quarter's BAS"
       ]
      ]
     ],
@@ -1784,10 +1820,35 @@ window.FOURTH_SHEET_DASHBOARD = {
       [
        "New equipment",
        "a $12,000 trailer bought in September"
-      ],
+      ]
+     ]
+    ],
+    [
+     "GST, BAS and payroll",
+     [
       [
        "GST",
-       "excluded throughout, for simplicity"
+       "registered; 10%, accruals basis: GST on a sale is owed when it's invoiced, a credit on a bill is claimed when it's received. The P&L excludes GST; invoices, bills, debtors, creditors and cash include it"
+      ],
+      [
+       "BAS",
+       "quarterly, self-lodged: GST on sales − GST credits + PAYG withheld + PAYG instalment. July to September is due 28 October; October to December, 28 February"
+      ],
+      [
+       "Pay runs",
+       "fortnightly on Thursdays: $39,795 gross (a 26th of the year's gross wages); net pay $31,836 and super $4,775 paid on the day; PAYG withheld (about 20% of gross, $7,959) goes with the BAS. Two months a year have three pay runs"
+      ],
+      [
+       "Super",
+       "12% of gross wages, paid with each pay run (Payday Super, from 1 July 2026)"
+      ],
+      [
+       "Payroll tax",
+       "none: Queensland's threshold is $1.3 million of wages a year (rate 4.75% above it); this business pays about $1,159,000 including super"
+      ],
+      [
+       "Banking days",
+       "money only moves on banking days: a payment due on a weekend or Queensland public holiday moves to the next banking day"
       ]
      ]
     ]
@@ -1798,12 +1859,12 @@ window.FOURTH_SHEET_DASHBOARD = {
     "pptx": "media/exports/trades-sample-statements.pptx"
    },
    "exports_meta": {
-    "pdf_pages": 7,
-    "pptx_slides": 18,
+    "pdf_pages": 8,
+    "pptx_slides": 19,
     "names": {
-     "xlsx": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 2130.xlsx",
-     "pdf": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 2130.pdf",
-     "pptx": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 2130.pptx"
+     "xlsx": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0839.xlsx",
+     "pdf": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0839.pdf",
+     "pptx": "Sample Electrical & Air Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0839.pptx"
     }
    }
   },
@@ -1832,8 +1893,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Projects (hours worked)",
        "level": "detail",
        "values": [
-        85950,
-        75740
+        94830,
+        83800
        ],
        "note": null
       },
@@ -1841,8 +1902,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Retainers",
        "level": "detail",
        "values": [
-        32500,
-        32500
+        35700,
+        35700
        ],
        "note": null
       },
@@ -1850,8 +1911,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Training",
        "level": "detail",
        "values": [
-        13400,
-        6400
+        14800,
+        7000
        ],
        "note": null
       },
@@ -1859,8 +1920,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total revenue",
        "level": "subtotal",
        "values": [
-        131850,
-        114640
+        145330,
+        126500
        ],
        "note": null
       },
@@ -1874,8 +1935,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Consultant salaries (incl. on-costs)",
        "level": "detail",
        "values": [
-        -46500,
-        -46500
+        -60192,
+        -54720
        ],
        "note": null
       },
@@ -1892,8 +1953,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total cost of sales",
        "level": "subtotal",
        "values": [
-        -64100,
-        -53400
+        -77792,
+        -61620
        ],
        "note": null
       },
@@ -1901,8 +1962,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Gross profit",
        "level": "total",
        "values": [
-        67750,
-        61240
+        67538,
+        64880
        ],
        "note": null
       },
@@ -1988,8 +2049,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "EBITDA",
        "level": "total",
        "values": [
-        17850,
-        9840
+        17638,
+        13480
        ],
        "note": null
       },
@@ -2015,8 +2076,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Profit before tax",
        "level": "total",
        "values": [
-        15610,
-        7590
+        15398,
+        11230
        ],
        "note": null
       },
@@ -2024,8 +2085,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Income tax provision (25%)",
        "level": "subtotal",
        "values": [
-        -3903,
-        -1898
+        -3850,
+        -2808
        ],
        "note": null
       },
@@ -2033,8 +2094,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net profit after tax",
        "level": "key",
        "values": [
-        11707,
-        5692
+        11548,
+        8422
        ],
        "note": null
       }
@@ -2054,8 +2115,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at bank",
        "level": "detail",
        "values": [
-        149260,
-        192150
+        207781,
+        229278
        ],
        "note": null
       },
@@ -2063,17 +2124,17 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Trade debtors (unpaid invoices)",
        "level": "detail",
        "values": [
-        116800,
-        71290
+        141592,
+        86405
        ],
-       "note": null
+       "note": "Invoices include GST."
       },
       {
        "label": "Work in progress (unbilled project time)",
        "level": "detail",
        "values": [
-        99290,
-        77900
+        109810,
+        86000
        ],
        "note": null
       },
@@ -2090,8 +2151,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total current assets",
        "level": "subtotal",
        "values": [
-        380350,
-        356340
+        474183,
+        416683
        ],
        "note": null
       },
@@ -2108,8 +2169,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total assets",
        "level": "total",
        "values": [
-        440550,
-        415340
+        534383,
+        475683
        ],
        "note": null
       },
@@ -2123,10 +2184,46 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Trade creditors (bills due next month)",
        "level": "detail",
        "values": [
-        17600,
-        6900
+        19360,
+        7590
+       ],
+       "note": "Bills include GST."
+      },
+      {
+       "label": "Wages owed (since the last pay run)",
+       "level": "detail",
+       "values": [
+        31400,
+        23174
        ],
        "note": null
+      },
+      {
+       "label": "Super payable",
+       "level": "detail",
+       "values": [
+        3766,
+        2780
+       ],
+       "note": null
+      },
+      {
+       "label": "PAYG withholding payable",
+       "level": "detail",
+       "values": [
+        47814,
+        31876
+       ],
+       "note": "Paid with the BAS."
+      },
+      {
+       "label": "GST payable (net)",
+       "level": "detail",
+       "values": [
+        20412,
+        12930
+       ],
+       "note": "GST on sales less GST credits, quarter to date. Paid with the BAS."
       },
       {
        "label": "Employee leave provisions",
@@ -2141,8 +2238,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Income tax payable",
        "level": "detail",
        "values": [
-        54301,
-        50398
+        55158,
+        51308
        ],
        "note": null
       },
@@ -2150,8 +2247,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total current liabilities",
        "level": "subtotal",
        "values": [
-        194201,
-        178998
+        300210,
+        251358
        ],
        "note": null
       },
@@ -2168,8 +2265,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total liabilities",
        "level": "total",
        "values": [
-        208801,
-        195298
+        314810,
+        267658
        ],
        "note": null
       },
@@ -2177,8 +2274,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net assets",
        "level": "key",
        "values": [
-        231749,
-        220042
+        219573,
+        208025
        ],
        "note": null
       },
@@ -2201,8 +2298,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Retained earnings",
        "level": "detail",
        "values": [
-        211749,
-        200042
+        199573,
+        188025
        ],
        "note": null
       },
@@ -2210,8 +2307,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total equity",
        "level": "key",
        "values": [
-        231749,
-        220042
+        219573,
+        208025
        ],
        "note": null
       }
@@ -2231,28 +2328,28 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Receipts from customers (invoices paid)",
        "level": "detail",
        "values": [
-        64950,
-        137200
+        78485,
+        166100
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Payments to contractors and suppliers",
        "level": "detail",
        "values": [
-        -32800,
-        -31300
+        -36080,
+        -34430
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Payments to employees",
        "level": "detail",
        "values": [
-        -69900,
-        -69800
+        -58442,
+        -58442
        ],
-       "note": null
+       "note": "Net pay and super, on each fortnightly pay day."
       },
       {
        "label": "Interest paid",
@@ -2264,20 +2361,20 @@ window.FOURTH_SHEET_DASHBOARD = {
        "note": null
       },
       {
-       "label": "Income tax paid",
+       "label": "GST, PAYG and income tax paid (BAS)",
        "level": "detail",
        "values": [
         0,
         0
        ],
-       "note": "Next PAYG instalment is due in October."
+       "note": "The July to September BAS is due 28 October."
       },
       {
        "label": "Net cash from operating activities",
        "level": "subtotal",
        "values": [
-        -37990,
-        35850
+        -16277,
+        72978
        ],
        "note": null
       },
@@ -2291,16 +2388,16 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Purchase of equipment",
        "level": "detail",
        "values": [
-        -3200,
+        -3520,
         0
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Net cash from investing activities",
        "level": "subtotal",
        "values": [
-        -3200,
+        -3520,
         0
        ],
        "note": null
@@ -2333,8 +2430,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net change in cash",
        "level": "total",
        "values": [
-        -42890,
-        34150
+        -21497,
+        71278
        ],
        "note": null
       },
@@ -2342,7 +2439,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at start of month",
        "level": "subtotal",
        "values": [
-        192150,
+        229278,
         158000
        ],
        "note": null
@@ -2351,8 +2448,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at end of month",
        "level": "key",
        "values": [
-        149260,
-        192150
+        207781,
+        229278
        ],
        "note": null
       }
@@ -2475,9 +2572,9 @@ window.FOURTH_SHEET_DASHBOARD = {
      },
      {
       "label": "Revenue per billable hour",
-      "value": "$173",
-      "sub": "■ same as Aug ($173)",
-      "cls": "",
+      "value": "$190",
+      "sub": "▼ from $191 in Aug",
+      "cls": "bad",
       "support": {
        "title": "Revenue per billable hour",
        "formula": "Revenue ÷ billable hours",
@@ -2489,8 +2586,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$131,850",
-         "$114,640"
+         "$145,330",
+         "$126,500"
         ],
         [
          "Billable hours",
@@ -2499,8 +2596,8 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Revenue per hour",
-         "$173",
-         "$173"
+         "$190",
+         "$191"
         ]
        ],
        "note": "Retainers and training are fixed fees, so fewer hours on them raises the hourly figure.",
@@ -2515,8 +2612,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           131850,
-           114640
+           145330,
+           126500
           ],
           "calc": null
          },
@@ -2533,8 +2630,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue per hour",
           "kind": "money",
           "values": [
-           172.57853403141362,
-           173.17220543806647
+           190.22251308900525,
+           191.08761329305136
           ],
           "calc": "r0/r1"
          }
@@ -2544,8 +2641,8 @@ window.FOURTH_SHEET_DASHBOARD = {
      },
      {
       "label": "Unbilled work + unpaid invoices",
-      "value": "$216,090",
-      "sub": "▲ from $149,190 in Aug",
+      "value": "$251,402",
+      "sub": "▲ from $172,405 in Aug",
       "cls": "bad",
       "good_when": "lower",
       "support": {
@@ -2559,18 +2656,18 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Work in progress (project time not yet billed)",
-         "$99,290",
-         "$77,900"
+         "$109,810",
+         "$86,000"
         ],
         [
          "Unpaid client invoices",
-         "$116,800",
-         "$71,290"
+         "$141,592",
+         "$86,405"
         ],
         [
          "Total tied up",
-         "$216,090",
-         "$149,190"
+         "$251,402",
+         "$172,405"
         ]
        ],
        "note": "Milestone billing on the logistics and manufacturer projects landed at the end of September, so it moved from unbilled to unpaid.",
@@ -2585,8 +2682,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Work in progress (project time not yet billed)",
           "kind": "money",
           "values": [
-           99290,
-           77900
+           109810,
+           86000
           ],
           "calc": null
          },
@@ -2594,8 +2691,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Unpaid client invoices",
           "kind": "money",
           "values": [
-           116800,
-           71290
+           141592,
+           86405
           ],
           "calc": null
          },
@@ -2603,8 +2700,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Total tied up",
           "kind": "money",
           "values": [
-           216090,
-           149190
+           251402,
+           172405
           ],
           "calc": "r0+r1"
          }
@@ -2629,16 +2726,16 @@ window.FOURTH_SHEET_DASHBOARD = {
       "Hospitality payroll"
      ],
      "values": [
-      81.7,
-      68.4,
-      65.0,
-      63.6,
-      63.4,
-      61.2,
-      53.9,
-      35.2,
-      27.7,
-      25.7
+      83.5,
+      71.4,
+      68.2,
+      66.7,
+      66.5,
+      64.8,
+      57.7,
+      41.9,
+      34.4,
+      32.2
      ],
      "target": 40.0,
      "format": "pct1",
@@ -2654,7 +2751,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$4,600",
+         "$5,100",
          ""
         ],
         [
@@ -2679,12 +2776,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$3,760",
+         "$4,260",
          ""
         ],
         [
          "Gross margin %",
-         "81.7%",
+         "83.5%",
          ""
         ]
        ],
@@ -2699,7 +2796,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           4600
+           5100
           ],
           "calc": null
          },
@@ -2739,7 +2836,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           3760
+           4260
           ],
           "calc": "r0+r1+r4"
          },
@@ -2747,7 +2844,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.8173913043478261
+           0.8352941176470589
           ],
           "calc": "r5/r0"
          }
@@ -2764,7 +2861,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$18,240",
+         "$20,160",
          ""
         ],
         [
@@ -2789,12 +2886,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$12,480",
+         "$14,400",
          ""
         ],
         [
          "Gross margin %",
-         "68.4%",
+         "71.4%",
          ""
         ]
        ],
@@ -2809,7 +2906,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           18240
+           20160
           ],
           "calc": null
          },
@@ -2849,7 +2946,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           12480
+           14400
           ],
           "calc": "r0+r1+r4"
          },
@@ -2857,7 +2954,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.6842105263157895
+           0.7142857142857143
           ],
           "calc": "r5/r0"
          }
@@ -2874,7 +2971,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$12,000",
+         "$13,200",
          ""
         ],
         [
@@ -2899,12 +2996,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$7,800",
+         "$9,000",
          ""
         ],
         [
          "Gross margin %",
-         "65.0%",
+         "68.2%",
          ""
         ]
        ],
@@ -2919,7 +3016,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           12000
+           13200
           ],
           "calc": null
          },
@@ -2959,7 +3056,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           7800
+           9000
           ],
           "calc": "r0+r1+r4"
          },
@@ -2967,7 +3064,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.65
+           0.6818181818181818
           ],
           "calc": "r5/r0"
          }
@@ -2984,7 +3081,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$10,560",
+         "$11,520",
          ""
         ],
         [
@@ -3009,12 +3106,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$6,720",
+         "$7,680",
          ""
         ],
         [
          "Gross margin %",
-         "63.6%",
+         "66.7%",
          ""
         ]
        ],
@@ -3029,7 +3126,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           10560
+           11520
           ],
           "calc": null
          },
@@ -3069,7 +3166,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           6720
+           7680
           ],
           "calc": "r0+r1+r4"
          },
@@ -3077,7 +3174,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.6363636363636364
+           0.6666666666666666
           ],
           "calc": "r5/r0"
          }
@@ -3094,7 +3191,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$9,500",
+         "$10,400",
          ""
         ],
         [
@@ -3119,12 +3216,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$6,020",
+         "$6,920",
          ""
         ],
         [
          "Gross margin %",
-         "63.4%",
+         "66.5%",
          ""
         ]
        ],
@@ -3139,7 +3236,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           9500
+           10400
           ],
           "calc": null
          },
@@ -3179,7 +3276,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           6020
+           6920
           ],
           "calc": "r0+r1+r4"
          },
@@ -3187,7 +3284,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.6336842105263157
+           0.6653846153846154
           ],
           "calc": "r5/r0"
          }
@@ -3204,7 +3301,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$6,800",
+         "$7,500",
          ""
         ],
         [
@@ -3229,12 +3326,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$4,160",
+         "$4,860",
          ""
         ],
         [
          "Gross margin %",
-         "61.2%",
+         "64.8%",
          ""
         ]
        ],
@@ -3249,7 +3346,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           6800
+           7500
           ],
           "calc": null
          },
@@ -3289,7 +3386,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           4160
+           4860
           ],
           "calc": "r0+r1+r4"
          },
@@ -3297,7 +3394,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.611764705882353
+           0.648
           ],
           "calc": "r5/r0"
          }
@@ -3314,7 +3411,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$20,400",
+         "$22,200",
          ""
         ],
         [
@@ -3339,12 +3436,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$11,000",
+         "$12,800",
          ""
         ],
         [
          "Gross margin %",
-         "53.9%",
+         "57.7%",
          ""
         ]
        ],
@@ -3359,7 +3456,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           20400
+           22200
           ],
           "calc": null
          },
@@ -3399,7 +3496,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           11000
+           12800
           ],
           "calc": "r0+r1+r4"
          },
@@ -3407,7 +3504,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.5392156862745098
+           0.5765765765765766
           ],
           "calc": "r5/r0"
          }
@@ -3424,7 +3521,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$36,750",
+         "$40,950",
          ""
         ],
         [
@@ -3449,12 +3546,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$12,950",
+         "$17,150",
          ""
         ],
         [
          "Gross margin %",
-         "35.2%",
+         "41.9%",
          ""
         ]
        ],
@@ -3469,7 +3566,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           36750
+           40950
           ],
           "calc": null
          },
@@ -3509,7 +3606,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           12950
+           17150
           ],
           "calc": "r0+r1+r4"
          },
@@ -3517,7 +3614,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.3523809523809524
+           0.4188034188034188
           ],
           "calc": "r5/r0"
          }
@@ -3534,7 +3631,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$8,800",
+         "$9,700",
          ""
         ],
         [
@@ -3559,12 +3656,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$2,440",
+         "$3,340",
          ""
         ],
         [
          "Gross margin %",
-         "27.7%",
+         "34.4%",
          ""
         ]
        ],
@@ -3579,7 +3676,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           8800
+           9700
           ],
           "calc": null
          },
@@ -3619,7 +3716,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           2440
+           3340
           ],
           "calc": "r0+r1+r4"
          },
@@ -3627,7 +3724,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.2772727272727273
+           0.3443298969072165
           ],
           "calc": "r5/r0"
          }
@@ -3644,7 +3741,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Revenue",
-         "$4,200",
+         "$4,600",
          ""
         ],
         [
@@ -3669,12 +3766,12 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Gross margin",
-         "$1,080",
+         "$1,480",
          ""
         ],
         [
          "Gross margin %",
-         "25.7%",
+         "32.2%",
          ""
         ]
        ],
@@ -3689,7 +3786,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Revenue",
           "kind": "money",
           "values": [
-           4200
+           4600
           ],
           "calc": null
          },
@@ -3729,7 +3826,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin",
           "kind": "money",
           "values": [
-           1080
+           1480
           ],
           "calc": "r0+r1+r4"
          },
@@ -3737,7 +3834,7 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Gross margin %",
           "kind": "pct",
           "values": [
-           0.2571428571428571
+           0.3217391304347826
           ],
           "calc": "r5/r0"
          }
@@ -3750,16 +3847,16 @@ window.FOURTH_SHEET_DASHBOARD = {
        "id": "pct",
        "label": "Gross margin %",
        "values": [
-        81.7,
-        68.4,
-        65.0,
-        63.6,
-        63.4,
-        61.2,
-        53.9,
-        35.2,
-        27.7,
-        25.7
+        83.5,
+        71.4,
+        68.2,
+        66.7,
+        66.5,
+        64.8,
+        57.7,
+        41.9,
+        34.4,
+        32.2
        ],
        "format": "pct1",
        "target": 40.0
@@ -3768,29 +3865,29 @@ window.FOURTH_SHEET_DASHBOARD = {
        "id": "dollars",
        "label": "Gross margin $",
        "values": [
-        3760,
-        12480,
-        7800,
-        6720,
-        6020,
-        4160,
-        11000,
-        12950,
-        2440,
-        1080
+        4260,
+        14400,
+        9000,
+        7680,
+        6920,
+        4860,
+        12800,
+        17150,
+        3340,
+        1480
        ],
        "format": "money0",
        "marks": [
-        1840,
-        7296,
-        4800,
-        4224,
-        3800,
-        2720,
-        8160,
-        14700,
-        3520,
-        1680
+        2040,
+        8064,
+        5280,
+        4608,
+        4160,
+        3000,
+        8880,
+        16380,
+        3880,
+        1840
        ],
        "mark_label": "Target gross margin (40.0% of revenue)",
        "below_marks": true
@@ -3850,15 +3947,15 @@ window.FOURTH_SHEET_DASHBOARD = {
      [
       [
        "Consultants",
-       "6 on salary: $46,500 a month incl. on-costs"
+       "6 employed full time: $60,192 in September incl. on-costs (every available hour at $60)"
       ],
       [
        "Engagement costing rate",
-       "$60/hour for consultant time"
+       "$60/hour = consultant salaries incl. on-costs ÷ available hours, worked out each month; time charged to clients + time not charged = salaries"
       ],
       [
        "Working days",
-       "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"
+       "20 in August (21 weekdays, less the Ekka People's Day holiday, Wed 12 Aug), 22 in September; 7.6 hours a day"
       ],
       [
        "Income tax",
@@ -3876,10 +3973,35 @@ window.FOURTH_SHEET_DASHBOARD = {
       [
        "Contractors",
        "paid the following month"
-      ],
+      ]
+     ]
+    ],
+    [
+     "GST, BAS and payroll",
+     [
       [
        "GST",
-       "excluded throughout, for simplicity"
+       "registered; 10%, accruals basis: GST on a sale is owed when it's invoiced, a credit on a bill is claimed when it's received. The P&L excludes GST; invoices, bills, debtors, creditors and cash include it"
+      ],
+      [
+       "BAS",
+       "quarterly, self-lodged: GST on sales − GST credits + PAYG withheld + PAYG instalment. July to September is due 28 October; October to December, 28 February"
+      ],
+      [
+       "Pay runs",
+       "fortnightly on Thursdays: $33,205 gross (a 26th of the year's gross wages); net pay $25,236 and super $3,985 paid on the day; PAYG withheld (about 24% of gross, $7,969) goes with the BAS. Two months a year have three pay runs"
+      ],
+      [
+       "Super",
+       "12% of gross wages, paid with each pay run (Payday Super, from 1 July 2026)"
+      ],
+      [
+       "Payroll tax",
+       "none: Queensland's threshold is $1.3 million of wages a year (rate 4.75% above it); this business pays about $967,000 including super"
+      ],
+      [
+       "Banking days",
+       "money only moves on banking days: a payment due on a weekend or Queensland public holiday moves to the next banking day"
       ]
      ]
     ]
@@ -3890,12 +4012,12 @@ window.FOURTH_SHEET_DASHBOARD = {
     "pptx": "media/exports/services-sample-statements.pptx"
    },
    "exports_meta": {
-    "pdf_pages": 8,
-    "pptx_slides": 17,
+    "pdf_pages": 9,
+    "pptx_slides": 18,
     "names": {
-     "xlsx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 2130.xlsx",
-     "pdf": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 2130.pdf",
-     "pptx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-08 2130.pptx"
+     "xlsx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0845.xlsx",
+     "pdf": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0845.pdf",
+     "pptx": "Sample Advisory Pty Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0845.pptx"
     }
    }
   },
@@ -4197,8 +4319,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at bank",
        "level": "detail",
        "values": [
-        480780,
-        525675
+        527060,
+        547394
        ],
        "note": null
       },
@@ -4206,10 +4328,10 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Program fees receivable",
        "level": "detail",
        "values": [
-        10400,
-        9800
+        11440,
+        10780
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Grants receivable (spent ahead of instalment)",
@@ -4233,8 +4355,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total current assets",
        "level": "subtotal",
        "values": [
-        533080,
-        566175
+        580400,
+        588874
        ],
        "note": null
       },
@@ -4251,8 +4373,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total assets",
        "level": "total",
        "values": [
-        705280,
-        741275
+        752600,
+        763974
        ],
        "note": null
       },
@@ -4266,10 +4388,46 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Payables (bills due next month)",
        "level": "detail",
        "values": [
-        65250,
-        46525
+        71775,
+        51178
+       ],
+       "note": "Bills include GST."
+      },
+      {
+       "label": "Wages owed (since the last pay run)",
+       "level": "detail",
+       "values": [
+        36677,
+        28711
        ],
        "note": null
+      },
+      {
+       "label": "Super payable",
+       "level": "detail",
+       "values": [
+        4400,
+        3444
+       ],
+       "note": null
+      },
+      {
+       "label": "PAYG withholding payable",
+       "level": "detail",
+       "values": [
+        40086,
+        26724
+       ],
+       "note": "Paid with the BAS."
+      },
+      {
+       "label": "GST payable (net)",
+       "level": "detail",
+       "values": [
+        25437,
+        24972
+       ],
+       "note": "GST on grants, program fees and events less GST credits, quarter to date. Paid with the BAS."
       },
       {
        "label": "Grants received in advance (unspent)",
@@ -4293,8 +4451,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Total liabilities",
        "level": "total",
        "values": [
-        387950,
-        434325
+        501075,
+        522829
        ],
        "note": null
       },
@@ -4302,8 +4460,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net assets",
        "level": "key",
        "values": [
-        317330,
-        306950
+        251525,
+        241145
        ],
        "note": null
       },
@@ -4317,8 +4475,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Accumulated funds",
        "level": "key",
        "values": [
-        317330,
-        306950
+        251525,
+        241145
        ],
        "note": null
       }
@@ -4341,25 +4499,25 @@ window.FOURTH_SHEET_DASHBOARD = {
         0,
         0
        ],
-       "note": "Next instalments arrive in October."
+       "note": "Incl. GST. Next instalments arrive in October."
       },
       {
        "label": "Donations and fundraising received",
        "level": "detail",
        "values": [
-        69500,
+        73660,
         18400
        ],
-       "note": null
+       "note": "Event income incl. GST; donations carry none."
       },
       {
        "label": "Program fees received",
        "level": "detail",
        "values": [
-        27700,
-        26100
+        30470,
+        28710
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Interest received",
@@ -4374,26 +4532,35 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Payments to suppliers",
        "level": "detail",
        "values": [
-        -46525,
+        -51178,
         -36500
        ],
-       "note": null
+       "note": "Incl. GST."
       },
       {
        "label": "Payments to employees",
        "level": "detail",
        "values": [
-        -96950,
-        -93775
+        -74666,
+        -74666
        ],
-       "note": null
+       "note": "Net pay and super, on each fortnightly pay day."
+      },
+      {
+       "label": "GST and PAYG paid (BAS)",
+       "level": "detail",
+       "values": [
+        0,
+        0
+       ],
+       "note": "The July to September BAS is due 28 October."
       },
       {
        "label": "Net cash from operating activities",
        "level": "subtotal",
        "values": [
-        -44895,
-        -84325
+        -20334,
+        -62606
        ],
        "note": null
       },
@@ -4425,8 +4592,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Net change in cash",
        "level": "total",
        "values": [
-        -44895,
-        -84325
+        -20334,
+        -62606
        ],
        "note": null
       },
@@ -4434,7 +4601,7 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at start of month",
        "level": "subtotal",
        "values": [
-        525675,
+        547394,
         610000
        ],
        "note": null
@@ -4443,8 +4610,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "label": "Cash at end of month",
        "level": "key",
        "values": [
-        480780,
-        525675
+        527060,
+        547394
        ],
        "note": null
       }
@@ -4610,12 +4777,12 @@ window.FOURTH_SHEET_DASHBOARD = {
      },
      {
       "label": "Unrestricted cash runway",
-      "value": "2.0 months",
-      "sub": "▼ from 2.2 months in Aug",
-      "cls": "bad",
+      "value": "1.9 months",
+      "sub": "■ same as Aug (1.9 months)",
+      "cls": "",
       "support": {
        "title": "Unrestricted cash runway",
-       "formula": "(Cash at bank − unspent grant money) ÷ this month's cash spending",
+       "formula": "(Cash at bank − unspent grant money − GST and PAYG owed to the ATO) ÷ a month's cash spending",
        "head": [
         "",
         "Sep 2026",
@@ -4624,8 +4791,8 @@ window.FOURTH_SHEET_DASHBOARD = {
        "rows": [
         [
          "Cash at bank",
-         "$480,780",
-         "$525,675"
+         "$527,060",
+         "$547,394"
         ],
         [
          "Less unspent grant money (belongs to funders' programs)",
@@ -4633,9 +4800,14 @@ window.FOURTH_SHEET_DASHBOARD = {
          "($221,900)"
         ],
         [
+         "Less GST and PAYG withheld owed to the ATO (paid with the BAS)",
+         "($65,523)",
+         "($51,696)"
+        ],
+        [
          "Unrestricted cash",
-         "$324,680",
-         "$303,775"
+         "$305,437",
+         "$273,798"
         ],
         [
          "Cash spending in the month (expenses less depreciation)",
@@ -4644,8 +4816,8 @@ window.FOURTH_SHEET_DASHBOARD = {
         ],
         [
          "Runway",
-         "2.0 months",
-         "2.2 months"
+         "1.9 months",
+         "1.9 months"
         ]
        ],
        "note": "Reserves target: 3.0 months.",
@@ -4660,8 +4832,8 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Cash at bank",
           "kind": "money",
           "values": [
-           480780,
-           525675
+           527060,
+           547394
           ],
           "calc": null
          },
@@ -4675,13 +4847,22 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
+          "label": "Less GST and PAYG withheld owed to the ATO (paid with the BAS)",
+          "kind": "money",
+          "values": [
+           -65523,
+           -51696
+          ],
+          "calc": null
+         },
+         {
           "label": "Unrestricted cash",
           "kind": "money",
           "values": [
-           324680,
-           303775
+           305437,
+           273798
           ],
-          "calc": "r0+r1"
+          "calc": "r0+r1+r2"
          },
          {
           "label": "Cash spending in the month (expenses less depreciation)",
@@ -4696,10 +4877,10 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Runway",
           "kind": "months",
           "values": [
-           1.9931246163290361,
-           2.1513810198300285
+           1.8749969306322898,
+           1.9390793201133145
           ],
-          "calc": "r2/r3"
+          "calc": "r3/r4"
          }
         ]
        }
@@ -4707,8 +4888,8 @@ window.FOURTH_SHEET_DASHBOARD = {
      },
      {
       "label": "Grants ending in 6 months",
-      "value": "$117,300",
-      "sub": "to spend in 6 months · 2 grants ending",
+      "value": "$210,500",
+      "sub": "to spend in 6 months · 4 grants ending",
       "cls": "bad",
       "good_when": "lower",
       "support": {
@@ -4725,13 +4906,23 @@ window.FOURTH_SHEET_DASHBOARD = {
          ""
         ],
         [
+         "Digital literacy (ends 31 Mar 2027)",
+         "$30,400",
+         ""
+        ],
+        [
+         "Mental health first aid (ends 31 Mar 2027)",
+         "$62,800",
+         ""
+        ],
+        [
          "Volunteer coordinator (ends 28 Feb 2027)",
          "$15,000",
          ""
         ],
         [
          "Total still to spend",
-         "$117,300",
+         "$210,500",
          ""
         ]
        ],
@@ -4751,6 +4942,22 @@ window.FOURTH_SHEET_DASHBOARD = {
           "calc": null
          },
          {
+          "label": "Digital literacy (ends 31 Mar 2027)",
+          "kind": "money",
+          "values": [
+           30400
+          ],
+          "calc": null
+         },
+         {
+          "label": "Mental health first aid (ends 31 Mar 2027)",
+          "kind": "money",
+          "values": [
+           62800
+          ],
+          "calc": null
+         },
+         {
           "label": "Volunteer coordinator (ends 28 Feb 2027)",
           "kind": "money",
           "values": [
@@ -4762,9 +4969,9 @@ window.FOURTH_SHEET_DASHBOARD = {
           "label": "Total still to spend",
           "kind": "money",
           "values": [
-           117300
+           210500
           ],
-          "calc": "r0+r1"
+          "calc": "r0+r1+r2+r3"
          }
         ]
        }
@@ -5866,7 +6073,7 @@ window.FOURTH_SHEET_DASHBOARD = {
       ],
       [
        "Unrestricted cash",
-       "cash at bank less unspent grant money"
+       "cash at bank less unspent grant money, and less GST and PAYG withheld owed to the ATO"
       ],
       [
        "Cash runway",
@@ -5875,10 +6082,51 @@ window.FOURTH_SHEET_DASHBOARD = {
       [
        "Reserves target",
        "3 months of spending"
-      ],
+      ]
+     ]
+    ],
+    [
+     "GST, BAS and payroll",
+     [
       [
        "GST",
-       "excluded throughout, for simplicity"
+       "registered (income over the $150,000 not-for-profit threshold); 10%, accruals basis. The P&L excludes GST; cash, fees receivable and bills include it"
+      ],
+      [
+       "BAS",
+       "quarterly, self-lodged: GST on sales − GST credits + PAYG withheld. July to September is due 28 October; October to December, 28 February"
+      ],
+      [
+       "Pay runs",
+       "fortnightly on Thursdays: $39,298 gross (a 26th of the year's gross wages); net pay $32,617 and super $4,716 paid on the day; PAYG withheld (about 17% of gross, $6,681) goes with the BAS. Two months a year have three pay runs"
+      ],
+      [
+       "Super",
+       "12% of gross wages, paid with each pay run (Payday Super, from 1 July 2026)"
+      ],
+      [
+       "Payroll tax",
+       "none: the charity is exempt for wages paid for its charitable work (assumption to confirm)"
+      ],
+      [
+       "Banking days",
+       "money only moves on banking days: a payment due on a weekend or Queensland public holiday moves to the next banking day"
+      ],
+      [
+       "Donations (assumption to confirm)",
+       "no GST: a gift isn't payment for anything"
+      ],
+      [
+       "Program fees (assumption to confirm)",
+       "taxable: GST included in what's charged"
+      ],
+      [
+       "Grants (assumption to confirm)",
+       "taxable supplies under each funding agreement: the funder pays each instalment plus 10% GST"
+      ],
+      [
+       "Fundraising events (assumption to confirm)",
+       "taxable: ticket sales include GST"
       ]
      ]
     ]
@@ -5889,12 +6137,12 @@ window.FOURTH_SHEET_DASHBOARD = {
     "pptx": "media/exports/nfp-sample-statements.pptx"
    },
    "exports_meta": {
-    "pdf_pages": 7,
-    "pptx_slides": 16,
+    "pdf_pages": 8,
+    "pptx_slides": 18,
     "names": {
-     "xlsx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 1034.xlsx",
-     "pdf": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 1034.pdf",
-     "pptx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 1034.pptx"
+     "xlsx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0856.xlsx",
+     "pdf": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0856.pdf",
+     "pptx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-09 0856.pptx"
     }
    }
   }

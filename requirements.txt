@@ -7,4 +7,5 @@ mssql-python      # Microsoft's SQL Server driver: no ODBC install needed, signs
 azure-identity
 pandas            # the dataset tools (tools/datasets.py)
 certifi           # trusted certificates for downloads (Python from python.org on a Mac has none)
+holidays          # Queensland public holidays (working days and banking days)
 tzdata            # time zones on Windows: download stamps are in Brisbane time whatever the machine's clock

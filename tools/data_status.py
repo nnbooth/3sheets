@@ -17,18 +17,14 @@ incomplete).
 
 from datetime import date, datetime, timedelta
 
-# Brisbane public holidays, Oct 2024 to Dec 2026 (one list for every tool: working days, dim_date, data status)
-QLD_HOLIDAYS = {
-    date(2024, 10, 7): "King's Birthday", date(2024, 12, 25): "Christmas Day", date(2024, 12, 26): "Boxing Day",
-    date(2025, 1, 1): "New Year's Day", date(2025, 1, 27): "Australia Day (observed)", date(2025, 4, 18): "Good Friday",
-    date(2025, 4, 19): "Easter Saturday", date(2025, 4, 21): "Easter Monday", date(2025, 4, 25): "Anzac Day",
-    date(2025, 5, 5): "Labour Day", date(2025, 8, 13): "Royal Queensland Show (Ekka, Brisbane)", date(2025, 10, 6): "King's Birthday",
-    date(2025, 12, 25): "Christmas Day", date(2025, 12, 26): "Boxing Day",
-    date(2026, 1, 1): "New Year's Day", date(2026, 1, 26): "Australia Day", date(2026, 4, 3): "Good Friday",
-    date(2026, 4, 4): "Easter Saturday", date(2026, 4, 6): "Easter Monday", date(2026, 5, 4): "Labour Day",
-    date(2026, 8, 12): "Royal Queensland Show (Ekka, Brisbane)", date(2026, 10, 5): "King's Birthday",
-    date(2026, 12, 25): "Christmas Day", date(2026, 12, 28): "Boxing Day (observed)",
-}
+# Brisbane public holidays, Oct 2024 to 2027 (one list for every tool: working days, dim_date, data status, banking days).
+# From the holidays package (Queensland), plus the Ekka (Royal Queensland Show) People's Day, a Brisbane-only holiday.
+import holidays as _holidays
+
+_NAMES = {"Labor Day": "Labour Day", "ANZAC Day": "Anzac Day", "The Royal Queensland Show": "Royal Queensland Show (Ekka, Brisbane)"}
+QLD_HOLIDAYS = {d: _NAMES.get(n, n) for d, n in sorted(_holidays.AU(subdiv="QLD", years=range(2024, 2028)).items())}
+for _d in (date(2024, 8, 14), date(2025, 8, 13), date(2026, 8, 12), date(2027, 8, 11)):   # Ekka Wednesdays, in case the package drops them
+    QLD_HOLIDAYS.setdefault(_d, "Royal Queensland Show (Ekka, Brisbane)")
 
 
 def strf(d, pattern):
