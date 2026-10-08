@@ -435,7 +435,7 @@ class Deck:
                 tone = tones[r - hrow][c] if tones and r - hrow < len(tones) and c < len(tones[r - hrow]) else ""
                 if para.runs:
                     para.runs[0].font.size = Pt(size)
-                    para.runs[0].font.color.rgb = rgb(NEG if (is_neg(val) or tone == "bad") else WARN if tone == "warn" else INK)
+                    para.runs[0].font.color.rgb = rgb(NEG if (is_neg(val) or tone == "bad") else WARN if tone == "warn" else BRAND if tone == "good" else INK)
                     if tone or str(row_[0]).startswith("Total"):
                         para.runs[0].font.bold = True
                 para.alignment = PP_ALIGN.RIGHT if numeric[c] else PP_ALIGN.LEFT

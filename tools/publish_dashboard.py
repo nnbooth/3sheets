@@ -491,7 +491,8 @@ def write_xlsx(org, v):
     ek.xl_bar_chart(ws4, f"F{chart_hr - 1}", ch["title"], (ws4, 1, chart_hr + 1, 1, r), (ws4, 2, chart_hr + 1, 2, r), len(ch["labels"]),
                     "0.0%" if pc0 else "#,##0;(#,##0)", v0["label"], ch.get("target"), f"{ch['target']:.1f}%" if ch.get("target") is not None else None,
                     below=None if ch.get("plain") or ch.get("target") is None else [x < ch["target"] for x in v0["values"]],
-                    bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [x < 0 for x in v0["values"]],
+                    bad=[x >= 1 for x in v0["values"]] if ch.get("variance") else [x < 0 for x in v0["values"]],
+                    warn=[0.05 <= abs(x) < 1 for x in v0["values"]] if ch.get("variance") else None,
                     values=[x / 100 if pc0 else x for x in v0["values"]],
                     lines=[(f"Target {ch['target']:.1f}%", ch["target"] / 100 if pc0 else ch["target"], "25342A", "dash")] if ch.get("target") is not None else None)
     if ch.get("target") is not None:
@@ -652,9 +653,9 @@ def write_pptx(org, v):
     views = ch.get("views") or [{"label": "", "values": ch["values"], "format": ch["format"], "target": ch.get("target")}]
     for vw in views:
         tgt = vw.get("target")
-        if ch.get("variance"):     # off budget either way red (judged on % of budget); within 1% amber (shown grey here)
+        if ch.get("variance"):     # over budget red, under green, within 1% amber (judged on % of budget)
             pcts = views[0]["values"]
-            bad = [abs(p_) >= 1 for p_ in pcts]
+            bad = [p_ >= 1 for p_ in pcts]
             warn = [0.05 <= abs(p_) < 1 for p_ in pcts]
             below = None
         else:

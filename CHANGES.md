@@ -150,3 +150,6 @@
 - Contact form: asks for job title. Phone isn't required, and the form doesn't call it optional. The first option reads "Standardised reporting, given on your schedule" (was "a report each month, on the 3rd business day").
 - Same wording where it was a delivery promise: the Export menu's "Get this report on your schedule →" and the request line it fills in on the contact page, and the Services "Monthly" card ("on the schedule we agree").
 - The Services heading now reads "Three questions you should be able to answer as soon as the month closes." No "3rd business day" is left on the site. ("Within one business day" in the form's thank-you is a reply time, so it stays.)
+
+## Budget colours (8 Oct)
+- Grant budget charts and the board's grants table: over budget red, under budget green (the standard green), within 1% amber, on budget neutral, judged on % of budget. Site, PDF, Excel and PowerPoint alike, with a three-way key ("Over budget · Under budget · Within 1%"). This replaces the 7 Oct rule that showed under budget red like over.

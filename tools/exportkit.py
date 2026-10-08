@@ -88,7 +88,7 @@ def hbar_svg(ch, width=640):
     any_below = any(below(v, i) for i, v in enumerate(values))
     be = ch.get("breakeven")               # break-even gross margin: a second, dotted red line labelled on its own row
     height = top + plot_h + (14 if be is not None else 0) + (36 if (any_below or marks) else 22 if target is not None else 8)
-    variance = ch.get("variance")          # over/under budget: around zero, over = red, under = grey
+    variance = ch.get("variance")          # over/under budget, around zero: over red, under green, within 1% amber
     mx = max(values + ([target] if target is not None else []) + ([be] if be is not None else []) + (marks or []) + [0]) * 1.08
     lo = min(values + [0]) * 1.08
     if variance:
@@ -103,8 +103,9 @@ def hbar_svg(ch, width=640):
         lab, v = labels[i], values[i]
         y = top + pos * row + (row - bh) / 2
         g.append(f'<text x="{left - 8}" y="{y + bh - 3}" text-anchor="end" font-size="11" fill="{MUTED}">{esc(lab)}</text>')
-        vp = abs((ch.get("variance_pct") or values)[i]) if variance else 0          # judged on % of budget
-        fill = (("#8A6D3B" if vp < 1 else NEG) if vp >= 0.05 else SOME) if variance else (NEG if v < 0 else SOME if below(v, i) else GOOD)
+        vs = (ch.get("variance_pct") or values)[i] if variance else 0          # judged on % of budget
+        vp = abs(vs)
+        fill = (("#8A6D3B" if vp < 1 else NEG if vs > 0 else GOOD) if vp >= 0.05 else SOME) if variance else (NEG if v < 0 else SOME if below(v, i) else GOOD)
         g.append(f'<rect x="{min(x(v), x0):.1f}" y="{y}" width="{abs(x(v) - x0):.1f}" height="{bh}" rx="2" fill="{fill}"/>')
         text = fmt_value(v, f)
         lx = max(x(v), x0) + 5
@@ -119,7 +120,8 @@ def hbar_svg(ch, width=640):
             lx = tx + 5
         note_ = (ch.get("notes") or [None] * len(values))[i]
         tail = f'<tspan fill="{NEG}" font-weight="600">  {esc(note_)}</tspan>' if note_ else ""
-        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{(NEG if vp >= 1 else INK) if variance else (NEG if v < 0 else INK)}">{esc(text)}{tail}</text>')
+        tcol = (NEG if vp >= 1 and vs > 0 else "#2F7A5D" if vp >= 1 else INK) if variance else (NEG if v < 0 else INK)
+        g.append(f'<text x="{lx:.1f}" y="{y + bh - 3}" font-size="10" fill="{tcol}">{esc(text)}{tail}</text>')
     if target is not None:
         g.append(f'<line x1="{tx:.1f}" x2="{tx:.1f}" y1="{top - 4}" y2="{top + plot_h + 2}" stroke="{INK}" stroke-width="1.2" stroke-dasharray="4 3"/>')
         g.append(f'<text x="{tx:.1f}" y="{top + plot_h + 15}" text-anchor="middle" font-size="10" font-weight="600" fill="{INK}">Target {fmt_value(target, f)}</text>')
@@ -131,8 +133,9 @@ def hbar_svg(ch, width=640):
     if variance:
         height += 14
         ky = height - 6
-        g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{NEG}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Over or under budget</text>'
-                 f'<rect x="{left + 150}" y="{ky - 9}" width="10" height="10" rx="2" fill="#8A6D3B"/><text x="{left + 165}" y="{ky}" font-size="10" fill="{MUTED}">Within 1%</text>')
+        g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{NEG}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Over budget</text>'
+                 f'<rect x="{left + 100}" y="{ky - 9}" width="10" height="10" rx="2" fill="{GOOD}"/><text x="{left + 115}" y="{ky}" font-size="10" fill="{MUTED}">Under budget</text>'
+                 f'<rect x="{left + 205}" y="{ky - 9}" width="10" height="10" rx="2" fill="#8A6D3B"/><text x="{left + 220}" y="{ky}" font-size="10" fill="{MUTED}">Within 1%</text>')
     elif any_below and not marks:
         g.append(f'<rect x="{left}" y="{ky - 9}" width="10" height="10" rx="2" fill="{SOME}"/><text x="{left + 15}" y="{ky}" font-size="10" fill="{MUTED}">Below target</text>')
     if marks:
@@ -717,7 +720,7 @@ def _xl_line_cells(wb, name, x):
 
 
 def xl_bar_chart(ws, anchor, title, cats_ref, vals_ref, n, number_format="General", series_name=None, target=None, fmt_target=None, below=None, bad=None,
-                 values=None, lines=None):
+                 values=None, lines=None, warn=None):
     """A native horizontal bar chart (brand green), one bar per category, values labelled; no gridline clutter.
     lines = [(label, x, colour, dash)] in the cells' own units (e.g. 0.35 for 35%): each is drawn as a vertical line
     across the bars, the standard Excel combo: an XY scatter series from (x, 0) to (x, 1) on hidden secondary axes,
@@ -741,7 +744,7 @@ def xl_bar_chart(ws, anchor, title, cats_ref, vals_ref, n, number_format="Genera
     s_.invertIfNegative = False
     from openpyxl.chart.marker import DataPoint
     for i in range(n):               # grey below target, red losing money / off budget: the same colours as the website
-        colour = XL_RED if (bad and bad[i]) else XL_GREY if (below and below[i]) else None
+        colour = XL_RED if (bad and bad[i]) else "8A6D3B" if (warn and warn[i]) else XL_GREY if (below and below[i]) else None
         if colour:
             pt = DataPoint(idx=i)
             pt.graphicalProperties.solidFill = colour

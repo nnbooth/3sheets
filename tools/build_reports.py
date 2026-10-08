@@ -281,7 +281,8 @@ def write_xlsx(r, out=OUT):
                                 "0.0%" if pc0 else '0"¢"' if v0["format"] == "cents_int" else "#,##0;(#,##0)", v0["label"],
                                 tgt, (f"{tgt:.1f}%" if pc0 else str(tgt)) if tgt is not None else None,
                                 below=None if ch.get("plain") else [tgt is not None and v < tgt for v in v0["values"]],
-                                bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [v < 0 for v in v0["values"]],
+                                bad=[x >= 1 for x in v0["values"]] if ch.get("variance") else [v < 0 for v in v0["values"]],
+                                warn=[0.05 <= abs(x) < 1 for x in v0["values"]] if ch.get("variance") else None,
                                 values=[v / 100 if pc0 else v for v in v0["values"]],          # the cells' own units
                                 lines=[(f"Target {tgt:.1f}%" if pc0 else f"Target {tgt}", (tgt / 100 if pc0 else tgt) if tgt is not None else None, "25342A", "dash"),
                                        (f"Break-even {be_:.1f}%" if (be_ := v0.get("breakeven", ch.get("breakeven"))) is not None else "", (be_ / 100) if be_ is not None and pc0 else None, "B42318", "sysDot")])
@@ -481,9 +482,9 @@ def pptx_bars(ch):
     vw = views[0]
     tgt, be = vw.get("target", ch.get("target")), vw.get("breakeven", ch.get("breakeven"))
     vals = vw["values"]
-    if ch.get("variance"):           # off budget either way red; within 1% amber (judged on % of budget)
+    if ch.get("variance"):           # over budget red, under green, within 1% amber (judged on % of budget)
         pcts = views[0]["values"]
-        bad, warn, below = [abs(x) >= 1 for x in pcts], [0.05 <= abs(x) < 1 for x in pcts], None
+        bad, warn, below = [x >= 1 for x in pcts], [0.05 <= abs(x) < 1 for x in pcts], None       # over red; under green (default); within 1% amber
     else:
         below = None if ch.get("plain") else [(tgt is not None and v < tgt) or bool(vw.get("below_marks") and vw.get("marks") and v < vw["marks"][k]) for k, v in enumerate(vals)]
         bad, warn = [v < 0 for v in vals], None

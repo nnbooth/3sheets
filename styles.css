@@ -487,6 +487,8 @@ body.dev-notes .devnote { display: flex; }
 .dash-svg .dash-bar--below { fill: var(--neutral-bar); }
 .dash-svg .dash-bar--bad { fill: var(--bad); }
 .dash-svg .dash-bar--warn { fill: var(--warn); }
+.dash-svg .dash-bar--good { fill: var(--good); }
+.dash-svg .dash-value--good { fill: var(--accent); }
 .dash-svg .dash-value { font-size: 12px; font-weight: 500; fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 2px; stroke-linejoin: round; font-variant-numeric: tabular-nums; animation: dash-fade 300ms 450ms ease-out both; }
 @keyframes dash-fade { from { opacity: 0; } }
 .dash-svg .dash-bar--h { transform-origin: left; animation-name: dash-grow; }

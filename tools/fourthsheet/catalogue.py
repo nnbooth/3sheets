@@ -939,9 +939,10 @@ def board(D, P):
                       {"type": "list", "title": "What the board should note", "items": notes},
                       dict(table("Grants", ["Program", "Spent to date", "Budget to date", "Against budget", "Still to spend", "Months left"], grants,
                                  ["text", "money", "money", "pct", "money", "int"],
-                                 note="Against budget: red when spending is more than 1% over or under budget to date, amber within 1%."),
+                                 note="Against budget: red when spending is more than 1% over budget to date, green more than 1% under, amber within 1%."),
                            tones=[["", "", "", ("" if abs(g["spent_to_date"] / g["budget_to_date"] - 1) < 0.0005 else
-                                                "warn" if abs(g["spent_to_date"] / g["budget_to_date"] - 1) < 0.01 else "bad"), "", ""]
+                                                "warn" if abs(g["spent_to_date"] / g["budget_to_date"] - 1) < 0.01 else
+                                                "bad" if g["spent_to_date"] > g["budget_to_date"] else "good"), "", ""]
                                   for g in sorted(live, key=lambda g: g["months_left"])]),
                       {"type": "list", "title": "Decisions to make", "items": decisions, "numbered": True}]}],
                   {"head": ["Program", "Spent to date", "Budget to date", "Against budget", "Still to spend", "Months left"],

@@ -810,7 +810,7 @@ def fourth_nfp(m, out):
                  {"label": f"Grants ending in {m['ending_within_months']} months", "value": money(sum(gr['unspent'] for gr in ending)),
                   "sub": f"to spend in {m['ending_within_months']} months · {len(ending)} grant{'s' if len(ending) != 1 else ''} ending", "cls": "bad" if ending else "", "good_when": "lower", "support": s_end}],
         "chart": {"title": "Each grant: over or under budget to 30 September 2026",
-                  "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over or under budget in red; within 1% in amber.",
+                  "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over budget in red, under budget in green; within 1% in amber.",
                   "labels": [gr["program"] for gr in G],
                   "values": pcts, "format": "pct_var", "what": "grant spend against budget", "variance": True,
                   "views": [{"id": "pct", "label": "% of budget", "values": pcts, "format": "pct_var"},

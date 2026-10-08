@@ -4773,7 +4773,7 @@ window.FOURTH_SHEET_DASHBOARD = {
     ],
     "chart": {
      "title": "Each grant: over or under budget to 30 September 2026",
-     "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over or under budget in red; within 1% in amber.",
+     "subtitle": "Spending to date against budget to date (the grant spread evenly over its months). Over budget in red, under budget in green; within 1% in amber.",
      "labels": [
       "Youth outreach",
       "Housing support",
@@ -5892,9 +5892,9 @@ window.FOURTH_SHEET_DASHBOARD = {
     "pdf_pages": 7,
     "pptx_slides": 16,
     "names": {
-     "xlsx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.xlsx",
-     "pdf": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0937.pdf",
-     "pptx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 0935.pptx"
+     "xlsx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 1034.xlsx",
+     "pdf": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 1034.pdf",
+     "pptx": "Sample Community Services Ltd - Monthly report pack - September 2026 - generated 2026-10-08 1034.pptx"
     }
    }
   }
