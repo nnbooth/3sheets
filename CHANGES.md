@@ -208,3 +208,5 @@
 - Time-of-day bars keep clock order (`keep_order`), on the site, in PDF and in PowerPoint.
 - The Excel writer links a bar to its working by the working's own kind (hours, counts), falling back to the value when there's nothing to link.
 - Checks: 164 workbooks with no formula errors; 67,186 data rows, 151 report runs and 14 Power BI prompts kept to one organisation each; the site check over 22 pages and 14 reports.
+
+- Headshot: `assets/people/headshot.jpg` (from Nathan's photo: square crop, 512 px, no metadata) on the home byline and the About page; the `[[PHOTO]]` placeholder is gone.
