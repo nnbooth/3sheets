@@ -92,7 +92,8 @@ the connection.
 
 ## The cloud database (`tools/database/`)
 
-Azure SQL with **no password anywhere**: Microsoft sign-in only, a per-machine firewall, TLS 1.2, least-privilege roles, and staged all-or-nothing
+Azure SQL with a SQL login whose **password is never in git**: it comes from `FOURTH_SHEET_SQL_PASSWORD` (your environment or the
+repo's git-ignored `.env`) or Azure Key Vault. A per-machine firewall, TLS 1.2, least-privilege roles, and staged all-or-nothing
 loads with a load log. See [tools/database/README.md](tools/database/README.md).
 
 - `azure_setup.py` creates and locks down the server and database.

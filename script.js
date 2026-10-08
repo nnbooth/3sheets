@@ -6,12 +6,13 @@
   - Report card builder ...................... renderReports() / buildReportCard()
   - Loading message + 8-second fallback ...... watchEmbedLoad()
   - Game (load on Play) ...................... setupGameSlot()
-  - Prices (switched off by default) ......... SHOW_PRICES / PRICES
+  - Prices ($110 an hour, $800 a day) ........ SHOW_PRICES / PRICES
+  - Analytics (off until a token is set) ..... ANALYTICS / track()
   - Home-page sample dashboard ............... setupHeroDash() (data: dashboard-data.js)
   - Home-page opening animation ............. setupIntro() / INTRO_HOLD_MS
   - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
 
-  No frameworks or build step: this file is loaded as-is by index.html.
+  No frameworks. Publishing (.github/workflows/pages.yml) stamps every ?v= with the commit; locally it's ?v=dev.
 */
 
 /* ---------------------------------------------------------------------------
@@ -325,7 +326,7 @@ function mountExportMenu(container, opts) {
   container.innerHTML = `<button type="button" class="xm-btn" aria-haspopup="true" aria-expanded="false" aria-controls="${id}">${ICON_DOWNLOAD}<span>Export</span>${ICON_CHEVRON}</button>`
     + `<div class="xm-menu" id="${id}" role="menu" aria-label="Export" hidden>`
     + `<p class="xm-head"></p>`
-    + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
+    + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" data-track="export" data-track-detail="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
     // (An "Include the workings" option would go here. Every export includes the workings for now.)
     + `<div class="xm-foot"><a class="xm-sub" role="menuitem" href="contact.html?topic=monthly">Get this report on your schedule &rarr;</a></div>`
     + `</div>`;
@@ -448,6 +449,7 @@ function setupContactForm() {
     e.preventDefault();
     if (phone) checkPhone();
     if (!form.reportValidity()) return;
+    track('contact-submit', (form.querySelector('input[name="topic"]:checked') || {}).value || '');
     const action = form.getAttribute('action') || '';
     if (!/^https?:\/\//.test(action)) {                    // still the [[FORM_ENDPOINT]] placeholder
       status.textContent = "Thanks. This form goes live with the business email, so nothing has been sent yet. Please try again soon.";
@@ -526,6 +528,36 @@ const PRICES = {
   bedding: '$110 an hour · $800 a day',
   monthly: '$110 an hour · $800 a day',
 };
+
+/* ---------------------------------------------------------------------------
+   ANALYTICS — switched OFF. One setting: while ANALYTICS.token is a [[TOKEN]], nothing loads and nothing is sent.
+   Cookieless analytics only (no cookies, so no consent banner). To switch on once a provider is chosen: set token,
+   set src to the provider's script, and fill in send(name, detail) with the provider's event call.
+   Events come from data-track attributes, so new buttons only need the attribute:
+     booking (every "Book a free 20-minute numbers check"), email (mailto links), export (each download, detail = the
+     format), contact-submit (the contact form, sent once it passes its checks, detail = the topic).
+--------------------------------------------------------------------------- */
+const ANALYTICS = {
+  token: '[[ANALYTICS_TOKEN]]',
+  src: '',                          // the provider's script, e.g. https://<provider>/script.js
+  send: null,                       // (name, detail) => { /* the provider's event call */ }
+};
+const analyticsOn = () => Boolean(ANALYTICS.token) && !/\[\[.*\]\]/.test(ANALYTICS.token);
+function track(name, detail) {
+  if (!analyticsOn() || typeof ANALYTICS.send !== 'function') return;
+  try { ANALYTICS.send(name, detail || ''); } catch (e) { /* analytics never breaks the page */ }
+}
+function setupAnalytics() {
+  if (analyticsOn() && ANALYTICS.src) {
+    const el = document.createElement('script');
+    el.defer = true; el.src = ANALYTICS.src; el.dataset.token = ANALYTICS.token;
+    document.head.appendChild(el);
+  }
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest && e.target.closest('[data-track]');
+    if (el && el.dataset.track !== 'contact-submit') track(el.dataset.track, el.dataset.trackDetail || el.getAttribute('href') || '');
+  });
+}
 
 function applyPrices() {
   if (!SHOW_PRICES) return;
@@ -1480,6 +1512,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   setupIntro();
+  setupAnalytics();
   setupGameSlot();
   applyPrices();
   setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox(); setupChartTips(); setupTitleBar();

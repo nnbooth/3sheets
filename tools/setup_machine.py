@@ -15,7 +15,7 @@ It checks, and fixes what it can:
   6. your set-up from the other machine: VS Code extensions and settings, Claude Code settings, memory notes
      and conversations (tools/machine_profile.py; save it on the machine you're leaving with: machine_profile.py export)
   7. Azure: signed in (opens the browser if not), this machine allowed through the database firewall,
-     and a test connection to the database (signed in as you: no password exists anywhere)
+     and a test connection to the database (SQL login; the password from FOURTH_SHEET_SQL_PASSWORD or Key Vault, never in git)
 Nothing secret is stored by this script: sign-in tokens are kept by Azure's own tools in your user profile.
 """
 
@@ -193,7 +193,7 @@ def azure_signin():
         conn = connect.connect()
         who, db, _ = connect.whoami(conn)
         conn.close()
-        print(OK + f"connected to {config.server_host(v)} / {db} as {who} (encrypted, no password)")
+        print(OK + f"connected to {config.server_host(v)} / {db} as {who} (encrypted; password from {config.PASSWORD_VAR} or Key Vault, not shown)")
     except SystemExit as e:
         print(WARN + str(e))
 

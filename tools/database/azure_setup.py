@@ -7,10 +7,12 @@ azure_setup.py — create and lock down the Azure SQL database. Every step check
                                                               and again if your internet address changes)
     python3 tools/database/azure_setup.py database            schemas, roles and the load log (security.sql)
     python3 tools/database/azure_setup.py status              security check of the server as it is now
+    python3 tools/database/azure_setup.py set-password        give the SQL login the current FOURTH_SHEET_SQL_PASSWORD (rotate it)
 
 What "locked down" means here:
-  - Microsoft (Entra ID) sign-in only. Password logins are switched off at the server, so there is no password
-    to steal, store or leak. You are the server's only admin.
+  - SQL sign-in with a login and password. The password is never in git or in OneDrive's settings file: it comes from
+    FOURTH_SHEET_SQL_PASSWORD (your environment, or the repo's git-ignored .env) or Azure Key Vault (AZURE_KEYVAULT),
+    and these tools never print it. Your Microsoft account can be the server's Entra admin too, for management.
   - Only machines you allow can reach it (one firewall rule per machine, at its own internet address). Nothing
     else in Azure is let in by default.
   - Encrypted connections only, TLS 1.2 or newer.
@@ -48,8 +50,9 @@ def az_path():
 
 def az(*args, check=True, quiet=False):
     cmd = [az_path(), *args, "-o", "json"]
-    if not quiet:
-        print("  $ az " + " ".join(args))
+    if not quiet:      # never echo a password: the value after --admin-password is masked
+        shown = ["********" if i and args[i - 1] == "--admin-password" else a for i, a in enumerate(args)]
+        print("  $ az " + " ".join(shown))
     p = subprocess.run(cmd, capture_output=True, text=True)
     if p.returncode != 0:
         if check:
@@ -115,14 +118,17 @@ def create():
     tags = ["--tags", "project=thefourthsheet", "owner=" + v["SQL_ADMIN_UPN"]]
     if not az("group", "show", "-n", rg, check=False, quiet=True):
         az("group", "create", "-n", rg, "-l", loc, *tags)
+    pw = config.sql_password()                # from the environment, the git-ignored .env or Key Vault; never printed
     if not az("sql", "server", "show", "-g", rg, "-n", srv, check=False, quiet=True):
         az("sql", "server", "create", "-g", rg, "-n", srv, "-l", loc,
-           "--enable-ad-only-auth", "--external-admin-principal-type", "User",
-           "--external-admin-name", v["SQL_ADMIN_UPN"], "--external-admin-sid", v["SQL_ADMIN_OBJECT_ID"],
+           "--admin-user", v["SQL_LOGIN"], "--admin-password", pw,
            "--minimal-tls-version", "1.2", "--enable-public-network", "true")
     else:
-        az("sql", "server", "ad-only-auth", "enable", "-g", rg, "-n", srv)
+        az("sql", "server", "ad-only-auth", "disable", "-g", rg, "-n", srv, check=False)     # SQL logins allowed
         az("sql", "server", "update", "-g", rg, "-n", srv, "--minimal-tls-version", "1.2")
+    if not v["SQL_ADMIN_OBJECT_ID"].startswith("[["):                                       # you as Entra admin too, for management
+        az("sql", "server", "ad-admin", "create", "-g", rg, "-s", srv, "--display-name", v["SQL_ADMIN_UPN"],
+           "--object-id", v["SQL_ADMIN_OBJECT_ID"], check=False)
     # nothing in Azure is let in by default (the "Allow Azure services" rule is 0.0.0.0)
     if az("sql", "server", "firewall-rule", "show", "-g", rg, "-s", srv, "-n", "AllowAllWindowsAzureIps", check=False, quiet=True):
         az("sql", "server", "firewall-rule", "delete", "-g", rg, "-s", srv, "-n", "AllowAllWindowsAzureIps")
@@ -163,6 +169,14 @@ def database():
     conn.close()
 
 
+def set_password():
+    """Give the SQL login the password in FOURTH_SHEET_SQL_PASSWORD (or Key Vault): how to rotate it."""
+    v = config.need("AZURE_RESOURCE_GROUP", "SQL_SERVER")
+    signed_in()
+    az("sql", "server", "update", "-g", v["AZURE_RESOURCE_GROUP"], "-n", v["SQL_SERVER"], "--admin-password", config.sql_password())
+    print(f"The SQL login {v['SQL_LOGIN']} now has the password from {config.PASSWORD_VAR} (not shown).")
+
+
 def status():
     v = config.need("AZURE_RESOURCE_GROUP", "SQL_SERVER")
     signed_in()
@@ -171,7 +185,8 @@ def status():
     ad_only = az("sql", "server", "ad-only-auth", "get", "-g", rg, "-n", srv, quiet=True)
     rules = az("sql", "server", "firewall-rule", "list", "-g", rg, "-s", srv, quiet=True)
     checks = [
-        ("Microsoft sign-in only (password logins off)", bool(ad_only and ad_only.get("azureAdOnlyAuthentication"))),
+        (f"SQL sign-in on, login {s.get('administratorLogin')} (password from the environment or Key Vault, never in git)",
+         not (ad_only and ad_only.get("azureAdOnlyAuthentication")) and bool(s.get("administratorLogin"))),
         ("TLS 1.2 or newer only", s.get("minimalTlsVersion") in ("1.2", "1.3")),
         ("Azure-wide access rule removed (0.0.0.0)", not any(r["startIpAddress"] == "0.0.0.0" for r in rules)),
         ("No wide-open address ranges", all(r["startIpAddress"] == r["endIpAddress"] for r in rules)),
@@ -186,5 +201,6 @@ def status():
 
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "plan"
-    {"plan": plan, "create": create, "allow-this-machine": allow_this_machine, "database": database, "status": status}.get(
-        cmd, lambda: sys.exit(f"Unknown command {cmd!r}. Use: plan, create, allow-this-machine, database, status"))()
+    {"plan": plan, "create": create, "allow-this-machine": allow_this_machine, "database": database, "status": status,
+     "set-password": set_password}.get(
+        cmd, lambda: sys.exit(f"Unknown command {cmd!r}. Use: plan, create, allow-this-machine, database, status, set-password"))()

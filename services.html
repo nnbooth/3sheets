@@ -35,9 +35,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
-    <!-- ?v= is a version number: change it whenever styles.css or script.js
-         changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-12-09" />
+    <!-- ?v= is the version: "dev" here; publishing (.github/workflows/pages.yml) stamps every one with the commit,
+         so browsers fetch new files after each publish. Nothing to change by hand. -->
+    <link rel="stylesheet" href="styles.css?v=dev" />
   </head>
 
   <!--
@@ -65,7 +65,7 @@
           <a href="services.html" aria-current="page">Services</a>
           <a href="about.html">About</a>
           <a href="contact.html">Contact</a>
-          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
         </nav>
       </div>
     </header>
@@ -124,7 +124,7 @@
             <p>That's fine. I'll work with you to set up the processes and frameworks to capture it: simple templates, forms and routines your team can keep up. Then the reporting is built on top.</p>
           </div>
 
-          <div class="offer-cta"><a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a></div>
+          <div class="offer-cta"><a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a></div>
         </div>
       </section>
 
@@ -306,13 +306,13 @@
                  (removing data-placeholder and hidden) and change "Prefer email?" back to "Prefer email or LinkedIn?". -->
             <p class="contact-secondary">
               Prefer email?
-              <a href="mailto:nathan@thefourthsheet.com.au">nathan@thefourthsheet.com.au</a>
+              <a href="mailto:nathan@thefourthsheet.com.au" data-track="email">nathan@thefourthsheet.com.au</a>
               <span class="tbc" data-placeholder="[[LINKEDIN_URL]]" hidden>LinkedIn TBC</span>
             </p>
             <p class="contact-form-link"><a href="contact.html">Or send me your details &rarr;</a></p>
           </div>
           <!-- [[BOOKING_URL]]: replace href="#contact" with your booking link. -->
-          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
         </div>
       </section>
 
@@ -330,6 +330,6 @@
       </div>
     </footer>
 
-    <script src="script.js?v=2026-12-09"></script>
+    <script src="script.js?v=dev"></script>
   </body>
 </html>
