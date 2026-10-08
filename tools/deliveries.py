@@ -562,7 +562,7 @@ def html_report(d):
 <div><span>Late</span><b>{k['late']}</b></div><div><span>Overdue now</span><b>{k['overdue']}</b></div><div><span>In full</span><b>{k['in_full_pct']:.1f}%</b></div></div>
 <div class=row><div id=map-{s} class=map></div><div class=side><h3>Where it's going wrong</h3><ul>{hot}</ul>
 <p class=legend><i style="background:#0E9F6E"></i>95%+ on time <i style="background:#8a6d3b"></i>80–95% <i style="background:#8f4a3e"></i>under 80% or overdue</p>
-<p class=note>Dot size = number of deliveries. Every delivery is in the Excel download.</p></div></div></section>"""
+<p class=note>Dot size = number of deliveries. Every delivery is in the spreadsheet download.</p></div></div></section>"""
 
     return f"""<!doctype html><html><head><meta charset=utf-8>
 <link rel=stylesheet href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">

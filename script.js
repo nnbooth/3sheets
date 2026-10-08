@@ -309,9 +309,9 @@ function watchEmbedLoad(container) {
    No exports for a period (exports null) shows the rows disabled: "Not available for a part month".
 --------------------------------------------------------------------------- */
 const EXPORT_FORMATS = [
-  { fmt: 'xlsx', badge: 'XLSX', name: 'Excel workbook', what: 'Every figure as a live formula, the data behind it, and charts. Opens in Excel or Google Sheets.' },
+  { fmt: 'xlsx', badge: 'XLSX', name: 'Spreadsheet', what: 'Every figure as a live formula, the data behind it, and charts. Opens in Excel, Google Sheets or Numbers.' },
   { fmt: 'pdf', badge: 'PDF', name: 'PDF report', what: 'Print-ready A4, the same pages as this screen. For the board pack or your accountant.' },
-  { fmt: 'pptx', badge: 'PPTX', name: 'PowerPoint deck', what: 'Editable charts, one slide per finding. For the monthly meeting.' },
+  { fmt: 'pptx', badge: 'PPTX', name: 'Slides', what: 'Editable charts, one slide per finding. For the monthly meeting. Opens in PowerPoint, Google Slides or Keynote.' },
 ];
 const ICON_DOWNLOAD = '<svg class="xm-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICON_CHEVRON = '<svg class="xm-chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -618,7 +618,7 @@ function renderStatement(o, st) {
   const sts = window.FOURTH_SHEET_DASHBOARD.status.slice(0, 2).map((m) => `${m.label}: ${m.status.toLowerCase()}`).join(' · ');
   return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)}</p><p class="dash-status-line">${esc(sts)}</p>
     <div class="st-scroll"><table class="st-table"><thead><tr><th scope="col">$</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}<th scope="col" class="n st-change">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <p class="dash-phone-note">Headline lines shown. Every line is on a larger screen, and in the Excel and PDF downloads.</p>`;
+    <p class="dash-phone-note">Headline lines shown. Every line is on a larger screen, and in the spreadsheet and PDF downloads.</p>`;
 }
 
 function renderChart(ch, width = 320) {
@@ -715,7 +715,7 @@ function openSupport(sp) {
     + `<table class="support-table${twoCol ? ' support-table--two' : ''}">${head}<tbody>${twoCol ? rows.replace(/<td class="n"><\/td>/g, '') : rows}</tbody></table>`
     + (sp.note ? `<p class="assumptions-intro">${esc(sp.note)}</p>` : '')
     + (sp.series ? renderSeries(sp.series, chartWidth(document.getElementById('support-body'), 40)) : '')
-    + `<p class="support-foot">Sample data. Every figure is in the Excel download.${document.getElementById('assumptions-dialog') ? ' <button type="button" class="link-btn" data-open-assumptions>See all assumptions</button>' : ''}</p>`;
+    + `<p class="support-foot">Sample data. Every figure is in the spreadsheet download.${document.getElementById('assumptions-dialog') ? ' <button type="button" class="link-btn" data-open-assumptions>See all assumptions</button>' : ''}</p>`;
   const dlg = document.getElementById('support-dialog');
   if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
 }
@@ -807,7 +807,7 @@ function setupDeliveries() {
     L.marker([D.dc.lat, D.dc.lon], { icon: L.divIcon({ className: '', html: '<span class="deliv-dc">DC</span>', iconSize: null }) }).bindPopup(esc(D.dc.name)).addTo(map);
     layer = L.layerGroup().addTo(map);
   } else {
-    document.getElementById('deliv-map').innerHTML = '<p style="padding:1rem">The map could not load. The Excel and PDF downloads have every delivery.</p>';
+    document.getElementById('deliv-map').innerHTML = '<p style="padding:1rem">The map could not load. The spreadsheet and PDF downloads have every delivery.</p>';
   }
   const exportBox = document.getElementById('deliv-export');
   const menu = exportBox ? mountExportMenu(exportBox, { period: D.periods[0].long, exports: D.exports, meta: D.exports_meta }) : null;
@@ -1312,8 +1312,10 @@ function setupIntro() {
   };
   const onKey = (e) => { if (e.key === 'Escape') leave(true); };
   const timer = setTimeout(() => leave(false), INTRO_HOLD_MS);
+  const closeBtn = intro.querySelector('.intro-close');
+  if (closeBtn) closeBtn.focus({ preventScroll: true });   // keyboard users land on ×
   intro.querySelector('.intro-skip').addEventListener('click', () => leave(true));
-  intro.addEventListener('click', (e) => { if (!e.target.closest('.intro-skip')) leave(true); });
+  intro.addEventListener('click', (e) => { if (!e.target.closest('.intro-stage')) leave(true); });   // a click on the dimmed page closes it; clicks in the panel don't
   document.addEventListener('keydown', onKey);
 }
 

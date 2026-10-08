@@ -131,7 +131,7 @@ def pdf_detail_rows(org, v):
         calls = [r for r in sep if r[2] == "Call-out"]
         sep = [r for r in sep if r[2] != "Call-out"]
         tot = lambda i: sum(r[i] for r in calls)
-        sep.append(["2026-09", f"{len(calls)} call-outs (each one is in the Excel)", "Call-out", "", "",
+        sep.append(["2026-09", f"{len(calls)} call-outs (each one is in the spreadsheet)", "Call-out", "", "",
                     tot(5), tot(6), tot(7), tot(8), tot(9), tot(10), round(100 * tot(10) / tot(5), 1)])
         keep = [1, 2, 5, 6, 7, 9, 10, 11]
     else:

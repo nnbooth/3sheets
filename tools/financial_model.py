@@ -830,7 +830,7 @@ def trades_assumptions(m, out):
         ["Jobs (September)", [["Maintenance contracts", f"{len(m['contracts'])} customers, invoiced on the 1st, paid in about {m['contract_pay_days']} days"],
                               ["Installations", f"{len(m['installs']['2026-09'])} named jobs, each with its own quote, materials, subcontractors and hours"],
                               ["Call-outs", f"{m['callouts']['2026-09']} jobs at ${m['callout_rate']}/hour plus materials marked up {round((m['materials_markup'] - 1) * 100)}%"],
-                              ["Jobs in September", f"{len(sep)} in total (every one is in the Excel download and CSV)"]]],
+                              ["Jobs in September", f"{len(sep)} in total (every one is in the spreadsheet download and CSV)"]]],
         ["Costs", [["Technicians", f"{m['technicians']} on salary: ${m['tech_wages']['2026-09']:,} a month incl. on-costs"],
                    ["Job costing rate", f"${m['tech_cost_rate']}/hour for technician time charged to a job"],
                    ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
@@ -850,7 +850,7 @@ def services_assumptions(m, out):
                           ["Financial year", "FY2027: 1 July 2026 to 30 June 2027"]]],
         ["Engagements (September)", [["Projects", "hours worked at each project's rate; billed on milestones (unbilled time = work in progress)"],
                                      ["Retainers", "fixed monthly fee, billed monthly"], ["Training", "fixed fee, billed on delivery"],
-                                     ["Engagements in September", f"{len(m['activity']['2026-09'])} (every one is in the Excel download and CSV)"]]],
+                                     ["Engagements in September", f"{len(m['activity']['2026-09'])} (every one is in the spreadsheet download and CSV)"]]],
         ["Costs", [["Consultants", f"{m['consultants']} on salary: ${m['salaries']['2026-09']:,} a month incl. on-costs"],
                    ["Engagement costing rate", f"${m['cost_rate']}/hour for consultant time"],
                    ["Working days", "20 in August (Ekka show holiday), 22 in September; 7.6 hours a day"],
@@ -993,7 +993,7 @@ def examples_trades(m, out, f4):
         calc("Cash left before collections", "money", "r0-r2-r3"),
         *[inp(f"Unpaid invoices: {b[0].lower()}", "money", [a_]) for b, a_ in zip(buckets, aged)],
         calc("Unpaid invoices, total", "money", "r5+r6+r7")],
-        "Customers pay on their own dates; every unpaid invoice is in the jobs list in the Excel download.", cols=("30 Sep 2026",))
+        "Customers pay on their own dates; every unpaid invoice is in the jobs list in the spreadsheet download.", cols=("30 Sep 2026",))
     x3 = sp3["xl"]["rows"]
     over30 = aged[1] + aged[2]
     top3 = sorted(unpaid, key=lambda j: -j["amount"])[:3]

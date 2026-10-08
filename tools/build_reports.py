@@ -136,11 +136,11 @@ def write_pages(reports):
           <div class="report-period"><label for="report-period">Period</label>
             <select id="report-period">{''.join(f'<option value="{o["value"]}"{" selected" if o["value"] == r["period"] else ""}>{o["label"]}{" (incomplete)" if o["status"] == "Incomplete" else ""}</option>' for o in r["periods"])}</select>
             <span class="report-period-note" id="report-period-note"></span></div>
-          <div class="report-export" id="report-export"><noscript><a href="{dl}.xlsx" download>Excel</a> · <a href="{dl}.pdf" download>PDF</a> · <a href="{dl}.pptx" download>PowerPoint</a></noscript></div>
+          <div class="report-export" id="report-export"><noscript><a href="{dl}.xlsx" download>Spreadsheet</a> · <a href="{dl}.pdf" download>PDF</a> · <a href="{dl}.pptx" download>Slides</a></noscript></div>
           </div>
           <p class="report-meta" id="report-meta"><span class="dash-sample">Sample data</span> {r['business']}</p>
           <div id="report-root"><noscript><p>Turn on JavaScript to see this report, or download it:
-            <a href="{dl}.pdf">PDF</a> · <a href="{dl}.xlsx">Excel</a> · <a href="{dl}.pptx">PowerPoint</a>.</p></noscript></div>
+            <a href="{dl}.pdf">PDF</a> · <a href="{dl}.xlsx">spreadsheet</a> · <a href="{dl}.pptx">slides</a>.</p></noscript></div>
           <p class="report-back-line"><a class="report-back" href="{page}#reports">&larr; Back to {label}</a></p>
         </div>
 {dialog}      </section>
@@ -432,7 +432,7 @@ def html_report(r):
                     f = {"money0": "money0", "pct1": "pct1", "cents_int": "cents_int", "int": "int"}.get(vw["format"], "money0")
                     parts.append(f"<div class=chart><p class=viewlabel>{esc(line if line != 'All' else 'All')} · {esc(mlab)}</p>" + ek.area_svg(sec["labels"][s0:], vw["values"][s0:], sec["status"][s0:], f) + "</div>")
                 if sec.get("note"):
-                    parts.append(f"<p class=note>{esc(sec['note'].replace(' Tap a month for its workings.', ''))} Every month, by line, is in the Excel download.</p>")
+                    parts.append(f"<p class=note>{esc(sec['note'].replace(' Tap a month for its workings.', ''))} Every month, by line, is in the spreadsheet download.</p>")
             elif t == "table":
                 small = " class=small" if len(sec["rows"]) <= 15 else ""
                 parts.append(f"<h3>{esc(sec['title'])}</h3><table{small}><thead><tr>" + "".join(f"<th{' class=n' if i else ''}>{esc(h)}</th>" for i, h in enumerate(sec["head"])) + "</tr></thead><tbody>"

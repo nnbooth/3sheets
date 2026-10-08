@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-12-01" />
+    <link rel="stylesheet" href="styles.css?v=2026-12-05" />
   </head>
 
   <!--
@@ -56,7 +56,8 @@
          (search "INTRO"); styles in styles.css (search "INTRO"). Never shown with
          reduced motion, ?intro=off, or for automated tests; ?intro=on forces it. -->
     <div class="intro" id="intro" hidden>
-      <div class="intro-stage">
+      <div class="intro-stage" role="dialog" aria-modal="true" aria-label="What the fourth sheet is: a short introduction">
+        <button type="button" class="intro-close intro-skip" aria-label="Close the introduction">&times;</button>
         <svg class="intro-art" viewBox="0 0 104 120" width="104" height="120" aria-hidden="true" focusable="false">
           <g class="intro-sheet intro-s1">
             <rect x="2" y="2" width="56" height="74" rx="4" fill="#2f7a5d" stroke="#eaf6ee" stroke-width="1.5" stroke-opacity="0.55"/>
@@ -91,7 +92,6 @@
           <p class="intro-cap intro-c4"><strong>The Fourth Sheet:</strong> <strong class="intro-accent">Analysis.</strong> What it all means and what to do next.</p>
         </div>
       </div>
-      <button type="button" class="button secondary intro-skip">Skip intro</button>
     </div>
     <a class="skip-link" href="#main">Skip to content</a>
 
@@ -123,10 +123,11 @@
             <p class="eyebrow">For SMEs and not-for-profits · Brisbane</p>
             <div class="hero-headline">
               <h1>Your accountant gives you three sheets. <span class="h1-accent">I give you the fourth.</span></h1>
-              <div class="hero-sheets" aria-hidden="true"><img src="assets/brand/sheets-illustration.svg?v=2026-12-01" alt="" aria-hidden="true" width="104" height="120" /></div>
+              <div class="hero-sheets" aria-hidden="true"><img src="assets/brand/sheets-illustration.svg?v=2026-12-05" alt="" aria-hidden="true" width="104" height="120" /></div>
             </div>
             <!-- What the sheets are, in plain words (user testing: people didn't know what "three sheets" meant) -->
-            <p class="hero-define"><strong>The three:</strong> profit and loss, balance sheet and cash flow, the reports your accountant prepares. <strong>The fourth:</strong> the numbers underneath them, the customers, jobs, people and programs that make them what they are.</p>
+            <p class="hero-define"><strong>The three:</strong> <span>profit and loss, balance sheet and cash flow, the reports your accountant prepares.</span><br>
+              <strong>The fourth:</strong> <span>the numbers underneath them, the customers, jobs, people and programs that make them what they are.</span></p>
             <p class="hero-copy">Set up from the data you already have, without the full-time hire.</p>
             <div class="hero-actions">
               <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
@@ -137,6 +138,12 @@
               <img class="headshot headshot--sm" src="assets/people/headshot.jpg" alt="Nathan Booth" width="36" height="36" />
               <span><strong>Nathan Booth</strong> · 20 years in corporate reporting · Brisbane</span>
             </p>
+            <!-- What you get, in three lines (fills the space beside the sample dashboard) -->
+            <ul class="hero-points">
+              <li>Daily figures, not just month-end</li>
+              <li>Every number shows how it's worked out</li>
+              <li>Spreadsheets, PDFs and slides, in the tools you already use</li>
+            </ul>
           </div>
 
           <!-- HERO DASHBOARD: three invented sample organisations, built by a
@@ -159,7 +166,7 @@
             </div>
             <figcaption class="dash-caption">
               <span class="dash-sample">Sample data</span>
-              <div class="dash-export" id="dash-export"><noscript><a href="media/exports/trades-sample-statements.xlsx" download>Excel</a> · <a href="media/exports/trades-sample-statements.pdf" download>PDF</a> · <a href="media/exports/trades-sample-statements.pptx" download>PowerPoint</a></noscript></div>
+              <div class="dash-export" id="dash-export"><noscript><a href="media/exports/trades-sample-statements.xlsx" download>Spreadsheet</a> · <a href="media/exports/trades-sample-statements.pdf" download>PDF</a> · <a href="media/exports/trades-sample-statements.pptx" download>Slides</a></noscript></div>
             </figcaption>
             <p class="made-with dash-made-with">Made with HTML, CSS and JavaScript, coded by hand · numbers prepared in Python</p>
           </figure>
@@ -306,7 +313,7 @@
       </div>
     </footer>
 
-    <script src="data/dashboard-data.js?v=2026-12-01"></script>
-    <script src="script.js?v=2026-12-01"></script>
+    <script src="data/dashboard-data.js?v=2026-12-05"></script>
+    <script src="script.js?v=2026-12-05"></script>
   </body>
 </html>
