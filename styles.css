@@ -464,6 +464,10 @@ body.dev-notes .devnote { display: flex; }
 .hero-headline { display: flex; align-items: center; gap: var(--sp-5); }
 .hero-headline h1 { flex: 1; min-width: 0; }
 .hero-sheets { flex: none; background: var(--accent); border-radius: var(--r-md); padding: var(--sp-4) var(--sp-4); line-height: 0; }
+button.hero-sheets { border: 0; font: inherit; color: inherit; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+button.hero-sheets:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+button.hero-sheets:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { button.hero-sheets { transition: none; } button.hero-sheets:hover { transform: none; } }
 .hero-sheets img { display: block; width: 104px; height: auto; }
 .h1-accent { color: var(--accent); }
 .hero-byline { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-1) 0 0; color: var(--muted); font-size: var(--fs-sm); }

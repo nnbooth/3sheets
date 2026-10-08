@@ -1354,12 +1354,21 @@ function setupHeroDash() {
    INTRO — the opening animation on the home page (markup: index.html, styles: styles.css, search "INTRO").
    Plays once per visit, then the picture shrinks into the small illustration beside the headline.
    Skipped for reduced motion, automated tests, a link to a section (#…) or ?intro=off; ?intro=on forces it.
+   Clicking the sheets beside the headline (.hero-sheets) plays it again, on request, whatever the settings.
 --------------------------------------------------------------------------- */
 const INTRO_HOLD_MS = 9000;   // when the picture starts to shrink away (the CSS timings finish at about 7.6s)
 
 function setupIntro() {
   const intro = document.getElementById('intro');
   if (!intro) return;
+  const fresh = intro.cloneNode(true);   // an untouched copy, so the sheets beside the headline can play it again
+  const sheets = document.querySelector('.hero-sheets');
+  if (sheets) sheets.addEventListener('click', () => {
+    if (document.getElementById('intro')) return;          // already playing
+    const again = fresh.cloneNode(true);
+    document.body.prepend(again);
+    playIntro(again, sheets);
+  });
   const param = new URLSearchParams(location.search).get('intro');
   let seen = false;
   try { seen = sessionStorage.getItem('introSeen') === '1'; } catch (e) { /* storage blocked: play it */ }
@@ -1367,14 +1376,20 @@ function setupIntro() {
     || window.matchMedia('(prefers-reduced-motion: reduce)').matches));
   if (skip) { intro.remove(); return; }
   try { sessionStorage.setItem('introSeen', '1'); } catch (e) { /* fine */ }
+  playIntro(intro, null);
+}
 
+function playIntro(intro, returnFocus) {   // returnFocus: where keyboard focus goes after (the sheets button on a replay)
   const art = intro.querySelector('.intro-art');
   const target = document.querySelector('.hero-sheets img');
   intro.hidden = false;
   document.body.classList.add('intro-active');
 
   let leaving = false;
-  const finish = () => { intro.remove(); document.body.classList.remove('intro-active'); document.removeEventListener('keydown', onKey); };
+  const finish = () => {
+    intro.remove(); document.body.classList.remove('intro-active'); document.removeEventListener('keydown', onKey);
+    if (returnFocus) returnFocus.focus({ preventScroll: true });
+  };
   const leave = (skipped) => {
     if (leaving) return;
     leaving = true;

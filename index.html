@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-12-07" />
+    <link rel="stylesheet" href="styles.css?v=2026-12-08" />
   </head>
 
   <!--
@@ -54,7 +54,8 @@
     <!-- INTRO: plays once per visit on opening the home page, then the sheets shrink
          into the small illustration beside the headline. Shown and run by script.js
          (search "INTRO"); styles in styles.css (search "INTRO"). Never shown with
-         reduced motion, ?intro=off, or for automated tests; ?intro=on forces it. -->
+         reduced motion, ?intro=off, or for automated tests; ?intro=on forces it.
+         Clicking the sheets beside the headline plays it again. -->
     <div class="intro" id="intro" hidden>
       <div class="intro-stage" role="dialog" aria-modal="true" aria-label="What the fourth sheet is: a short introduction">
         <button type="button" class="intro-close intro-skip" aria-label="Close the introduction">&times;</button>
@@ -123,7 +124,7 @@
             <p class="eyebrow">For SMEs and not-for-profits · Brisbane</p>
             <div class="hero-headline">
               <h1>Your accountant gives you three sheets. <span class="h1-accent">I give you the fourth.</span></h1>
-              <div class="hero-sheets" aria-hidden="true"><img src="assets/brand/sheets-illustration.svg?v=2026-12-07" alt="" aria-hidden="true" width="104" height="120" /></div>
+              <button type="button" class="hero-sheets" aria-label="Play the introduction again" title="Play the introduction again"><img src="assets/brand/sheets-illustration.svg?v=2026-12-08" alt="" aria-hidden="true" width="104" height="120" /></button>
             </div>
             <!-- What the sheets are, in plain words (user testing: people didn't know what "three sheets" meant) -->
             <p class="hero-define"><strong>The three:</strong> <span>profit and loss, balance sheet and cash flow, the reports your accountant prepares.</span><br>
@@ -314,8 +315,8 @@
       </div>
     </footer>
 
-    <script src="data/dashboard-data.js?v=2026-12-07"></script>
-    <script src="data/dashboard-months.js?v=2026-12-07"></script>
-    <script src="script.js?v=2026-12-07"></script>
+    <script src="data/dashboard-data.js?v=2026-12-08"></script>
+    <script src="data/dashboard-months.js?v=2026-12-08"></script>
+    <script src="script.js?v=2026-12-08"></script>
   </body>
 </html>
