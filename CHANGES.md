@@ -89,7 +89,7 @@
 ### Phase 6: downloads (Excel, PowerPoint, PDF)
 - **Font:** Roboto is set explicitly on every Excel cell (headings included), every PowerPoint run and chart, and the PDFs. Arial is the fallback where Roboto isn't installed.
 - **Excel:**
-  - **Charts:** native bar charts beside each report's charted table and each job, engagement or grant list (green, grey below target, red losing money or off budget; the target is in the title, as Excel can't draw a vertical target across horizontal bars), and a native line chart beside each monthly or daily Data sheet.
+  - **Charts:** native bar charts beside each report's charted table and each job, engagement or grant list (green, grey below target, red losing money or off budget), with the target and break-even drawn as vertical lines: the standard Excel combo, an XY scatter series from (x, 0) to (x, 1) on hidden secondary axes scaled like the bars, labelled at the top (points on a hidden "Chart lines" sheet). Checked in Excel itself. LibreOffice rotates the whole diagram for horizontal bars, so it shows these lines across the top; Excel is right, and a native line chart beside each monthly or daily Data sheet.
   - **Tables and names:** Excel Tables on the Data sheets and the job, engagement and grant lists, and named ranges for every headline number.
   - **Changes:** changes in rates are in points (`+0.0" pts"`). Changes are coloured by direction (good when it moved the right way, e.g. cost to win falling is green), not by sign; each headline number carries `good_when`.
   - **Layout:** the Report sheet reads headline numbers, then the chart, then tables, then notes.
@@ -141,7 +141,6 @@
 - Every local `href` resolves and every download exists (site_check). No line with `data-placeholder`, `.devnote` or `dev-notes` was removed or changed in any commit (checked with git diff each phase).
 
 ### Couldn't do, or needs you
-- **Excel targets:** Excel can't draw a vertical target line across horizontal bars natively, so the target is in the chart title (the web, PDF and PowerPoint draw the line).
 - **Drafts to confirm:** the Services "How long" lines and the first-30-days steps (italic, with a TO DO note), and the About career moments (`[[CAREER_1]]`–`[[CAREER_3]]`).
 - **PowerPoint extra views:** decks show the first view of each chart (gross margin %). The $ view is in Excel and the PDF.
 - **Growth card:** shows trades and services as two separate groups on one card (never combined or ranked). If you'd rather the card show one business only, say which.

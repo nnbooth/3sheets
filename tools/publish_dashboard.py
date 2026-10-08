@@ -491,7 +491,9 @@ def write_xlsx(org, v):
     ek.xl_bar_chart(ws4, f"F{chart_hr - 1}", ch["title"], (ws4, 1, chart_hr + 1, 1, r), (ws4, 2, chart_hr + 1, 2, r), len(ch["labels"]),
                     "0.0%" if pc0 else "#,##0;(#,##0)", v0["label"], ch.get("target"), f"{ch['target']:.1f}%" if ch.get("target") is not None else None,
                     below=None if ch.get("plain") or ch.get("target") is None else [x < ch["target"] for x in v0["values"]],
-                    bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [x < 0 for x in v0["values"]])
+                    bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [x < 0 for x in v0["values"]],
+                    values=[x / 100 if pc0 else x for x in v0["values"]],
+                    lines=[(f"Target {ch['target']:.1f}%", ch["target"] / 100 if pc0 else ch["target"], "25342A", "dash")] if ch.get("target") is not None else None)
     if ch.get("target") is not None:
         r += 1
         ws4.cell(r, 1, "Target").font = Font(italic=True, color=MUTED)
@@ -540,6 +542,8 @@ def write_xlsx(org, v):
     wb.move_sheet("Workings", offset=len(wb.sheetnames) - 2 - wb.sheetnames.index("Workings"))
     review = []
     for ws_ in wb.worksheets:
+        if ws_.title not in pages:
+            continue                  # the hidden 'Chart lines' sheet (points for target lines)
         hr, starts, last = pages[ws_.title]
         ek.xl_print(ws_, name, filename, retrieved, landscape=True, header_row=hr)
         review.append(ek.xl_review(ws_, ek.xl_breaks(ws_, starts, last, hr), hr))

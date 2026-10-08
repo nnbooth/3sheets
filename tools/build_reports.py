@@ -281,7 +281,10 @@ def write_xlsx(r, out=OUT):
                                 "0.0%" if pc0 else '0"¢"' if v0["format"] == "cents_int" else "#,##0;(#,##0)", v0["label"],
                                 tgt, (f"{tgt:.1f}%" if pc0 else str(tgt)) if tgt is not None else None,
                                 below=None if ch.get("plain") else [tgt is not None and v < tgt for v in v0["values"]],
-                                bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [v < 0 for v in v0["values"]])
+                                bad=[abs(x) >= 1 for x in v0["values"]] if ch.get("variance") else [v < 0 for v in v0["values"]],
+                                values=[v / 100 if pc0 else v for v in v0["values"]],          # the cells' own units
+                                lines=[(f"Target {tgt:.1f}%" if pc0 else f"Target {tgt}", (tgt / 100 if pc0 else tgt) if tgt is not None else None, "25342A", "dash"),
+                                       (f"Break-even {be_:.1f}%" if (be_ := v0.get("breakeven", ch.get("breakeven"))) is not None else "", (be_ / 100) if be_ is not None and pc0 else None, "B42318", "sysDot")])
                 rr = max(rr, bars_hr + int(max(5.5, 0.75 * len(ch["labels"]) + 2) / 0.53) + 1)     # the next chart starts below this one
                 rr += 2
             elif t in ("text", "list", "definition", "insight"):
@@ -383,6 +386,8 @@ def write_xlsx(r, out=OUT):
         pages[name] = (hr, grp_starts, last_r)
     review = []
     for w in wb.worksheets:
+        if w.title not in pages:
+            continue                  # the hidden 'Chart lines' sheet (points for target lines)
         hr, st, last = pages[w.title]
         ek.xl_print(w, r["business"], filename, retrieved, landscape=True, header_row=hr)
         review.append(ek.xl_review(w, ek.xl_breaks(w, st, last, hr), hr))

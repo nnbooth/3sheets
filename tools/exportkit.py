@@ -702,9 +702,27 @@ def _xl_style_chart(ch, title):
     return ch
 
 
-def xl_bar_chart(ws, anchor, title, cats_ref, vals_ref, n, number_format="General", series_name=None, target=None, fmt_target=None, below=None, bad=None):
+def _xl_line_cells(wb, name, x):
+    """Two points for a vertical line at x (x, 0) and (x, 1), on a hidden 'Chart lines' sheet. Returns (ws, first row)."""
+    ws = wb["Chart lines"] if "Chart lines" in wb.sheetnames else wb.create_sheet("Chart lines")
+    if ws.max_row == 1 and ws["A1"].value is None:
+        ws["A1"] = "Points for the target and break-even lines drawn on the charts (hidden sheet; edit the values on the chart's own sheet)."
+        ws.sheet_state = "hidden"
+    r = ws.max_row + 2
+    ws.cell(r, 1, name)
+    for k, y in enumerate((0, 1)):
+        ws.cell(r + 1 + k, 2, x)
+        ws.cell(r + 1 + k, 3, y)
+    return ws, r + 1
+
+
+def xl_bar_chart(ws, anchor, title, cats_ref, vals_ref, n, number_format="General", series_name=None, target=None, fmt_target=None, below=None, bad=None,
+                 values=None, lines=None):
     """A native horizontal bar chart (brand green), one bar per category, values labelled; no gridline clutter.
-    The target, when there is one, is in the title (Excel can't draw a vertical line across horizontal bars natively)."""
+    lines = [(label, x, colour, dash)] in the cells' own units (e.g. 0.35 for 35%): each is drawn as a vertical line
+    across the bars, the standard Excel combo: an XY scatter series from (x, 0) to (x, 1) on hidden secondary axes,
+    scaled exactly like the bars' value axis so the line sits at its value. values (the bars' numbers, cell units)
+    fix that scale."""
     from openpyxl.chart import BarChart, Reference
     from openpyxl.chart.label import DataLabelList
     from openpyxl.chart.series import SeriesLabel
@@ -739,8 +757,50 @@ def xl_bar_chart(ws, anchor, title, cats_ref, vals_ref, n, number_format="Genera
     ch.y_axis.delete = True
     ch.x_axis.scaling.orientation = "maxMin"        # first row at the top, like the table
     ch.gapWidth = 60
-    _xl_style_chart(ch, title + (f" · target {fmt_target}" if target is not None and fmt_target else ""))
-    ch.width, ch.height = 15, max(5.5, 0.75 * n + 2)
+    lines = [ln for ln in (lines or []) if ln[1] is not None]
+    if lines and values:
+        from openpyxl.chart import ScatterChart, Series
+        from openpyxl.chart.axis import NumericAxis
+        lo = min(0, *values) * 1.15
+        hi = max(0, *values, *(ln[1] for ln in lines)) * 1.15 or 1
+        ch.y_axis.scaling.min, ch.y_axis.scaling.max = lo, hi
+        sc = ScatterChart()
+        sc.style = 2
+        for k_line, (label, x, colour, dash) in enumerate(lines):
+            hw, r0 = _xl_line_cells(ws.parent, f"{ws.title}: {title}: {label}", x)
+            se = Series(Reference(hw, min_col=3, min_row=r0, max_row=r0 + 1), Reference(hw, min_col=2, min_row=r0, max_row=r0 + 1), title=label)
+            se.marker.symbol = "none"
+            se.smooth = False
+            se.graphicalProperties.line.solidFill = colour
+            se.graphicalProperties.line.width = 19050          # 1.5 pt
+            se.graphicalProperties.line.dashStyle = dash
+            # the line's name at its top end, in its own colour (no key needed)
+            from openpyxl.chart.label import DataLabel, DataLabelList
+            from openpyxl.chart.text import RichText
+            from openpyxl.drawing.text import CharacterProperties, Font as DFont, Paragraph, ParagraphProperties
+            cp = CharacterProperties(latin=DFont(typeface=XL_FONT), sz=900, b=True, solidFill=colour)
+            top = DataLabel(idx=1, showSerName=True, showVal=False, showCatName=False, showLegendKey=False, showPercent=False,
+                            dLblPos="r" if k_line == 0 else "l")      # first line's name to its right, the next to its left: never on top of each other
+            top.txPr = RichText(p=[Paragraph(pPr=ParagraphProperties(defRPr=cp), endParaRPr=cp)])
+            se.dLbls = DataLabelList(dLbl=[top], showVal=False, showSerName=False, showCatName=False, showLegendKey=False, showPercent=False)
+            sc.series.append(se)
+        # secondary axes, hidden: horizontal scaled like the bars, vertical 0 to 1 (the full height of the plot)
+        sc.x_axis = NumericAxis(axId=500, crossAx=600)
+        sc.x_axis.scaling.min, sc.x_axis.scaling.max = lo, hi
+        sc.x_axis.delete = True
+        sc.x_axis.majorGridlines = None
+        sc.x_axis.axPos = "t"
+        sc.y_axis = NumericAxis(axId=600, crossAx=500)
+        sc.y_axis.scaling.min, sc.y_axis.scaling.max = 0, 1
+        sc.y_axis.delete = True
+        sc.y_axis.majorGridlines = None
+        sc.y_axis.scaling.max = 1.08          # room above the bars for the lines' labels
+        sc.y_axis.axPos = "r"
+        sc.y_axis.crosses = "max"
+        ch += sc
+    _xl_style_chart(ch, title)
+    ch.x_axis.majorGridlines = None
+    ch.width, ch.height = 15, max(5.5, 0.75 * n + 2) + (0.6 if lines else 0)
     ws.add_chart(ch, anchor)
     return ch
 
