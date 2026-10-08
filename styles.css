@@ -1238,3 +1238,17 @@ body.intro-active .hero-sheets img { visibility: hidden; }
 .hero-points li { position: relative; padding-left: 1.9rem; font-size: var(--fs-md); color: var(--text); }
 .hero-points li::before { content: "\2713"; position: absolute; left: 0; top: 0.05em; width: 1.3rem; height: 1.3rem; display: grid; place-items: center;
   border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 0.8rem; font-weight: 700; }
+
+/* HERO, side by side: the text column and the sample dashboard are the same height at every width. The proof points
+   sit at the bottom of the text; the dashboard's "Sample data / Export" footer sits at the bottom of the card.
+   Whichever side is shorter takes the spare space between its parts, never as a blank block. */
+@media (min-width: 901px) {
+  .hero-grid--dash { align-items: stretch; }
+  .hero-grid--dash > div:first-child { display: flex; flex-direction: column; }
+  .hero-grid--dash > div:first-child .hero-byline { margin-bottom: var(--sp-6); }
+  .hero-grid--dash .hero-points { margin-top: auto; }
+  .hero-dash { display: flex; flex-direction: column; }
+  .hero-dash > .dash-caption { margin-top: auto; }
+}
+/* At 1700 px and up (larger root font) an even split keeps the headline to three lines, so the columns' natural heights match */
+@media (min-width: 1700px) { .hero-grid--dash { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
