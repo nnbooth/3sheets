@@ -126,7 +126,9 @@ Hours per volunteer = DIVIDE([Volunteer hours], [Volunteers])
     "runway": """```DAX
 Cash at bank = LASTNONBLANKVALUE(dim_date[calendar_date], SUM(fact_balance_daily[cash_at_bank]))
 Unspent grant money = CALCULATE(SUM(opening_balance[amount]), opening_balance[line] = "Grants received in advance (unspent)")   -- month ends: from model_statements
-Unrestricted cash = [Cash at bank] - [Unspent grant money]
+Owed to the ATO = CALCULATE(SUM(model_statements[amount_aud]), model_statements[statement_key] = "bs",
+    model_statements[line] IN {"GST payable (net)", "PAYG withholding payable"})   -- GST and PAYG withheld, held until the BAS
+Unrestricted cash = [Cash at bank] - [Unspent grant money] - [Owed to the ATO]
 Monthly cash spending = - CALCULATE(SUM(fact_gl_daily[amount]), dim_account[section] <> "Income", dim_account[line] <> "Depreciation")
 Runway (months) = DIVIDE([Unrestricted cash], [Monthly cash spending])
 Reserves target (months) = LOOKUPVALUE(target[value], target[target], "Reserves (unrestricted cash runway)")
@@ -241,7 +243,7 @@ You are building {"one Power BI report page per business" if len([b for b in r["
 **Rules (non-negotiable):**
 - **One business per page.** The sample businesses (trades, services and the not-for-profit) are separate, unrelated organisations. Never add their numbers together, put them in one total, chart or table, or rank them against each other. Every page has a locked page-level filter on `dim_org[org_id]`, and every measure returns blank unless exactly one organisation is in view (`IF(HASONEVALUE(dim_org[org_id]), …)`, already written into the measures below).
 - Gross margin is always labelled *gross margin* and never called profit: it is before overheads.
-- Wages always include on-costs (super, payroll tax, workers' compensation, leave).
+- Wages include their on-costs (super and leave). No payroll tax in the samples: both SMEs are under the Queensland threshold and the charity is exempt.
 - Whole dollars; percentages to 1 decimal place; negatives in brackets.
 - One slicer drives every visual on the page.
 - Bars keep the same category order when the measure changes.

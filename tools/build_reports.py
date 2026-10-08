@@ -687,12 +687,17 @@ EXPLAINED = [
     ("profit-vs-cash", "Profit is not cash", "Profit counts work when it's invoiced; cash counts money when it lands. Unpaid invoices, stock, loan repayments, tax and equipment "
      "purchases all make cash differ from profit, which is why a profitable business can still run short of cash."),
     ("cash-forecast", "Cash forecast", "Cash at bank today, plus the money expected in (each unpaid invoice on its customer's usual payment date, and new work at its recent rate), "
-     "less the money due out (pay runs, supplier bills, tax and loan repayments on their due dates), day by day. It's only as good as its assumptions, so a good one is checked "
+     "less the money due out (pay runs, supplier bills, the BAS and loan repayments on their due dates), day by day, on banking days only. It's only as good as its assumptions, so a good one is checked "
      "against the bank as the days arrive and says why it was out."),
+    ("gst-bas", "GST and BAS", "GST is 10% added to most sales and charged on most bills. Each quarter the business pays the ATO the GST it charged less the GST it paid "
+     "(its GST credits), plus the PAYG tax withheld from employees' pay and, for a company, an income tax instalment: that payment is the BAS (business activity statement). "
+     "In these reports the P&L leaves GST out, because it isn't the business's money; invoices, bills, unpaid invoices, bills owed and cash include it. GST is counted when "
+     "an invoice or bill is issued (the accruals basis), and a quarterly BAS is due on the 28th of the month after the quarter (October to December: 28 February). "
+     "Wages, super and bank interest carry no GST; donations to a charity carry none either."),
     ("debtors", "Unpaid invoices (debtors)", "Money customers owe you for work already invoiced. It is yours, but you can't spend it until it's paid."),
     ("wip", "Work in progress", "Work done but not yet invoiced, valued at what you'll bill for it. It turns into an invoice, then into cash, later."),
-    ("unrestricted-cash", "Unrestricted cash", "For a not-for-profit: cash at bank less grant money received but not yet spent. The unspent grant money belongs to the funder's program, "
-     "so it can't pay general bills."),
+    ("unrestricted-cash", "Unrestricted cash", "For a not-for-profit: cash at bank less grant money received but not yet spent, and less the GST and PAYG tax "
+     "held for the ATO until the next BAS. The unspent grant money belongs to the funder's program and the tax belongs to the ATO, so neither can pay general bills."),
     ("runway", "Runway", "How many months the organisation could keep going on its unrestricted cash at the current rate of spending, with no new money coming in."),
     ("cost-to-raise", "Cost to raise a dollar", "Fundraising costs (grant writing, donor campaigns, events) divided by the money they bring in, in cents. 20¢ means every dollar raised cost 20 cents to raise, "
      "on average. It is an average, not a marginal cost: the next dollar can cost more or less to raise than the last. To judge one more campaign or event, compare its own extra cost with the extra money it brings in."),

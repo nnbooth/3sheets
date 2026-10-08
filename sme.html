@@ -35,9 +35,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
-    <!-- ?v= is a version number: change it whenever styles.css or script.js
-         changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-12-09" />
+    <!-- ?v= is the version: "dev" here; publishing (.github/workflows/pages.yml) stamps every one with the commit,
+         so browsers fetch new files after each publish. Nothing to change by hand. -->
+    <link rel="stylesheet" href="styles.css?v=dev" />
   </head>
 
   <!--
@@ -55,7 +55,7 @@
 
     <header class="site-header">
       <div class="container nav-bar">
-        <a class="brand" href="index.html" aria-label="The Fourth Sheet, home"><span class="brand-mark" aria-hidden="true">4<sup>th</sup></span><span aria-hidden="true">The Fourth Sheet</span></a>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">4<sup>th</sup></span><span>The Fourth Sheet</span></a>
         <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
         <!-- Keep these links in the same order as the sections below. -->
         <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
@@ -65,7 +65,7 @@
           <a href="services.html">Services</a>
           <a href="about.html">About</a>
           <a href="contact.html">Contact</a>
-          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
         </nav>
       </div>
     </header>
@@ -94,7 +94,7 @@
 
           <p class="no-data-line"><strong>No data to hand over yet?</strong> I'll help you set up the processes and frameworks to start capturing it, then build the reporting on top.</p>
           <div class="audience-foot">
-            <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+            <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
           </div>
         </div>
       </section>
@@ -105,15 +105,15 @@
           <div class="section-heading">
             <p class="eyebrow">Example reports</p>
             <h2>What each question looks like, answered.</h2>
-            <p class="lead">Built on sample data for invented businesses, with every number's workings, 24 months of history, and spreadsheet, PDF and slide downloads.</p>
+            <p class="lead">Built on sample data for invented businesses, with every number's workings, up to 24 months of history, and spreadsheet, PDF and slide downloads.</p>
           </div>
           <!-- REPORT CARDS:START -->
           <div class="report-feature"><p class="eyebrow">Featured: <a href="report-growth.html">Which products and services are growing?</a></p><div data-report-feature="growth" data-only="series"><noscript><p>Turn on JavaScript to see the chart, or <a href="report-growth.html">open the report</a>.</p></noscript></div></div>
           <ul class="report-cards">
             <li><h3><a href="report-cost-to-win.html">What does it cost to win a customer?</a></h3><div class="card-chart" data-report-card="cost-to-win" aria-hidden="true"></div><p>$162 per new customer in September: 47 new customers from $7,600 of marketing.</p><a class="report-open" href="report-cost-to-win.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-job-margins.html">Which jobs actually make money?</a></h3><div class="card-chart" data-report-card="job-margins" aria-hidden="true"></div><p>Jobs made a 36.1% gross margin in September: maintenance contracts the most (59.5%), installations the least (27.0%).</p><a class="report-open" href="report-job-margins.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-growth.html">Which products and services are growing?</a></h3><div class="card-chart" data-report-card="growth" aria-hidden="true"></div><p>Year to date, trades revenue is up 26.5% and services up 77.1% on the same period last year.</p><a class="report-open" href="report-growth.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-cash-payroll.html">Will cash cover payroll next month?</a></h3><div class="card-chart" data-report-card="cash-payroll" aria-hidden="true"></div><p>Yes: $53,846 forecast in the bank after the 15 October pay run, the tightest in October.</p><a class="report-open" href="report-cash-payroll.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-job-margins.html">Which jobs actually make money?</a></h3><div class="card-chart" data-report-card="job-margins" aria-hidden="true"></div><p>Jobs made a 42.7% gross margin in September: maintenance contracts the most (63.9%), installations the least (34.8%).</p><a class="report-open" href="report-job-margins.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-growth.html">Which products and services are growing?</a></h3><div class="card-chart" data-report-card="growth" aria-hidden="true"></div><p>Year to date, trades revenue is up 26.4% and services up 77.6% on the same period last year.</p><a class="report-open" href="report-growth.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-cash-payroll.html">Will cash cover payroll next month?</a></h3><div class="card-chart" data-report-card="cash-payroll" aria-hidden="true"></div><p>Yes: $69,267 forecast in the bank after the 29 October pay run, the tightest in October, and at least one pay run in reserve for all 13 weeks.</p><a class="report-open" href="report-cash-payroll.html">Open the report &rarr;</a></li>
             <li><h3><a href="report-callbacks.html">How long do customers wait for a callback?</a></h3><div class="card-chart" data-report-card="callbacks" aria-hidden="true"></div><p>48.7% called back within 2 working hours in September (target 80.0%); median wait 122 working minutes.</p><a class="report-open" href="report-callbacks.html">Open the report &rarr;</a></li>
             <li><h3><a href="report-overtime.html">Where is overtime creeping up, and why?</a></h3><div class="card-chart" data-report-card="overtime" aria-hidden="true"></div><p>Overtime was 5.8% of ordinary hours in September (target under 5.0%), up from 3.7% a year earlier.</p><a class="report-open" href="report-overtime.html">Open the report &rarr;</a></li>
           </ul>
@@ -143,13 +143,13 @@
                  (removing data-placeholder and hidden) and change "Prefer email?" back to "Prefer email or LinkedIn?". -->
             <p class="contact-secondary">
               Prefer email?
-              <a href="mailto:nathan@thefourthsheet.com.au">nathan@thefourthsheet.com.au</a>
+              <a href="mailto:nathan@thefourthsheet.com.au" data-track="email">nathan@thefourthsheet.com.au</a>
               <span class="tbc" data-placeholder="[[LINKEDIN_URL]]" hidden>LinkedIn TBC</span>
             </p>
             <p class="contact-form-link"><a href="contact.html">Or send me your details &rarr;</a></p>
           </div>
           <!-- [[BOOKING_URL]]: replace href="#contact" with your booking link. -->
-          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
         </div>
       </section>
 
@@ -167,7 +167,7 @@
       </div>
     </footer>
 
-    <script src="data/reports-data.js?v=2026-12-09"></script>
-    <script src="script.js?v=2026-12-09"></script>
+    <script src="data/reports-data.js?v=dev"></script>
+    <script src="script.js?v=dev"></script>
   </body>
 </html>

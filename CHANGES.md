@@ -1,5 +1,22 @@
 # Changes
 
+## Site review fixes (9 Oct 2026, branch `site-review-fixes`)
+- **Content:** prices on ($110 an hour, $800 a day); NFP "example TBC" chip gone; "How long" timings confirmed with a guide line;
+  "Monthly reporting, done for me"; organisation, job title and an Australian phone number required; boardroom mock-up shows
+  debtor days (no churn); QAD, TechnologyOne and Elite 3E off the tools list; social titles match the home headline.
+- **Numbers:** technicians at $68/h and consultants at $60/h loaded, wages set from them so time charged + not charged = wages
+  every month; prices up ~12% (trades) and ~10% (services) to keep profit where it was. GST in cash for all three samples
+  (quarterly BAS due 28 October, its own forecast line), fortnightly pay runs (a 26th of the year's gross; net pay + super on
+  pay day, PAYG with the BAS), wages/super/PAYG/GST payable on every balance sheet. Money moves on banking days only
+  (Queensland holidays from the holidays package). Cash answer covers all 13 weeks; one late-invoice story per period;
+  supplier runs shown with where they land; grants ending within 6 months counts 6; one half-up rounding rule; calls median
+  workings; overdue deliveries count as late; runway sets aside what's owed to the ATO. New rules: tools/tests/model_rules.py.
+- **Design and accessibility:** toggles wrap on phones; 12 px minimum on phones; 44 px tap targets; phone menu closes on
+  Escape or an outside tap; full-width period picker; touch instructions in the game; axe-core: 0 serious/critical issues.
+- **Technical:** publishing via GitHub Actions strips comments and stamps every ?v= with the commit (source is ?v=dev);
+  404 page; robots.txt and sitemap.xml; internal files excluded; analytics slot (off) with data-track hooks;
+  the database signs in with a SQL login whose password is never in git (env, .env or Key Vault).
+
 ## Replay the intro
 - The sheets illustration beside the home headline is now a button ("Play the introduction again"): a click replays the opening animation, which shrinks back into it; focus returns to the button. Slight lift on hover. `?v=` bumped to 2026-12-09.
 - Phones (600 px and under): tighter intro panel (less padding, smaller picture, captions sized for two lines, three under 360 px). On touch screens the × no longer opens with a focus ring; keyboard users still land on it.

@@ -30,6 +30,7 @@ from pathlib import Path
 
 import data_status as ds
 import exportkit as ek
+from financial_model import round_half_up
 
 Font = ek.xl_font       # every Excel font is Roboto (exportkit.XL_FONT)
 from warehouse import QLD_HOLIDAYS, key, working
@@ -264,6 +265,8 @@ def summarise(rows, date_field, place_field, places, group_label):
         sel = [r for r in rows if p["from"] <= r[date_field] <= p["to"]]
         done = [r for r in sel if r["status"] in ("On time", "Late", "Very late")]
         ontime = sum(r["status"] == "On time" for r in done)
+        overdue = sum(r["status"] == "Overdue" for r in sel)         # not delivered and past the promised date: late, so it counts
+        due = len(done) + overdue
         pts = {}
         for r in sel:
             k = r[place_field]
@@ -281,7 +284,7 @@ def summarise(rows, date_field, place_field, places, group_label):
         badge, note = period_status(p["from"], p["to"])
         out[p["id"]] = {
             "status": badge, "status_note": note,
-            "kpis": {"total": len(sel), "on_time_pct": round(100 * ontime / len(done), 1) if done else None,
+            "kpis": {"total": len(sel), "on_time_pct": round_half_up(100 * ontime / due, 1) if due else None,   # on time ÷ (delivered + overdue)
                      "late": sum(r["status"] in ("Late", "Very late") for r in sel),
                      "overdue": sum(r["status"] == "Overdue" for r in sel),
                      "open": sum(r["status"] in ("In transit", "Due") for r in sel),
@@ -485,7 +488,7 @@ def write_xlsx(d):
                 ws.cell(r, c, f'=COUNTIFS({rng},{sh}!${scol}:${scol},"{st_}")')
             open_st = "In transit" if side == "out" else "Due"
             ws.cell(r, 9, f'=COUNTIFS({rng},{sh}!${scol}:${scol},"{open_st}")')
-            ws.cell(r, 10, f'=IF(SUM(E{r}:G{r})=0,"",E{r}/SUM(E{r}:G{r}))').number_format = F["pct"]
+            ws.cell(r, 10, f'=IF(SUM(E{r}:H{r})=0,"",E{r}/SUM(E{r}:H{r}))').number_format = F["pct"]      # on time ÷ (delivered + overdue)
             ws.cell(r, 11, f'=IF(SUM(E{r}:G{r})=0,"",SUMIFS({sh}!${fcol}:${fcol},{rng},{sh}!${ccol}:${ccol},1)/SUM(E{r}:G{r}))').number_format = F["pct"]
             for c in range(4, 10):
                 ws.cell(r, c).number_format = F["int"]

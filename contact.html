@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contact | The Fourth Sheet</title>
-    <meta name="description" content="Send Nathan your details, ask for standardised reporting on your schedule, or book a free 20-minute numbers check." />
+    <meta name="description" content="Send Nathan your details, ask for monthly reporting done for you, or book a free 20-minute numbers check." />
 
     <!-- Favicon: SVG for modern browsers, PNG fallbacks for older ones / iOS. -->
     <link rel="icon" href="assets/brand/mark-4th.svg?v=roboto" type="image/svg+xml" />
@@ -35,9 +35,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
-    <!-- ?v= is a version number: change it whenever styles.css or script.js
-         changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-12-09" />
+    <!-- ?v= is the version: "dev" here; publishing (.github/workflows/pages.yml) stamps every one with the commit,
+         so browsers fetch new files after each publish. Nothing to change by hand. -->
+    <link rel="stylesheet" href="styles.css?v=dev" />
   </head>
 
   <!--
@@ -55,7 +55,7 @@
 
     <header class="site-header">
       <div class="container nav-bar">
-        <a class="brand" href="index.html" aria-label="The Fourth Sheet, home"><span class="brand-mark" aria-hidden="true">4<sup>th</sup></span><span aria-hidden="true">The Fourth Sheet</span></a>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">4<sup>th</sup></span><span>The Fourth Sheet</span></a>
         <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
         <!-- Keep these links in the same order as the sections below. -->
         <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
@@ -65,7 +65,7 @@
           <a href="services.html">Services</a>
           <a href="about.html">About</a>
           <a href="contact.html" aria-current="page">Contact</a>
-          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
         </nav>
       </div>
     </header>
@@ -84,7 +84,7 @@
               <p class="contact-request" id="contact-request" hidden></p>
               <fieldset class="contact-topic">
                 <legend>What would you like?</legend>
-                <label><input type="radio" name="topic" value="monthly" /> Standardised reporting, given on your schedule</label>
+                <label><input type="radio" name="topic" value="monthly" /> Monthly reporting, done for me</label>
                 <label><input type="radio" name="topic" value="numbers-check" checked /> A free 20-minute numbers check</label>
                 <label><input type="radio" name="topic" value="other" /> Something else</label>
               </fieldset>
@@ -93,26 +93,26 @@
                 <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" required /></label>
               </div>
               <div class="field-row">
-                <label class="field"><span>Job title</span><input type="text" name="job_title" autocomplete="organization-title" /></label>
-                <label class="field"><span>Organisation <small>(optional)</small></span><input type="text" name="organisation" autocomplete="organization" /></label>
+                <label class="field"><span>Job title</span><input type="text" name="job_title" autocomplete="organization-title" required /></label>
+                <label class="field"><span>Organisation</span><input type="text" name="organisation" autocomplete="organization" required /></label>
               </div>
               <div class="field-row">
-                <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" /></label>
+                <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" inputmode="tel" required aria-describedby="phone-hint" /><small class="field-hint" id="phone-hint">An Australian mobile or landline number</small></label>
               </div>
               <label class="field"><span>What would you like your numbers to tell you? <small>(optional)</small></span><textarea name="message" rows="4"></textarea></label>
               <input type="hidden" name="report" /><input type="hidden" name="period" /><input type="hidden" name="view" />
               <input type="text" name="_gotcha" class="field-trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <label class="field-check"><input type="checkbox" name="consent" required /> I'm happy for Nathan to contact me about this. (My details go to him by email; they aren't stored on this website.)</label>
-              <button type="submit" class="button primary">Send</button>
+              <button type="submit" class="button primary" data-track="contact-submit">Send</button>
               <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
             </form>
             <aside class="contact-book" id="book">
               <h2>Or book a time</h2>
               <p>A free 20-minute numbers check: bring one question your numbers can't answer yet, and I'll tell you what's possible.</p>
-              <a class="button primary" href="#book" data-placeholder="[[BOOKING_URL]]" data-booking>Book a free 20-minute numbers check</a>
+              <a class="button primary" href="#book" data-placeholder="[[BOOKING_URL]]" data-booking data-track="booking">Book a free 20-minute numbers check</a>
               <p class="form-status" id="book-status" role="status" aria-live="polite"></p>
               <h2 class="contact-direct-h">Or just email me</h2>
-              <p class="contact-direct"><a href="mailto:nathan@thefourthsheet.com.au">nathan@thefourthsheet.com.au</a>. It comes straight to me.</p>
+              <p class="contact-direct"><a href="mailto:nathan@thefourthsheet.com.au" data-track="email">nathan@thefourthsheet.com.au</a>. It comes straight to me.</p>
             </aside>
           </div>
         </div>
@@ -131,6 +131,6 @@
       </div>
     </footer>
 
-    <script src="script.js?v=2026-12-09"></script>
+    <script src="script.js?v=dev"></script>
   </body>
 </html>

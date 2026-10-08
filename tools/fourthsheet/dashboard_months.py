@@ -29,7 +29,7 @@ from pathlib import Path
 
 import data_status as ds
 import financial_model as fm
-from financial_model import FMT, calc, half_up, inp, money, support
+from financial_model import FMT, calc, half_up, inp, money, support, round_half_up
 
 from . import catalogue as C
 from .period import CURRENT, Period, add_months, mdate
@@ -105,7 +105,7 @@ def profit_and_loss(D, org, template, spec, mo, prev, title):
                 rows[i]["values"] = [sum(sg * rows[j]["values"][c] for j, sg in refs) for c in range(2)]
     for c, m in enumerate((mo, prev)):        # the bottom line ties to the ledger
         ledger = sum(o.by_line(m).values())
-        if round(rows[-1]["values"][c]) != round(ledger):
+        if round_half_up(rows[-1]["values"][c]) != round_half_up(ledger):
             raise SystemExit(f"dashboard months: {org} {m} bottom line {rows[-1]['values'][c]} doesn't tie to the ledger {ledger}")
     # a count in a line's name ("Maintenance contracts (14)") is the count for that month
     for r in rows:
@@ -144,7 +144,7 @@ def fourth_trades(D, P, pnl, prev_name):
         inp("Revenue (every job invoiced in the month)", "money", rev), inp("Materials", "money", S(lambda m: o.line(m, "Materials"))),
         inp("Subcontractors", "money", S(lambda m: o.line(m, "Subcontractors"))), inp("Technician wages", "money", S(lambda m: o.line(m, "Technician wages (incl. on-costs)"))),
         calc("Gross profit", "money", "r0+r1+r2+r3"), calc("Gross margin (P&L)", "pct", "r4/r0")],
-        "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include all on-costs (super, payroll tax, workers' compensation, leave)."
+        "Gross margin is before overheads (office wages, marketing, vehicles, rent and so on): it is not profit. Wages include their on-costs: super (12%) and leave as it's earned. No payroll tax: wages are under Queensland's $1.3 million threshold."
         + (f" {P.part_note}" if P.incomplete else ""), cols=cols)
     nc = o.drivers["New customers (first job ever)"]
     have_nc = mo in nc and pv in nc
@@ -243,20 +243,21 @@ def fourth_nfp(D, P, pnl, prev_name):
     if has_cash:
         def rn(m):
             Q = Period(m, o.months)
-            cash, adv, spend, _ = C.runway_numbers(D, Q, m)
-            return cash, adv, spend
+            cash, adv, spend, _, ato = C.runway_numbers(D, Q, m)
+            return cash, adv, spend, ato
         a, b = rn(mo), rn(pv)
-        s_run = support("Unrestricted cash runway", "(Cash at bank − unspent grant money) ÷ a month's cash spending", [
+        s_run = support("Unrestricted cash runway", C.RUNWAY_FORMULA, [
             inp("Cash at bank", "money", [a[0], b[0]]), inp("Less unspent grant money (belongs to funders' programs)", "money", [-a[1], -b[1]]),
-            calc("Unrestricted cash", "money", "r0+r1"), inp("Cash spending in the month (expenses less depreciation)", "money", [a[2], b[2]]),
-            calc("Runway", "months", "r2/r3")], f"Reserves target: {FMT['months'](tgt)}." + (f" {P.part_note}" if P.incomplete else ""), cols=cols)
+            inp("Less GST and PAYG withheld owed to the ATO (paid with the BAS)", "money", [-a[3], -b[3]]),
+            calc("Unrestricted cash", "money", "r0+r1+r2"), inp("Cash spending in the month (expenses less depreciation)", "money", [a[2], b[2]]),
+            calc("Runway", "months", "r3/r4")], f"Reserves target: {FMT['months'](tgt)}." + (f" {P.part_note}" if P.incomplete else ""), cols=cols)
     else:
-        s_run = support("Unrestricted cash runway", "(Cash at bank − unspent grant money) ÷ a month's cash spending", [inp("Not in the data for this month", "text", ["–"])],
+        s_run = support("Unrestricted cash runway", C.RUNWAY_FORMULA, [inp("Not in the data for this month", "text", ["–"])],
                         "Cash and grant balances start at the opening balance, 31 July 2026, so runway can be worked out from July 2026.", cols=(lab(mo),))
     ending_window = D["_targets"]["Grants ending soon: window"]
     G = C.grant_positions(D, P)
     live = [g for g in G if g["active"]]
-    ending = sorted([g for g in live if g["months_left"] < ending_window], key=lambda g: g["months_left"])
+    ending = sorted([g for g in live if g["months_left"] <= ending_window], key=lambda g: g["months_left"])
     s_end = support(f"Grants ending in the next {ending_window} months", "Grant total − spent to date, for each grant ending soon",
                     [inp(f"{g['program']} (ends {ds.strf(date.fromisoformat(g['end']), '%-d %b %Y')})", "money", [g["unspent"]]) for g in ending]
                     + ([calc("Total still to spend", "money", "+".join(f"r{i}" for i in range(len(ending))))] if ending else [inp("No grant ends within the window", "money", [0])]),
@@ -278,7 +279,7 @@ def fourth_nfp(D, P, pnl, prev_name):
         calc("Over (under) budget to date", "money", "r2-r3"), calc("Over (under) budget, % of budget to date", "pct", "r2/r3-1")], None,
         {"title": "Spend by month against budget", "labels": [mname(x[0]) for x in g["monthly"]],
          "values": [x[1] for x in g["monthly"]], "budget": [x[2] for x in g["monthly"]], "format": "money0"}, cols=("This grant",)) for g in GS]
-    pcts = [round(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details]
+    pcts = [round_half_up(d["xl"]["rows"][-1]["values"][0] * 100, 1) for d in details]
     var_d = [d["xl"]["rows"][-2]["values"][0] for d in details]
     end_l = ds.strf(min(ds.month_end(mo), ds.AS_AT.date()), "%-d %B %Y")
     return {"kpis": [{"label": f"Cost to raise a dollar, {P.when}", "value": FMT["cents"](ctr[0]), "sub": k1, "cls": c1, "good_when": "lower", "spine": True, "support": s_ctr},
@@ -333,7 +334,7 @@ def build(D):
     for bo, so in zip(base["orgs"], sep["orgs"]):
         want = {r["label"]: r["values"] for r in bo["statements"]["pnl"]["rows"] if r["values"] is not None}
         for r in so["statements"]["pnl"]["rows"]:
-            if r["values"] is not None and r["label"] in want and [round(x) for x in r["values"]] != [round(x) for x in want[r["label"]]]:
+            if r["values"] is not None and r["label"] in want and [round_half_up(x) for x in r["values"]] != [round_half_up(x) for x in want[r["label"]]]:
                 raise SystemExit(f"dashboard months: {bo['id']} September '{r['label']}' {r['values']} isn't the model's {want[r['label']]}")
         for kb, ks in zip(bo["fourth"]["kpis"], so["fourth"]["kpis"]):
             if kb["value"] != ks["value"]:

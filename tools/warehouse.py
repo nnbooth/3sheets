@@ -32,11 +32,11 @@ from datetime import date, timedelta
 
 import data_status as ds
 import financial_model as fm
+import tax_payroll as tp
 
 FIRST, LAST = date(2024, 10, 1), date(2026, 12, 31)      # 24 months of history, the current quarter, and the forecast horizon
 QLD_HOLIDAYS = ds.QLD_HOLIDAYS
 GALA = date(2026, 9, 19)                      # NFP spring gala (Saturday)
-PAY_DAYS = [date(2026, 8, 6), date(2026, 8, 20), date(2026, 9, 3), date(2026, 9, 17)]   # fortnightly Thursdays
 ORG_SECTOR = {"trades": "SME", "services": "SME", "nfp": "Not-for-profit"}
 
 
@@ -234,10 +234,11 @@ def timesheets(res):
 # ---------------------------------------------------------------- daily cash
 
 def cash_pattern(org, label, mo):
+    """Which days a cash-flow line moves on: always banking days (no weekends or Queensland public holidays)."""
     if label.startswith("Interest"):
-        return [fm.MONTH_END[mo]]
+        return wdays(mo)[-1:]                     # the last banking day of the month
     if label == "Payments to employees":
-        return [d for d in PAY_DAYS if d.strftime("%Y-%m") == mo]
+        return tp.pay_days_in(mo)
     if label.startswith("Payments to"):          # supplier runs on the 15th and the last working day
         return [d for d in wdays(mo) if d.day >= 15][:1] + wdays(mo)[-1:]
     if label.startswith("Purchase of"):
@@ -271,7 +272,7 @@ def cash_daily(res, acct):
                 elif label == "Donations and fundraising received":
                     don = fm.NFP["income"]["Donations"][mo]
                     ev = fm.NFP["income"]["Fundraising events"][mo]
-                    pairs = spread(don, days(mo)) + ([(GALA, ev)] if ev else [])
+                    pairs = spread(don, wdays(mo)) + ([(tp.next_banking_day(GALA), tp.with_gst(ev))] if ev else [])   # the gala's takings bank on Monday
                 else:
                     pairs = spread(total, cash_pattern(org, label, mo))
                 for d, amt in pairs:
@@ -391,17 +392,18 @@ def build(res):
         [("date_key", "INT REFERENCES dim_date(date_key)"), ("org_id", V(10) + " REFERENCES dim_org(org_id)"),
          ("job_id", V(10)), ("engagement_id", V(10)), ("hours", "DECIMAL(6,1)")], ts)
     tbl("fact_job_month", "Each trades job by month, Oct 2024 to Sep 2026 plus October to date. Labour cost = hours x $68. Aug and Sep add up to the P&L. "
-        "Call-outs bill technician time ($145/hour) and materials (cost x 1.3) separately: labour_revenue + materials_revenue = revenue; blank for other jobs (one price).",
+        f"Call-outs bill technician time (${fm.TRADES['callout_rate']}/hour) and materials (cost x {fm.TRADES['materials_markup']}) separately: labour_revenue + materials_revenue = revenue; blank for other jobs (one price). "
+        "Revenue excludes GST (the invoice adds 10%).",
         [("month_key", V(7)), ("job_id", V(10) + " REFERENCES dim_job(job_id)"), ("invoice_date", "DATE"), ("revenue", "INT"),
          ("labour_revenue", "INT"), ("materials_revenue", "INT"), ("materials", "INT"),
          ("subcontractors", "INT"), ("tech_hours", "DECIMAL(6,1)"), ("labour_cost", "INT"), ("gross_profit", "INT")], job_month)
     tbl("fact_engagement_month", "Each services engagement by month, Oct 2024 to Sep 2026 plus October to date. Consultant time costed at $60/hour; wip_closing = unbilled project time at month end.",
         [("month_key", V(7)), ("engagement_id", V(10) + " REFERENCES dim_engagement(engagement_id)"), ("hours", "DECIMAL(6,1)"), ("revenue", "INT"),
          ("billed", "INT"), ("contractors", "INT"), ("consultant_time_cost", "INT"), ("contribution", "INT"), ("wip_closing", "INT")], eng_month)
-    tbl("fact_invoice", "Every customer invoice, Oct 2024 to 6 Oct 2026, with the date it was paid. Unpaid at a date = debtors at that date.",
+    tbl("fact_invoice", "Every customer invoice, Oct 2024 to 6 Oct 2026, with the date it was paid (always a banking day). amount includes GST (10%); revenue in the P&L doesn't. Unpaid at a date = debtors at that date.",
         [("org_id", V(10) + " REFERENCES dim_org(org_id)"), ("invoice_id", V(20)), ("job_id", V(10)), ("engagement_id", V(10)),
          ("invoice_date", "DATE"), ("paid_date", "DATE"), ("amount", "INT")], invoices)
-    tbl("fact_grant_instalment", "Grant payment schedule.",
+    tbl("fact_grant_instalment", "Grant payment schedule (banking days). amount excludes GST: the funder pays it plus 10% GST.",
         [("grant_id", V(10) + " REFERENCES dim_grant(grant_id)"), ("date_key", "INT REFERENCES dim_date(date_key)"), ("amount", "INT")],
         [r for r in instal if FIRST <= date(r[1] // 10000, r[1] // 100 % 100, r[1] % 100) <= LAST])
     gsm = [[g["code"], x["month"], x["spend"], x["budget"]] for g in n["grants"] for x in g["monthly"]]

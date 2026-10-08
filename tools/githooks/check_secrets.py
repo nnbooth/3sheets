@@ -13,7 +13,8 @@ BLOCK_FILES = [r"(^|/)\.env$", r"(^|/)\.env\.(?!example$)", r"database\.env$", r
                r"(^|/)id_(rsa|ed25519)", r"\.csv$", r"credentials", r"\.azure/"]
 PATTERNS = {
     "password in a connection string": r"(?i)\b(password|pwd)\s*=\s*[^;\s'\"{}]{4,}",
-    "SQL password sign-in": r"(?i)Authentication\s*=\s*SqlPassword",
+    "SQL password set in a file": r"(?i)SQL_PASSWORD\s*[:=]\s*['\"]?[^\s'\"{$\[]{4,}",
+    "password in a command": r"(?i)(--admin-password|WITH\s+PASSWORD\s*=)\s*['\"]?(?!\[\[)[^\s'\"{$\[)]{4,}",
     "storage / service bus key": r"(?i)(AccountKey|SharedAccessKey|SharedAccessSignature)\s*=",
     "client secret": r"(?i)client[_-]?secret\s*[:=]\s*['\"]?[A-Za-z0-9~._-]{8,}",
     "private key": r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
@@ -43,7 +44,8 @@ def main():
                     problems.append(f"{current}: {label}: {line[1:].strip()[:100]}")
     if problems:
         print("COMMIT STOPPED: this would put something private into the public repo:\n  " + "\n  ".join(problems[:20]))
-        print("\nRemove it (keep settings in OneDrive Config/, sign in with az login instead of passwords), then commit again.")
+        print("\nRemove it (settings go in OneDrive Config/; the SQL password goes in FOURTH_SHEET_SQL_PASSWORD in your environment, "
+              "the git-ignored .env, or Azure Key Vault), then commit again.")
         sys.exit(1)
 
 

@@ -1,5 +1,5 @@
 -- security.sql — schemas and least-privilege roles inside the database. Safe to run again (every step checks first).
--- Run by: python3 tools/database/azure_setup.py database   (signed in as the server's Microsoft admin)
+-- Run by: python3 tools/database/azure_setup.py database   (signed in as the server's SQL admin login)
 --
 -- Schemas
 --   dbo     the data (the tables in schema.sql)
@@ -11,7 +11,8 @@
 -- Roles (people and apps are added to a role, never granted rights one by one)
 --   report_reader  read-only: SELECT on dbo and rpt. For Power BI, the report builder, the website's API.
 --   data_loader    loads data: write to stage, replace rows in dbo, write the load log. Can't change security.
--- Nobody signs in with a password: the server only accepts Microsoft (Entra ID) sign-in.
+-- Sign-in is SQL authentication. Passwords never go in this file or in git: each comes from an environment variable,
+-- the repo's git-ignored .env, or Azure Key Vault, and is typed into the commands below only when they're run.
 
 IF SCHEMA_ID('stage') IS NULL EXEC('CREATE SCHEMA stage');
 IF SCHEMA_ID('ops') IS NULL EXEC('CREATE SCHEMA ops');
@@ -63,17 +64,20 @@ GRANT SELECT, INSERT, DELETE, ALTER ON SCHEMA::stage TO data_loader;
 GRANT SELECT, INSERT, UPDATE ON SCHEMA::ops TO data_loader;
 GRANT CREATE TABLE TO data_loader;
 
--- People and apps: add each one to a role when it's needed. All sign in with Microsoft; none has a password.
--- Fill in and run one at a time (the server's admin does this):
+-- People and apps: add each one to a role when it's needed, each with its own SQL user and password (a contained
+-- database user, so it only reaches this database). Fill in the name, paste the password from Key Vault or your
+-- password manager at the moment you run it, and never save the filled-in command. One at a time, as the admin:
 --
---   A person who reads reports (e.g. in Power BI):
---     CREATE USER [[[READER_UPN]]] FROM EXTERNAL PROVIDER;           -- e.g. someone@yourdomain.com.au
---     ALTER ROLE report_reader ADD MEMBER [[[READER_UPN]]];
+--   Someone who reads reports (e.g. in Power BI):
+--     CREATE USER [[[READER_NAME]]] WITH PASSWORD = '[[READER_PASSWORD]]';
+--     ALTER ROLE report_reader ADD MEMBER [[[READER_NAME]]];
 --
---   The report API, once it runs in Azure (its managed identity, so no secret exists anywhere):
---     CREATE USER [[[REPORT_API_IDENTITY_NAME]]] FROM EXTERNAL PROVIDER;
---     ALTER ROLE report_reader ADD MEMBER [[[REPORT_API_IDENTITY_NAME]]];
+--   The report API:
+--     CREATE USER [[[REPORT_API_NAME]]] WITH PASSWORD = '[[REPORT_API_PASSWORD]]';
+--     ALTER ROLE report_reader ADD MEMBER [[[REPORT_API_NAME]]];
 --
---   A scheduled loader (Power Automate, or a job in Azure), also by managed identity:
---     CREATE USER [[[LOADER_IDENTITY_NAME]]] FROM EXTERNAL PROVIDER;
---     ALTER ROLE data_loader ADD MEMBER [[[LOADER_IDENTITY_NAME]]];
+--   A scheduled loader:
+--     CREATE USER [[[LOADER_NAME]]] WITH PASSWORD = '[[LOADER_PASSWORD]]';
+--     ALTER ROLE data_loader ADD MEMBER [[[LOADER_NAME]]];
+--
+--   To change a password later:  ALTER USER [[[NAME]]] WITH PASSWORD = '[[NEW_PASSWORD]]';

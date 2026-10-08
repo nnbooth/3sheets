@@ -37,10 +37,14 @@ BS_LABELS = {
             "grants_in_advance": "Grants received in advance (unspent)", "provisions": "Employee leave provisions",
             "accumulated": "Accumulated funds"},
 }
+PAYROLL_TAX_LABELS = {"wages_owed": "Wages owed (since the last pay run)", "super_payable": "Super payable",
+                      "paygw_payable": "PAYG withholding payable", "gst_payable": "GST payable (net)"}
+for _o in ("trades", "nfp"):
+    BS_LABELS[_o].update(PAYROLL_TAX_LABELS)
 BS_LABELS["services"] = {**BS_LABELS["trades"], "stock": "Work in progress (unbilled project time)",
                          "fixed_assets": "Office equipment"}
 LIABILITY_OR_EQUITY = {"creditors", "provisions", "tax_payable", "loan", "share_capital", "retained", "payables",
-                       "grants_in_advance", "accumulated"}
+                       "grants_in_advance", "accumulated"} | set(PAYROLL_TAX_LABELS)
 
 
 def build(res, account_ids):

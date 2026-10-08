@@ -1,0 +1,42 @@
+# Publishes the site to GitHub Pages on every push to main: Jekyll builds it (honouring _config.yml's exclude list),
+# then tools/publish_site.py strips comments, stamps every ?v= with the commit and writes the sitemap.
+# The Pages source must be "GitHub Actions" (Settings > Pages > Build and deployment).
+name: Publish site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Strip comments, stamp the version, write the sitemap
+        run: sudo python3 tools/publish_site.py _site "${GITHUB_SHA::7}"
+      - uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

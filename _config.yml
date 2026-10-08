@@ -1,5 +1,10 @@
 # GitHub Pages settings. The repo is public; these files stay in git but are
-# not published as web pages.
+# not published as web pages. (.github/workflows/pages.yml builds with Jekyll,
+# which honours this list, then tools/publish_site.py strips comments.)
 exclude:
   - README.md
+  - CHANGES.md
+  - requirements.txt
   - tools
+  - docs
+  - media/exports/generated.json

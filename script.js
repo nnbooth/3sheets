@@ -6,12 +6,13 @@
   - Report card builder ...................... renderReports() / buildReportCard()
   - Loading message + 8-second fallback ...... watchEmbedLoad()
   - Game (load on Play) ...................... setupGameSlot()
-  - Prices (switched off by default) ......... SHOW_PRICES / PRICES
+  - Prices ($110 an hour, $800 a day) ........ SHOW_PRICES / PRICES
+  - Analytics (off until a token is set) ..... ANALYTICS / track()
   - Home-page sample dashboard ............... setupHeroDash() (data: dashboard-data.js)
   - Home-page opening animation ............. setupIntro() / INTRO_HOLD_MS
   - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
 
-  No frameworks or build step: this file is loaded as-is by index.html.
+  No frameworks. Publishing (.github/workflows/pages.yml) stamps every ?v= with the commit; locally it's ?v=dev.
 */
 
 /* ---------------------------------------------------------------------------
@@ -325,7 +326,7 @@ function mountExportMenu(container, opts) {
   container.innerHTML = `<button type="button" class="xm-btn" aria-haspopup="true" aria-expanded="false" aria-controls="${id}">${ICON_DOWNLOAD}<span>Export</span>${ICON_CHEVRON}</button>`
     + `<div class="xm-menu" id="${id}" role="menu" aria-label="Export" hidden>`
     + `<p class="xm-head"></p>`
-    + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
+    + EXPORT_FORMATS.map((f) => `<a class="xm-item" role="menuitem" data-fmt="${f.fmt}" data-track="export" data-track-detail="${f.fmt}" download><span class="xm-badge xm-badge--${f.fmt}">${f.badge}</span><span class="xm-text"><b>${f.name}</b><span>${f.what}</span><small class="xm-size"></small></span></a>`).join('')
     // (An "Include the workings" option would go here. Every export includes the workings for now.)
     + `<div class="xm-foot"><a class="xm-sub" role="menuitem" href="contact.html?topic=monthly">Get this report on your schedule &rarr;</a></div>`
     + `</div>`;
@@ -433,12 +434,22 @@ function setupContactForm() {
   }
   if (q.get('topic') === 'monthly' && q.get('report')) {
     const req = document.getElementById('contact-request');
-    req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''} as standardised reporting, given on your schedule${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
+    req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''} as monthly reporting, done for you${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
     req.hidden = false;
   }
+  // phone: an Australian number, spaces, dashes and brackets allowed (mobile, landline, 13/1300/1800, or +61)
+  const phone = form.elements.phone;
+  const checkPhone = () => {
+    const d = phone.value.replace(/[\s\-().]/g, '');
+    const ok = !d || /^(?:\+?61|0)[2-478]\d{8}$/.test(d) || /^1[38]00\d{6}$/.test(d) || /^13\d{4}$/.test(d);
+    phone.setCustomValidity(ok ? '' : 'Please enter an Australian mobile or landline number.');
+  };
+  if (phone) { phone.addEventListener('input', checkPhone); phone.addEventListener('blur', checkPhone); }
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (phone) checkPhone();
     if (!form.reportValidity()) return;
+    track('contact-submit', (form.querySelector('input[name="topic"]:checked') || {}).value || '');
     const action = form.getAttribute('action') || '';
     if (!/^https?:\/\//.test(action)) {                    // still the [[FORM_ENDPOINT]] placeholder
       status.textContent = "Thanks. This form goes live with the business email, so nothing has been sent yet. Please try again soon.";
@@ -505,19 +516,48 @@ function setupGameSlot() {
 }
 
 /* ---------------------------------------------------------------------------
-   PRICES — switched OFF by default.
+   PRICES — base rate $110 an hour; day rate $800 (7 hours × $110 = $770, rounded up).
 
-   Each price on the page shows "Talk to me about pricing" (that text is in
-   index.html, so it's what visitors see even without JavaScript). To show
-   real prices: fill in PRICES below, then set SHOW_PRICES = true.
+   Each price on the page shows "Talk to me about pricing" in the HTML (what visitors see
+   without JavaScript); with SHOW_PRICES on, the PRICES text replaces it.
    A price still written like [[TOKEN]] is never shown.
 --------------------------------------------------------------------------- */
-const SHOW_PRICES = false;
+const SHOW_PRICES = true;
 const PRICES = {
-  setup: '[[PRICE_SETUP]]',     // e.g. 'From $3,500'
-  bedding: '[[PRICE_BEDDING]]', // e.g. '$5,500 over 3 months'
-  monthly: '[[PRICE_MONTHLY]]', // e.g. 'From $900 a month'
+  setup: 'From $110 an hour · $800 a day',
+  bedding: '$110 an hour · $800 a day',
+  monthly: '$110 an hour · $800 a day',
 };
+
+/* ---------------------------------------------------------------------------
+   ANALYTICS — switched OFF. One setting: while ANALYTICS.token is a [[TOKEN]], nothing loads and nothing is sent.
+   Cookieless analytics only (no cookies, so no consent banner). To switch on once a provider is chosen: set token,
+   set src to the provider's script, and fill in send(name, detail) with the provider's event call.
+   Events come from data-track attributes, so new buttons only need the attribute:
+     booking (every "Book a free 20-minute numbers check"), email (mailto links), export (each download, detail = the
+     format), contact-submit (the contact form, sent once it passes its checks, detail = the topic).
+--------------------------------------------------------------------------- */
+const ANALYTICS = {
+  token: '[[ANALYTICS_TOKEN]]',
+  src: '',                          // the provider's script, e.g. https://<provider>/script.js
+  send: null,                       // (name, detail) => { /* the provider's event call */ }
+};
+const analyticsOn = () => Boolean(ANALYTICS.token) && !/\[\[.*\]\]/.test(ANALYTICS.token);
+function track(name, detail) {
+  if (!analyticsOn() || typeof ANALYTICS.send !== 'function') return;
+  try { ANALYTICS.send(name, detail || ''); } catch (e) { /* analytics never breaks the page */ }
+}
+function setupAnalytics() {
+  if (analyticsOn() && ANALYTICS.src) {
+    const el = document.createElement('script');
+    el.defer = true; el.src = ANALYTICS.src; el.dataset.token = ANALYTICS.token;
+    document.head.appendChild(el);
+  }
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest && e.target.closest('[data-track]');
+    if (el && el.dataset.track !== 'contact-submit') track(el.dataset.track, el.dataset.trackDetail || el.getAttribute('href') || '');
+  });
+}
 
 function applyPrices() {
   if (!SHOW_PRICES) return;
@@ -547,19 +587,21 @@ function applyPrices() {
 --------------------------------------------------------------------------- */
 const dash = { org: 'trades', tab: 'fourth', view: 'pct' };
 
+// one rounding rule everywhere (site, PDF, spreadsheet, slides): halves round away from zero, so 112.5 shows as 113 and 12.25 as 12.3
+const hu = (v, dp = 0) => { const p = 10 ** dp; return Math.sign(v) * Math.round(Math.abs(v) * p + 1e-9) / p; };
 // Accounting format in whole dollars: 1,234 / (1,234) for negatives / - for zero
 const acct = (n) => (n < 0 ? `(${Math.abs(n).toLocaleString('en-AU')})` : n === 0 ? '-' : n.toLocaleString('en-AU'));
 const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const CHART_FORMATS = {
   // over (+) / under (-) budget, said in words so an underspend isn't shown as a red negative
-  pct_var: (v) => (Math.round(v * 10) === 0 ? 'on budget' : `${Math.abs(Number(v)).toFixed(1)}% ${v > 0 ? 'over' : 'under'}`),
-  money_var: (v) => (Math.round(v) === 0 ? 'on budget' : `$${Math.abs(Math.round(v)).toLocaleString('en-AU')} ${v > 0 ? 'over' : 'under'}`),
-  money0: (v) => (v < 0 ? `($${Math.round(-v).toLocaleString('en-AU')})` : `$${Math.round(v).toLocaleString('en-AU')}`),
-  pct0: (v) => `${Math.round(v)}%`,
-  pct1: (v) => (v < 0 ? `(${Math.abs(Number(v)).toFixed(1)}%)` : `${Number(v).toFixed(1)}%`),
+  pct_var: (v) => (hu(v, 1) === 0 ? 'on budget' : `${hu(Math.abs(Number(v)), 1).toFixed(1)}% ${v > 0 ? 'over' : 'under'}`),
+  money_var: (v) => (hu(v) === 0 ? 'on budget' : `$${hu(Math.abs(v)).toLocaleString('en-AU')} ${v > 0 ? 'over' : 'under'}`),
+  money0: (v) => (v < 0 ? `($${hu(-v).toLocaleString('en-AU')})` : `$${hu(v).toLocaleString('en-AU')}`),
+  pct0: (v) => `${hu(v)}%`,
+  pct1: (v) => (v < 0 ? `(${hu(Math.abs(Number(v)), 1).toFixed(1)}%)` : `${hu(Number(v), 1).toFixed(1)}%`),
   cents_int: (v) => `${v}¢`,
-  int: (v) => Math.round(v).toLocaleString('en-AU'),
-  money_k: (v) => (Math.abs(v) >= 1000 ? `$${Math.round(v / 1000).toLocaleString('en-AU')}k` : `$${v}`),
+  int: (v) => hu(v).toLocaleString('en-AU'),
+  money_k: (v) => (Math.abs(v) >= 1000 ? `$${hu(v / 1000).toLocaleString('en-AU')}k` : `$${v}`),
 };
 
 // EXPLANATIONS: the "gross margin, not profit" boxes on the report pages. Hide them for an audience that
@@ -619,7 +661,7 @@ function renderStatement(o, st) {
   }).join('');
   const sts = window.FOURTH_SHEET_DASHBOARD.status.slice(0, 2).map((m) => `${m.label}: ${m.status.toLowerCase()}`).join(' · ');
   return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)}</p><p class="dash-status-line">${esc(sts)}</p>
-    <div class="st-scroll"><table class="st-table"><thead><tr><th scope="col">$</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}<th scope="col" class="n st-change">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="st-scroll" tabindex="0" role="region" aria-label="${esc(`${st.title}, ${o.name} (scrolls)`)}"><table class="st-table"><thead><tr><th scope="col">$</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}<th scope="col" class="n st-change">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="dash-phone-note">Headline lines shown. Every line is on a larger screen, and in the spreadsheet and PDF downloads.</p>`;
 }
 
@@ -685,7 +727,8 @@ function renderChart(ch, width = 320) {
   else if (anyBelow && !ch.marks) g += `<rect class="dash-bar--below" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Below target</text>`;
   if (ch.marks) g += `<line class="dash-mark" x1="${left + 4}" x2="${left + 4}" y1="${H - 14}" y2="${H - 1}"/><text class="dash-key" x="${left + 12}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}${ch.breakeven != null ? `; break-even ${fmt(ch.breakeven)}` : ''}.`;
-  return `<svg class="dash-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
+  // a labelled group, not an image: every bar inside is a button that opens its workings (an image can't hold buttons)
+  return `<svg class="dash-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(label)}">${g}</svg>`;
 }
 
 // A time series (spend by month): columns, with the budget as a dotted step line
@@ -794,7 +837,7 @@ function delivBand(p) {
   const done = p.on_time + p.late + p.very_late;
   if (p.overdue) return 'bad';
   if (!done) return 'open';
-  const r = p.on_time / done;
+  const r = p.on_time / (done + p.overdue);      // overdue counts as late: on time ÷ (delivered + overdue)
   return r >= 0.95 ? 'good' : r >= 0.8 ? 'some' : 'bad';
 }
 function setupDeliveries() {
@@ -939,7 +982,12 @@ function renderArea(labels, values, status, format, mini, width, target) {
     if (!mini && status && status[i] === 'Incomplete') g += `<text class="dash-key dash-key--warn" x="${cx.toFixed(1)}" y="${base + 31}" text-anchor="end">to date</text>`;
     g += '</g>';
   });
-  return `<svg class="dash-svg report-area${mini ? ' report-area--mini' : ''}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`;
+  // a text alternative for screen readers: every point when there are few, otherwise the range, the latest, the highest and the lowest
+  const said = labels.map((l, i) => [l, values[i]]).filter(([, v]) => v != null);
+  const top_ = said.reduce((a, b) => (b[1] > a[1] ? b : a), said[0] || ['', 0]), bot_ = said.reduce((a, b) => (b[1] < a[1] ? b : a), said[0] || ['', 0]);
+  const summary = !said.length ? 'No data' : said.length <= 24 ? said.map(([l, v]) => `${l} ${fmt(v)}`).join(', ')
+    : `${said.length} points, ${said[0][0]} to ${said[said.length - 1][0]}; latest ${fmt(said[said.length - 1][1])}; highest ${fmt(top_[1])} (${top_[0]}); lowest ${fmt(bot_[1])} (${bot_[0]})`;
+  return `<svg class="dash-svg report-area${mini ? ' report-area--mini' : ''}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(`Chart: ${summary}${tv != null ? `; target ${fmt(tv)}` : ''}.`)}">${g}</svg>`;
 }
 
 function renderColumns(labels, values, status, format, width) { return renderArea(labels, values, status, format, true, width); }
@@ -996,7 +1044,7 @@ function mountReport(root, r, only, simple, opts = {}) {
   }
   function tableHtml(sec) {
     const hl = sec.highlight_filter ? fval() : null;
-    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row, ri) => `<tr class="${row[0] === 'Total' ? 'st-total' : ''}${hl && hl !== 'All' && row[0] === hl ? ' st-hl' : ''}">${row.map((c, i) => { const t = sec.tones && sec.tones[ri] && sec.tones[ri][i]; return `<td${i ? ` class="n${negCls(c)}${t ? ` is-${t}` : ''}"` : ''}>${esc(c)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
+    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll" tabindex="0" role="region" aria-label="${esc(`${sec.title} (table, scrolls)`)}"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row, ri) => `<tr class="${row[0] === 'Total' ? 'st-total' : ''}${hl && hl !== 'All' && row[0] === hl ? ' st-hl' : ''}">${row.map((c, i) => { const t = sec.tones && sec.tones[ri] && sec.tones[ri][i]; return `<td${i ? ` class="n${negCls(c)}${t ? ` is-${t}` : ''}"` : ''}>${esc(c)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
   }
   function sectionHtml(sec, key, hasFilter) {
     if (sec.type === 'vary') sec = sec.by[fval()] || sec.by.All || Object.values(sec.by)[0];
@@ -1435,9 +1483,17 @@ document.addEventListener('DOMContentLoaded', () => {
       toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       navLinks.classList.toggle('open', open);
     };
-    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+    toggle.addEventListener('click', () => setOpen(!isOpen()));
     // Close the menu after picking a section.
     navLinks.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+    // Escape, or a tap anywhere outside the menu, closes it and puts focus back on ☰
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) { setOpen(false); toggle.focus(); }
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (isOpen() && !navLinks.contains(e.target) && !toggle.contains(e.target)) { setOpen(false); toggle.focus({ preventScroll: true }); }
+    });
   }
 
   // .seg groups: Left/Right (and Home/End) move to the next option and choose it
@@ -1456,6 +1512,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   setupIntro();
+  setupAnalytics();
   setupGameSlot();
   applyPrices();
   setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox(); setupChartTips(); setupTitleBar();

@@ -107,12 +107,19 @@
       }
       .game-touch [data-key="left"] { grid-area: left; }
       .game-touch [data-key="right"] { grid-area: right; }
-      .game-touch [data-key="jump"] { grid-area: jump; background: var(--accent); color: #fff; font-size: 11px; }
+      .game-touch [data-key="jump"] { grid-area: jump; background: var(--accent); color: #fff; font-size: 12px; }
       .game-touch .is-down { transform: translateY(2px); filter: brightness(0.9); }
-      .game-help { display: none; }
+      html .game-help { font-size: 12px; }
+      html .game-help .help-keys { display: none; }
+      html .game-help .help-touch { display: inline; }
     }
 
     .game-help { margin: 12px 0 0; font-size: 8px; line-height: 2; text-align: center; color: var(--muted); }
+    .game-help .help-touch { display: none; }
+    html.touch .game-help { font-size: 12px; }
+    html.touch .game-help .help-keys { display: none; }
+    html.touch .game-help .help-touch { display: inline; }
+    @media (max-width: 480px) { .game-help { font-size: 12px; } }
     .game-help a { color: var(--accent); }
     .embedded .game-help .back { display: none; }
 
@@ -121,6 +128,8 @@
   <script>
     // Mark the page as embedded before it draws, so the layout doesn't jump
     if (window.self !== window.top || /[?&]embed/.test(location.search)) document.documentElement.classList.add('embedded');
+    // Touch screens get touch instructions (some phones don't report a coarse pointer)
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) document.documentElement.classList.add('touch');
   </script>
 </head>
 <body>
@@ -144,7 +153,8 @@
         <button type="button" tabindex="-1" data-key="jump">JUMP</button>
       </div>
       <p class="game-help">
-        Arrows move &middot; Space jumps &middot; P pauses &middot; M sound
+        <span class="help-keys">Arrows move &middot; Space jumps &middot; P pauses &middot; M sound</span>
+        <span class="help-touch">Tap to start &middot; &#9664; &#9654; move &middot; JUMP jumps</span>
         <span class="back">&middot; <a href="../">Back to the site</a></span>
       </p>
     </div>

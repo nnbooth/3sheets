@@ -35,9 +35,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
-    <!-- ?v= is a version number: change it whenever styles.css or script.js
-         changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-12-09" />
+    <!-- ?v= is the version: "dev" here; publishing (.github/workflows/pages.yml) stamps every one with the commit,
+         so browsers fetch new files after each publish. Nothing to change by hand. -->
+    <link rel="stylesheet" href="styles.css?v=dev" />
   </head>
 
   <!--
@@ -55,7 +55,7 @@
 
     <header class="site-header">
       <div class="container nav-bar">
-        <a class="brand" href="index.html" aria-label="The Fourth Sheet, home"><span class="brand-mark" aria-hidden="true">4<sup>th</sup></span><span aria-hidden="true">The Fourth Sheet</span></a>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">4<sup>th</sup></span><span>The Fourth Sheet</span></a>
         <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
         <!-- Keep these links in the same order as the sections below. -->
         <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
@@ -65,7 +65,7 @@
           <a href="services.html">Services</a>
           <a href="about.html">About</a>
           <a href="contact.html">Contact</a>
-          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          <a class="button primary nav-book" href="contact.html" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
         </nav>
       </div>
     </header>
@@ -95,8 +95,7 @@
 
           <p class="no-data-line"><strong>No data to hand over yet?</strong> I'll help you set up the processes and frameworks to start capturing it, then build the reporting on top.</p>
           <div class="audience-foot">
-            <p class="proof"><span class="proof-label">Example</span> <span class="tbc" data-placeholder="[[NFP_EXAMPLE]]">Not-for-profit example TBC</span></p>
-            <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+            <a class="button primary" href="#contact" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
           </div>
           <span class="devnote devnote--inline" role="note">TO DO: not-for-profit example (waiting on how to reference it)</span>
         </div>
@@ -108,16 +107,16 @@
           <div class="section-heading">
             <p class="eyebrow">Example reports</p>
             <h2>What each question looks like, answered.</h2>
-            <p class="lead">Built on sample data for an invented community services charity, with every number's workings, 24 months of history, and spreadsheet, PDF and slide downloads.</p>
+            <p class="lead">Built on sample data for an invented community services charity, with every number's workings, up to 24 months of history, and spreadsheet, PDF and slide downloads.</p>
           </div>
           <!-- REPORT CARDS:START -->
           <div class="report-feature"><p class="eyebrow">Featured: <a href="report-program-cost.html">What does each program really cost?</a></p><div data-report-feature="program-cost" data-only="bars"><noscript><p>Turn on JavaScript to see the chart, or <a href="report-program-cost.html">open the report</a>.</p></noscript></div></div>
           <ul class="report-cards">
             <li><h3><a href="report-cost-to-raise.html">What does it cost to raise a dollar?</a></h3><div class="card-chart" data-report-card="cost-to-raise" aria-hidden="true"></div><p>Each dollar raised cost 20¢ in September, and 15¢ a dollar this financial year to date.</p><a class="report-open" href="report-cost-to-raise.html">Open the report &rarr;</a></li>
             <li><h3><a href="report-program-cost.html">What does each program really cost?</a></h3><div class="card-chart" data-report-card="program-cost" aria-hidden="true"></div><p>Housing support costs $54,094 in full in September: $22,894 more than its grant spending, once its share of shared costs is added.</p><a class="report-open" href="report-program-cost.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-runway.html">How many months of runway do we have?</a></h3><div class="card-chart" data-report-card="runway" aria-hidden="true"></div><p>2.0 months of spending in unrestricted cash, against a 3.0 months reserves target.</p><a class="report-open" href="report-runway.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-runway.html">How many months of runway do we have?</a></h3><div class="card-chart" data-report-card="runway" aria-hidden="true"></div><p>1.9 months of spending in unrestricted cash, against a 3.0 months reserves target.</p><a class="report-open" href="report-runway.html">Open the report &rarr;</a></li>
             <li><h3><a href="report-funding.html">Which funding is worth chasing?</a></h3><div class="card-chart" data-report-card="funding" aria-hidden="true"></div><p>Grants cost 9¢ to raise each dollar in September; fundraising events 41¢.</p><a class="report-open" href="report-funding.html">Open the report &rarr;</a></li>
-            <li><h3><a href="report-board.html">What does the board need to see?</a></h3><div class="card-chart" data-report-card="board" aria-hidden="true"></div><p>A $10,380 surplus in September, 2.0 months of runway, and 2 grants ending within 6 months.</p><a class="report-open" href="report-board.html">Open the report &rarr;</a></li>
+            <li><h3><a href="report-board.html">What does the board need to see?</a></h3><div class="card-chart" data-report-card="board" aria-hidden="true"></div><p>A $10,380 surplus in September, 1.9 months of runway, and 4 grants ending within 6 months.</p><a class="report-open" href="report-board.html">Open the report &rarr;</a></li>
             <li><h3><a href="report-people-helped.html">How many people did we help this month, and how many couldn&#x27;t we reach?</a></h3><div class="card-chart" data-report-card="people-helped" aria-hidden="true"></div><p>548 people helped in September; 100 couldn&#x27;t be reached (84.6% reached, target 90.0%).</p><a class="report-open" href="report-people-helped.html">Open the report &rarr;</a></li>
             <li><h3><a href="report-calls.html">When do calls for help come in, and are we there to answer?</a></h3><div class="card-chart" data-report-card="calls" aria-hidden="true"></div><p>817 calls in September: 79.5% answered while staffed (target 90.0%); 50.6% came outside staffed hours.</p><a class="report-open" href="report-calls.html">Open the report &rarr;</a></li>
             <li><h3><a href="report-volunteers.html">How many volunteer hours go into each program?</a></h3><div class="card-chart" data-report-card="volunteers" aria-hidden="true"></div><p>925.0 h of volunteer time in September, from 59 volunteers; most went to Mental health first aid.</p><a class="report-open" href="report-volunteers.html">Open the report &rarr;</a></li>
@@ -148,13 +147,13 @@
                  (removing data-placeholder and hidden) and change "Prefer email?" back to "Prefer email or LinkedIn?". -->
             <p class="contact-secondary">
               Prefer email?
-              <a href="mailto:nathan@thefourthsheet.com.au">nathan@thefourthsheet.com.au</a>
+              <a href="mailto:nathan@thefourthsheet.com.au" data-track="email">nathan@thefourthsheet.com.au</a>
               <span class="tbc" data-placeholder="[[LINKEDIN_URL]]" hidden>LinkedIn TBC</span>
             </p>
             <p class="contact-form-link"><a href="contact.html">Or send me your details &rarr;</a></p>
           </div>
           <!-- [[BOOKING_URL]]: replace href="#contact" with your booking link. -->
-          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]">Book a free 20-minute numbers check</a>
+          <a class="button primary contact-cta" href="#contact" data-placeholder="[[BOOKING_URL]]" data-track="booking">Book a free 20-minute numbers check</a>
         </div>
       </section>
 
@@ -172,7 +171,7 @@
       </div>
     </footer>
 
-    <script src="data/reports-data.js?v=2026-12-09"></script>
-    <script src="script.js?v=2026-12-09"></script>
+    <script src="data/reports-data.js?v=dev"></script>
+    <script src="script.js?v=dev"></script>
   </body>
 </html>
