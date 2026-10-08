@@ -433,11 +433,20 @@ function setupContactForm() {
   }
   if (q.get('topic') === 'monthly' && q.get('report')) {
     const req = document.getElementById('contact-request');
-    req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''} as standardised reporting, given on your schedule${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
+    req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''} as monthly reporting, done for you${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
     req.hidden = false;
   }
+  // phone: an Australian number, spaces, dashes and brackets allowed (mobile, landline, 13/1300/1800, or +61)
+  const phone = form.elements.phone;
+  const checkPhone = () => {
+    const d = phone.value.replace(/[\s\-().]/g, '');
+    const ok = !d || /^(?:\+?61|0)[2-478]\d{8}$/.test(d) || /^1[38]00\d{6}$/.test(d) || /^13\d{4}$/.test(d);
+    phone.setCustomValidity(ok ? '' : 'Please enter an Australian mobile or landline number.');
+  };
+  if (phone) { phone.addEventListener('input', checkPhone); phone.addEventListener('blur', checkPhone); }
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (phone) checkPhone();
     if (!form.reportValidity()) return;
     const action = form.getAttribute('action') || '';
     if (!/^https?:\/\//.test(action)) {                    // still the [[FORM_ENDPOINT]] placeholder
@@ -505,18 +514,17 @@ function setupGameSlot() {
 }
 
 /* ---------------------------------------------------------------------------
-   PRICES — switched OFF by default.
+   PRICES — base rate $110 an hour; day rate $800 (7 hours × $110 = $770, rounded up).
 
-   Each price on the page shows "Talk to me about pricing" (that text is in
-   index.html, so it's what visitors see even without JavaScript). To show
-   real prices: fill in PRICES below, then set SHOW_PRICES = true.
+   Each price on the page shows "Talk to me about pricing" in the HTML (what visitors see
+   without JavaScript); with SHOW_PRICES on, the PRICES text replaces it.
    A price still written like [[TOKEN]] is never shown.
 --------------------------------------------------------------------------- */
-const SHOW_PRICES = false;
+const SHOW_PRICES = true;
 const PRICES = {
-  setup: '[[PRICE_SETUP]]',     // e.g. 'From $3,500'
-  bedding: '[[PRICE_BEDDING]]', // e.g. '$5,500 over 3 months'
-  monthly: '[[PRICE_MONTHLY]]', // e.g. 'From $900 a month'
+  setup: 'From $110 an hour · $800 a day',
+  bedding: '$110 an hour · $800 a day',
+  monthly: '$110 an hour · $800 a day',
 };
 
 function applyPrices() {
