@@ -129,6 +129,11 @@ section[id], main[id] { scroll-margin-top: 4.5rem; }
 .hero-grid { display: grid; gap: var(--sp-7); grid-template-columns: 1.4fr 0.9fr; align-items: center; }
 .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em; font-size: var(--fs-xs); font-weight: 700; margin-bottom: var(--sp-2); }
 h1, h2, h3 { line-height: 1.15; margin: 0 0 var(--sp-3); }
+/* PARAGRAPH RHYTHM — 12 px between paragraphs, none above; nothing extra after the last thing in a card or box */
+p { margin: 0 0 var(--sp-3); }
+:is(.info-card, .rung, .rung-card, .step-card, .contact-box, .dashboard-card, .report-card, .no-data, .client-needs) > :last-child,
+:is(.contact-box) > div > :last-child { margin-bottom: 0; }
+.eyebrow:first-child { margin-top: 0; }      /* a label that starts a block adds no space above it */
 h1 { font-size: var(--fs-2xl); margin: 0 0 var(--sp-4); letter-spacing: -0.03em; }
 h2 { font-size: var(--fs-xl); margin: 0 0 var(--sp-3); letter-spacing: -0.02em; }
 .section-heading a { color: var(--accent); text-underline-offset: 3px; }
@@ -146,7 +151,7 @@ h2 { font-size: var(--fs-xl); margin: 0 0 var(--sp-3); letter-spacing: -0.02em; 
 .metric-value.positive { color: var(--accent); }
 .metric-value.neutral { color: var(--text); }
 /* SECTION SPACING — the gap between sections is about twice this (bottom of one + top of the next) */
-.section { padding: var(--sp-7) 0; }
+.section { padding: var(--sp-6) 0; }
 .section-alt { background: var(--bg-alt); }
 .section .container > :first-child, .section-heading > :first-child { margin-top: 0; }
 /* SECTION HEADING — controls gap between heading and section content */
@@ -154,7 +159,7 @@ h2 { font-size: var(--fs-xl); margin: 0 0 var(--sp-3); letter-spacing: -0.02em; 
 .card-grid, .dashboard-grid, .steps-grid { display: grid; gap: var(--sp-5); }
 .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .dashboard-grid, .steps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.info-card, .dashboard-card, .step-card { padding: var(--sp-6); }
+.info-card, .dashboard-card, .step-card { padding: var(--sp-5); }
 /* DECISION LIST — vertical stacked annotations, e.g. "judgment calls" callouts
    under a diagram. One item per row rather than a card grid, for short notes
    that read better top-to-bottom than side-by-side. */
@@ -179,7 +184,7 @@ h2 { font-size: var(--fs-xl); margin: 0 0 var(--sp-3); letter-spacing: -0.02em; 
   margin-bottom: var(--sp-2);
 }
 .decision-item p { margin: 0; color: var(--text); font-size: var(--fs-md); }
-.contact-box { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4); padding: var(--sp-6); }
+.contact-box { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4); padding: var(--sp-5); }
 /* EMBED LOADING STATE — spinner/message laid over an iframe until it loads.
    script.js (watchEmbedLoad) adds .is-loading / .is-slow / .is-loaded to the
    container. Without JavaScript the overlay never shows. */
@@ -698,7 +703,7 @@ body.dev-notes .devnote { display: flex; }
 
 /* THE OFFER — three-rung ladder */
 .ladder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-5); margin: 0 0 var(--sp-6); padding: 0; list-style: none; }
-.rung { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-6); }
+.rung { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-5); }
 .rung-step { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; margin-bottom: var(--sp-2); border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 700; }
 .rung p { color: var(--muted); }
 .rung-price { margin-top: auto; padding-top: var(--sp-3); border-top: 1px solid var(--border); font-weight: 700; color: var(--text); }
@@ -866,7 +871,7 @@ body.dev-notes .devnote { display: flex; }
   .hero-grid--dash, .wins-grid, .card-grid, .card-grid--two, .audience-grid, .ladder, .doors, .org-lists, .dashboard-grid, .steps-grid, .hero-grid, .report-grid, .game-grid, .scope-list, .display-grid, .excel-grid, .example-split { grid-template-columns: 1fr; }
   .contact-box { flex-direction: column; align-items: flex-start; }
   /* MOBILE SECTION SPACING — tighten further on tablet/mobile */
-  .section { padding: var(--sp-6) 0; }
+  .section { padding: var(--sp-5) 0; }
   .section-heading { margin-bottom: var(--sp-4); }
 }
 @media (max-width: 720px) {
@@ -1141,7 +1146,7 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .dash-caption .made-with { display: block; margin-top: var(--sp-1); }
 
 /* LADDER — "Start here" sits beside the step number, so the three tiles' headings line up */
-.rung .rung-tag { position: absolute; top: var(--sp-6); left: calc(var(--sp-6) + 2rem + var(--sp-2)); right: var(--sp-6); margin: 0; line-height: 2rem; }
+.rung .rung-tag { position: absolute; top: var(--sp-5); left: calc(var(--sp-5) + 2rem + var(--sp-2)); right: var(--sp-5); margin: 0; line-height: 2rem; }
 
 /* CONTACT — the email under "Or book a time" */
 .contact-direct-h { margin-top: var(--sp-6); }

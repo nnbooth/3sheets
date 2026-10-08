@@ -178,3 +178,5 @@
 
 ## Game demo, with sound (8 Oct)
 - Re-recorded: the end card shows www.thefourthsheet.com.au. The MP4s now have sound. Every sound cue is logged with its game tick and rendered offline through the game's own synth (`game-audio.js` `renderOffline`), so it lines up with the frames exactly. Levelled to about -16 LUFS, and the music carries through the summary and end card in the videos (fading out over the last moments) rather than stopping. The live game is unchanged. The GIF stays silent.
+
+- Tighter spacing (second pass): section padding 24 px (20 on phones), card padding 20 px, paragraphs 12 px apart with no top margin, nothing extra after the last item in a card, and no space above a label that starts a block. The gap from the home ladder to the contact box is 48 px (was 64), and inside the contact box above its label 21 px (was 41).
