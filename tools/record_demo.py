@@ -20,7 +20,11 @@ HOW IT WORKS
        the 15-second cut is assembled from those timestamps (see CUT_15S).
     5. Every frame's text is checked by the game's own audit (off screen,
        overlapping, or half-hidden text) and any problems are listed.
-    6. ffmpeg turns the frames into MP4s and a GIF.
+    6. Sound on: every sound cue (effects, music on/off, the automation layer)
+       is logged with its game tick, then rendered offline through the game's
+       own synth (game-audio.js renderOffline) to a WAV that lines up with the
+       frames exactly. The MP4s carry it; the GIF is silent.
+    7. ffmpeg turns the frames into MP4s and a GIF.
 
 SETUP (once)
     pip install playwright
@@ -103,6 +107,17 @@ def capture_frames(base_url, frames_dir):
         page.wait_for_function("window.__game !== undefined")
         page.evaluate("window.__game.ready")
 
+        # sound on: log every cue with its game tick (the synth renders them offline afterwards)
+        page.evaluate("""() => {
+          window.__audioLog = [];
+          const A = window.S3Audio, log = (k, v) => window.__audioLog.push([window.__game.tick, k, v]);
+          Object.defineProperty(A, 'muted', { get: () => false, configurable: true });
+          let m = false, l = false;
+          A.sfx = name => log('sfx', name);
+          A.music = on => { on = !!on; if (on !== m) { m = on; log('music', on); } };
+          A.layer = on => { on = !!on; if (on !== l) { l = on; log('layer', on); } };
+          A.unlock = () => {};
+        }""")
         grab = "document.getElementById('game-canvas').toDataURL('image/png')"
         frame, end_frame = 0, None
         text_issues = {}  # frame number -> problems found by the game's text audit
@@ -122,6 +137,16 @@ def capture_frames(base_url, frames_dir):
                 print(f"  {frame // FPS:>3}s  {state}", flush=True)
 
         marks = page.evaluate("({...window.__game.marks})")
+        # render the soundtrack: game ticks (60 a second) to seconds; frame 0 shows tick TICKS_PER_FRAME
+        seconds = frame / FPS + 0.5
+        # The live game stops its music on the summary and end card; in a video that sounds like the audio cut out,
+        # so the recordings keep the soundtrack going to the end (it fades out over the last moments, see encode_mp4).
+        wav_b64 = page.evaluate(f"""async () => window.S3Audio.renderOffline(
+            window.__audioLog.filter(([t, k, v]) => !(k === 'music' && !v && t >= window.__game.marks.summary))
+              .map(([t, k, v]) => [Math.max(0, (t - {TICKS_PER_FRAME}) / 60), k, v]), {seconds})""")
+        cues = page.evaluate("window.__audioLog.length")
+        (frames_dir.parent / "sound.wav").write_bytes(base64.b64decode(wav_b64))
+        print(f"Sound: {cues} cues rendered ({seconds:.1f} s).")
         browser.close()
 
     if errors:
@@ -142,13 +167,28 @@ def ffmpeg(*args):
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *args], check=True)
 
 
-def encode_mp4(frames_dir, out):
-    """Frames -> H.264 MP4 that plays everywhere (LinkedIn, browsers, email clients)."""
+def encode_mp4(frames_dir, out, audio=None):
+    """Frames (+ sound) -> H.264/AAC MP4 that plays everywhere (LinkedIn, browsers, email clients)."""
     ffmpeg(
         "-framerate", str(FPS), "-i", str(frames_dir / "%05d.png"),
-        "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-tune", "animation",
-        "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out),
+        *(["-i", str(audio)] if audio else []),
+        "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-tune", "animation", "-pix_fmt", "yuv420p",
+        # levelled to the usual loudness for online video (about -16 LUFS), so it isn't quieter than everything around it
+        *(["-af", "loudnorm=I=-16:TP=-1.5:LRA=11,areverse,afade=t=in:d=1.5,areverse", "-c:a", "aac", "-b:a", "160k", "-ar", "44100", "-shortest"] if audio else []),
+        "-movflags", "+faststart", str(out),
     )
+
+
+def cut_audio(wav, marks, cut, out):
+    """The 15-second cut's sound: the same slices as the frames, joined with 15 ms fades so nothing clicks."""
+    parts, chains = [], []
+    for k, (beat, offset, length) in enumerate(cut):
+        start = (marks[beat] + round(offset * FPS)) / FPS
+        chains.append(f"[0:a]atrim=start={start:.4f}:duration={length:.4f},asetpts=PTS-STARTPTS,"
+                      f"afade=t=in:d=0.015,afade=t=out:st={max(0, length - 0.015):.4f}:d=0.015[a{k}]")
+        parts.append(f"[a{k}]")
+    ffmpeg("-i", str(wav), "-filter_complex", ";".join(chains) + ";" + "".join(parts) + f"concat=n={len(parts)}:v=0:a=1[out]",
+           "-map", "[out]", str(out))
 
 
 def build_cut(frames_dir, marks, cut, cut_dir):
@@ -197,14 +237,17 @@ def main():
         print(f"Captured {total} frames ({total / FPS:.1f} s). Story beats (s):",
               ", ".join(f"{k} {v / FPS:.1f}" for k, v in sorted(marks.items(), key=lambda kv: kv[1])))
 
+        sound = tmp / "sound.wav"
         full = MEDIA / "month-end-run-full.mp4"
-        encode_mp4(frames, full)
+        encode_mp4(frames, full, sound)
 
         cut_dir = tmp / "cut15"
         cut_dir.mkdir()
         n = build_cut(frames, marks, CUT_15S, cut_dir)
         short = MEDIA / "month-end-run-15s.mp4"
-        encode_mp4(cut_dir, short)
+        cut_sound = tmp / "sound-15s.wav"
+        cut_audio(sound, marks, CUT_15S, cut_sound)
+        encode_mp4(cut_dir, short, cut_sound)
 
         gif = MEDIA / "month-end-run-15s.gif"
         gw, gfps, gmb = encode_gif(cut_dir, gif)

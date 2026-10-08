@@ -175,3 +175,6 @@
 - The site is served from www.thefourthsheet.com.au (CNAME from GitHub Pages). Every `[[DOMAIN]]` became the domain: canonical links, share previews (og:url, og:image, twitter:image) on every page, and the game's end-card text. Also updated: README, and the Referer the deliveries map build sends to OpenStreetMap. Every internal link was already relative, so nothing else changed.
 - Email: nathan@thefourthsheet.com.au replaces the "Email TBC" chip on every page, and the contact page gains "Or just email me" under the booking option.
 - LinkedIn: no profile yet, so its chips are hidden (kept in the code, `hidden`) and the line reads "Prefer email?". The project notes say how to switch it back on.
+
+## Game demo, with sound (8 Oct)
+- Re-recorded: the end card shows www.thefourthsheet.com.au. The MP4s now have sound. Every sound cue is logged with its game tick and rendered offline through the game's own synth (`game-audio.js` `renderOffline`), so it lines up with the frames exactly. Levelled to about -16 LUFS, and the music carries through the summary and end card in the videos (fading out over the last moments) rather than stopping. The live game is unchanged. The GIF stays silent.

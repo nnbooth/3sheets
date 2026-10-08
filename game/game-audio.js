@@ -217,6 +217,76 @@
     }
   }
 
+  /* ---------------------------------------------------------------- offline render (demo recordings)
+
+     tools/record_demo.py steps the game frame by frame, so sound can't be recorded live. Instead it logs every
+     cue with its time and asks for the soundtrack to be rendered offline, through this same synth:
+       events: [[seconds, 'sfx', name] | [seconds, 'music', true/false] | [seconds, 'layer', true/false]]
+     Returns a Promise of 16-bit stereo WAV bytes, base64. Noise uses seeded randomness, so a render repeats exactly. */
+
+  async function renderOffline(events, seconds, rate = 44100) {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const keep = { ac, master, musicBus, sfxBus, noiseBuf, waves: { ...waves }, autoLayer, loopCount };
+    let seed = 20261031;
+    const rnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const realRandom = Math.random;
+    Math.random = rnd;
+    try {
+      ac = new OAC(2, Math.ceil(seconds * rate), rate);
+      master = ac.createGain(); master.gain.value = 0.32; master.connect(ac.destination);
+      musicBus = ac.createGain(); musicBus.gain.value = 0.55; musicBus.connect(master);
+      sfxBus = ac.createGain(); sfxBus.gain.value = 0.8; sfxBus.connect(master);
+      waves.p12 = pulseWave(0.125); waves.p25 = pulseWave(0.25); waves.p50 = pulseWave(0.5);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = rnd() * 2 - 1;
+
+      const ev = events.slice().sort((a, b) => a[0] - b[0]);
+      const layers = ev.filter(e => e[1] === 'layer');
+      const layerAt = t => { let on = false; for (const [lt, , v] of layers) { if (lt <= t) on = !!v; else break; } return on; };
+      // music: each on..off stretch plays the loop from its start, exactly as live
+      let on = null;
+      const play = (t0, t1) => {
+        let st = 0; loopCount = 0; let base = t0 + 0.08, t = base;
+        while (t < t1) {
+          autoLayer = layerAt(t);
+          scheduleStep(st, t);
+          st++;
+          if (st >= STEPS) { st = 0; loopCount++; base += EIGHTH * STEPS; }
+          t = stepTime(st, base);
+        }
+        musicBus.gain.setValueAtTime(0.55, t1);            // the live version's quick fade at "off"
+        musicBus.gain.linearRampToValueAtTime(0, t1 + 0.12);
+        musicBus.gain.setValueAtTime(0.55, t1 + 0.4);
+      };
+      for (const [t, kind, v] of ev) {
+        if (kind === 'sfx' && SFX[v]) SFX[v](t + 0.005);
+        if (kind === 'music') {
+          if (v && on === null) on = t;
+          if (!v && on !== null) { play(on, t); on = null; }
+        }
+      }
+      if (on !== null) play(on, seconds);
+      const buf = await ac.startRendering();
+      // 16-bit PCM WAV
+      const n = buf.length, ch = buf.numberOfChannels, out = new DataView(new ArrayBuffer(44 + n * ch * 2));
+      const str = (o, x) => { for (let i = 0; i < x.length; i++) out.setUint8(o + i, x.charCodeAt(i)); };
+      str(0, 'RIFF'); out.setUint32(4, 36 + n * ch * 2, true); str(8, 'WAVE'); str(12, 'fmt ');
+      out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, ch, true); out.setUint32(24, rate, true);
+      out.setUint32(28, rate * ch * 2, true); out.setUint16(32, ch * 2, true); out.setUint16(34, 16, true); str(36, 'data'); out.setUint32(40, n * ch * 2, true);
+      const data = []; for (let c = 0; c < ch; c++) data.push(buf.getChannelData(c));
+      let o = 44;
+      for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++) { const x = Math.max(-1, Math.min(1, data[c][i])); out.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7fff, true); o += 2; }
+      let bin = ''; const bytes = new Uint8Array(out.buffer);
+      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      return btoa(bin);
+    } finally {
+      Math.random = realRandom;
+      ({ ac, master, musicBus, sfxBus, noiseBuf, autoLayer, loopCount } = keep);
+      Object.assign(waves, keep.waves);
+    }
+  }
+
   /* ---------------------------------------------------------------- public */
 
   window.S3Audio = {
@@ -231,6 +301,7 @@
     },
     music,
     layer(on) { autoLayer = !!on; },
+    renderOffline,
     toggleMute() {
       muted = !muted;
       try { localStorage.setItem('s3-sound', muted ? 'off' : 'on'); } catch (e) { /* ignore */ }
