@@ -629,7 +629,7 @@ function renderStatement(o, st) {
   }).join('');
   const sts = window.FOURTH_SHEET_DASHBOARD.status.slice(0, 2).map((m) => `${m.label}: ${m.status.toLowerCase()}`).join(' · ');
   return `<p class="dash-chart-title">${esc(st.title)} · ${esc(o.name)}</p><p class="dash-status-line">${esc(sts)}</p>
-    <div class="st-scroll"><table class="st-table"><thead><tr><th scope="col">$</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}<th scope="col" class="n st-change">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="st-scroll" tabindex="0" role="region" aria-label="${esc(`${st.title}, ${o.name} (scrolls)`)}"><table class="st-table"><thead><tr><th scope="col">$</th>${o.columns.map((c) => `<th scope="col" class="n">${c}</th>`).join('')}<th scope="col" class="n st-change">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="dash-phone-note">Headline lines shown. Every line is on a larger screen, and in the spreadsheet and PDF downloads.</p>`;
 }
 
@@ -695,7 +695,8 @@ function renderChart(ch, width = 320) {
   else if (anyBelow && !ch.marks) g += `<rect class="dash-bar--below" x="${left}" y="${H - 13}" width="11" height="11" rx="2"/><text class="dash-key" x="${left + 16}" y="${H - 3}">Below target</text>`;
   if (ch.marks) g += `<line class="dash-mark" x1="${left + 4}" x2="${left + 4}" y1="${H - 14}" y2="${H - 1}"/><text class="dash-key" x="${left + 12}" y="${H - 3}">${esc(ch.mark_label || '')}</text>`;
   const label = `${ch.title}: ${ch.labels.map((l, i) => `${l} ${fmt(ch.values[i])}`).join(', ')}${ch.target != null ? `; target ${fmt(ch.target)}` : ''}${ch.breakeven != null ? `; break-even ${fmt(ch.breakeven)}` : ''}.`;
-  return `<svg class="dash-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">${g}</svg>`;
+  // a labelled group, not an image: every bar inside is a button that opens its workings (an image can't hold buttons)
+  return `<svg class="dash-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(label)}">${g}</svg>`;
 }
 
 // A time series (spend by month): columns, with the budget as a dotted step line
@@ -949,7 +950,12 @@ function renderArea(labels, values, status, format, mini, width, target) {
     if (!mini && status && status[i] === 'Incomplete') g += `<text class="dash-key dash-key--warn" x="${cx.toFixed(1)}" y="${base + 31}" text-anchor="end">to date</text>`;
     g += '</g>';
   });
-  return `<svg class="dash-svg report-area${mini ? ' report-area--mini' : ''}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`;
+  // a text alternative for screen readers: every point when there are few, otherwise the range, the latest, the highest and the lowest
+  const said = labels.map((l, i) => [l, values[i]]).filter(([, v]) => v != null);
+  const top_ = said.reduce((a, b) => (b[1] > a[1] ? b : a), said[0] || ['', 0]), bot_ = said.reduce((a, b) => (b[1] < a[1] ? b : a), said[0] || ['', 0]);
+  const summary = !said.length ? 'No data' : said.length <= 24 ? said.map(([l, v]) => `${l} ${fmt(v)}`).join(', ')
+    : `${said.length} points, ${said[0][0]} to ${said[said.length - 1][0]}; latest ${fmt(said[said.length - 1][1])}; highest ${fmt(top_[1])} (${top_[0]}); lowest ${fmt(bot_[1])} (${bot_[0]})`;
+  return `<svg class="dash-svg report-area${mini ? ' report-area--mini' : ''}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(`Chart: ${summary}${tv != null ? `; target ${fmt(tv)}` : ''}.`)}">${g}</svg>`;
 }
 
 function renderColumns(labels, values, status, format, width) { return renderArea(labels, values, status, format, true, width); }
@@ -1006,7 +1012,7 @@ function mountReport(root, r, only, simple, opts = {}) {
   }
   function tableHtml(sec) {
     const hl = sec.highlight_filter ? fval() : null;
-    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row, ri) => `<tr class="${row[0] === 'Total' ? 'st-total' : ''}${hl && hl !== 'All' && row[0] === hl ? ' st-hl' : ''}">${row.map((c, i) => { const t = sec.tones && sec.tones[ri] && sec.tones[ri][i]; return `<td${i ? ` class="n${negCls(c)}${t ? ` is-${t}` : ''}"` : ''}>${esc(c)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
+    return `<div class="report-card"><h2 class="report-h">${esc(sec.title)}</h2><div class="st-scroll" tabindex="0" role="region" aria-label="${esc(`${sec.title} (table, scrolls)`)}"><table class="st-table report-table"><thead><tr>${sec.head.map((h, i) => `<th scope="col"${i ? ' class="n"' : ''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sec.rows.map((row, ri) => `<tr class="${row[0] === 'Total' ? 'st-total' : ''}${hl && hl !== 'All' && row[0] === hl ? ' st-hl' : ''}">${row.map((c, i) => { const t = sec.tones && sec.tones[ri] && sec.tones[ri][i]; return `<td${i ? ` class="n${negCls(c)}${t ? ` is-${t}` : ''}"` : ''}>${esc(c)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>${sec.note ? `<p class="dash-chart-sub">${esc(sec.note)}</p>` : ''}</div>`;
   }
   function sectionHtml(sec, key, hasFilter) {
     if (sec.type === 'vary') sec = sec.by[fval()] || sec.by.All || Object.values(sec.by)[0];
@@ -1445,9 +1451,17 @@ document.addEventListener('DOMContentLoaded', () => {
       toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       navLinks.classList.toggle('open', open);
     };
-    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+    toggle.addEventListener('click', () => setOpen(!isOpen()));
     // Close the menu after picking a section.
     navLinks.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+    // Escape, or a tap anywhere outside the menu, closes it and puts focus back on ☰
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) { setOpen(false); toggle.focus(); }
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (isOpen() && !navLinks.contains(e.target) && !toggle.contains(e.target)) { setOpen(false); toggle.focus({ preventScroll: true }); }
+    });
   }
 
   // .seg groups: Left/Right (and Home/End) move to the next option and choose it
