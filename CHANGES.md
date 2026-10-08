@@ -153,3 +153,8 @@
 
 ## Budget colours (8 Oct)
 - Grant budget charts and the board's grants table: over budget red, under budget green (the standard green), within 1% amber, on budget neutral, judged on % of budget. Site, PDF, Excel and PowerPoint alike, with a three-way key ("Over budget · Under budget · Within 1%"). This replaces the 7 Oct rule that showed under budget red like over.
+
+## About: three career stories (8 Oct)
+- The three career cards are filled in (healthcare diagnostics, manufacturing, legal services); no employer is named anywhere on the site. The placeholders `[[CAREER_1]]`–`[[CAREER_3]]` are gone.
+- Card 1 has a reference-quote slot (`[[QUOTE_1]]`), hidden until filled in (the `hidden` attribute, and CSS while `data-placeholder` is there). A thin brand-green rule, normal weight.
+- Employer names removed from the home page's credentials line (now "Healthcare diagnostics · Manufacturing · Legal services") and the Examples page's description.

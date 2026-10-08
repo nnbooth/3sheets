@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-11-14" />
+    <link rel="stylesheet" href="styles.css?v=2026-11-15" />
   </head>
 
   <!--
@@ -111,8 +111,9 @@
         </div>
       </section>
 
-      <!-- CAREER MOMENTS: three short stories, each with a result in numbers. [[CAREER_1]] to [[CAREER_3]]:
-           Nathan to write these; replace the bracketed text and remove data-placeholder (see the project notes). -->
+      <!-- CAREER MOMENTS: three short stories, each with its result. No employer is named anywhere on the site.
+           [[QUOTE_1]] (card 1): a reference quote, hidden until filled in: replace the bracketed text, then remove
+           both data-placeholder and hidden from the blockquote (see the project notes). -->
       <section id="career" class="section">
         <div class="container">
           <div class="section-heading">
@@ -120,23 +121,27 @@
             <h2>What the work has looked like.</h2>
           </div>
           <div class="card-grid">
-            <article class="info-card moment" data-placeholder="[[CAREER_1]]">
-              <span class="card-tag">Industry TBC</span>
-              <h3>[The question the business couldn't answer]</h3>
-              <p>[What I built or changed, in one or two sentences.]</p>
-              <p class="moment-result">[The result, in numbers]</p>
+            <article class="info-card moment">
+              <span class="card-tag">Healthcare diagnostics</span>
+              <h3>Can we trust these sales numbers?</h3>
+              <p>I stripped the reports back to what mattered and reconciled them to the ledger. Then I added open orders, locked down who saw what, and kept the data honest with automation, clear rules on where it lived, and constant checks.</p>
+              <p class="moment-result">Daily figures across Australia, New Zealand and the Pacific, with 15+ users trained. It ran for years after I left, and was retired only when the business changed ERPs.</p>
+              <blockquote class="moment-quote" data-placeholder="[[QUOTE_1]]" hidden>
+                <p>[Quote from former colleague]</p>
+                <footer>[Name or role], global diagnostics company</footer>
+              </blockquote>
             </article>
-            <article class="info-card moment" data-placeholder="[[CAREER_2]]">
-              <span class="card-tag">Industry TBC</span>
-              <h3>[The question the business couldn't answer]</h3>
-              <p>[What I built or changed, in one or two sentences.]</p>
-              <p class="moment-result">[The result, in numbers]</p>
+            <article class="info-card moment">
+              <span class="card-tag">Manufacturing</span>
+              <h3>Which million-dollar builds actually made money?</h3>
+              <p>Labour hours weren't reaching job costs. I set up time-and-attendance capture and new payroll, fed the data into Power BI, and helped roll out the ERP.</p>
+              <p class="moment-result">Costing and variance on $1 million-plus projects, from the shop floor up, with live dashboards on the factory-floor screens.</p>
             </article>
-            <article class="info-card moment" data-placeholder="[[CAREER_3]]">
-              <span class="card-tag">Industry TBC</span>
-              <h3>[The question the business couldn't answer]</h3>
-              <p>[What I built or changed, in one or two sentences.]</p>
-              <p class="moment-result">[The result, in numbers]</p>
+            <article class="info-card moment">
+              <span class="card-tag">Legal services</span>
+              <h3>Where does each matter stand on budget and funding?</h3>
+              <p>I prepared the monthly matter-level reporting in Power BI and Excel, and helped tighten the data checks and structure.</p>
+              <p class="moment-result">A clearer monthly view of matter performance, budget and funding for leadership.</p>
             </article>
           </div>
         </div>
@@ -213,6 +218,6 @@
       </div>
     </footer>
 
-    <script src="script.js?v=2026-11-14"></script>
+    <script src="script.js?v=2026-11-15"></script>
   </body>
 </html>
