@@ -158,3 +158,5 @@
 - The three career cards are filled in (healthcare diagnostics, manufacturing, legal services); no employer is named anywhere on the site. The placeholders `[[CAREER_1]]`–`[[CAREER_3]]` are gone.
 - Card 1 has a reference-quote slot (`[[QUOTE_1]]`), hidden until filled in (the `hidden` attribute, and CSS while `data-placeholder` is there). A thin brand-green rule, normal weight.
 - Employer names removed from the home page's credentials line (now "Healthcare diagnostics · Manufacturing · Legal services") and the Examples page's description.
+
+- About: the career cards share rows (CSS subgrid), so the tag, question, description and result each start on the same line across the three cards. Browsers without subgrid keep the previous layout.
