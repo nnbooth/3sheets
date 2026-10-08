@@ -1,7 +1,8 @@
 # Changes
 
 ## Replay the intro
-- The sheets illustration beside the home headline is now a button ("Play the introduction again"): a click replays the opening animation, which shrinks back into it; focus returns to the button. Slight lift on hover. `?v=` bumped to 2026-12-08.
+- The sheets illustration beside the home headline is now a button ("Play the introduction again"): a click replays the opening animation, which shrinks back into it; focus returns to the button. Slight lift on hover. `?v=` bumped to 2026-12-09.
+- Phones (600 px and under): tighter intro panel (less padding, smaller picture, captions sized for two lines, three under 360 px). On touch screens the × no longer opens with a focus ring; keyboard users still land on it.
 
 ## Site-wide period picker
 - The home dashboard has a **Period** picker covering every month from November 2024 to October 2026 to date (September 2026 is the default: the latest month that's over). Each month is built from the ledger by `tools/fourthsheet/dashboard_months.py` (`data/dashboard-months.js` + `data/dashboard/<month>.js`), and the build stops if September stops matching the modelled month-end.

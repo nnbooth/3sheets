@@ -1184,6 +1184,15 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .intro-close { position: absolute; top: var(--sp-2); right: var(--sp-2); width: 44px; height: 44px; display: grid; place-items: center; padding: 0;
   border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 1.75rem; line-height: 1; cursor: pointer; }
 .intro-close:hover, .intro-close:focus-visible { background: var(--accent-soft); color: var(--text); outline: none; box-shadow: 0 0 0 2px var(--accent); }
+/* Phones: a tighter panel — less padding, a smaller picture, room for two caption lines (three on the narrowest) */
+@media (max-width: 600px) {
+  .intro { padding: var(--sp-3); }
+  .intro-stage { gap: var(--sp-2); padding: var(--sp-6) var(--sp-4) var(--sp-4); }
+  .intro-art { width: min(190px, 52vw, calc((100vh - 12rem) * 0.8667)); }
+  .intro-captions { height: 2.9em; font-size: 1rem; }
+  .intro-close { top: var(--sp-1); right: var(--sp-1); }
+}
+@media (max-width: 359px) { .intro-captions { height: 4.3em; } }
 @keyframes intro-dim { from { background-color: rgba(20, 28, 22, 0); } }
 @keyframes intro-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
 .intro-label { font-size: 4.2px; font-weight: 700; fill: var(--on-accent); }

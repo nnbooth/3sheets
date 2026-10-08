@@ -1363,11 +1363,11 @@ function setupIntro() {
   if (!intro) return;
   const fresh = intro.cloneNode(true);   // an untouched copy, so the sheets beside the headline can play it again
   const sheets = document.querySelector('.hero-sheets');
-  if (sheets) sheets.addEventListener('click', () => {
+  if (sheets) sheets.addEventListener('click', (e) => {
     if (document.getElementById('intro')) return;          // already playing
     const again = fresh.cloneNode(true);
     document.body.prepend(again);
-    playIntro(again, sheets);
+    playIntro(again, sheets, e.detail === 0);            // detail 0: pressed with Enter or Space, not tapped
   });
   const param = new URLSearchParams(location.search).get('intro');
   let seen = false;
@@ -1376,10 +1376,11 @@ function setupIntro() {
     || window.matchMedia('(prefers-reduced-motion: reduce)').matches));
   if (skip) { intro.remove(); return; }
   try { sessionStorage.setItem('introSeen', '1'); } catch (e) { /* fine */ }
-  playIntro(intro, null);
+  playIntro(intro, null, !window.matchMedia('(pointer: coarse)').matches);
 }
 
-function playIntro(intro, returnFocus) {   // returnFocus: where keyboard focus goes after (the sheets button on a replay)
+function playIntro(intro, returnFocus, focusClose) {   // returnFocus: where focus goes after (the sheets button on a replay);
+                                                        // focusClose: put focus on × (keyboard and mouse; not on a touch screen, where its ring is clutter)
   const art = intro.querySelector('.intro-art');
   const target = document.querySelector('.hero-sheets img');
   intro.hidden = false;
@@ -1388,7 +1389,7 @@ function playIntro(intro, returnFocus) {   // returnFocus: where keyboard focus 
   let leaving = false;
   const finish = () => {
     intro.remove(); document.body.classList.remove('intro-active'); document.removeEventListener('keydown', onKey);
-    if (returnFocus) returnFocus.focus({ preventScroll: true });
+    if (returnFocus && focusClose) returnFocus.focus({ preventScroll: true });
   };
   const leave = (skipped) => {
     if (leaving) return;
@@ -1411,7 +1412,7 @@ function playIntro(intro, returnFocus) {   // returnFocus: where keyboard focus 
   const onKey = (e) => { if (e.key === 'Escape') leave(true); };
   const timer = setTimeout(() => leave(false), INTRO_HOLD_MS);
   const closeBtn = intro.querySelector('.intro-close');
-  if (closeBtn) closeBtn.focus({ preventScroll: true });   // keyboard users land on ×
+  if (closeBtn && focusClose) closeBtn.focus({ preventScroll: true });   // keyboard users land on ×
   intro.querySelector('.intro-skip').addEventListener('click', () => leave(true));
   intro.addEventListener('click', (e) => { if (!e.target.closest('.intro-stage')) leave(true); });   // a click on the dimmed page closes it; clicks in the panel don't
   document.addEventListener('keydown', onKey);
