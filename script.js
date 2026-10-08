@@ -8,6 +8,7 @@
   - Game (load on Play) ...................... setupGameSlot()
   - Prices (switched off by default) ......... SHOW_PRICES / PRICES
   - Home-page sample dashboard ............... setupHeroDash() (data: dashboard-data.js)
+  - Home-page opening animation ............. setupIntro() / INTRO_HOLD_MS
   - Mobile menu + footer year ................ bottom of file (DOMContentLoaded)
 
   No frameworks or build step: this file is loaded as-is by index.html.
@@ -1267,6 +1268,56 @@ function setupHeroDash() {
 }
 
 /* ---------------------------------------------------------------------------
+   INTRO — the opening animation on the home page (markup: index.html, styles: styles.css, search "INTRO").
+   Plays once per visit, then the picture shrinks into the small illustration beside the headline.
+   Skipped for reduced motion, automated tests, a link to a section (#…) or ?intro=off; ?intro=on forces it.
+--------------------------------------------------------------------------- */
+const INTRO_HOLD_MS = 9000;   // when the picture starts to shrink away (the CSS timings finish at about 7.6s)
+
+function setupIntro() {
+  const intro = document.getElementById('intro');
+  if (!intro) return;
+  const param = new URLSearchParams(location.search).get('intro');
+  let seen = false;
+  try { seen = sessionStorage.getItem('introSeen') === '1'; } catch (e) { /* storage blocked: play it */ }
+  const skip = param === 'off' || (param !== 'on' && (seen || location.hash || window.scrollY > 0 || navigator.webdriver
+    || window.matchMedia('(prefers-reduced-motion: reduce)').matches));
+  if (skip) { intro.remove(); return; }
+  try { sessionStorage.setItem('introSeen', '1'); } catch (e) { /* fine */ }
+
+  const art = intro.querySelector('.intro-art');
+  const target = document.querySelector('.hero-sheets img');
+  intro.hidden = false;
+  document.body.classList.add('intro-active');
+
+  let leaving = false;
+  const finish = () => { intro.remove(); document.body.classList.remove('intro-active'); document.removeEventListener('keydown', onKey); };
+  const leave = (skipped) => {
+    if (leaving) return;
+    leaving = true;
+    clearTimeout(timer);
+    if (skipped) intro.classList.add('intro--skipped');
+    const from = art.getBoundingClientRect();
+    const to = target && target.getBoundingClientRect();
+    if (!to || !to.width || to.bottom < 0 || to.top > window.innerHeight) {
+      intro.classList.add('intro--fade');   // nowhere on screen to land: just fade out
+      setTimeout(finish, 520);
+      return;
+    }
+    intro.classList.add('intro--leaving');
+    art.style.transformOrigin = '0 0';
+    art.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width})`;
+    art.addEventListener('transitionend', (e) => { if (e.target === art) finish(); });
+    setTimeout(finish, 1200);   // in case transitionend never fires
+  };
+  const onKey = (e) => { if (e.key === 'Escape') leave(true); };
+  const timer = setTimeout(() => leave(false), INTRO_HOLD_MS);
+  intro.querySelector('.intro-skip').addEventListener('click', () => leave(true));
+  intro.addEventListener('click', (e) => { if (!e.target.closest('.intro-skip')) leave(true); });
+  document.addEventListener('keydown', onKey);
+}
+
+/* ---------------------------------------------------------------------------
    Page start-up
 --------------------------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1303,6 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(() => { const again = sel && document.querySelector(`.seg ${sel}`); (again || next).focus(); });   // the group may have been redrawn
   });
 
+  setupIntro();
   setupGameSlot();
   applyPrices();
   setupHeroDash(); setupDeliveries(); setupReport(); mountStaticExportMenus(); setupContactForm(); setupLightbox(); setupChartTips(); setupTitleBar();

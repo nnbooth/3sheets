@@ -1,5 +1,11 @@
 # Changes
 
+## Opening animation (branch `intro-animation`)
+- The home page opens with a short intro (about 9 s): Profit & loss, Balance sheet and Cash flow arrive one at a time with a one-line caption each, a piece of data from each flows into the fourth sheet ("The Fourth Sheet: Analysis. What it all means and what to do next."), then the picture shrinks into the sheets illustration beside the headline.
+- Plays once per visit. "Skip intro", Esc or a click ends it early. Never shown with reduced motion, a link to a section (`#…`), `?intro=off` or automated tests; `?intro=on` forces it.
+- The Analysis sheet has a dark outline (`#25342a`), in the intro and in `assets/brand/sheets-illustration.svg`; in the last caption only "Analysis." is green.
+- Markup in `index.html`, styles and timings in `styles.css` and logic in `script.js` (search "INTRO"). `?v=` bumped to 2026-11-30.
+
 ## Site review (branch `review-fixes`)
 
 ### Phase 1: design tokens and components
