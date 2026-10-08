@@ -1142,3 +1142,9 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 
 /* LADDER — "Start here" sits beside the step number, so the three tiles' headings line up */
 .rung .rung-tag { position: absolute; top: var(--sp-6); left: calc(var(--sp-6) + 2rem + var(--sp-2)); right: var(--sp-6); margin: 0; line-height: 2rem; }
+
+/* CONTACT — the email under "Or book a time" */
+.contact-direct-h { margin-top: var(--sp-6); }
+.contact-direct a, .contact-secondary a[href^="mailto:"] { color: var(--accent); font-weight: 600; text-underline-offset: 3px; }
+
+.tbc[hidden] { display: none; }      /* a placeholder chip switched off until it has something to show */

@@ -1,7 +1,7 @@
 # The Fourth Sheet
 
 Website and tooling for **The Fourth Sheet**, Nathan Booth's Brisbane consultancy for SMEs and not-for-profits:
-*"Your accountant gives you three sheets. I give you the fourth."* Live at https://nnbooth.github.io/thefourthsheet/.
+*"Your accountant gives you three sheets. I give you the fourth."* Live at https://www.thefourthsheet.com.au/.
 
 The site is plain HTML, CSS and JavaScript (no framework, no build step) on GitHub Pages. Python in `tools/` generates
 everything data-driven:

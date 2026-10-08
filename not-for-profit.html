@@ -13,24 +13,23 @@
     <meta name="theme-color" content="#2f7a5d" />
 
     <!-- Social sharing previews (LinkedIn, Facebook, X/Twitter).
-         [[DOMAIN]]: replace with your final domain, e.g. thefourthsheet.com.au.
          These must be full https:// addresses for LinkedIn to show the image.
          Check the result with https://www.linkedin.com/post-inspector/ -->
-    <link rel="canonical" href="https://[[DOMAIN]]/not-for-profit.html" />
+    <link rel="canonical" href="https://www.thefourthsheet.com.au/not-for-profit.html" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="The Fourth Sheet" />
     <meta property="og:locale" content="en_AU" />
     <meta property="og:title" content="Not-for-profit | The Fourth Sheet" />
     <meta property="og:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
-    <meta property="og:url" content="https://[[DOMAIN]]/not-for-profit.html" />
-    <meta property="og:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
+    <meta property="og:url" content="https://www.thefourthsheet.com.au/not-for-profit.html" />
+    <meta property="og:image" content="https://www.thefourthsheet.com.au/assets/brand/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="The Fourth Sheet: your accountant gives you three sheets. I give you the fourth." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Not-for-profit | The Fourth Sheet" />
     <meta name="twitter:description" content="Your accountant gives you three sheets. I give you the fourth: the numbers underneath, for SMEs and not-for-profits." />
-    <meta name="twitter:image" content="https://[[DOMAIN]]/assets/brand/og-image.png" />
+    <meta name="twitter:image" content="https://www.thefourthsheet.com.au/assets/brand/og-image.png" />
 
     <!-- Roboto (matches the business cards), loaded explicitly so every visitor sees the same font. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,7 +37,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
     <!-- ?v= is a version number: change it whenever styles.css or script.js
          changes, so browsers fetch the new file instead of a cached copy. -->
-    <link rel="stylesheet" href="styles.css?v=2026-11-23" />
+    <link rel="stylesheet" href="styles.css?v=2026-11-25" />
   </head>
 
   <!--
@@ -139,12 +138,12 @@
               No new systems and no major IT project: I work from the spreadsheets and systems you already have.
               Book a free 20-minute numbers check and I'll tell you what's possible.
             </p>
-            <!-- [[EMAIL]] and [[LINKEDIN_URL]]: replace each chip with a link,
-                 e.g. <a href="mailto:you@example.com">you@example.com</a>. -->
+            <!-- [[LINKEDIN_URL]]: no profile yet, so the chip is hidden. Once it exists: replace the chip with a link to the profile
+                 (removing data-placeholder and hidden) and change "Prefer email?" back to "Prefer email or LinkedIn?". -->
             <p class="contact-secondary">
-              Prefer email or LinkedIn?
-              <span class="tbc" data-placeholder="[[EMAIL]]">Email TBC</span>
-              <span class="tbc" data-placeholder="[[LINKEDIN_URL]]">LinkedIn TBC</span>
+              Prefer email?
+              <a href="mailto:nathan@thefourthsheet.com.au">nathan@thefourthsheet.com.au</a>
+              <span class="tbc" data-placeholder="[[LINKEDIN_URL]]" hidden>LinkedIn TBC</span>
             </p>
             <p class="contact-form-link"><a href="contact.html">Or send me your details &rarr;</a></p>
           </div>
@@ -167,7 +166,7 @@
       </div>
     </footer>
 
-    <script src="data/reports-data.js?v=2026-11-23"></script>
-    <script src="script.js?v=2026-11-23"></script>
+    <script src="data/reports-data.js?v=2026-11-25"></script>
+    <script src="script.js?v=2026-11-25"></script>
   </body>
 </html>

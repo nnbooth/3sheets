@@ -614,7 +614,7 @@ def write_pdf(d):
             browser = pw.chromium.launch()
         page = browser.new_page(viewport={"width": 1123, "height": 794})
         # OpenStreetMap's tile policy asks for an identifying referer
-        page.set_extra_http_headers({"Referer": "https://nnbooth.github.io/thefourthsheet/"})
+        page.set_extra_http_headers({"Referer": "https://www.thefourthsheet.com.au/"})
         page.set_content(html_report(d), wait_until="networkidle")
         page.wait_for_function("window.tilesLoaded >= 2", timeout=30000)
         page.evaluate("document.fonts.ready")

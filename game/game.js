@@ -43,7 +43,7 @@
      Everything the summary and end card say comes from here. Change a
      number, reload, done. All money is AUD.
 
-     Placeholders: values written like '[[DOMAIN]]' are the same tokens as
+     Placeholders: values written like '[[BOOKING_URL]]' are the same tokens as
      the website (see the project notes in OneDrive). Until you replace them, the game
      shows the fallback noted beside each one, so it never displays
      raw [[TOKENS]].                                                       */
@@ -63,14 +63,14 @@
     // --- People and links ---
     name: 'Nathan Booth',       // end card "Nathan Booth" + "The Fourth Sheet". "CPA" is not shown until confirmed.
     bookingUrl: '[[BOOKING_URL]]', // "Book a free 20-min data check". Fallback: the website's Contact section
-    domain: '[[DOMAIN]]',       // shown as text on the end card. Fallback: nnbooth.github.io/thefourthsheet
+    domain: 'www.thefourthsheet.com.au', // shown as text on the end card
   };
 
   // Fallbacks used while a CONFIG value is still a [[TOKEN]]
   const FALLBACK = {
     daysToClose: 3,
     bookingUrl: '../#contact',
-    domain: 'nnbooth.github.io/thefourthsheet',
+    domain: 'www.thefourthsheet.com.au',
   };
 
   // True for '' or anything still written like [[TOKEN]]

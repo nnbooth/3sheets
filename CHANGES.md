@@ -170,3 +170,8 @@
 - The site header (and the new bar) are solid, so text no longer shows through as you scroll.
 
 - About: the career stories are full-width rows (tag and question, what was done, the result), so stories of different lengths sit evenly. Phones: one column. Your copy unchanged.
+
+## Domain and email (8 Oct)
+- The site is served from www.thefourthsheet.com.au (CNAME from GitHub Pages). Every `[[DOMAIN]]` became the domain: canonical links, share previews (og:url, og:image, twitter:image) on every page, and the game's end-card text. Also updated: README, and the Referer the deliveries map build sends to OpenStreetMap. Every internal link was already relative, so nothing else changed.
+- Email: nathan@thefourthsheet.com.au replaces the "Email TBC" chip on every page, and the contact page gains "Or just email me" under the booking option.
+- LinkedIn: no profile yet, so its chips are hidden (kept in the code, `hidden`) and the line reads "Prefer email?". The project notes say how to switch it back on.
