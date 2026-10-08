@@ -660,17 +660,8 @@ body.dev-notes .devnote { display: flex; }
 .q-intro { margin: var(--sp-4) 0 0; font-weight: 700; color: var(--text); }
 
 /* QUESTION ROWS — the questions on the home page doors: full-width rows, the same padding, › on the right */
-.q-rows { display: grid; gap: var(--sp-2); margin: var(--sp-2) 0 0; padding: 0; list-style: none; }
-.q-rows li { min-width: 0; }
-.q-rows a, .q-rows .q-soon { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3); min-height: 44px; padding: var(--sp-2) var(--sp-4); font-size: var(--fs-sm); line-height: 1.3; color: var(--text); text-decoration: none; background: var(--accent-soft); border-radius: var(--r-sm); }
-.q-rows a::after { content: "\203A"; font-size: var(--fs-lg); font-weight: 700; color: var(--accent); }
-.q-rows a:hover, .q-rows a:focus-visible { background: var(--accent-soft-hover); outline: 2px solid var(--accent); outline-offset: -2px; }
-.q-rows .q-soon { color: var(--muted); background: var(--track); }
 .soon-tag { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
-.q-own-line { margin: var(--sp-3) 0 0; font-size: var(--fs-sm); color: var(--muted); }
-.q-own-line a { font-weight: 700; color: var(--accent); }
 
-.q-rows--page { max-width: 44rem; }
 .cards-soon { margin: var(--sp-4) 0 0; padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm); color: var(--muted); background: var(--track); border-radius: var(--r-sm); }
 .cards-soon strong { color: var(--text); }
 
@@ -682,8 +673,6 @@ body.dev-notes .devnote { display: flex; }
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
-.door:hover { border-color: var(--accent); }
-.door:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .door-eyebrow { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
 .door strong { font-size: var(--fs-lg); line-height: 1.2; }
 .door-text { color: var(--muted); }
@@ -1095,8 +1084,7 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 /* TOUCH TARGETS — on touch screens every toggle, menu row and small link is at least 44 px tall. KPI cards are buttons
    already (the whole card opens the workings), so on phones the small "How it's worked out" link is hidden. */
 @media (pointer: coarse) {
-  .xm-item, .report-def summary, #report-period, .footer-links a, .nav-toggle, .q-rows a, .dash-check { min-height: 44px; }
-  .footer-links a { display: flex; align-items: center; }
+  .xm-item, .report-def summary, #report-period, .footer-links a, .nav-toggle,   .footer-links a { display: flex; align-items: center; }
   .report-def summary { padding: var(--sp-2) 0; }
   .dash-how { display: inline-flex; align-items: center; min-height: 44px; }
 }
@@ -1153,3 +1141,20 @@ button.dash-kpi:focus-visible { outline: 3px solid var(--accent); outline-offset
 .contact-direct a, .contact-secondary a[href^="mailto:"] { color: var(--accent); font-weight: 600; text-underline-offset: 3px; }
 
 .tbc[hidden] { display: none; }      /* a placeholder chip switched off until it has something to show */
+
+/* QUESTION LIST — the questions a business or not-for-profit asks: a calm list with hairline dividers, a small tag
+   for the kind of question, and where it goes ("Example →" opens a working report; "Ask me →" opens the contact
+   form with the question filled in). No fills: the questions are text, not buttons. */
+.q-list { list-style: none; margin: var(--sp-3) 0 0; padding: 0; border-top: 1px solid var(--border); }
+.q-list a { display: grid; grid-template-columns: minmax(0, 1fr) auto 6.5rem; align-items: center; gap: var(--sp-3); min-height: 44px; padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--border); color: var(--text); text-decoration: none; font-size: var(--fs-sm); line-height: 1.35; }
+.q-list .q-tag { padding: 1px var(--sp-2); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.q-list .q-go { grid-column: 3; justify-self: end; font-size: var(--fs-xs); font-weight: 600; color: var(--accent); white-space: nowrap; }
+.q-list .q-ask .q-go { color: var(--muted); }
+.q-list a:hover .q-text, .q-list a:focus-visible .q-text { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.q-list a:hover .q-go, .q-list a:focus-visible .q-go { color: var(--accent); }
+.q-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-sm); }
+@media (max-width: 640px) {
+  .q-list a { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "text text" "tag go"; row-gap: var(--sp-1); padding: var(--sp-3) 0; }
+  .q-list .q-text { grid-area: text; } .q-list .q-tag { grid-area: tag; justify-self: start; } .q-list .q-go { grid-area: go; }
+}

@@ -424,6 +424,12 @@ function setupContactForm() {
     if (radio) radio.checked = true;
   }
   ['report', 'period', 'view'].forEach((k) => { form.elements[k].value = q.get(k) || ''; });
+  if (q.get('question') && form.elements.message) {   // from a question's "Ask me →": the question, ready to send
+    form.elements.message.value = q.get('question');
+    const req = document.getElementById('contact-request');
+    req.innerHTML = `You're asking: <strong>${esc(q.get('question'))}</strong> Add anything that helps, and I'll come back to you on how your data could answer it.`;
+    req.hidden = false;
+  }
   if (q.get('topic') === 'monthly' && q.get('report')) {
     const req = document.getElementById('contact-request');
     req.innerHTML = `You're asking for <strong>${esc(q.get('report'))}</strong>${q.get('view') ? ` (${esc(q.get('view'))})` : ''} as standardised reporting, given on your schedule${q.get('period') ? `, starting from ${esc(q.get('period'))}` : ''}.`;
