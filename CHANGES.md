@@ -149,4 +149,4 @@
 - ABN 31 839 620 153 in every page's footer (replaces the `[[ABN]]` placeholder, as the project notes describe).
 - Contact form: asks for job title. Phone isn't required, and the form doesn't call it optional. The first option reads "Standardised reporting, given on your schedule" (was "a report each month, on the 3rd business day").
 - Same wording where it was a delivery promise: the Export menu's "Get this report on your schedule →" and the request line it fills in on the contact page, and the Services "Monthly" card ("on the schedule we agree").
-- **Left for Nathan:** the Services heading "Three questions you should be able to answer on the 3rd business day of the month" (about the client's own close, not a delivery promise).
+- The Services heading now reads "Three questions you should be able to answer as soon as the month closes." No "3rd business day" is left on the site. ("Within one business day" in the form's thank-you is a reply time, so it stays.)
