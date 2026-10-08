@@ -253,7 +253,14 @@ def main():
     import publish_dashboard  # the driver-based model: checks, dashboard-data.js, Excel and PDF exports
     import warehouse            # the same model as a daily star schema for a cloud database
     tables = publish_dashboard.publish()
-    for name, (desc, cols, rows, ddl) in warehouse.build(publish_dashboard.publish.res).items():
+    wh = warehouse.build(publish_dashboard.publish.res)
+    for name, (desc, cols, rows, ddl) in wh.items():
+        table(name, desc, cols, rows)
+        DDL[name] = ddl
+    import operations           # the non-financial data: enquiries, overtime, people helped, calls for help, volunteers
+    res_ = publish_dashboard.publish.res
+    jobs_all = res_["trades"]["out"]["jobs"] + warehouse.build.history["jobs"]
+    for name, (desc, cols, rows, ddl) in operations.build(res_, jobs_all, wh["fact_timesheet_daily"][2], wh["fact_grant_spend_month"][2], wh["dim_grant"][2]).items():
         table(name, desc, cols, rows)
         DDL[name] = ddl
     import drivers              # supporting files for every input that isn't a transaction

@@ -61,7 +61,8 @@ def file_parts(r):
 
 SHORT = {"cost-to-win": "Cost to win a customer", "job-margins": "Job margins", "growth": "Growth by line", "cash-payroll": "Cash cover for payroll",
          "cost-to-raise": "Cost to raise a dollar", "program-cost": "Program cost", "runway": "Runway", "funding": "Funding worth chasing",
-         "board": "Board summary"}       # the report's name in a download's file name (a question mark can't go in a file name)
+         "board": "Board summary", "callbacks": "Callbacks", "overtime": "Overtime", "people-helped": "People helped",
+         "calls": "Calls for help", "volunteers": "Volunteer hours"}       # the report's name in a download's file name (a question mark can't go in a file name)
 
 
 def file_name(r):
@@ -262,14 +263,14 @@ def write_xlsx(r, out=OUT):
                         n = len(det[i]["xl"]["rows"])
                     for c, vw in enumerate(views, 2):
                         pc = vw["format"].startswith("pct")
-                        if det:
-                            kinds = [x["kind"] for x in det[i]["xl"]["rows"]]
-                            want = "pct" if pc else "money"
-                            row_i = max(j for j, k in enumerate(kinds) if k == want)
-                            ws.cell(rr, c, f"=Workings!B{rowmap[row_i]}").number_format = pd.F[want]
-                        else:
+                        kind = "pct" if pc else "cents" if vw["format"] == "cents_int" else "int" if vw["format"] == "int" else "money"
+                        kinds = [x["kind"] for x in det[i]["xl"]["rows"]] if det else []
+                        want = {"pct": ["pct"], "int": ["int", "hours"]}.get(kind, ["money"])
+                        hits = [j for j, k in enumerate(kinds) if k in want]
+                        if hits:          # linked to the working that produced it
+                            ws.cell(rr, c, f"=Workings!B{rowmap[max(hits)]}").number_format = pd.F[kinds[max(hits)]]
+                        else:             # nothing to link to (e.g. a count): the value itself
                             val = vw["values"][i]
-                            kind = "pct" if pc else "cents" if vw["format"] == "cents_int" else "money"
                             ws.cell(rr, c, val / 100 if pc else val).number_format = pd.F[kind]
                 if sec.get("support"):
                     wr, rowmap, st = pd.xl_support(wk, wr, sec["support"])
@@ -491,6 +492,7 @@ def pptx_bars(ch):
     pc = str(vw["format"]).startswith("pct")
     return {"kind": "bars", "labels": ch["labels"], "values": vals, "fmt": vw["format"], "below": below, "order_by": views[0]["values"], "bad": bad, "warn": warn,
             "series_name": vw["label"], "target": tgt, "breakeven": be,
+            "keep_order": bool(ch.get("keep_order")),
             "target_label": (f"Target {tgt:.1f}%" if pc else f"Target {tgt}") if tgt is not None else None,
             "breakeven_label": f"Break-even {be:.1f}%" if be is not None else None}
 

@@ -219,9 +219,9 @@ class Deck:
         return s
 
     def _bar_chart(self, s, x, y, w, h, labels, values, fmt="pct1", below=None, order_by=None, bad=None, warn=None,
-                   series_name="Value", target=None, breakeven=None, target_label=None, breakeven_label=None, font=11):
+                   series_name="Value", target=None, breakeven=None, target_label=None, breakeven_label=None, font=11, keep_order=False):
         by = order_by or values
-        order = sorted(range(len(values)), key=lambda i: by[i])          # PowerPoint draws bars bottom-up: largest ends on top
+        order = list(range(len(values)))[::-1] if keep_order else sorted(range(len(values)), key=lambda i: by[i])   # PowerPoint draws bottom-up: largest (or first) on top
         cd = CategoryChartData()
         cd.categories = [labels[i] for i in order]
         cd.add_series(series_name, [values[i] for i in order], number_format=FMT.get(fmt, "General"))

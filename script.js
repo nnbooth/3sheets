@@ -642,7 +642,7 @@ function renderChart(ch, width = 320) {
   let g = `<line class="dash-grid" x1="${x0.toFixed(1)}" x2="${x0.toFixed(1)}" y1="${top - 2}" y2="${top + plotH}"/>`;
   // bars sorted by value, largest first; the order is set once (by the first view) and doesn't move when the view changes
   const by = ch.orderBy || ch.values;
-  const order = ch.values.map((v, i) => i).sort((p, q) => by[q] - by[p]);
+  const order = ch.keep_order ? ch.values.map((v, i) => i) : ch.values.map((v, i) => i).sort((p, q) => by[q] - by[p]);   // times of day keep clock order
   order.forEach((i, pos) => {
     const v = ch.values[i];
     const y = top + pos * row + (row - bh) / 2;

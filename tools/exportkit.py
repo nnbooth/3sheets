@@ -98,7 +98,7 @@ def hbar_svg(ch, width=640):
     tx = x(target) if target is not None else None
     g = [f'<line x1="{x0:.1f}" x2="{x0:.1f}" y1="{top - 3}" y2="{top + plot_h}" stroke="{LINE}" stroke-width="1.5"/>']
     by = ch.get("order_by") or values
-    order = sorted(range(len(values)), key=lambda i: -by[i])     # order set by the first view, same in every view
+    order = list(range(len(values))) if ch.get("keep_order") else sorted(range(len(values)), key=lambda i: -by[i])     # order set by the first view; times of day keep clock order
     for pos, i in enumerate(order):
         lab, v = labels[i], values[i]
         y = top + pos * row + (row - bh) / 2

@@ -1215,6 +1215,14 @@ def cash_payroll(D, P):
 
 # ======================================================================= the list
 
+def REPORTS_ORDER_SME(slug):
+    return slug in ("cost-to-win", "job-margins", "growth", "cash-payroll")
+
 REPORTS = {"cost-to-win": cost_to_win, "job-margins": job_margins, "growth": growing, "cash-payroll": cash_payroll, "cost-to-raise": cost_to_raise,
            "program-cost": program_cost, "runway": runway, "funding": funding, "board": board}
+# the questions that aren't about money (tools/operations.py data)
+from .operations_reports import callbacks, calls, overtime, people_helped, volunteers  # noqa: E402
+
+REPORTS = {**{k: v for k, v in REPORTS.items() if REPORTS_ORDER_SME(k)}, "callbacks": callbacks, "overtime": overtime,
+           **{k: v for k, v in REPORTS.items() if not REPORTS_ORDER_SME(k)}, "people-helped": people_helped, "calls": calls, "volunteers": volunteers}
 NEEDS_CASH = {"runway", "board", "cash-payroll"}       # need the balance sheet, which starts at the opening balance

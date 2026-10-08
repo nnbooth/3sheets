@@ -194,3 +194,17 @@
 - Services framing: "Start where you need to." A client can come in at any of the three and move between them (some need the system built, some need help making it stick, some just want the month-end done). The cards stand on their own ("Build it", "Make it stick", "Run it"); no "Start here", no "setup is the front door".
 
 - Home hero names the sheets (user testing: people didn't know what "three sheets" meant): "The three: profit and loss, balance sheet and cash flow, the reports your accountant prepares. The fourth: the numbers underneath them, the customers, jobs, people and programs that make them what they are."
+
+## Worked examples for every question (8 Oct)
+- Five new reports, built like the rest (Period picker, workings on every number, Export menu with Excel, PDF and PowerPoint, Power BI prompt, made-with note):
+  - SME trades: "How long do customers wait for a callback?" (`report-callbacks.html`) and "Where is overtime creeping up, and why?" (`report-overtime.html`);
+  - Not-for-profit: "How many people did we help this month, and how many couldn't we reach?" (`report-people-helped.html`), "When do calls for help come in, and are we there to answer?" (`report-calls.html`), and "How many volunteer hours go into each program?" (`report-volunteers.html`).
+- New sample data, `tools/operations.py`, daily or per-event, Oct 2024 to 2pm 6 Oct 2026, written as CSVs (Data/Month-end dashboard, by organisation) and into `schema.sql`:
+  - `fact_enquiry`: every trades call-out job has the enquiry that booked it.
+  - `fact_shift_daily`: ordinary hours cover the hours charged to jobs, or the build stops.
+  - `fact_service_daily`: people helped are scaled from each program's own grant spend.
+  - `fact_call`, `dim_volunteer`, `fact_volunteer_shift`.
+- Every question on the home, SME and Not-for-profit pages now opens a worked example ("Example →"); only "Got a different question?" goes to the contact form.
+- Time-of-day bars keep clock order (`keep_order`), on the site, in PDF and in PowerPoint.
+- The Excel writer links a bar to its working by the working's own kind (hours, counts), falling back to the value when there's nothing to link.
+- Checks: 164 workbooks with no formula errors; 67,186 data rows, 151 report runs and 14 Power BI prompts kept to one organisation each; the site check over 22 pages and 14 reports.

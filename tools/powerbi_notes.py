@@ -94,6 +94,35 @@ Days to pay (median) = MEDIANX(FILTER(fact_invoice, fact_invoice[paid_date] <= M
 Last pay run = - CALCULATE(SUM(fact_cash_daily[amount]), dim_account[line] = "Payments to employees", LASTDATE(fact_cash_daily[date]))
 ```
 The forecast itself (one row per day: expected money in and out, by kind) is built upstream from the same tables and loaded as `report_cash_forecast_daily` (Data/Reports; filter `forecast_made_on` to the latest); Power BI then draws actual + forecast on one line with the forecast lighter, and a constant line at one pay run.""",
+    "callbacks": """```DAX
+Enquiries = COUNTROWS(fact_enquiry)
+Called back = CALCULATE(COUNTROWS(fact_enquiry), NOT ISBLANK(fact_enquiry[responded_at]))
+Within 2 working hours = CALCULATE(COUNTROWS(fact_enquiry), fact_enquiry[within_target] = 1)
+Share within target = DIVIDE([Within 2 working hours], [Called back])
+Median wait (working minutes) = MEDIANX(FILTER(fact_enquiry, NOT ISBLANK(fact_enquiry[minutes_to_callback])), fact_enquiry[minutes_to_callback])
+```""",
+    "overtime": """```DAX
+Overtime hours = SUM(fact_shift_daily[overtime_hours])
+Ordinary hours = SUM(fact_shift_daily[ordinary_hours])
+Overtime share = DIVIDE([Overtime hours], [Ordinary hours])
+```""",
+    "people-helped": """```DAX
+People helped = SUM(fact_service_daily[people_helped])
+Couldn't reach = SUM(fact_service_daily[people_not_reached])
+Share reached = DIVIDE([People helped], [People helped] + [Couldn't reach])
+```""",
+    "calls": """```DAX
+Calls = COUNTROWS(fact_call)
+Calls while staffed = CALCULATE(COUNTROWS(fact_call), fact_call[outcome] <> "After hours: voicemail")
+Answered = CALCULATE(COUNTROWS(fact_call), fact_call[answered] = 1)
+Answered while staffed = DIVIDE([Answered], [Calls while staffed])
+```
+Time-of-day bands: a calculated column on fact_call from hour_of_day (Before 8:30am, 8:30 to 10am, 10am to noon, Noon to 2pm, 2 to 5pm, 5 to 8pm, After 8pm).""",
+    "volunteers": """```DAX
+Volunteer hours = SUM(fact_volunteer_shift[hours])
+Volunteers = DISTINCTCOUNT(fact_volunteer_shift[volunteer_id])
+Hours per volunteer = DIVIDE([Volunteer hours], [Volunteers])
+```""",
     "runway": """```DAX
 Cash at bank = LASTNONBLANKVALUE(dim_date[calendar_date], SUM(fact_balance_daily[cash_at_bank]))
 Unspent grant money = CALCULATE(SUM(opening_balance[amount]), opening_balance[line] = "Grants received in advance (unspent)")   -- month ends: from model_statements

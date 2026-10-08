@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import winutf8; winutf8.ensure()   # noqa: E402,E702  Windows: run in UTF-8 mode
 
 REPO = Path(__file__).resolve().parents[2]
-REPORTS = ["cost-to-win", "job-margins", "growth", "cash-payroll", "cost-to-raise", "program-cost", "runway", "funding", "board"]
+REPORTS = ["cost-to-win", "job-margins", "growth", "cash-payroll", "callbacks", "overtime", "cost-to-raise", "program-cost", "runway", "funding", "board", "people-helped", "calls", "volunteers"]
 
 
 def serve():
