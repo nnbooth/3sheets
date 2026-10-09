@@ -30,6 +30,7 @@ from pathlib import Path
 
 import data_status as ds
 import exportkit as ek
+from ids import Running, scattered
 from financial_model import round_half_up
 
 Font = ek.xl_font       # every Excel font is Roboto (exportkit.XL_FONT)
@@ -108,20 +109,20 @@ OUT_REASONS = [("Carrier delay", 4), ("Run overloaded", 3), ("Customer closed (f
 
 # supplier id, name, place, state, lat, lon, transit working days, carrier, usual chance of being late
 SUPPLIERS = [
-    ("S01", "Supplier A", "Wetherill Park", "NSW", -33.850, 150.900, 2, "Line-haul (road)", 0.08),
-    ("S02", "Supplier B", "Dandenong South", "VIC", -38.020, 145.210, 3, "Line-haul (road)", 0.10),
-    ("S03", "Supplier C", "Laverton North", "VIC", -37.830, 144.790, 3, "Line-haul (road)", 0.10),
-    ("S04", "Supplier D (imports)", "Port of Brisbane", "QLD", -27.380, 153.170, 1, "Container cartage", 0.10),
-    ("S05", "Supplier E", "Yatala", "QLD", -27.750, 153.220, 1, "Supplier's own truck", 0.04),
-    ("S06", "Supplier F", "Narangba", "QLD", -27.200, 152.960, 1, "Supplier's own truck", 0.05),
-    ("S07", "Supplier G", "Toowoomba", "QLD", -27.560, 151.950, 1, "Supplier's own truck", 0.06),
-    ("S08", "Supplier H", "Wingfield", "SA", -34.850, 138.570, 4, "Line-haul (road)", 0.10),
-    ("S09", "Supplier I", "Kewdale", "WA", -31.980, 115.950, 6, "Line-haul (rail)", 0.12),
-    ("S10", "Supplier J", "Beresfield", "NSW", -32.800, 151.650, 2, "Line-haul (road)", 0.07),
-    ("S11", "Supplier K", "Townsville", "QLD", -19.260, 146.820, 3, "Line-haul (road)", 0.09),
-    ("S12", "Supplier L", "Rocklea", "QLD", -27.540, 152.990, 1, "Supplier's own truck", 0.03),
-    ("S13", "Supplier M (air)", "Brisbane Airport", "QLD", -27.390, 153.120, 1, "Air freight", 0.05),
-    ("S14", "Supplier N", "Bundamba", "QLD", -27.610, 152.800, 1, "Supplier's own truck", 0.04),
+    ("SUP2078", "Supplier A", "Wetherill Park", "NSW", -33.850, 150.900, 2, "Line-haul (road)", 0.08),
+    ("SUP2109", "Supplier B", "Dandenong South", "VIC", -38.020, 145.210, 3, "Line-haul (road)", 0.10),
+    ("SUP2151", "Supplier C", "Laverton North", "VIC", -37.830, 144.790, 3, "Line-haul (road)", 0.10),
+    ("SUP2189", "Supplier D (imports)", "Port of Brisbane", "QLD", -27.380, 153.170, 1, "Container cartage", 0.10),
+    ("SUP2208", "Supplier E", "Yatala", "QLD", -27.750, 153.220, 1, "Supplier's own truck", 0.04),
+    ("SUP2219", "Supplier F", "Narangba", "QLD", -27.200, 152.960, 1, "Supplier's own truck", 0.05),
+    ("SUP2304", "Supplier G", "Toowoomba", "QLD", -27.560, 151.950, 1, "Supplier's own truck", 0.06),
+    ("SUP2336", "Supplier H", "Wingfield", "SA", -34.850, 138.570, 4, "Line-haul (road)", 0.10),
+    ("SUP2422", "Supplier I", "Kewdale", "WA", -31.980, 115.950, 6, "Line-haul (rail)", 0.12),
+    ("SUP2438", "Supplier J", "Beresfield", "NSW", -32.800, 151.650, 2, "Line-haul (road)", 0.07),
+    ("SUP2461", "Supplier K", "Townsville", "QLD", -19.260, 146.820, 3, "Line-haul (road)", 0.09),
+    ("SUP2480", "Supplier L", "Rocklea", "QLD", -27.540, 152.990, 1, "Supplier's own truck", 0.03),
+    ("SUP2506", "Supplier M (air)", "Brisbane Airport", "QLD", -27.390, 153.120, 1, "Air freight", 0.05),
+    ("SUP2542", "Supplier N", "Bundamba", "QLD", -27.610, 152.800, 1, "Supplier's own truck", 0.04),
 ]
 IN_REASONS = [("Line-haul delay", 4), ("Supplier stock shortage", 3), ("Booking slot missed", 2), ("Port / customs hold", 1)]
 COLOURS = {"On time": "#0E9F6E", "Late": "#8a6d3b", "Very late": "#8f4a3e", "Overdue": "#8f4a3e", "In transit": "#8e9cab",
@@ -162,9 +163,10 @@ def pick(rng, weighted):
 def customers():
     rng = random.Random(66)
     rows = []
+    nos = scattered(len(SUBURBS), 10215, "customer", (3, 70))      # customer numbers issued over the years
     for i, (sub, lat, lon, region) in enumerate(SUBURBS, 1):
         kind = KINDS[(i * 7) % len(KINDS)]
-        rows.append({"customer_id": f"C{i:03d}", "name": f"{sub} {kind}" + (" 2" if sub == "Toowoomba" and i % 2 == 0 else ""),
+        rows.append({"customer_id": f"C{nos[i - 1]}", "name": f"{sub} {kind}" + (" 2" if sub == "Toowoomba" and i % 2 == 0 else ""),
                      "suburb": sub, "region": region, "lat": round(lat + rng.uniform(-0.006, 0.006), 4),
                      "lon": round(lon + rng.uniform(-0.006, 0.006), 4), "carrier": CARRIER_BY_REGION[region],
                      "deliveries_per_week": rng.choice([1, 2, 2, 3, 3, 4, 5])})
@@ -174,6 +176,7 @@ def customers():
 def deliveries_out(custs):
     rng = random.Random(2026)
     rows, n = [], 0
+    dn, so = Running(318206, "delivery-note"), Running(61873, "sales-order", skip=0.25)   # other orders don't come through this DC
     for day in wdays_between(START, TODAY):
         for c in custs:
             if rng.random() >= c["deliveries_per_week"] / 5:
@@ -198,7 +201,7 @@ def deliveries_out(custs):
                 delivered_ts = None
                 days_late = len(wdays_between(day + timedelta(days=1), TODAY)) if day < TODAY else 0
             cartons = rng.randint(2, 40)
-            rows.append({"delivery_id": f"D{n:05d}", "order_id": f"SO{40000 + n}", "customer_id": c["customer_id"],
+            rows.append({"delivery_id": f"DN{dn.next()}", "order_id": f"SO{so.next()}", "customer_id": c["customer_id"],
                          "carrier": carrier, "order_date": sub_wdays(day, LEAD_DAYS.get(c["region"], 1)),
                          "promised_date": day, "delivered_at": delivered_ts, "status": status, "days_late": days_late,
                          "late_reason": reason if status in ("Late", "Very late", "Overdue") else None,
@@ -210,20 +213,21 @@ def deliveries_out(custs):
 def deliveries_in():
     rng = random.Random(4040)
     rows, n = [], 0
+    grn, po = Running(52114, "goods-receipt"), Running(18342, "purchase-order", skip=0.3)
     for day in wdays_between(START, TODAY + timedelta(days=4)):   # includes POs due in the next few days
         for s in SUPPLIERS:
             sid, name, place, state, lat, lon, transit, carrier, p_late = s
             if rng.random() >= (0.55 if state == "QLD" else 0.3):
                 continue
             n += 1
-            if sid == "S03" and date(2026, 9, 1) <= day <= date(2026, 9, 30):
+            if sid == "SUP2151" and date(2026, 9, 1) <= day <= date(2026, 9, 30):
                 p_late = 0.55        # Melbourne line-haul problems
             late = rng.random() < p_late
             delay = (1 if rng.random() < 0.6 else rng.choice([2, 3, 4])) if late else 0
             reason = None
             if late:
-                reason = "Line-haul delay" if sid == "S03" else pick(rng, IN_REASONS)
-            if sid == "S04" and date(2026, 9, 21) <= day <= date(2026, 9, 25):
+                reason = "Line-haul delay" if sid == "SUP2151" else pick(rng, IN_REASONS)
+            if sid == "SUP2189" and date(2026, 9, 21) <= day <= date(2026, 9, 25):
                 delay, reason = 6, "Port / customs hold"      # container held at the port
             arrived = add_wdays(day, delay) if delay else day
             if day > TODAY:
@@ -236,7 +240,7 @@ def deliveries_in():
                 dl = delay
                 status = "On time" if not delay else ("Late" if delay == 1 else "Very late")
             lines = rng.randint(3, 30)
-            rows.append({"receipt_id": f"R{n:05d}", "po_id": f"PO{7000 + n}", "supplier_id": sid, "carrier": carrier,
+            rows.append({"receipt_id": f"GRN{grn.next()}", "po_id": f"PO{po.next()}", "supplier_id": sid, "carrier": carrier,
                          "po_date": sub_wdays(day, transit + rng.randint(2, 6)), "due_date": day, "arrived_date": arrived,
                          "status": status, "days_late": dl, "late_reason": reason if status in ("Late", "Very late", "Overdue") else None,
                          "lines": lines, "lines_short": (rng.randint(1, 3) if rng.random() < 0.06 else 0) if arrived else 0,
@@ -341,7 +345,7 @@ def tables(d):
          ("latitude", "DECIMAL(9,4)"), ("longitude", "DECIMAL(9,4)"), ("usual_carrier", V(30)), ("deliveries_per_week", "INT")],
         [[c["customer_id"], c["name"], c["suburb"], c["region"], c["lat"], c["lon"], c["carrier"], c["deliveries_per_week"]] for c in d["customers"]])
     tbl("dim_supplier", "Deliveries map: suppliers delivering into the Wacol DC, with map coordinates and normal transit time.",
-        [("supplier_id", V(6) + " PRIMARY KEY"), ("supplier_name", V(40)), ("place", V(40)), ("state", V(3)),
+        [("supplier_id", V(8) + " PRIMARY KEY"), ("supplier_name", V(40)), ("place", V(40)), ("state", V(3)),
          ("latitude", "DECIMAL(9,4)"), ("longitude", "DECIMAL(9,4)"), ("transit_working_days", "INT"), ("usual_carrier", V(30))],
         [[s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7]] for s in SUPPLIERS])
     tbl("fact_delivery_out", "Deliveries map: every delivery out of the Wacol DC, 3 Aug to 6 Oct 2026 (as at 2pm on 6 Oct). status: On time / Late (1 working day) / Very late (2+) / Overdue (not delivered, past promised date) / In transit (due today). days_late in working days.",
@@ -353,7 +357,7 @@ def tables(d):
           key(r["delivered_at"].date()) if r["delivered_at"] else None, r["delivered_at"].strftime("%H:%M") if r["delivered_at"] else None, r["status"], r["days_late"], r["late_reason"],
           r["cartons"], r["order_value"], r["in_full"]] for r in d["out"]])
     tbl("fact_delivery_in", "Deliveries map: every purchase-order delivery into the Wacol DC, due 3 Aug to 9 Oct 2026 (as at 6 Oct). status: On time / Late / Very late / Overdue / Due (not due yet). lines_short = lines not delivered in full.",
-        [("receipt_id", V(8) + " PRIMARY KEY"), ("po_id", V(10)), ("supplier_id", V(6) + " REFERENCES dim_supplier(supplier_id)"),
+        [("receipt_id", V(8) + " PRIMARY KEY"), ("po_id", V(10)), ("supplier_id", V(8) + " REFERENCES dim_supplier(supplier_id)"),
          ("carrier", V(30)), ("po_date_key", "INT REFERENCES dim_date(date_key)"), ("due_date_key", "INT REFERENCES dim_date(date_key)"),
          ("arrived_date_key", "INT REFERENCES dim_date(date_key)"), ("status", V(12)), ("days_late", "INT"), ("late_reason", V(40)),
          ("lines", "INT"), ("lines_short", "INT"), ("po_value", "INT")],

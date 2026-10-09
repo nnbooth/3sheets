@@ -157,7 +157,8 @@ def build(res, account_ids):
         org + [("scope", V(20)), ("subject", V(80)), ("month_key", V(7)), ("kind", V(30)), ("text", V(300))], notes)
 
     # ---- dim_contract
-    rows = [[f"MC-{i + 1:02d}", "trades", cust, fee, hrs, mat, t["contract_pay_days"]] for i, (cust, fee, hrs, mat) in enumerate(t["contracts"])]
+    from ids import contract_no
+    rows = [[contract_no(i), "trades", cust, fee, hrs, mat, t["contract_pay_days"]] for i, (cust, fee, hrs, mat) in enumerate(t["contracts"])]
     jm = {j["job"]: j for j in res["trades"]["out"]["jobs"] if j["month"] == "2026-09" and j["type"] == "Maintenance contract"}
     for r_ in rows:
         if jm[r_[0]]["revenue"] != r_[3]:

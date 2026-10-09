@@ -26,6 +26,7 @@ import random
 from datetime import date, datetime, timedelta
 
 import data_status as ds
+from ids import Running, scattered
 
 AS_AT = ds.AS_AT                         # 2pm on Tuesday 6 October 2026
 FIRST = date(2024, 10, 1)
@@ -99,6 +100,7 @@ def build(res, history_jobs, timesheet_rows, grant_spend_rows, grant_rows):
 
     # ------------------------------------------------------------------ trades: enquiries and callbacks
     enq = []
+    enq_no = Running(20417, "enquiry")                  # the CRM's enquiry numbers
     callouts = sorted({(j["job"], j["invoice_date"]) for j in history_jobs if j["type"] == "Call-out"}, key=lambda x: (x[1], x[0]))
     n = 0
 
@@ -125,7 +127,7 @@ def build(res, history_jobs, timesheet_rows, grant_spend_rows, grant_rows):
         responded = t if t <= asat else None
         mins = business_minutes(received, responded) if responded else None
         channel = rnd.choices(["Phone", "Web form", "Email"], [0.55, 0.3, 0.15])[0]
-        enq.append([f"E{n:05d}", "trades", received.isoformat(timespec="minutes"), key(received.date()), channel, kind, job,
+        enq.append([f"ENQ{enq_no.next()}", "trades", received.isoformat(timespec="minutes"), key(received.date()), channel, kind, job,
                     responded.isoformat(timespec="minutes") if responded else None, mins,
                     None if mins is None else int(mins <= TARGET_CALLBACK_MIN)])
 
@@ -219,6 +221,7 @@ def build(res, history_jobs, timesheet_rows, grant_spend_rows, grant_rows):
 
     # ------------------------------------------------------------------ not-for-profit: calls for help
     calls, cn = [], 0
+    call_no = Running(1048311, "call")                  # the phone system's call references
     for d in days():
         wk = working(d)
         base = (34 if d.weekday() == 0 else 26) if wk else 9
@@ -236,17 +239,20 @@ def build(res, history_jobs, timesheet_rows, grant_spend_rows, grant_rows):
             wait = rnd.randint(8, 150) if answered else (rnd.randint(60, 420) if staffed else 0)
             outcome = (rnd.choices(["Helped on the call", "Booked into a program", "Referred elsewhere"], [0.45, 0.35, 0.2])[0] if answered
                        else "Hung up waiting" if staffed else "After hours: voicemail")
-            calls.append([f"C{cn:06d}", "nfp", at.isoformat(timespec="minutes"), key(d), at.hour, int(answered), wait, outcome])
+            calls.append([f"CL{call_no.next()}", "nfp", at.isoformat(timespec="minutes"), key(d), at.hour, int(answered), wait, outcome])
     tbl("fact_call", "Not-for-profit: every call to the help line, Oct 2024 to 2pm 6 Oct 2026: when it came in, whether it was answered, how long the caller waited (seconds), "
         "and what happened. The line is staffed 8:30am to 5pm on working days; outside those hours calls go to voicemail.",
-        [("call_id", V(8) + " PRIMARY KEY"), ("org_id", V(12) + " REFERENCES dim_org(org_id)"), ("received_at", "DATETIME"), ("date_key", "INT REFERENCES dim_date(date_key)"),
+        [("call_id", V(10) + " PRIMARY KEY"), ("org_id", V(12) + " REFERENCES dim_org(org_id)"), ("received_at", "DATETIME"), ("date_key", "INT REFERENCES dim_date(date_key)"),
          ("hour_of_day", "INT"), ("answered", "INT"), ("wait_seconds", "INT"), ("outcome", V(30))], calls)
 
     # ------------------------------------------------------------------ not-for-profit: volunteers
     vols = []
     for i in range(1, 61):
         start = FIRST + timedelta(days=rnd.randint(-400, 650))
-        vols.append([f"V{i:03d}", "nfp", start.isoformat(), rnd.choice(CURRENT + ["Volunteer coordinator"])])
+        vols.append([None, "nfp", start.isoformat(), rnd.choice(CURRENT + ["Volunteer coordinator"])])
+    by_start = sorted(range(len(vols)), key=lambda i: vols[i][2])    # volunteer numbers are issued in the order people joined
+    for i, no in zip(by_start, scattered(len(vols), 1084, "volunteer", (2, 19))):
+        vols[i][0] = f"V{no}"
     tbl("dim_volunteer", "Not-for-profit: volunteers (codes only, no names), when they started and the program they mostly help.",
         [("volunteer_id", V(5) + " PRIMARY KEY"), ("org_id", V(12) + " REFERENCES dim_org(org_id)"), ("started", "DATE"), ("main_program", V(40))], vols)
     shifts_v = []

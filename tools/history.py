@@ -27,6 +27,7 @@ from datetime import date, timedelta
 import data_status as ds
 import financial_model as fm
 import tax_payroll as tp
+from ids import callout_no, contract_no
 from warehouse import allocate, days, key, pattern, spread, wdays, working
 
 HIST = [f"{y}-{m:02d}" for y, m in [(2024, 10), (2024, 11), (2024, 12)] + [(2025, k) for k in range(1, 13)] + [(2026, k) for k in range(1, 8)]]
@@ -77,7 +78,7 @@ def trades_jobs(m):
         for c, (cust, fee, hrs, mat) in enumerate(m["contracts"]):
             if mo < CONTRACT_START[c]:
                 continue
-            jobs.append(dict(month=mo, job=f"MC-{c + 1:02d}", type="Maintenance contract", description=cust,
+            jobs.append(dict(month=mo, job=contract_no(c), type="Maintenance contract", description=cust,
                              revenue=round(fee * price / 10) * 10, materials=mat, subcontractors=0, hours=hrs,
                              invoice_date=start, days_to_pay=m["contract_pay_days"] + rng.choice([-5, 0, 0, 3, 8])))
         n_i = rng.choice([3, 4, 4, 5, 5, 6]) if mo != OCT else 1
@@ -104,7 +105,7 @@ def trades_jobs(m):
                 continue                                   # hasn't happened yet
             rev_ = round(hrs * m["callout_rate"] * price + mat_ * m["materials_markup"])
             mrev = fm.half_up(mat_ * m["materials_markup"])      # materials charged: cost + the mark-up
-            jobs.append(dict(month=mo, job=f"C-{mo[2:4]}{mo[5:]}{k + 1:02d}", type="Call-out", description=f"Call-out {k + 1}, {start.strftime('%B %Y')}",
+            jobs.append(dict(month=mo, job=callout_no(mo, k), type="Call-out", description=f"Call-out {callout_no(mo, k)}",
                              revenue=rev_, labour_revenue=rev_ - mrev, materials_revenue=mrev, materials=mat_,
                              subcontractors=0, hours=hrs, invoice_date=d, days_to_pay=rng.choice([0, 0, 0, 2, 7, 7, 14, 30])))
     for j in jobs:

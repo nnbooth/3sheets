@@ -92,19 +92,35 @@ def dim_date():
     return rows
 
 
+ORG_DIGIT = {"trades": 1, "services": 2, "nfp": 3}
+SECTION_BASE = {"Current assets": 1000, "Current liabilities": 2000, "Equity": 3000, "Revenue": 4000, "Income": 4000,
+                "Cost of sales": 5000, "Programs": 5000, "Operating expenses": 6000, "Fundraising": 6000, "Administration": 6500,
+                "Operating activities": 8000, "Investing activities": 8500, "Financing activities": 8800}
+
+
+def account_code(org, section, label, k, stmt="P&L"):
+    """A chart-of-accounts code: the organisation's digit, then the account (assets 1xxx, liabilities 2xxx, equity 3xxx,
+    income 4xxx, direct costs 5xxx, overheads 6xxx, depreciation, interest and tax 7xxx, cash-flow lines 8xxx),
+    10 apart within a section, as a bookkeeper would number them."""
+    below_line = stmt == "P&L" and (label in ("Depreciation", "Interest") or label.startswith("Income tax"))
+    base = 7000 if below_line else SECTION_BASE.get(section, 9000)
+    return ORG_DIGIT[org] * 10000 + base + 10 * k
+
+
 def accounts(res):
-    """dim_account: every line of every statement, with an id."""
+    """dim_account: every line of every statement, with its chart-of-accounts code (account_code)."""
     rows, ids = [], {}
-    n = 0
     for org in ["trades", "services", "nfp"]:
         out = res[org]["out"]
         for stmt, key_ in [("P&L", "pnl"), ("Balance sheet", "bsr"), ("Cash flow", "cfr")]:
-            section = ""
+            section, used = "", {}
             for order, rw in enumerate(out[key_], 1):
                 if rw["level"] == "heading":
                     section = rw["label"]
                     continue
-                n += 1
+                band = account_code(org, section, rw["label"], 0, stmt)
+                used[band] = used.get(band, 0) + 1
+                n = account_code(org, section, rw["label"], used[band], stmt)
                 ids[(org, key_, rw["label"])] = n
                 postable = 1 if rw["level"] == "detail" or (key_ == "pnl" and rw["level"] == "subtotal" and
                                                           (rw["label"] in ("Depreciation", "Interest") or rw["label"].startswith("Income tax"))) else 0
@@ -300,9 +316,10 @@ def build(res):
     # ---- 24 months of history and October to date (never touches August or September)
     import history
     h = history.build(res)
-    for org, label in h["extra_accounts"]:          # ledger lines that only exist in history (finished grants)
+    for org, label in h["extra_accounts"]:          # ledger lines that only exist in history (finished grants): more income accounts
         if (org, "pnl", label) not in acct:
-            nid = max(acct.values()) + 1
+            band = ORG_DIGIT[org] * 10000 + 4000
+            nid = max(v for v in acct.values() if band <= v < band + 1000) + 10
             acct[(org, "pnl", label)] = nid
             acct_rows.append([nid, org, "P&L", "Income", label, "detail", 0, 1])
     for d, org, label, amt, job, eng, grant in h["gl"]:
@@ -349,6 +366,11 @@ def build(res):
     invoices += [["services", i["invoice"], None, i["code"], i["invoice_date"].isoformat(), i["paid_date"].isoformat(), i["amount"]] for i in h["eng_inv"]]
     invoices += [["services", i["invoice"], None, None if i["code"] == "earlier" else i["code"], i["invoice_date"].isoformat(),
                   i["paid_date"].isoformat(), i["amount"]] for i in s["invoices"]]
+    # invoice numbers come from each business's own billing sequence, in the order the invoices were issued
+    from ids import Running
+    seq = {"trades": Running(204_117, "trades-invoice", skip=0.01), "services": Running(8_812, "services-invoice", skip=0.01)}
+    for inv in sorted(invoices, key=lambda r: (r[0], r[4], r[1])):
+        inv[1] = f"INV-{seq[inv[0]].next()}"
     instal = [[gr[0], key(d), a] for gr in fm.NFP["grants"] for d, a in gr[7]]
     gpos = [[g["code"], 20260930, g["received_to_date"], g["spent_to_date"], g["budget_to_date"], g["spend_vs_budget_pct"],
              g["unspent"], g["balance_30_sep"], g["months_left"]] for g in n["grants"]]

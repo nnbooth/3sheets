@@ -33,6 +33,7 @@ Used by tools/publish_dashboard.py (via tools/sample_data.py).
 import random
 import data_status as ds
 import tax_payroll as tp
+from ids import callout_no, contract_no
 from datetime import date, timedelta
 
 PERIODS = ["2026-09", "2026-08"]           # display order: this month, prior month
@@ -164,7 +165,7 @@ def trades_jobs(m):
     for month in ALL_MONTHS:
         start = month_start(month)
         for i, (cust, fee, hrs, mat) in enumerate(m["contracts"]):
-            jobs.append({"month": month, "job": f"MC-{i + 1:02d}", "type": "Maintenance contract", "description": cust,
+            jobs.append({"month": month, "job": contract_no(i), "type": "Maintenance contract", "description": cust,
                          "revenue": fee, "materials": mat, "subcontractors": 0, "hours": hrs,
                          "invoice_date": start, "days_to_pay": m["contract_pay_days"] + rng.choice([-5, 0, 0, 3, 8])})
         if month in m["installs"]:
@@ -175,7 +176,7 @@ def trades_jobs(m):
             for k in range(m["history_installs"][month]):
                 rev = rng.randrange(9000, 42000, 100)                  # costs are worked out from this; the price is INSTALL_PRICE above it
                 jobs.append({"month": month, "job": f"J-{2500 + ALL_MONTHS.index(month) * 20 + k}", "type": "Installation",
-                             "description": f"Installation {k + 1}, {month_start(month).strftime('%B')}", "revenue": round(rev * INSTALL_PRICE / 100) * 100, "materials": int(rev * 0.38) // 100 * 100,
+                             "description": f"Installation J-{2500 + ALL_MONTHS.index(month) * 20 + k}", "revenue": round(rev * INSTALL_PRICE / 100) * 100, "materials": int(rev * 0.38) // 100 * 100,
                              "subcontractors": int(rev * 0.08) // 100 * 100, "hours": rev // 260,
                              "invoice_date": start + timedelta(days=rng.randrange(0, 27)), "days_to_pay": rng.choice([14, 21, 30, 30, 45])})
         for k in range(m["callouts"][month]):
@@ -183,7 +184,7 @@ def trades_jobs(m):
             mat = rng.randrange(20, 240, 10)
             rev = half_up(hrs * m["callout_rate"] + mat * m["materials_markup"])
             mat_rev = half_up(mat * m["materials_markup"])          # materials charged: cost + the mark-up
-            jobs.append({"month": month, "job": f"C-{month[5:]}{k + 1:02d}", "type": "Call-out", "description": f"Call-out {k + 1}, {month_start(month).strftime('%B')}",
+            jobs.append({"month": month, "job": callout_no(month, k), "type": "Call-out", "description": f"Call-out {callout_no(month, k)}",
                          "revenue": rev, "labour_revenue": rev - mat_rev, "materials_revenue": mat_rev, "materials": mat, "subcontractors": 0, "hours": hrs,
                          "invoice_date": start + timedelta(days=rng.randrange(0, 28)), "days_to_pay": rng.choice([0, 0, 0, 2, 7, 7, 14, 30])})
     for j in jobs:

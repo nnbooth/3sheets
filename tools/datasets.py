@@ -43,6 +43,8 @@ import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write
 
 import pandas as pd
 
+from ids import scattered
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import data_status as ds              # noqa: E402
 from sync_media import onedrive_root  # noqa: E402
@@ -124,6 +126,34 @@ def write(dataset, tables, keys, refs, notes):
         ddl.append(f"CREATE TABLE {dataset}.{name} (\n" + ",\n".join(cols) + "\n);\n")
     (DOCS / f"schema-{dataset}.sql").write_text("\n".join(ddl), encoding="utf-8")
     print(f"  {dataset}: {len(tables)} tables, {rows:,} rows -> {out}; schema-{dataset}.sql")
+
+
+def renumber(T, keys, refs, table, col, new):
+    """Give a key realistic numbers everywhere it appears: its own table, every column that references it, and any other
+    table that uses it as its key. new: a function from the old values (sorted, i.e. in the order they were created) to
+    the new ones. Returns {old: new}."""
+    old = sorted(T[table][col].dropna().unique())
+    m = dict(zip(old, new(old)))
+    where = {(table, col)} | {(t, c) for (t, c), (rt, rc) in refs.items() if (rt, rc) == (table, col)} \
+        | {(t, col) for t in T if col in T[t].columns}            # a column with the same name is the same key, declared or not
+    for t, c in where:
+        T[t][c] = T[t][c].map(lambda v: m.get(v, v))
+    return m
+
+
+def shifted(by, fmt=None):
+    """Transaction numbers: a running sequence that started long before the data, so shift it up (the gaps stay)."""
+    def f(old):
+        if fmt:
+            pre, width = fmt
+            return [f"{pre}{int(str(v)[len(pre):]) + by:0{width}d}" for v in old]
+        return [int(v) + by for v in old]
+    return f
+
+
+def spread(start, seed, gap, fmt="{}"):
+    """Master records: numbers issued over years with others in between, in the order these were created."""
+    return lambda old: [fmt.format(v) for v in scattered(len(old), start, seed, gap)]
 
 
 def check(dataset, tables, keys, refs, dated=()):
@@ -372,6 +402,11 @@ def retail():
             ("fact_delivery", "sales_rep_id"): ("dim_employee", "employee_id"), ("fact_delivery", "carrier_id"): ("dim_carrier", "carrier_id"),
             ("fact_delivery", "delivery_status_id"): ("dim_delivery_status", "status_id"),
             ("fact_budget_product_month", "sku_code"): ("dim_product", "sku_code"), ("fact_budget_product_month", "month_key"): ("dim_date", "date_key")}
+    # realistic numbers: staff numbers issued over the years; orders, sales lines and dispatches from long-running sequences
+    renumber(T, keys, refs, "dim_employee", "employee_id", spread(30418, "retail-employee", (3, 60), "E{}"))
+    renumber(T, keys, refs, "fact_sales_order", "order_id", shifted(478_000, ("ORD-", 7)))
+    renumber(T, keys, refs, "fact_sales", "transaction_id", shifted(7_214_000, ("TXN-", 7)))
+    renumber(T, keys, refs, "fact_delivery", "delivery_id", shifted(306_000, ("DEL-", 7)))
     check("retail", T, keys, refs, dated=[("fact_sales_order", "order_date"), ("fact_delivery", "actual_delivery_date"), ("fact_delivery", "dispatch_date")])
     tot = sales.groupby("order_id").total_sales.sum()
     gap = (orders.set_index("order_id").order_total - tot).abs()
@@ -424,6 +459,11 @@ def health():
     keys = {"dim_date": "date_key", "dim_provider": "provider_id", "dim_service_type": "service_type_id", "fact_appointment": "appointment_id", "fact_claim": "claim_id"}
     refs = {("fact_appointment", "date_key"): ("dim_date", "date_key"), ("fact_appointment", "provider_id"): ("dim_provider", "provider_id"),
             ("fact_appointment", "service_type_id"): ("dim_service_type", "service_type_id"), ("fact_claim", "appointment_id"): ("fact_appointment", "appointment_id")}
+    # realistic numbers: provider numbers issued over the years; appointments and claims from the practice system's running sequences
+    renumber(T, keys, refs, "dim_provider", "provider_id", spread(2140, "health-provider", (5, 40)))
+    renumber(T, keys, refs, "fact_appointment", "patient_id", spread(210_400, "health-patient", (1, 9)))
+    renumber(T, keys, refs, "fact_appointment", "appointment_id", shifted(418_276))
+    renumber(T, keys, refs, "fact_claim", "claim_id", shifted(96_140))
     check("health", T, keys, refs, dated=[("fact_appointment", "date"), ("fact_claim", "submission_date"), ("fact_claim", "payment_date")])
     notes = {"fact_appointment": "Appointments: one row per booking, Jan 2023 to 6 Oct 2026, with what was charged and rebated.",
              "fact_claim": "Medicare/DVA claims: one per bulk-billed or DVA appointment. Pending = not paid yet.",
@@ -527,6 +567,22 @@ def legal():
             ("fact_billing", "matter_id"): ("dim_matter", "matter_id"), ("fact_billing", "date_key"): ("dim_date", "date_key"),
             ("fact_disbursement", "matter_id"): ("dim_matter", "matter_id"), ("fact_disbursement", "date_key"): ("dim_date", "date_key"),
             ("fact_fee_earner_budget_month", "fee_earner_id"): ("dim_fee_earner", "fee_earner_id"), ("fact_fee_earner_budget_month", "month_key"): ("dim_date", "date_key")}
+    # realistic numbers: client, matter and staff numbers issued over the years; timecards, bills and disbursements from running
+    # sequences; and every reference built from them (matter reference and name, client name, invoice numbers) rebuilt to match
+    renumber(T, keys, refs, "dim_client", "client_id", spread(100_380, "legal-client", (2, 60)))
+    renumber(T, keys, refs, "dim_matter", "matter_id", spread(18_240, "legal-matter", (1, 4)))
+    renumber(T, keys, refs, "dim_fee_earner", "fee_earner_id", spread(112, "legal-fee-earner", (3, 21)))
+    renumber(T, keys, refs, "fact_work", "timecard_id", shifted(2_604_118))
+    renumber(T, keys, refs, "fact_billing", "billing_id", shifted(803_455))
+    renumber(T, keys, refs, "fact_disbursement", "disbursement_id", shifted(61_207))
+    renumber(T, keys, refs, "fact_fee_earner_budget_month", "budget_id", shifted(7_310))
+    client["client_name"] = client.client_id.map(lambda c: f"Client {c}")
+    dmat["matter_reference"] = dmat.matter_id.map(lambda m: f"MAT-{m}")
+    dmat["matter_name"] = dmat.matter_id.map(lambda m: f"Matter {m}")
+    bill["invoice_number"] = [f"INV-{m}-{d:%Y%m}" for m, d in zip(bill.matter_id, pd.to_datetime(bill.billing_date))]
+    disb = disb.sort_values(["matter_id", "disbursement_date", "disbursement_id"])
+    disb["invoice_number"] = [f"DISB-{m}-{n:02d}" for m, n in zip(disb.matter_id, disb.groupby("matter_id").cumcount() + 1)]
+    disb = T["fact_disbursement"] = disb.sort_values("disbursement_id")
     check("legal", T, keys, refs, dated=[("fact_work", "work_date"), ("fact_billing", "billing_date"), ("fact_disbursement", "disbursement_date")])
     if (bill.groupby("timecard_id").size() > 1).any():
         raise SystemExit("legal: a timecard is billed twice; nothing written")
