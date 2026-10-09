@@ -24,11 +24,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 DEFAULTS = {
     "AZURE_SUBSCRIPTION_ID": "[[AZURE_SUBSCRIPTION_ID]]",   # az account show --query id   (filled in by azure_setup.py)
     "AZURE_TENANT_ID": "[[AZURE_TENANT_ID]]",               # az account show --query tenantId
-    "AZURE_RESOURCE_GROUP": "au.thefourthsheet.qld",
+    "AZURE_RESOURCE_GROUP": "rg-thefourthsheet",
     "AZURE_LOCATION": "australiaeast",
-    "SQL_SERVER": "thefourthsheet",                          # becomes thefourthsheet.database.windows.net
+    "SQL_SERVER": "thefourthsheet-sql",                      # becomes thefourthsheet-sql.database.windows.net (created 9 Oct 2026)
     "SQL_DATABASE": "thefourthsheet",
-    "SQL_LOGIN": "fourthsheet_admin",                        # the SQL login (a name, not a secret)
+    "SQL_LOGIN": "tfsadmin",                                 # the SQL admin login (a name, not a secret)
     "AZURE_KEYVAULT": "",                                    # optional: a Key Vault holding the secret "sql-password"
     "SQL_ADMIN_UPN": "[[SQL_ADMIN_UPN]]",                   # your Microsoft sign-in (Azure management; optional server admin too)
     "SQL_ADMIN_OBJECT_ID": "[[SQL_ADMIN_OBJECT_ID]]",       # az ad signed-in-user show --query id

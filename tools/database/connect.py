@@ -17,7 +17,7 @@ def _braced(v):
 
 def connection_string(database=None, interactive=False, entra=False):
     v = config.read()
-    base = f"Server=tcp:{config.server_host(v)},1433;Database={database or v['SQL_DATABASE']};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=60"
+    base = f"Server=tcp:{config.server_host(v)},1433;Database={database or v['SQL_DATABASE']};Encrypt=yes;TrustServerCertificate=no;ConnectRetryCount=3"
     if entra or interactive:
         return base + f";Authentication={'ActiveDirectoryInteractive' if interactive else 'ActiveDirectoryDefault'}"
     return base + f";Authentication=SqlPassword;UID={_braced(v['SQL_LOGIN'])};PWD={_braced(config.sql_password())}"
@@ -26,7 +26,8 @@ def connection_string(database=None, interactive=False, entra=False):
 def connect(database=None, interactive=False, autocommit=False, entra=False):
     import mssql_python
     try:
-        conn = mssql_python.connect(connection_string(database, interactive, entra))
+        # a paused serverless database takes up to a minute to wake: allow 90 seconds to log in
+        conn = mssql_python.connect(connection_string(database, interactive, entra), timeout=90)
     except Exception as e:
         msg = str(e)
         if not (entra or interactive):

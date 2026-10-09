@@ -6,7 +6,8 @@ load.py — load the CSVs (OneDrive Data/) into the cloud database, safely.
     python3 tools/database/load.py --tables dim_org,fact_gl_daily
 
 How it stays safe:
-  - Signed in as you (Microsoft account); no password exists. Encrypted, certificate checked.
+  - Signed in with the SQL login; its password comes from FOURTH_SHEET_SQL_PASSWORD (environment or the
+    git-ignored .env) or Azure Key Vault, and is never shown. Encrypted, certificate checked.
   - Each file's columns must match the table exactly, or nothing loads.
   - Every row goes into stage.<table> first. Row counts and a checksum (the sum of every number) are read
     back and compared with the files. Any difference stops the load.

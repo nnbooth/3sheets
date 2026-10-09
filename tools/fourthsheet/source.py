@@ -74,7 +74,7 @@ SINGLE_ORG = {"fact_job_month": "trades", "fact_engagement_month": "services", "
 
 
 class SqlSource:
-    """Reads the same tables from the cloud database (Azure SQL), signed in as you (no password).
+    """Reads the same tables from the cloud database (Azure SQL), with the SQL login (password from FOURTH_SHEET_SQL_PASSWORD or Key Vault).
     Same answers as CsvSource: check with  python3 tools/report.py --compare-sources"""
 
     TEXT_KEYS = ("month_key", "job_id", "engagement_id", "grant_id")

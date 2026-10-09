@@ -129,9 +129,8 @@ def create():
     if not v["SQL_ADMIN_OBJECT_ID"].startswith("[["):                                       # you as Entra admin too, for management
         az("sql", "server", "ad-admin", "create", "-g", rg, "-s", srv, "--display-name", v["SQL_ADMIN_UPN"],
            "--object-id", v["SQL_ADMIN_OBJECT_ID"], check=False)
-    # nothing in Azure is let in by default (the "Allow Azure services" rule is 0.0.0.0)
-    if az("sql", "server", "firewall-rule", "show", "-g", rg, "-s", srv, "-n", "AllowAllWindowsAzureIps", check=False, quiet=True):
-        az("sql", "server", "firewall-rule", "delete", "-g", rg, "-s", srv, "-n", "AllowAllWindowsAzureIps")
+    # a new server lets nothing in Azure in by default (the "Allow Azure services" rule is 0.0.0.0). An existing server's
+    # rules are left as they are: Power BI or Fabric in the cloud may need that rule (status reports it).
     allow_this_machine(v)
     if not az("sql", "db", "show", "-g", rg, "-s", srv, "-n", db, check=False, quiet=True):
         az("sql", "db", "create", "-g", rg, "-s", srv, "-n", db,
@@ -188,13 +187,16 @@ def status():
         (f"SQL sign-in on, login {s.get('administratorLogin')} (password from the environment or Key Vault, never in git)",
          not (ad_only and ad_only.get("azureAdOnlyAuthentication")) and bool(s.get("administratorLogin"))),
         ("TLS 1.2 or newer only", s.get("minimalTlsVersion") in ("1.2", "1.3")),
-        ("Azure-wide access rule removed (0.0.0.0)", not any(r["startIpAddress"] == "0.0.0.0" for r in rules)),
         ("No wide-open address ranges", all(r["startIpAddress"] == r["endIpAddress"] for r in rules)),
     ]
+    azure_wide = any(r["startIpAddress"] == "0.0.0.0" for r in rules)
     print(f"\nServer {s['fullyQualifiedDomainName']} ({s['location']})")
     for label, ok in checks:
         print(f"  [{'ok' if ok else '!!'}] {label}")
-    print("  Allowed machines: " + (", ".join(f"{r['name']} ({r['startIpAddress']})" for r in rules) or "none"))
+    print("  Allowed machines: " + (", ".join(f"{r['name']} ({r['startIpAddress']})" for r in rules if r["startIpAddress"] != "0.0.0.0") or "none"))
+    print("  [info] " + ("\"Allow Azure services\" is ON: any service in Azure can try to connect (still needs the login). Needed for Power BI or Fabric "
+                         "refreshing from the cloud; turn it off in the portal (SQL server > Networking) if you don't use those." if azure_wide else
+                         "\"Allow Azure services\" is off: only the machines above can connect."))
     if not all(ok for _, ok in checks):
         raise SystemExit("Some security checks failed: run  python3 tools/database/azure_setup.py create  to fix them.")
 
