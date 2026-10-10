@@ -69,6 +69,12 @@ def file_name(r):
     return r.get("file", r["slug"])
 
 
+def in_short(r):
+    """The report's one-line answer, as the site shows it, for the top of every download. Not for a report split into one
+    file per business: its answer speaks for both, and the businesses never share a file."""
+    return None if r.get("file") else r.get("answer")
+
+
 def page_payload(reports):
     out = {}
     for r in reports:
@@ -212,6 +218,12 @@ def write_xlsx(r, out=OUT):
     pd.title_block(ws, r["question"], sub, status)
     pd.title_block(wk, "How each number is worked out", sub, status)
     rr, wr, wstarts, starts = 5, 5, [], []
+    if in_short(r):
+        ws.cell(rr, 1, f"In short: {in_short(r)}").font = Font(bold=True, color=pd.INK)
+        ws.cell(rr, 1).alignment = Alignment(wrap_text=True, vertical="top")
+        ws.merge_cells(start_row=rr, start_column=1, end_row=rr, end_column=4)
+        ws.row_dimensions[rr].height = 32
+        rr += 1
     ws.cell(rr, 1, r["intro"]).alignment = Alignment(wrap_text=True, vertical="top")
     ws.merge_cells(start_row=rr, start_column=1, end_row=rr, end_column=4)
     ws.row_dimensions[rr].height = 32
@@ -236,10 +248,18 @@ def write_xlsx(r, out=OUT):
                     rr += 1
                     wr, rowmap, st = pd.xl_support(wk, wr, it["support"])
                     wstarts.append(st)
-                    last = it["support"]["xl"]["rows"][-1]
+                    xrows = it["support"]["xl"]["rows"]
                     ws.cell(rr, 1, it["label"])
-                    c = ws.cell(rr, 2, f"=Workings!B{rowmap[len(it['support']['xl']['rows']) - 1]}")
-                    c.number_format = pd.F[last["kind"]]
+                    target = ek.shown(it["value"])
+                    hit = ek.matching_cell(xrows, *target) if target else None
+                    if target and hit is None:    # a headline figure with no working that produces it: stop, never publish a guess
+                        raise SystemExit(f"{r['slug']} {r['period']}: '{it['label']}' shows {it['value']} but no line of its workings is that number")
+                    if hit is None:               # not a number (e.g. "–"): the text, as shown
+                        c = ws.cell(rr, 2, it["value"])
+                    else:
+                        j, col = hit
+                        c = ws.cell(rr, 2, f"=Workings!{get_column_letter(2 + col)}{rowmap[j]}")
+                        c.number_format = pd.F[xrows[j]["kind"]]
                     ek.xl_name(wb, (b.get("label") + " " if b.get("label") else "") + it["label"], "Report", f"B{rr}", used_names)
                     cc = ws.cell(rr, 3, it.get("sub", ""))
                     cc.font = Font(color=pd.MUTED)
@@ -264,14 +284,14 @@ def write_xlsx(r, out=OUT):
                     for c, vw in enumerate(views, 2):
                         pc = vw["format"].startswith("pct")
                         kind = "pct" if pc else "cents" if vw["format"] == "cents_int" else "int" if vw["format"] == "int" else "money"
-                        kinds = [x["kind"] for x in det[i]["xl"]["rows"]] if det else []
-                        want = {"pct": ["pct"], "int": ["int", "hours"]}.get(kind, ["money"])
-                        hits = [j for j, k in enumerate(kinds) if k in want]
-                        if hits:          # linked to the working that produced it
-                            ws.cell(rr, c, f"=Workings!B{rowmap[max(hits)]}").number_format = pd.F[kinds[max(hits)]]
-                        else:             # nothing to link to (e.g. a count): the value itself
-                            val = vw["values"][i]
-                            ws.cell(rr, c, val / 100 if pc else val).number_format = pd.F[kind]
+                        val = vw["values"][i]
+                        num, tol = (val / 100, 0.0005 + 1e-9) if pc else (val, 0.5 + 1e-9)
+                        hit = ek.matching_cell(det[i]["xl"]["rows"], num, tol) if det and val is not None else None
+                        if hit is not None:  # linked to the working that produced it (the cell whose value is this bar)
+                            j, col = hit
+                            ws.cell(rr, c, f"=Workings!{get_column_letter(2 + col)}{rowmap[j]}").number_format = pd.F[det[i]["xl"]["rows"][j]["kind"]]
+                        else:              # nothing produces it on its own (e.g. a count): the value itself
+                            ws.cell(rr, c, val / 100 if pc and val is not None else val).number_format = pd.F[kind]
                 if sec.get("support"):
                     wr, rowmap, st = pd.xl_support(wk, wr, sec["support"])
                     wstarts.append(st)
@@ -402,7 +422,7 @@ def write_xlsx(r, out=OUT):
 
 def html_report(r):
     esc = ek.esc
-    parts = []
+    parts = [f'<p style="font-size:13px;font-weight:700;margin:0 0 10px">In short: {esc(in_short(r))}</p>'] if in_short(r) else []
     for b in r["blocks"]:
         if b.get("label"):
             parts.append(f"<h2 class=block>{esc(b['label'])}</h2>")
@@ -514,7 +534,7 @@ def write_pptx(r, out=OUT):
     import pptkit
     status = [f"{lab}: {st}. {note}" for lab, st, note in months_status(r)]
     d = pptkit.Deck(r["business"], r["question"], f"{file_name(r)}.pptx", ds.as_at_text())
-    d.title_slide(f"Period: {r['period_label']}. " + r["intro"], status)
+    d.title_slide(f"Period: {r['period_label']}. " + (f"In short: {in_short(r)} " if in_short(r) else "") + r["intro"], status)
     definition = None
     for b in r["blocks"]:
         secs = flat_sections(b)
@@ -603,6 +623,8 @@ def write_pptx(r, out=OUT):
                     d.text_slide(title, [("What it shows", x["shows"]), ("What you'd do about it", x["action"])])
                 elif t == "list":
                     d.text_slide(x["title"], [(x["title"], "\n".join("• " + it for it in x["items"]))])
+                elif t == "kpis":           # headline figures not already on a slide: their own slide, never dropped
+                    d.kpi_slide(name or title, [(it["label"], it["value"], it.get("sub", ""), it.get("tone", "")) for it in x["items"]])
     ek.save_if_changed(d.save, Path(out) / f"{file_name(r)}.pptx")
 
 

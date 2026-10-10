@@ -607,7 +607,7 @@ def cost_to_raise(D, P):
         both = bool(r_s and r_a)
         k1 = support(f"Cost to raise a dollar, {lab}, {P.month} and {P.prev_month}", "Cost of raising it ÷ money raised, in cents",
                      [inp("Cost of raising it", "money", [c_s, c_a]), inp("Money raised", "money", [r_s, r_a])]
-                     + ([calc("Cents per dollar", "cents", "r0/r1*100")] if both else []),
+                     + ([calc("Cents per dollar", "cents", "r0/r1*100")] if (r_s or r_a) else []),   # a month with nothing raised shows "–"
                      None if both else "Nothing raised in one of the months, so there's no cost per dollar for it.", cols=(mlabel(P.mo), mlabel(P.prev)))
         items = [kpi(f"{P.when} · {'all fundraising' if name == 'All' else name}", cents(c_s, r_s), f"{P.prev_month} {cents(c_a, r_a) if r_a else 'none raised'}", k1)]
         if P.pfytd_ok:

@@ -1,5 +1,7 @@
-# Publishes the site to GitHub Pages on every push to main: Jekyll builds it (honouring _config.yml's exclude list),
-# then tools/publish_site.py strips comments, stamps every ?v= with the commit and writes the sitemap.
+# Publishes the site to GitHub Pages on every push to main. First tools/tests/exports_match.py checks every download
+# (spreadsheet, PDF, slides) says exactly what the site says; if any doesn't, nothing is published. Then Jekyll builds
+# the site (honouring _config.yml's exclude list) and tools/publish_site.py strips comments, stamps every ?v= with the
+# commit and writes the sitemap.
 # The Pages source must be "GitHub Actions" (Settings > Pages > Build and deployment).
 name: Publish site
 
@@ -22,6 +24,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # every download must say what the site says: if one doesn't, nothing is published and the live site stays as it was
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check every download matches the site
+        run: |
+          pip install --quiet openpyxl pycel pymupdf python-pptx holidays
+          python -I tools/tests/exports_match.py .
       - uses: actions/configure-pages@v5
       - uses: actions/jekyll-build-pages@v1
         with:

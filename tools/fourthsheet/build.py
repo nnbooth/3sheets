@@ -151,9 +151,27 @@ def build_all(formats=("xlsx", "pdf", "pptx"), quiet=False):
             br.write_pptx(r, out_dir(r))
     if "pdf" in formats:
         br.write_pdfs(files)
+    if set(formats) == {"xlsx", "pdf", "pptx"}:      # a full build: any download no report produces any more is removed
+        made = {(out_dir(r) / f"{br.file_name(r)}.{fmt}").resolve() for r in files for fmt in formats}
+        stale = [p for p in EXPORTS.rglob("*") if p.is_file() and p.suffix in (".xlsx", ".pdf", ".pptx") and p.resolve() not in made]
+        for p in stale:
+            p.unlink()
+        for d in sorted(EXPORTS.glob("*"), reverse=True):
+            if d.is_dir() and not any(d.iterdir()):
+                d.rmdir()
+        if stale:
+            print(f"  removed {len(stale)} download(s) no report produces any more")
     size = write_site(runs)          # after the files, so the Export menu can say how many pages and slides they have
     from .dashboard_months import build as dashboard_months      # the home dashboard for every month (checks September against the model)
     n_months = dashboard_months(D)
     print(f"  {len(runs)} reports × their periods = {len(flat)} runs, each as Excel, PDF and PowerPoint (media/exports/reports/<period>/); "
           f"data/reports-data.js {size // 1024} KB + one file per period; home dashboard: {n_months} months")
+    if set(formats) == {"xlsx", "pdf", "pptx"}:      # every download must say what the site says: stop the build if one doesn't
+        import subprocess
+        import sys as _sys
+        root = EXPORTS.parents[2]
+        chk = subprocess.run([_sys.executable, "-I", str(root / "tools/tests/exports_match.py"), str(root)], capture_output=True, text=True)
+        print("  " + chk.stdout.strip().replace("\n", "\n  "))
+        if chk.returncode:
+            raise SystemExit("A download doesn't match the site (above). Nothing should be committed until it does.")
     return defaults

@@ -52,6 +52,36 @@ def esc(s):
     return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def shown(value):
+    """The number a displayed figure stands for, and how far rounding can move it: "$1,234" -> (1234, 0.5),
+    "(42.7%)" -> (-0.427, 0.0005), "1.9 months" -> (1.9, 0.05), "20¢" -> (20, 0.5). None if it isn't a number."""
+    import re
+    v = str(value).strip()
+    neg = v.startswith("(") and v.endswith(")")
+    m = re.search(r"\d[\d,]*\.?\d*|\.\d+", v)
+    if not m:
+        return None
+    digits = m.group(0).replace(",", "").rstrip(".")
+    dp = len(digits.split(".")[1]) if "." in digits else 0
+    num, tol = float(digits), 0.5 * 10 ** -dp
+    if "%" in v:
+        num, tol = num / 100, tol / 100
+    return (-num if neg else num), tol + 1e-9
+
+
+def matching_cell(rows, num, tol):
+    """The workings cell that produced a figure: (row, column) of the last row whose value is that figure, as rounded on
+    screen, looking in this period's column first and then the others (a figure for the month before sits in column 2).
+    None if no cell is. Never 'the last row': two figures can share one set of workings."""
+    ncol = max((len(row["values"]) for row in rows), default=0)
+    for c in range(ncol):
+        hits = [j for j, row in enumerate(rows) if c < len(row["values"]) and isinstance(row["values"][c], (int, float))
+                and abs(row["values"][c] - num) <= tol]
+        if hits:
+            return hits[-1], c
+    return None
+
+
 def fmt_value(v, f):
     from financial_model import round_half_up as hu        # one rounding rule everywhere: halves away from zero
     if f == "pct_var":        # over (+) or under (-) budget: said in words, so an underspend isn't a red negative

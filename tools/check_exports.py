@@ -6,6 +6,7 @@ import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write
 from pycel import ExcelCompiler
 import openpyxl
 import financial_model as fm, deliveries as dl
+import exportkit as ek
 
 res = fm.build()
 bad = 0
@@ -83,16 +84,17 @@ for slug in REPORTS:
                     secs = list(sec["by"].values()) if sec["type"] == "vary" else [sec]
                     for x in secs:
                         if x["type"] == "kpis":
-                            for k in x["items"]:
-                                want.setdefault(k["label"], []).append(k["support"]["xl"]["rows"][-1]["values"][0])
+                            for k in x["items"]:      # the figure as the site shows it (never "the last line of its workings")
+                                if ek.shown(k["value"]) is not None:
+                                    want.setdefault(k["label"], []).append(ek.shown(k["value"]))
             ws = wb["Report"]
             for row in ws.iter_rows(min_col=1, max_col=2):
                 lab, cell = row[0].value, row[1]
                 if lab in want and isinstance(cell.value, str) and cell.value.startswith("=Workings!"):
                     got = xc.evaluate(f"Report!{cell.coordinate}")
-                    exp = want[lab].pop(0) if want[lab] else None
+                    exp, tol = want[lab].pop(0) if want[lab] else (None, 0)
                     nf += 1
-                    if exp is not None and (not isinstance(got, (int, float)) or abs(got - exp) > 1e-6):
+                    if exp is not None and (not isinstance(got, (int, float)) or abs(got - exp) > tol):
                         bad += 1; print("REPORT KPI", slug, per, lab, got, exp)
             for w in wb.worksheets:
                 for row in w.iter_rows():

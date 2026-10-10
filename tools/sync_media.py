@@ -7,6 +7,9 @@ so they're mirrored to OneDrive (Projects/The Fourth Sheet/Media/site media/), b
 whichever copy is newer wins, and files missing on one side are copied over. On a fresh
 machine, running this pulls everything down.
 
+Except the downloads (media/exports/): the build makes those, so the build's copy is the only truth. They're copied
+one way, up to OneDrive, and a download the build no longer makes is deleted from OneDrive too (never copied back).
+
 Runs at the end of tools/sample_data.py, render_mockups.py and record_demo.py.
 Run it yourself any time:   python3 tools/sync_media.py
 """
@@ -21,6 +24,8 @@ LOCAL = REPO / "media"
 
 # Files that have been retired: deleted on BOTH sides before syncing (otherwise "newer wins" would copy a
 # deleted file straight back). Patterns are relative to media/.
+GENERATED = ("exports",)      # top-level folders under media/ that only the build writes: mirrored one way, up
+
 RETIRED = [
     "exports/reports/*.xlsx", "exports/reports/*.pdf", "exports/reports/*.pptx",   # replaced by exports/reports/<period>/ (6 Oct 2026)
 ]
@@ -99,6 +104,15 @@ def sync(quiet=False):
         if rel.name == ".DS_Store":
             continue
         a, b = LOCAL / rel, remote / rel
+        if rel.parts[0] in GENERATED:                      # downloads: the build's copy wins, always
+            if not a.exists():
+                b.unlink()
+                gone += 1
+            elif not b.exists() or a.stat().st_size != b.stat().st_size or a.read_bytes() != b.read_bytes():
+                b.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(a, b)
+                up += 1
+            continue
         if a.exists() and b.exists() and a.stat().st_size == b.stat().st_size and abs(a.stat().st_mtime - b.stat().st_mtime) > 1 \
                 and a.read_bytes() == b.read_bytes():
             t = min(a.stat().st_mtime, b.stat().st_mtime)      # same file, different dates (e.g. a fresh git clone):
@@ -113,7 +127,7 @@ def sync(quiet=False):
             shutil.copy2(b, a)
             down += 1
     if not quiet:
-        print(f"media/ and OneDrive in step: {up} copied up, {down} copied down" + (f", {gone} retired files removed" if gone else "") + f" ({remote})")
+        print(f"media/ and OneDrive in step: {up} copied up, {down} copied down" + (f", {gone} removed (retired, or downloads the build no longer makes)" if gone else "") + f" ({remote})")
     return up, down
 
 

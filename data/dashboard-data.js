@@ -2,7 +2,7 @@
    Don't edit by hand: change the assumptions in financial_model.py and re-run.
    All figures are invented sample data, in whole dollars: September 2026 vs August 2026. */
 window.FOURTH_SHEET_DASHBOARD = {
- "generated": "2026-10-09",
+ "generated": "2026-10-10",
  "as_at": "2pm, Tue 6 Oct 2026",
  "status": [
   {
