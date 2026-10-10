@@ -4,7 +4,7 @@ setup_machine.py — get this machine (Mac or Windows) ready to work on The Four
 
     Mac:      python3 tools/setup_machine.py
     Windows:  py tools\\setup_machine.py
-    Add --onedrive "<path to The 4th Sheet>" to pin this machine to that OneDrive folder (otherwise the first one found is pinned).
+    Add --onedrive "<path to The Fourth Sheet>" to pin this machine to that OneDrive folder (otherwise the first one found is pinned).
     Add --no-azure to leave Azure sign-in for later (until the business Microsoft 365 account exists).
 
 It checks, and fixes what it can:
@@ -151,7 +151,7 @@ def onedrive():
         root = onedrive_root()
         print(OK + f"pinned for this machine: {root}  (change with --onedrive \"<folder>\")")
     except SystemExit as e:
-        print(FAIL + str(e) + " Sign in to OneDrive and let 'Projects/The 4th Sheet' sync, then run this again.")
+        print(FAIL + str(e) + " Sign in to OneDrive and let 'Projects/The Fourth Sheet' sync, then run this again.")
         return False
     for sub in ("Data", "Data documentation", "Business", "Media/site media"):
         print((OK if (root / sub).exists() else WARN) + f"{sub}: {root / sub}")

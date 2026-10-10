@@ -33,7 +33,7 @@ import winutf8; winutf8.ensure()   # Windows: run in UTF-8 mode (the tools write
 REPO = Path(__file__).resolve().parent.parent
 # Data lives in OneDrive, not in git (set FOURTH_SHEET_DATA to use another folder).
 def _data_root():
-    """The 4th Sheet's OneDrive Data folder, on a Mac or a Windows PC."""
+    """The Fourth Sheet's OneDrive Data folder, on a Mac or a Windows PC."""
     if os.getenv("FOURTH_SHEET_DATA"):
         return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser()
     sys.path.insert(0, str(Path(__file__).resolve().parent))

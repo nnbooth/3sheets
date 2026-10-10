@@ -3,7 +3,7 @@ config.py — where the database is, and how to get its password without it ever
 
 Settings (names only, never secrets) are read from, in order:
   1. environment variables (e.g. FOURTH_SHEET_SQL_SERVER), handy for a one-off;
-  2. OneDrive: Projects/The 4th Sheet/Config/database.env, so the Mac and the PC share one copy;
+  2. OneDrive: Projects/The Fourth Sheet/Config/database.env, so the Mac and the PC share one copy;
   3. the defaults below.
 A value still showing [[PLACEHOLDER]] stops anything that needs it, with a message saying what to fill in.
 

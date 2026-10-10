@@ -10,7 +10,7 @@ everything data-driven:
 - eight example reports, worked out **from those CSVs for any period**, each as a web page, Excel, PDF and PowerPoint;
 - the deliveries map data, the mock-up images and the game video.
 
-Business decisions, placeholders, the to-do list and the go-live checklist are in the private project notes: OneDrive, `The 4th Sheet/Business/Project notes.md`.
+Business decisions, placeholders, the to-do list and the go-live checklist are in the private project notes: OneDrive, `The Fourth Sheet/Business/Project notes.md`.
 
 Ground rules: sample data is labelled and adds up; no client results claimed; copy is technology agnostic; every number has
 its workings; every report gets Excel, PDF and PowerPoint versions; data lives in OneDrive, not git.
@@ -63,7 +63,7 @@ build them on request from the cloud database, or from Power BI with a Power Aut
 
 ## Where the private files and data live
 
-Everything private is in OneDrive (`Projects/The 4th Sheet/`), backed up to the cloud and kept out of git:
+Everything private is in OneDrive (`Projects/The Fourth Sheet/`), backed up to the cloud and kept out of git:
 
 ```
 Business/           Project notes.md (decisions, to-do, go-live checklist), business and project plans
@@ -78,7 +78,7 @@ Brand/  Archive/
 ```
 
 Scripts find the Data folder automatically on the Mac (`~/Library/CloudStorage/OneDrive-Personal/...`) and on a Windows PC
-(`%OneDrive%\Projects\The 4th Sheet`). To use another location, set `FOURTH_SHEET_DATA` to the `Data` folder.
+(`%OneDrive%\Projects\The Fourth Sheet`). To use another location, set `FOURTH_SHEET_DATA` to the `Data` folder.
 
 ## Getting a machine ready (Mac or Windows)
 

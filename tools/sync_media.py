@@ -3,7 +3,7 @@
 sync_media.py — keep everything under media/ identical between this machine and OneDrive.
 
 The Excel downloads (and anything else git ignores) only live on the machine that built them,
-so they're mirrored to OneDrive (Projects/The 4th Sheet/Media/site media/), both ways:
+so they're mirrored to OneDrive (Projects/The Fourth Sheet/Media/site media/), both ways:
 whichever copy is newer wins, and files missing on one side are copied over. On a fresh
 machine, running this pulls everything down.
 
@@ -26,9 +26,13 @@ RETIRED = [
 ]
 
 
+PROJECT = "Projects/The Fourth Sheet"                      # the project's OneDrive folder (renamed from "The 4th Sheet", 10 Oct 2026)
+OLD_PROJECTS = ("Projects/The 4th Sheet",)                  # earlier names: a machine pinned to one is moved to PROJECT
+
+
 def onedrive_candidates():
     """Every place OneDrive can live, personal or business, on a Mac or a Windows PC. The one that holds
-    'Projects/The 4th Sheet' wins, so moving the project to OneDrive for Business needs no code change."""
+    'Projects/The Fourth Sheet' wins, so moving the project to OneDrive for Business needs no code change."""
     home = Path.home()
     bases = [os.getenv("OneDriveConsumer"), os.getenv("OneDriveCommercial"), os.getenv("OneDrive"),
              home / "Library/CloudStorage/OneDrive-Personal", *sorted((home / "Library/CloudStorage").glob("OneDrive-*")),
@@ -47,28 +51,36 @@ def pin(path):
     """Pin this machine to one project folder: every tool then reads it, and stops (rather than looking elsewhere) if it's missing."""
     path = Path(path).expanduser()
     if not (path / "Data").is_dir():
-        raise SystemExit(f"Not pinned: {path} doesn't have a Data folder. Is it the 'The 4th Sheet' folder, and has OneDrive synced it?")
+        raise SystemExit(f"Not pinned: {path} doesn't have a Data folder. Is it the 'The Fourth Sheet' folder, and has OneDrive synced it?")
     PIN.parent.mkdir(parents=True, exist_ok=True)
     PIN.write_text(str(path), encoding="utf-8")
     return path
 
 
 def onedrive_root():
-    """The project folder in OneDrive ('Projects/The 4th Sheet'). Order: FOURTH_SHEET_DATA (its parent), then this
-    machine's pin (~/.fourthsheet/onedrive_root.txt), then a search of the usual OneDrive places (only if not pinned)."""
+    """The project folder in OneDrive ('Projects/The Fourth Sheet'). Order: FOURTH_SHEET_DATA (its parent), then this
+    machine's pin (~/.fourthsheet/onedrive_root.txt), then a search of the usual OneDrive places (only if not pinned).
+    A pin to the folder's old name ('The 4th Sheet') is moved to the new name once OneDrive has it."""
     if os.getenv("FOURTH_SHEET_DATA"):
         return Path(os.getenv("FOURTH_SHEET_DATA")).expanduser().parent
     p = pinned()
+    if p and not (p / "Data").is_dir():
+        for old in OLD_PROJECTS:
+            name = Path(old).name
+            if p.name == name and (p.parent / Path(PROJECT).name / "Data").is_dir():
+                p = pin(p.parent / Path(PROJECT).name)          # the folder was renamed: follow it
+                print(f"OneDrive project folder renamed: now pinned to {p}")
+                break
     if p:
         if not (p / "Data").is_dir():
             raise SystemExit(f"The pinned project folder isn't available: {p}\n"
                              "OneDrive may still be syncing or remapping. Wait for it to finish, or pin the new place with:\n"
-                             "  python3 tools/setup_machine.py --onedrive \"<the 'The 4th Sheet' folder>\"   (Windows: py ...)")
+                             "  python3 tools/setup_machine.py --onedrive \"<the 'The Fourth Sheet' folder>\"   (Windows: py ...)")
         return p
     for base in onedrive_candidates():
-        if (base / "Projects/The 4th Sheet").exists():
-            return base / "Projects/The 4th Sheet"
-    raise SystemExit("Can't find the OneDrive folder 'Projects/The 4th Sheet' (personal or business). "
+        if (base / PROJECT).exists():
+            return base / PROJECT
+    raise SystemExit(f"Can't find the OneDrive folder '{PROJECT}' (personal or business). "
                      "Sign in to OneDrive and let it sync, or pin it: python3 tools/setup_machine.py --onedrive \"<folder>\"")
 
 

@@ -8,7 +8,7 @@ machine_profile.py — carry your working set-up between the Mac and the PC, thr
     python3 tools/machine_profile.py rename "3Sheets website refresh" "4th Sheet buildout"
                                                  rename a conversation (by its current name or id), as /rename does
 
-What travels (to OneDrive: Projects/The 4th Sheet/Config/Machine profile/):
+What travels (to OneDrive: Projects/The Fourth Sheet/Config/Machine profile/):
   - VS Code: the list of extensions (installed on the other machine), and your settings
     (minus machine-specific ones like the Python path)
   - Claude Code: your settings, my memory notes for this project, and this project's conversations,

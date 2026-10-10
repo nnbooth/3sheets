@@ -1,12 +1,12 @@
 <#
   Set up this PC for The Fourth Sheet. Safe to run again any time.
 
-  Easiest: double-click "Set up this PC.cmd" in OneDrive (Projects\The 4th Sheet).
+  Easiest: double-click "Set up this PC.cmd" in OneDrive (Projects\The Fourth Sheet).
   Or in PowerShell:  powershell -ExecutionPolicy Bypass -File "Set up this PC.ps1"
-  Add -OneDrive "C:\path\to\The 4th Sheet" to pin this PC to a particular OneDrive folder (otherwise the one found is pinned).
+  Add -OneDrive "C:\path\to\The Fourth Sheet" to pin this PC to a particular OneDrive folder (otherwise the one found is pinned).
 
   What it does, in order (anything already done is skipped):
-    1. checks OneDrive has the project folder (Projects\The 4th Sheet)
+    1. checks OneDrive has the project folder (Projects\The Fourth Sheet)
     2. installs Python 3.12, Git and Google Chrome if they're missing (winget)
     3. downloads the website project to %USERPROFILE%\thefourthsheet (or updates it if it's already there)
     4. switches on Python's UTF-8 mode for good
@@ -62,15 +62,15 @@ try {
     # 1. OneDrive ---------------------------------------------------------------------------------
     Say "1. OneDrive"
     if ($OneDrive) {
-        if (-not (Test-Path (Join-Path $OneDrive "Data"))) { throw "-OneDrive '$OneDrive' isn't the 'The 4th Sheet' folder (no Data folder in it), or it hasn't synced yet." }
+        if (-not (Test-Path (Join-Path $OneDrive "Data"))) { throw "-OneDrive '$OneDrive' isn't the 'The Fourth Sheet' folder (no Data folder in it), or it hasn't synced yet." }
         $project = $OneDrive
     } else {
     $bases = @($env:OneDriveConsumer, $env:OneDriveCommercial, $env:OneDrive) + @(Get-ChildItem $env:USERPROFILE -Directory -Filter "OneDrive*" -ErrorAction SilentlyContinue | ForEach-Object FullName)
-    $project = $bases | Where-Object { $_ -and (Test-Path (Join-Path $_ "Projects\The 4th Sheet")) } | Select-Object -First 1
+    $project = $bases | Where-Object { $_ -and (Test-Path (Join-Path $_ "Projects\The Fourth Sheet")) } | Select-Object -First 1
     if (-not $project) {
-        throw "Can't find 'Projects\The 4th Sheet' in OneDrive. Open OneDrive, sign in with your Microsoft account, let the folder sync, then run this again."
+        throw "Can't find 'Projects\The Fourth Sheet' in OneDrive. Open OneDrive, sign in with your Microsoft account, let the folder sync, then run this again."
     }
-    $project = Join-Path $project "Projects\The 4th Sheet"
+    $project = Join-Path $project "Projects\The Fourth Sheet"
     }
     Ok "project folder: $project (this PC is pinned to it; change with -OneDrive)"
     foreach ($sub in "Data", "Data documentation", "Business", "Media\site media") {
